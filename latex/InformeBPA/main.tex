@@ -1,0 +1,135 @@
+% ===================================================================
+%                       PREÁMBULO DEL DOCUMENTO
+% ===================================================================
+\documentclass[12pt, a4paper]{article}
+
+% --- PAQUETES ESENCIALES (Codificación, Idioma) ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-lcroman]{babel}
+
+% --- PAQUETES PARA CITAS Y BIBLIOGRAFÍA (MUY IMPORTANTE EL ORDEN) ---
+\usepackage{csquotes}
+\usepackage[
+    backend=biber,
+    style=apa,
+    sortcites=true,
+    maxcitenames=2,
+    giveninits=true,
+    uniquename=init,
+    uniquelist=minyear,
+    maxbibnames=99,
+    date=year,
+    urldate=long,
+    isbn=false,
+    doi=true,
+    eprint=false,
+    hyperref=true,
+    backref=false,
+    parentracker=true,
+    dashed=false,
+    block=space
+]{biblatex}
+\addbibresource{referencias.bib}
+
+% --- PAQUETES PARA DISEÑO, FORMATO Y CONTENIDO ---
+\usepackage{geometry}
+\geometry{a4paper, margin=2.54cm}
+\usepackage{fancyhdr}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{setspace}
+\usepackage{mathpazo} % Para la fuente Palatino
+
+% --- PAQUETE HYPERREF (DEBE SER DE LOS ÚLTIMOS EN CARGARSE) ---
+\usepackage{xurl} % Permite saltos de línea en URLs
+\usepackage{hyperref}
+
+% --- CONFIGURACIONES DE PAQUETES (DESPUÉS DE CARGARLOS) ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!50!black,
+    citecolor=blue!50!black,
+    urlcolor=cyan!50!black,
+    pdftitle={Análisis de Procesos Organizacionales para un Sistema de Gemelo Digital de Mantenimiento},
+    pdfauthor={Juan David Julio Serrano}
+}
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}X} 
+
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\lstset{
+    basicstyle=\ttfamily\small, breaklines=true, frame=single,
+    showstringspaces=false, numbers=left, numberstyle=\tiny\color{codegray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!40!black},
+    stringstyle=\color{purple}
+}
+
+\captionsetup{
+    format=plain,
+    labelfont=bf,
+    textfont=normalfont,
+    singlelinecheck=false,
+    justification=centering
+}
+
+% ===================================================================
+%                       METADATOS DEL DOCUMENTO
+% ===================================================================
+\title{Análisis de Procesos Organizacionales para un Sistema de Gemelo Digital de Mantenimiento}
+\author{Juan David Julio Serrano}
+\date{12 de noviembre de 2025}
+
+% ===================================================================
+%                       INICIO DEL DOCUMENTO
+% ===================================================================
+\begin{document}
+
+% --- PORTADA ---
+\begin{titlepage}
+    \begin{center}
+        \vspace*{2.5cm}
+        {\Huge \bfseries Identificación de Procesos Organizacionales para un Sistema de Gemelo Digital de Mantenimiento}\\[2cm]
+        
+        {\large \bfseries Aprendices:}\\[0.5cm]
+        \large{Juan David Julio Serrano (Ficha: 3336237)}\\[0.3cm]
+        \large{Maria Juliana Calvo Corredor (Ficha: 3336237)}\\[0.3cm]
+        \large{Jesús David Algeciras Abril (Ficha: 3336238)}\\[0.3cm]
+        \large{Didier Moreno Caicedo (Ficha: 3336238)}\\[1.2cm]
+        
+        {\large \bfseries Instructor:}\\[0.5cm]
+        \large{Ing. Wilson Alberto Mosquera Caicedo}\\[1.5cm]
+        
+        \vspace{1cm}
+        \large{Servicio Nacional de Aprendizaje (SENA)}\\[0.4cm]
+        \large{Centro de Biotecnología Industrial - Regional Valle}\\[0.4cm]
+        \large{Tecnología en Análisis y Desarrollo de Software (ADSO)}\\[1.2cm]
+        \large{14 de noviembre de 2025}
+    \end{center}
+\end{titlepage}
+
+% --- ÍNDICE DE CONTENIDOS ---
+\clearpage
+\tableofcontents
+\clearpage
+\doublespacing
+
+% --- CONTENIDO DEL DOCUMENTO ---
+\input{secciones/introduccion.tex}
+\input{secciones/actores.tex}
+\input{secciones/procesos.tex}
+\input{secciones/entradassalidas.tex}
+\input{secciones/relaciones.tex}
+\input{secciones/contexto.tex}
+
+% --- BIBLIOGRAFÍA ---
+\clearpage
+\printbibliography[heading=bibintoc,title=Referencias]
+
+\end{document}

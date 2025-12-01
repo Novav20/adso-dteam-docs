@@ -1,0 +1,47 @@
+\section{Entradas y Salidas}
+
+El sistema opera mediante un flujo continuo de datos que, una vez procesados, producen información de valor para la toma de decisiones. Estos flujos son la base de un CMMS/EAM efectivo, donde la calidad de la entrada de datos es crucial para el éxito del sistema \parencite{fiix:2019, fluke:2020, mazenko:2015, obrien:sf}.
+
+\subsection{Entradas (Inputs)}
+
+Son los datos que alimentan el sistema desde diversas fuentes para construir una imagen completa del estado de los activos y las operaciones.
+
+\begin{itemize}
+    \item \textbf{Datos de Planificación y Configuración:}
+    \begin{itemize}
+        \item \textbf{Plan de Mantenimiento Programado:} Calendario de inspecciones y mantenimientos preventivos (PM), una función esencial de cualquier CMMS que se basa en el tiempo o en métricas de uso como lecturas de medidores \parencite{accruent:2025, ftmaintenance:2019, laurila:2017}.
+        \item \textbf{Modelo 3D/CAD del Activo:} Archivos de diseño que sirven como base visual para la creación y actualización del Gemelo Digital \parencite{miao:2025, zhang:2025}.
+    \end{itemize}
+    \item \textbf{Datos Operativos y de Campo:}
+    \begin{itemize}
+        \item \textbf{Datos de Sensores en Tiempo Real:} Lecturas continuas de variables físicas (vibración, temperatura, presión) desde los activos, siendo la base del Mantenimiento Basado en Condición (CBM) y Predictivo (PdM) \parencite{chen:2025, mrzyk:2023, osullivan:2020, sap:sf}.
+        \item \textbf{Datos de Operación del Activo:} Registros de uso, como horas de funcionamiento y ciclos de producción, utilizados a menudo para programar el mantenimiento \parencite{laurila:2017, manwinwin:2015, osullivan:2020}.
+        \item \textbf{Datos de Inspección y Anomalías:} Información capturada por los técnicos en campo a través de formularios o checklists digitales, incluyendo evidencia multimedia (fotos, videos) que documentan fallos o desviaciones \parencite{fracttal:2024, ftmaintenance:2019, servicenow:sf}.
+    \end{itemize}
+    \item \textbf{Datos de Transacción:}
+    \begin{itemize}
+        \item \textbf{Solicitud de Repuesto:} Petición formal de un componente específico del inventario, esencial para la gestión de MRO \parencite{hxgn:sf, stum:2018}.
+        \item \textbf{Informe de Contratista:} Documentos no estructurados (PDF, JPG) con el reporte de un trabajo realizado por un tercero, que sirven como entrada para su procesamiento y estandarización \parencite{hxgn:sf, zhang:2025}.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Salidas (Outputs)}
+
+Son los resultados generados por el sistema tras procesar las entradas, convirtiendo datos brutos en información accionable.
+
+\begin{itemize}
+    \item \textbf{Resultados de Proceso y Tareas:}
+    \begin{itemize}
+        \item \textbf{Orden de Trabajo Digital (OT/WO):} Documento formal que es el corazón del mantenimiento, detallando la tarea a ejecutar, los recursos necesarios, el responsable asignado y las instrucciones. Sirve para formalizar, planificar y registrar todo el trabajo \parencite{accruent:2025, landau:2023, stum:2018, tractian:2025b}.
+        \item \textbf{Informe de Cierre de Trabajo:} Registro final de una OT completada, que documenta crucialmente las horas-hombre, piezas usadas y la descripción de la solución para análisis futuros \parencite{ardila-marin:2018, fracttal:2024, laurila:2017}.
+        \item \textbf{Historial de Activo Actualizado:} Registro cronológico de todas las intervenciones realizadas sobre un activo, conformado por las órdenes de trabajo cerradas. Es la base para el análisis de costos y rendimiento a largo plazo \parencite{ardila-marin:2018, fracttal:2024}.
+        \item \textbf{Documento Estructurado:} Información clave extraída y formateada a partir del informe de un contratista mediante el procesamiento del LLM.
+    \end{itemize}
+    \item \textbf{Resultados de Análisis y Notificaciones:}
+    \begin{itemize}
+        \item \textbf{Alertas y Notificaciones:} El sistema genera alertas automáticas que pueden ser operativas (ej., "stock bajo de un repuesto") o predictivas (ej., "alta probabilidad de fallo inminente"). Estas notificaciones son clave para una gestión proactiva \parencite{chen:2025, hxgn:sf, mazenko:2015, osullivan:2020}.
+        \item \textbf{Dashboard de Salud del Activo:} Visualización en tiempo real del estado operativo y la degradación de los componentes de un activo, a menudo representado como un "Índice de Salud" \parencite{chen:2025, mrzyk:2023}.
+        \item \textbf{Informe de KPIs:} Reportes y dashboards que presentan métricas clave para la gestión estratégica, tales como el MTBF, el MTTR y la OEE \parencite{fiix:2019, ftmaintenance:2019, obrien:sf, osullivan:2020}.
+    \end{itemize}
+\end{itemize}
+
