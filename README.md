@@ -11,7 +11,7 @@ Este repositorio sigue la filosofía **"Docs-as-Code"** (Documentación como Có
 *   **`/bpmn`**: Contiene los diagramas de procesos (BPMN).
     *   *Nota:* Estos archivos son generados programáticamente (ver sección de Flujo de Trabajo).
 *   **`/latex`**: Contiene el código fuente `.tex` de los documentos formales entregables.
-*   **`/assets`**: Imágenes exportadas (PNG/SVG) listas para incrustar en Notion o documentos.
+*   **`/assets`**: Imágenes exportadas (PNG/SVG) listas para incrustar en Notion o documentos y artefactos extras.
 *   **`/scripts`**: (Opcional) Scripts de utilidad para la generación de diagramas.
 *   **`/prompts`**: Archivos de texto con las descripciones estructuradas que generan los diagramas.
 
