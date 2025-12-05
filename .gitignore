@@ -1,0 +1,15 @@
+# LaTeX build directory
+**/build/
+
+# Standard LaTeX temporary files
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.bcf
+*.xml
+*.synctex.gz
+*.fls
+*.fdb_latexmk
