@@ -1,0 +1,208 @@
+% ===================================================================
+%                       PREÁMBULO DEL DOCUMENTO
+% ===================================================================
+\documentclass[12pt, a4paper]{article}
+
+% --- PAQUETES ESENCIALES ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-lcroman]{babel}
+
+% --- PAQUETES PARA CITAS Y BIBLIOGRAFÍA ---
+\usepackage{csquotes}
+\usepackage[
+    backend=biber,
+    style=apa,
+    sortcites=true,
+    maxcitenames=2,
+    giveninits=true,
+    date=year,
+    urldate=long,
+    doi=true,
+    hyperref=true
+]{biblatex}
+\addbibresource{referencias.bib}
+
+% --- PAQUETES PARA DISEÑO, FORMATO Y CONTENIDO ---
+\usepackage{geometry}
+\geometry{a4paper, margin=2.54cm}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{mathpazo} % Fuente Palatino
+\usepackage{xcolor}
+
+% --- PAQUETE HYPERREF ---
+\usepackage{xurl}
+\usepackage{hyperref}
+
+% --- CONFIGURACIONES ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!50!black,
+    citecolor=blue!50!black,
+    urlcolor=cyan!50!black,
+    pdftitle={Informe de Diseño del Instrumento},
+    pdfauthor={Juan David Julio Serrano et al.}
+}
+
+\captionsetup{
+    format=plain,
+    labelfont=bf,
+    textfont=normalfont,
+    justification=centering
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+% ===================================================================
+%                       INICIO DEL DOCUMENTO
+% ===================================================================
+\begin{document}
+
+% --- PORTADA ---
+\begin{titlepage}
+    \begin{center}
+        \includegraphics[width=0.25\textwidth]{../../assets/logo_sena.jpg}
+        \vspace*{1.5cm}
+        
+        {\Huge \bfseries Informe de Diseño del Instrumento de Recolección de Requisitos para un Sistema de Gemelo Digital de Mantenimiento}\\[2cm]
+        
+        {\large \bfseries Aprendices:}\\[0.5cm]
+        \large{Juan David Julio Serrano (Ficha: 3336237)}\\[0.2cm]
+        \large{María Juliana Calvo Corredor (Ficha: 3336237)}\\[0.2cm]
+        \large{Jesús David Algeciras Abril (Ficha: 3336238)}\\[0.2cm]
+        \large{Didier Moreno Caicedo (Ficha: 3336238)}\\[1.0cm]
+        
+        {\large \bfseries Instructor:}\\[0.5cm]
+        \large{Ing. Wilson Alberto Mosquera Caicedo}\\[1.5cm]
+        
+        \vspace{1cm}
+        \large{Servicio Nacional de Aprendizaje (SENA)}\\[0.3cm]
+        \large{Centro de Biotecnología Industrial - Regional Valle}\\[0.3cm]
+        \large{Tecnología en Análisis y Desarrollo de Software (ADSO)}\\[1.0cm]
+        \large{28 de Noviembre de 2025}
+    \end{center}
+\end{titlepage}
+
+% --- ÍNDICE ---
+\clearpage
+\tableofcontents
+\clearpage
+\onehalfspacing
+
+% --- CONTENIDO ---
+
+\section{Introducción}
+
+El presente documento tiene como propósito estructurar el diseño del instrumento de recolección de información necesario para la fase de elicitación de requisitos del proyecto ``Sistema de Gemelo Digital para Mantenimiento''. La técnica seleccionada para este fin es la \textbf{Entrevista Semiestructurada} \parencite{sena:fundamentos2024}, dirigida a los responsables de la toma de decisiones técnicas.
+
+La información recolectada mediante este instrumento servirá como base fundamental para determinar las necesidades funcionales y no funcionales del software, asegurando que la solución propuesta responda a los desafíos típicos y documentados de la gestión de activos industriales.
+
+\section{Alcance}
+
+El alcance de este documento abarca la definición y justificación de la técnica, el diseño del guion de preguntas y la caracterización del perfil del entrevistado, identificado como un \textit{Stakeholder Primario}, es decir, una persona cuya participación es indispensable y tiene una relación directa con el proyecto \parencite{sena:fundamentos2024}.
+
+Se delimita que el instrumento se enfocará exclusivamente en obtener información para la construcción del software, indagando sobre: flujos de información actuales, cuellos de botella en la operación, manejo de datos históricos y necesidades de visualización. No se busca realizar una auditoría de mantenimiento, sino un levantamiento de requerimientos de software.
+
+\section{Objetivos de la Recolección de Información}
+
+\subsection{Objetivo General}
+Analizar el estado actual de los procesos de gestión de mantenimiento en la organización, identificando los puntos críticos en el flujo de información, la gestión de activos y la toma de decisiones, para determinar los requerimientos funcionales de un nuevo sistema basado en Gemelos Digitales.
+
+\subsection{Objetivos Específicos}
+\begin{itemize}
+    \item Evaluar la eficiencia de los canales de comunicación actuales entre técnicos y supervisores (Manual vs. Digital).
+    \item Identificar las limitaciones actuales en el acceso a la documentación técnica de los activos en campo.
+    \item Determinar el nivel de digitalización actual de los registros históricos de mantenimiento.
+    \item Validar la necesidad de visualización espacial y monitoreo en tiempo real para la toma de decisiones.
+\end{itemize}
+
+\section{Perfil del Entrevistado (Stakeholder)}
+
+El instrumento está diseñado para ser aplicado a un \textbf{Jefe o Supervisor de Mantenimiento}. Este perfil ha sido seleccionado por su visión holística del proceso, alineándose con los requisitos de liderazgo y planificación de la norma ISO 55001:
+
+\begin{itemize}
+    \item Es responsable directo de la planeación, ejecución y control de las actividades de mantenimiento.
+    \item Toma decisiones sobre recursos, personal técnico, repuestos y prioridades operativas, equilibrando costos, riesgos y desempeño como sugiere la gestión de activos \parencite{iso:55001}.
+    \item Posee experiencia en la supervisión de equipos, maquinaria o procesos industriales.
+    \item Conoce indicadores de desempeño asociados a mantenimiento (MTBF, MTTR, disponibilidad, costos, etc.), fundamentales para la evaluación del desempeño según la ISO 55002 \parencite{iso:55002}.
+    \item Tiene una perspectiva estratégica sobre el funcionamiento del área y sus necesidades reales, actuando como el enlace entre la operación y los objetivos organizacionales definidos en la ISO 55000 \parencite{iso:55000}.
+\end{itemize}
+
+\section{Justificación de la Técnica}
+
+Para la fase de elicitación de requisitos del sistema ``Gemelo Digital para Mantenimiento'', se ha seleccionado la \textbf{Entrevista Semiestructurada} como la técnica principal. Esta técnica ofrece la flexibilidad necesaria para adaptarse al interlocutor, aclarar términos técnicos y reducir formalismos, facilitando la identificación de ambigüedades en los procesos actuales \parencite{sena:fundamentos2024}.
+
+Se descartó el uso de encuestas masivas basándonos en los siguientes criterios técnicos y metodológicos:
+
+\begin{enumerate}
+    \item \textbf{Profundidad sobre Cantidad:} A diferencia de una encuesta, que busca estandarizar datos, el desarrollo de software especializado requiere comprender procesos complejos. Como señalan \citeauthor{sampieri:2018} (\citeyear{sampieri:2018}), las entrevistas son la herramienta idónea cuando se requieren ``perspectivas internas y profundas de los participantes'', permitiendo indagar en los detalles y matices que un cuestionario cerrado no puede capturar.
+    \item \textbf{Naturaleza del Interesado (Stakeholder):} El sistema está dirigido a un grupo reducido de usuarios expertos (Jefes de Mantenimiento, Supervisores). Al ser expertos de dominio, su conocimiento es tácito y complejo; una conversación guiada es la única forma efectiva de extraer ese conocimiento y entender sus ``dolores'' reales.
+    \item \textbf{Flexibilidad y Exploración:} Al ser un proyecto innovador, es posible que el usuario no sepa exactamente qué solución necesita. La entrevista permite al investigador la libertad de ``introducir preguntas adicionales para precisar conceptos'' \parencite{sampieri:2018}, descubriendo requisitos ocultos que el usuario no habría escrito en un formulario estático.
+    \item \textbf{Construcción de Confianza (Rapport):} La implementación de un nuevo sistema cambia la forma de trabajar de las personas. La entrevista personal permite generar un ``clima de confianza'' o \textit{rapport} con los líderes del área, reduciendo la resistencia al cambio y asegurando su compromiso con el proyecto desde el día uno.
+\end{enumerate}
+
+\section{Metodología de Construcción del Cuestionario}
+Las preguntas de este instrumento surgieron a partir de dos fuentes de análisis previo:
+\begin{enumerate}
+    \item \textbf{Análisis de Procesos de Negocio (BPA):} Basado en el mapa de procesos del sistema (realizado en la fase anterior), se diseñaron preguntas para validar los flujos críticos identificados, como el ciclo de mantenimiento correctivo y la gestión de inventarios.
+    \item \textbf{Investigación de Mejores Prácticas:} Se incorporaron preguntas sobre indicadores (KPIs) y gestión de activos alineadas con los estándares de la industria (ISO 55000), para confirmar si la organización objetivo sigue estas prácticas o presenta brechas que el software debe cubrir.
+\end{enumerate}
+
+\section{Diseño del Instrumento (Guion de la Entrevista)}
+
+El instrumento se estructura en cinco secciones lógicas. La primera recopila metadatos para caracterizar al entrevistado, y las siguientes cuatro profundizan en los requerimientos del sistema.
+
+\subsection{Información General (Caracterización del Stakeholder)}
+Esta sección inicial permite clasificar las respuestas según el nivel de experiencia y el tipo de industria, validando la pertinencia de la fuente.
+
+\begin{itemize}
+    \item \textbf{Cargo que ocupa actualmente:} \rule{5cm}{0.4pt}
+    \item \textbf{Años de experiencia en el área de mantenimiento:} \rule{5cm}{0.4pt}
+    \item \textbf{Tipo de industria donde trabaja:} \rule{5cm}{0.4pt}
+    \item \textbf{Fecha de la entrevista:} \rule{5cm}{0.4pt}
+\end{itemize}
+
+\subsection{Bloque A: Diagnóstico del Proceso Actual y ``Dolores''}
+Este bloque tiene como objetivo mapear el flujo de trabajo actual (``As-Is'') para detectar dependencias manuales, uso de canales informales (llamadas) y puntos de fricción que retrasan la operación.
+
+\begin{enumerate}
+    \item Descríbeme el proceso completo desde que ocurre una falla hasta que el técnico llega al sitio. ¿Qué pasos intermedios existen?
+    \item ¿Cómo registran sus técnicos el trabajo en campo y qué dificultades han reportado con ese método?
+    \item En su experiencia, ¿cuáles son los principales ``cuellos de botella'' administrativos u operativos que retrasan una reparación urgente?
+\end{enumerate}
+
+\subsection{Bloque B: Gestión de la Información y Activos}
+Las siguientes preguntas buscan evaluar la madurez digital de la organización. El propósito es justificar la necesidad de un repositorio documental centralizado y validar la importancia de la trazabilidad histórica en el nuevo sistema.
+
+\begin{enumerate}
+    \item ¿Cómo es el proceso actual para que un técnico acceda a planos, manuales o historiales en medio de una reparación en campo?
+    \item ¿De qué manera mantienen actualizado el inventario de activos y componentes críticos hoy en día? ¿Es un proceso manual o automático?
+    \item Si necesitáramos ver el historial de fallas de una bomba específica del último año, ¿qué pasos tendría que seguir hoy para obtenerlo?
+\end{enumerate}
+
+\subsection{Bloque C: Visión y Toma de Decisiones}
+Este segmento se enfoca en el valor del negocio. Se busca identificar qué métricas (KPIs) deben automatizarse en el Dashboard y validar la propuesta de valor central del Gemelo Digital: la visualización y el monitoreo remoto.
+
+\begin{enumerate}
+    \item ¿Qué indicadores (KPIs) son prioritarios para su gestión y qué datos específicos debe reunir hoy manualmente para poder calcularlos?
+    \item Describa el procedimiento actual para solicitar un repuesto crítico cuando detectan que el stock está bajo.
+    \item ¿Qué información crítica de la planta le gustaría visualizar desde su oficina en tiempo real y que hoy no tiene disponible?
+\end{enumerate}
+
+\subsection{Bloque D: Cierre y Visión Futura}
+Finalmente, se utiliza una pregunta abierta para descubrir requisitos deseables o innovadores que no hayan sido contemplados en el alcance inicial.
+
+\begin{enumerate}
+    \item Si pudiera diseñar la herramienta ideal para su equipo, ¿qué funcionalidad específica no podría faltar para facilitarles el día a día?
+\end{enumerate}
+
+% --- BIBLIOGRAFÍA ---
+\clearpage
+\printbibliography[heading=bibintoc,title=Referencias]
+
+\end{document}
