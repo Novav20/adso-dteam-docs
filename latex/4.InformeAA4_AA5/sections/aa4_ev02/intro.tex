@@ -1,0 +1,80 @@
+\section{Introducción}
+
+\subsection{Propósito}
+El propósito del presente documento es definir de manera formal y detallada la \textbf{Especificación de Requisitos de Software (SRS)} para la primera versión del sistema \textbf{``Gemelo Digital de Mantenimiento''}. Este documento establece tanto los requisitos funcionales (el comportamiento esperado del sistema) como los requisitos no funcionales (restricciones de calidad, rendimiento y seguridad) que guiarán el diseño, desarrollo y validación del producto.
+
+Este SRS servirá como la fuente de verdad técnica para el equipo de desarrollo, asegurando que la solución construida se alinee con las necesidades operativas identificadas durante la fase de elicitación y cumpla con los estándares de la industria para la gestión de activos y mantenimiento.
+
+\subsection{Ámbito del Sistema (Alcance)}
+El sistema \textbf{``Gemelo Digital de Mantenimiento''} es una plataforma de software diseñada para optimizar la gestión operativa y estratégica de los activos en una planta industrial. Su alcance se define mediante la integración de un \textbf{Sistema de Gestión de Mantenimiento (CMMS)} con una interfaz de \textbf{Gemelo Digital (Visualización 3D/2D)}.
+
+\textbf{El sistema SÍ incluirá (Alcance):}
+\begin{enumerate}
+    \item \textbf{Gestión del Ciclo de Vida de Órdenes de Trabajo (OT):} Desde la solicitud y planificación hasta la ejecución y cierre, incluyendo la captura de datos en campo mediante dispositivos móviles.
+    \item \textbf{Visualización y Navegación:}
+    \begin{itemize}
+        \item Importación y visualización de modelos 3D preexistentes (modo ``solo lectura'') para la identificación de componentes y acceso a documentación técnica.
+        \item Visualización de planos 2D con superposición de capas de información operativa (ej. ubicación de permisos de trabajo activos generados desde las OTs, rutas de aislamiento).
+    \end{itemize}
+    \item \textbf{Gestión Física de Inventarios:} Control de existencias (stock), ubicación de repuestos y alertas de reabastecimiento para garantizar la disponibilidad operativa.
+    \item \textbf{Monitoreo de Condición:} Lectura y visualización de variables de telemetría (sensores IoT) para la detección de anomalías y la generación de alertas predictivas.
+\end{enumerate}
+
+\textbf{El sistema NO incluirá (Exclusiones / Out of Scope):}
+\begin{enumerate}
+    \item \textbf{Edición o Modelado CAD:} El sistema no permitirá crear ni modificar la geometría de los modelos 3D o planos 2D. Se limita estrictamente a visualizar archivos importados de herramientas de diseño externas (como Blender o AutoCAD).
+    \item \textbf{Gestión Financiera y de Compras:} No se incluirán módulos de facturación, emisión de órdenes de compra a proveedores ni contabilidad de costos. El alcance del inventario se limita al control físico de cantidades.
+    \item \textbf{Control Industrial (SCADA/HMI):} El sistema operará en modo de ``solo lectura'' respecto a la maquinaria. No tendrá capacidad para enviar comandos de control (encender/apagar equipos, abrir válvulas) para garantizar la seguridad funcional de la planta.
+\end{enumerate}
+
+\subsection{Definiciones, Acrónimos y Abreviaturas}
+\textbf{Términos del Dominio y Técnicos}
+\begin{itemize}
+    \item \textbf{API (Application Programming Interface):} Interfaz que permite la comunicación e intercambio de datos entre dos sistemas de software independientes.
+    \item \textbf{CMMS (Computerized Maintenance Management System):} Software diseñado para simplificar la gestión del mantenimiento de activos.
+    \item \textbf{DT (Digital Twin / Gemelo Digital):} Representación virtual dinámica de un activo físico o sistema que se actualiza con datos en tiempo real.
+    \item \textbf{EAM (Enterprise Asset Management):} Gestión de activos empresariales; software que gestiona el ciclo de vida completo de los activos físicos.
+    \item \textbf{ERP (Enterprise Resource Planning):} Sistema de planificación de recursos empresariales utilizado para la gestión de procesos de negocio (finanzas, compras).
+    \item \textbf{HSEQ:} Acrónimo para Salud, Seguridad, Medio Ambiente y Calidad (Health, Safety, Environment, Quality).
+    \item \textbf{KPI (Key Performance Indicator):} Indicador clave de rendimiento utilizado para medir el éxito de una actividad.
+    \item \textbf{LOTO (Lockout/Tagout):} Procedimiento de seguridad para asegurar que las máquinas estén debidamente apagadas y no se puedan encender durante el mantenimiento.
+    \item \textbf{MRO:} Mantenimiento, Reparación y Operaciones; se refiere a los suministros y repuestos necesarios para mantener la planta operativa.
+    \item \textbf{MTBF (Mean Time Between Failures):} Tiempo medio entre fallas; métrica de confiabilidad que mide el tiempo promedio que un equipo funciona sin fallar.
+    \item \textbf{MTTR (Mean Time To Repair):} Tiempo medio de reparación; métrica que mide el tiempo promedio necesario para reparar un activo.
+    \item \textbf{OEE (Overall Equipment Effectiveness):} Efectividad Global del Equipo; estándar para medir la productividad de la manufactura.
+    \item \textbf{OT / WO (Orden de Trabajo / Work Order):} Documento que autoriza y detalla una tarea de mantenimiento específica.
+    \item \textbf{PTW (Permit to Work):} Permiso de Trabajo; autorización formal para realizar actividades de alto riesgo.
+    \item \textbf{RF:} Requisito Funcional.
+    \item \textbf{RNF:} Requisito No Funcional.
+\end{itemize}
+
+\textbf{Nomenclatura del Proyecto (Prefijos de Módulos)}
+\begin{itemize}
+    \item \textbf{ADM:} Prefijo para requisitos del módulo de Administración e Inteligencia de Negocio.
+    \item \textbf{INV:} Prefijo para requisitos del módulo de Gestión de Recursos e Inventario.
+    \item \textbf{MTTO:} Prefijo para requisitos del módulo de Gestión de Operaciones de Mantenimiento.
+    \item \textbf{VIS:} Prefijo para requisitos del módulo de Visualización y Gemelo Digital.
+\end{itemize}
+
+\subsection{Referencias}
+\textbf{Normas y Estándares Técnicos}
+\begin{itemize}
+    \item International Organization for Standardization. (2023). \textit{Systems and software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — Product quality model} (ISO/IEC 25010:2023).
+    \item International Organization for Standardization. (2016). \textit{Petroleum, petrochemical and natural gas industries — Collection and exchange of reliability and maintenance data for equipment} (ISO 14224:2016).
+    \item International Organization for Standardization. (2014). \textit{Asset management — Management systems — Requirements} (ISO 55001:2014).
+\end{itemize}
+
+\textbf{Bibliografía y Artículos de Investigación}
+\begin{itemize}
+    \item Chen, S., Turanoglu Bekar, E., Bokrantz, J., \& Skoogh, A. (2025). AI-enhanced digital twins in maintenance: Systematic review, industrial challenges, and bridging research–practice gaps. \textit{Journal of Manufacturing Systems}, 82, 678-699.
+    \item Cohn, M. (2004). \textit{User Stories Applied: For Agile Software Development}. Addison-Wesley Professional.
+    \item Grupo de Ejecución de la Formación Virtual. (2024). \textit{Fundamentos de análisis y diseño de software} [Componente formativo]. Servicio Nacional de Aprendizaje (SENA).
+    \item Wynne, M., \& Hellesoy, A. (2017). \textit{The Cucumber Book: Behaviour-Driven Development for Testers and Developers} (2nd ed.). Pragmatic Bookshelf.
+    \item DSDM Consortium. (2014). \textit{The DSDM Agile Project Framework Handbook}. DSDM Consortium.
+\end{itemize}
+
+\textbf{Documentación Interna del Proyecto}
+\begin{itemize}
+    \item Julio Serrano, J. D. et al. (2025). \textit{Identificación de Procesos Organizacionales para un Sistema de Gemelo Digital de Mantenimiento} [Informe Técnico - Evidencia GA1-220501092-AA1-EV02]. SENA.
+    \item Julio Serrano, J. D. et al. (2025). \textit{Informe de Aplicación del Instrumento de Recolección de Requisitos para un Sistema de Gemelo Digital de Mantenimiento} [Informe Técnico - Evidencia GA1-220501092-AA3-EV03]. SENA.
+\end{itemize}

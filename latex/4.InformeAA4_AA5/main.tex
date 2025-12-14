@@ -1,0 +1,75 @@
+\documentclass[12pt, a4paper]{report}
+
+% --- PAQUETES ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-lcroman]{babel}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.54cm}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{longtable}
+\usepackage{pdfpages} 
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{titlesec}
+
+% --- CONFIGURACIÓN DE HIPERVÍNCULOS ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!50!black,
+    urlcolor=cyan!50!black,
+    pdftitle={Documento Consolidado Especificación y Validación},
+    pdfauthor={Juan David Julio Serrano et al.}
+}
+
+\renewcommand{\contentsname}{Tabla de Contenido}
+
+% Redefinir formato de capítulo para que parezca título de sección principal
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}{}{0pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-50pt}{20pt}
+
+% Ocultar el número de capítulo en la numeración de secciones (1.1 en vez de 0.1)
+\renewcommand{\thesection}{\arabic{section}}
+
+% --- INICIO DEL DOCUMENTO ---
+\begin{document}
+
+% --- PORTADA ---
+\begin{titlepage}
+    \begin{center}
+        \vspace*{2cm}
+        {\Huge \bfseries Documento Consolidado de Especificación y Validación de Requisitos del Proyecto ``Gemelo Digital de Mantenimiento''}\\[2cm]
+        
+        {\large \bfseries Aprendices:}\\[0.5cm]
+        \large{Juan David Julio Serrano (Ficha: 3336237)}\\[0.2cm]
+        \large{María Juliana Calvo Corredor (Ficha: 3336237)}\\[0.2cm]
+        \large{Didier Moreno Caicedo (Ficha: 3336238)}\\[1.0cm]
+        
+        {\large \bfseries Instructor:}\\[0.5cm]
+        \large{Ing. Wilson Alberto Mosquera Caicedo}\\[1.5cm]
+        
+        \vspace{2cm}
+        \large{Servicio Nacional de Aprendizaje (SENA)}\\[0.3cm]
+        \large{Centro de Biotecnología Industrial - Regional Valle}\\[0.3cm]
+        \large{Tecnología en Análisis y Desarrollo de Software (ADSO)}\\[1.0cm]
+        \large{13 de Diciembre de 2025}
+    \end{center}
+\end{titlepage}
+
+\clearpage
+\pdfbookmark[0]{Tabla de Contenido}{toc}
+\tableofcontents
+\clearpage
+
+% --- SECCIONES ---
+\input{sections/intro.tex}
+\input{sections/aa4_ev01.tex}
+\input{sections/aa4_ev02.tex}
+\input{sections/aa5_ev01.tex}
+\input{sections/aa5_ev02.tex}
+\input{sections/conclusiones.tex}
+
+\end{document}
