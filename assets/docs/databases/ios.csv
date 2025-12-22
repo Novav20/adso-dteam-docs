@@ -1,0 +1,16 @@
+﻿Objeto,Descripción,Estado,Formato,Justificación del Formato,Tipo
+Plan de Mantenimiento,Calendario de inspecciones y mantenimientos preventivos (PM) basado en tiempo o métricas.,Borrador,🗃️ Registro Estructurado,Es un conjunto de reglas en la BD.,Entrada
+Modelo 3D/CAD,Archivos de diseño que sirven como base visual para el Gemelo Digital.,Borrador,📄 Archivo/Binario,Es un archivo que subes/descargas.,Entrada
+Datos de Sensores,"Lecturas en tiempo real (vibración, temperatura, presión) vía MQTT/IoT.",Borrador,📡 Trama de Datos,Fluye de forma continua.,Entrada
+Datos de Operación,"Registros de uso, horas de funcionamiento y ciclos de producción.",Borrador,🗃️ Registro Estructurado,Guardado en el historial de la BD.,Entrada
+Datos de Inspección,"Checklists digitales, fotos y videos de anomalías capturados en campo.",Borrador,🗃️ Registro Estructurado,Las respuestas se guardan en la BD.,Entrada
+Solicitud de Repuesto,Petición formal de un componente específico del inventario (MRO).,Borrador,🗃️ Registro Estructurado,"Crea una fila ""Request"" en la BD.",Entrada
+Informe de Contratista,Documentos no estructurados con el reporte de trabajo de terceros.,Borrador,📄 Archivo/Binario,Es una carga de archivo.,Entrada
+Orden de Trabajo (WO),"Documento formal detallando tarea, recursos, responsable e instrucciones.",Borrador,🗃️ Registro Estructurado,"Principalmente datos en la BD (puede exportarse como PDF, pero ES un registro).",Salida
+Permiso de Trabajo (PTW),"Autorización legal para trabajos de alto riesgo (Alturas, Caliente, Confinado).",Borrador,🗃️ Registro Estructurado,Igual que arriba. Es un registro en BD con estado.,Salida
+Informe de Cierre,"Registro final con horas, piezas usadas y descripción de la solución.",Borrador,🗃️ Registro Estructurado,"Similar a Datos de Inspección (https://www.notion.so/Datos-de-Inspecci-n-2ce87c56a82880338b6ac520b1de513d?pvs=21) ",Salida
+Historial del Activo,Registro cronológico de todas las intervenciones realizadas sobre un activo.,Borrador,🗃️ Registro Estructurado,Es un registro consolidado en BD.,Salida
+Documento Estructurado,Información clave extraída automáticamente del informe de contratista (IA).,Borrador,📡 Trama de Datos,Es el payload JSON extraído por la IA.,Salida
+Alertas,Avisos automáticos: Operativas (stock bajo) o Predictivas (fallo inminente).,Borrador,🔔 Evento del Sistema,Es un disparador.,Salida
+Dashboard de Salud,Visualización en tiempo real del estado y degradación (Índice de Salud).,Borrador,🖥️ Vista de Interfaz,Es una vista calculada.,Salida
+Informe de KPIs,"Métricas clave para gestión estratégica (MTBF, MTTR, OEE).",Borrador,🖥️ Vista de Interfaz,Es una vista calculada.,Salida
