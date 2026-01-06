@@ -59,7 +59,7 @@
         </mxGraphModel>
     </diagram>
     <diagram name="Ver 2.0" id="DCy0EMTqoF6X7E4yvJTP">
-        <mxGraphModel dx="1110" dy="335" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="529" dy="160" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="hqk0_wHXeFuI3Uc1z_sp-0"/>
                 <mxCell id="hqk0_wHXeFuI3Uc1z_sp-1" parent="hqk0_wHXeFuI3Uc1z_sp-0"/>
@@ -136,8 +136,14 @@
                 <mxCell id="56hHDgARRoIFo6JJBugK-13" value="Plan de &lt;br&gt;Mantenimiento y&lt;br&gt;BOM predefinido" style="shape=mxgraph.bpmn.data;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;size=15;html=1;" parent="hqk0_wHXeFuI3Uc1z_sp-3" vertex="1">
                     <mxGeometry x="180" y="110" width="40" height="60" as="geometry"/>
                 </mxCell>
+                <mxCell id="osTKzlKxt1PKRsKQi9Mh-1" style="edgeStyle=none;html=1;" edge="1" parent="hqk0_wHXeFuI3Uc1z_sp-3" source="M6aAYZKc0rLV1LmOM2VN-14" target="osTKzlKxt1PKRsKQi9Mh-0">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
                 <mxCell id="M6aAYZKc0rLV1LmOM2VN-14" value="Actualizar Historial y recalcular próximo Mantenimiento&amp;nbsp;" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;html=1;container=1;expand=0;collapsible=0;taskMarker=script;" parent="hqk0_wHXeFuI3Uc1z_sp-3" vertex="1">
                     <mxGeometry x="180" y="480" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="osTKzlKxt1PKRsKQi9Mh-0" value="Ciclo de PM Completado" style="points=[[0.145,0.145,0],[0.5,0,0],[0.855,0.145,0],[1,0.5,0],[0.855,0.855,0],[0.5,1,0],[0.145,0.855,0],[0,0.5,0]];shape=mxgraph.bpmn.event;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;aspect=fixed;outline=end;symbol=terminate2;" vertex="1" parent="hqk0_wHXeFuI3Uc1z_sp-3">
+                    <mxGeometry x="215" y="590" width="50" height="50" as="geometry"/>
                 </mxCell>
                 <mxCell id="hqk0_wHXeFuI3Uc1z_sp-6" value="Programador de Mantenimiento" style="swimlane;html=1;startSize=20;horizontal=0;" parent="hqk0_wHXeFuI3Uc1z_sp-2" vertex="1">
                     <mxGeometry x="340" width="260" height="770" as="geometry">
