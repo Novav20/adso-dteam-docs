@@ -19,3 +19,6 @@ Registro de Activo (Serializado),"La instancia física única con Número de Ser
 Registro de Inventario (Stock),"Cantidad disponible de un repuesto o consumible (Aceite, Tornillos) en un almacén específico.",Borrador,🗃️ Registro Estructurado,"Gestiona datos transaccionales (Cantidades, Costo Promedio) y umbrales de alerta, no historias individuales.",Entrada
 Ubicación Funcional (Tag),"El lugar lógico o posición en la planta donde opera un activo (ej. ""Bahía de Carga 1"").",Borrador,🗃️ Registro Estructurado,Permite cambiar el activo físico (ej. reemplazar una bomba dañada) sin perder el historial de fallas de esa posición en la planta.,Entrada
 Manual Técnico / Plano,Documentación de soporte proporcionada por el fabricante del producto.,Borrador,📄 Archivo/Binario,"Son archivos estáticos (PDF, CAD) que se cargan una vez y se visualizan bajo demanda.",Entrada
+Modelo de IA (Versión),El algoritmo entrenado y su configuración actual. Sujeto a reentrenamiento y versionamiento.,Borrador,🗃️ Registro Estructurado,,Entrada
+Solicitud de Compra (ERP),Requerimiento formal generado hacia el sistema de compras externo ante faltantes o reorden.,Borrador,📡 Trama de Datos,,Salida
+Kardex / Historial de Movimientos,"Registro detallado y cronológico de cada transacción de inventario (entradas, salidas, ajustes).",Borrador,🗃️ Registro Estructurado,,Salida
