@@ -1,6 +1,6 @@
 ﻿Rol,Categoría,Descripción,Dispositivo,Notas
 Técnico de Mantenimiento,Operativo,"Usuario principal en campo. Realiza inspecciones, ejecuta reparaciones, consulta documentación técnica y reporta el estado de las tareas.",Tablet / Móbil,
-Supervisor de Mantenimiento,Estratégico,"Lidera al equipo operativo, aprueba solicitudes de trabajo, gestiona presupuestos y asegura el cumplimiento de las normativas de seguridad.",Escritorio / Web,"Nuevo rol clave para separar la ""Planificación"" (Qué) de la ""Programación"" (Cuándo)."
+Supervisor de Mantenimiento,Estratégico,"Lidera al equipo operativo, aprueba solicitudes de trabajo, gestiona presupuestos y asegura el cumplimiento de las normativas de seguridad.",Escritorio / Web,
 Gerente de Planta,Estratégico,"Usuario de alto nivel que consume información. Visualiza dashboards con KPIs sobre la salud de los activos, costos y tiempos de inactividad para la toma de decisiones estratégicas.",Escritorio / Web,
 Planificador de Mantenimiento,Estratégico,"Define el alcance técnico (CÓMO). Crea planes de trabajo, selecciona repuestos (BOM) y asegura que los recursos estén listos antes de programar.",Escritorio / Web,"Se eliminó la tarea de programación. Su salida es una WO en estado ""Lista para Programar""."
 Inspector HSEQ,Operativo,"Especialista que utiliza la plataforma para realizar inspecciones de Activos Críticos de Seguridad (SCA), reportar anomalías y verificar su correcta resolución.","Escritorio / Web, Tablet / Móbil",
