@@ -44,7 +44,7 @@ Si necesitas cambiar la lógica de un proceso (ej. añadir un paso de aprobació
 
 ---
 
-## 🤝 Para el Equipo (Juliana, Jesús, Didier)
+## 🤝 Para el Equipo
 
 1.  **¿Buscas el PDF para subir a Zajuna?** -> Ve al **Drive**.
 2.  **¿Quieres ver cómo se hizo el documento o corregir una tilde?** -> Busca el archivo `.tex` en la carpeta `/latex`.
