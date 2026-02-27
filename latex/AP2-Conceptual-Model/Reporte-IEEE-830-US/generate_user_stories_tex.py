@@ -106,9 +106,9 @@ def parse_us_file(file_path):
     return meta, description, observations
 
 def generate_tex():
-    base_path = "sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/EV03-User-Stories"
-    output_dir = "sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/IEEE-830-US-Report/sections/user_stories"
-    scenarios_by_us = load_gherkin_csv("adso-gemelo-digital-docs/assets/docs/databases/gherkin.csv")
+    base_path = "../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/EV03-User-Stories"
+    output_dir = "sections/user_stories"
+    scenarios_by_us = load_gherkin_csv("../../../assets/docs/databases/gherkin.csv")
     
     epic_names = {"MTTO": "Gestión de Operaciones de Mantenimiento", "INV": "Gestión de Recursos e Inventario",
                   "VIS": "Visualización y Gemelo Digital", "ADM": "Administración e Inteligencia de Negocio"}

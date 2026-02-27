@@ -198,13 +198,10 @@ def parse_use_cases_file(file_path):
 def generate_tex():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     base_path = os.path.normpath(os.path.join(
-        script_dir, "..", "01-Analysis", "AP2-Conceptual-Model",
+        script_dir, "..", "..", "..", "..", "sena-evidence", "01-Analysis", "AP2-Conceptual-Model",
         "GA2-220501093-AA1", "EV02-Use-Cases"
     ))
-    output_dir = os.path.normpath(os.path.join(
-        script_dir, "..", "01-Analysis", "AP2-Conceptual-Model",
-        "GA2-220501093-AA1", "IEEE-830-US-Report", "sections", "use_cases"
-    ))
+    output_dir = "sections/use_cases"
     if not os.path.exists(output_dir): os.makedirs(output_dir)
     
     epic_names = {"MTTO": "Gestión de Operaciones de Mantenimiento", "INV": "Gestión de Recursos e Inventario", 

@@ -2,11 +2,12 @@ import os
 import re
 from pathlib import Path
 
-# Configuración de rutas
-BASE_DIR = Path("/home/novillus/Documents/vscode/SENA-Career")
-US_DIR = BASE_DIR / "sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/EV03-User-Stories"
-TR_FILE = BASE_DIR / "sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/EV02-Common-Requirements.md"
-OUTPUT_DIR = BASE_DIR / "sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/IEEE-830-US-Report/sections/appendices"
+# Configuración de rutas relativas
+SCRIPT_DIR = Path(__file__).parent
+BASE_SENA_DIR = SCRIPT_DIR / "../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1"
+US_DIR = BASE_SENA_DIR / "EV03-User-Stories"
+TR_FILE = US_DIR / "EV03-Transversal-Requirements.md"
+OUTPUT_DIR = SCRIPT_DIR / "sections/appendices"
 
 def escape_latex(text):
     if not text: return ""
