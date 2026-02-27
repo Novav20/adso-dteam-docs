@@ -1,0 +1,123 @@
+\subsubsection{Requisitos del Módulo de Administración}
+\footnotesize
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.12\textwidth} >{\raggedright\arraybackslash}p{0.50\textwidth} >{\raggedright\arraybackslash}p{0.18\textwidth} >{\raggedright\arraybackslash}p{0.12\textwidth}}
+\toprule
+\rowcolor{gray!15}\textbf{ID} & \textbf{Descripción} & \textbf{Categoría} & \textbf{Prioridad} \\ \midrule
+\endhead
+FR-247 & El sistema proporcionará una interfaz para la creación de roles personalizados, permitiendo definir el nombre, descripción y los módulos sobre los cuales tendrá autoridad. & Functional Suitability & Alta \\
+FR-248 & El sistema mostrará una matriz de permisos que permita configurar de forma granular las acciones permitidas (Crear, Leer, Editar, Eliminar, Aprobar, Auditar, Ejecutar) por cada módulo. & Functional Suitability & Alta \\
+FR-249 & El sistema implementará validaciones de Segregación de Funciones (SoD) para prevenir la asignación de permisos conflictivos que comprometan la integridad de los procesos financieros u operativos. & Functional Suitability & Alta \\
+FR-250 & El sistema protegerá la integridad del rol de Administrador Raíz, impidiendo su eliminación o la edición restrictiva de sus privilegios fundamentales. & Functional Suitability & Alta \\
+FR-251 & El sistema permitirá la asignación de múltiples roles a un mismo usuario, consolidando los permisos bajo el principio de unión de privilegios. & Functional Suitability & Alta \\
+FR-252 & El sistema generará una matriz de permisos global para fines de auditoría, exportable en formatos estándar para revisiones de cumplimiento normativo. & Functional Suitability & Media \\
+FR-253 & El sistema emitirá avisos informativos cuando se detecten configuraciones de roles que no se alineen con el principio de menor privilegio. & Functional Suitability & Baja \\
+FR-254 & El sistema permitirá la desactivación lógica de roles personalizados; los usuarios asociados perderán el acceso de forma inmediata mientras se preserva el rastro histórico. & Functional Suitability & Media \\
+FR-258 & El sistema proporcionará una interfaz para la creación de usuarios, enviando automáticamente un enlace de activación seguro al correo electrónico institucional registrado. & Functional Suitability & Alta \\
+FR-259 & El sistema exigirá que cada usuario establezca una contraseña personal robusta que cumpla con las políticas de complejidad técnica definidas antes de su primer acceso. & Functional Suitability & Alta \\
+FR-260 & El sistema implementará mecanismos de protección contra ataques de fuerza bruta, bloqueando temporalmente las cuentas ante múltiples intentos fallidos de autenticación. & Functional Suitability & Alta \\
+FR-261 & El sistema permitirá el restablecimiento de contraseñas mediante tokens de uso único con validez temporal limitada, garantizando un proceso de recuperación seguro. & Functional Suitability & Alta \\
+FR-262 & El sistema permitirá la suspensión temporal de usuarios, revocando de forma inmediata todos los accesos activos mientras se mantiene la integridad de la información histórica. & Functional Suitability & Alta \\
+FR-263 & El sistema permitirá la restauración de cuentas suspendidas, reestableciendo los privilegios originales y documentando el motivo de la reactivación. & Functional Suitability & Alta \\
+FR-264 & El sistema implementará el borrado lógico de usuarios para asegurar que la trazabilidad de las acciones históricas permanezca intacta en las auditorías técnicas. & Functional Suitability & Alta \\
+FR-265 & El sistema proporcionará un tablero de control administrativo que permita visualizar el estado, los roles y la actividad reciente de todos los usuarios de la plataforma. & Functional Suitability & Media \\
+FR-266 & El sistema permitirá a los usuarios gestionar su propia seguridad mediante el cambio periódico de contraseñas, validando el cumplimiento de la política de no reutilización de credenciales anteriores. & Functional Suitability & Media \\
+FR-274 & El sistema proporcionará una interfaz para configurar la integración con el ERP, permitiendo definir parámetros de conexión y credenciales de acceso de forma estructurada. & Functional Suitability & Media \\
+FR-275 & El sistema permitirá realizar pruebas de conectividad para validar la configuración de la integración y el estado de los servicios externos. & Functional Suitability & Media \\
+FR-276 & El sistema permitirá definir el mapeo técnico de datos entre los campos del ERP y el catálogo interno de repuestos y activos. & Functional Suitability & Media \\
+FR-277 & El sistema soportará la ejecución de tareas de sincronización, permitiendo modos de operación manual, programada o en modo de simulación. & Functional Suitability & Baja \\
+FR-278 & El sistema generará Requisiciones de Compra Técnicas basadas en la condición del activo, delegando al ERP la creación y gestión del contrato legal (Purchase Order) con el proveedor. & Functional Suitability & Alta \\
+FR-279 & El sistema mantendrá un rastro detallado de las ejecuciones de sincronización para supervisar la integridad de la transferencia de datos. & Functional Suitability & Media \\
+FR-280 & El sistema permitirá la desactivación de la integración preservando la configuración técnica y el rastro histórico acumulado. & Functional Suitability & Baja \\
+FR-284 & El sistema proporcionará una interfaz para la emisión de anuncios informativos, permitiendo definir el alcance (global o por rol) y el período de vigencia de la comunicación. & Functional Suitability & Alta \\
+FR-285 & El sistema mostrará notificaciones visuales prominentes a los usuarios destinatarios, garantizando que los mensajes críticos de mantenimiento o seguridad sean comunicados eficazmente. & Functional Suitability & Alta \\
+FR-286 & El sistema incluirá un centro de notificaciones centralizado donde los usuarios podrán consultar el histórico de anuncios vigentes y previos. & Functional Suitability & Media \\
+FR-287 & El sistema permitirá la gestión del ciclo de vida de los anuncios, incluyendo la edición técnica y la desactivación de mensajes obsoletos. & Functional Suitability & Media \\
+FR-288 & El sistema automatizará el retiro de avisos basándose en los criterios de vigencia temporal definidos por la administración. & Functional Suitability & Baja \\
+FR-290 & El sistema integrará un tablero ejecutivo que visualice los indicadores críticos de mantenimiento (MTBF, MTTR, Disponibilidad) mediante gráficos interactivos y métricas comparativas. & Functional Suitability & Alta \\
+FR-291 & El sistema permitirá el análisis de tendencias históricas, visualizando la evolución de la confiabilidad operativa a lo largo de ciclos temporales definidos. & Functional Suitability & Alta \\
+FR-292 & El sistema implementará análisis de Pareto para identificar automáticamente los activos con mayor frecuencia de paradas, facilitando la detección de componentes críticos. & Functional Suitability & Alta \\
+FR-293 & El sistema proporcionará herramientas de filtrado avanzado por área geográfica, criticidad del activo y rangos temporales para facilitar el diagnóstico focalizado. & Functional Suitability & Alta \\
+FR-294 & El sistema realizará el procesamiento asíncrono de grandes volúmenes de datos históricos para generar indicadores consolidados sin penalizar la operatividad del sistema. & Functional Suitability & Alta \\
+FR-295 & El sistema permitirá la exploración detallada (drill-down) desde los gráficos de resumen hacia las fichas técnicas individuales de los activos afectados. & Functional Suitability & Alta \\
+FR-296 & El sistema clasificará las causas de fallo de forma visual, permitiendo identificar patrones recurrentes de indisponibilidad por categorías técnicas. & Functional Suitability & Media \\
+FR-297 & El sistema permitirá la extracción de los datos consolidados en formatos estructurados para su integración en informes técnicos externos. & Functional Suitability & Media \\
+FR-298 & El sistema proporcionará funcionalidades de comparación temporal para evaluar la efectividad de las mejoras implementadas en los planes de mantenimiento. & Functional Suitability & Baja \\
+FR-306 & El sistema permitirá la configuración y generación de reportes técnicos en formato PDF, permitiendo seleccionar los activos, áreas y periodos de interés. & Functional Suitability & Alta \\
+FR-307 & El sistema validará la suficiencia de los datos operativos antes de iniciar la generación para asegurar que los indicadores presentados sean estadísticamente representativos. & Functional Suitability & Alta \\
+FR-308 & El proceso de generación de reportes operará de forma asíncrona, notificando al usuario una vez que el documento esté disponible para su descarga segura. & Functional Suitability & Alta \\
+FR-309 & Los reportes generados incluirán un resumen ejecutivo, visualizaciones gráficas de KPIs y tablas de detalle técnico siguiendo un formato profesional y estandarizado. & Functional Suitability & Alta \\
+FR-310 & El sistema ofrecerá la funcionalidad de envío automático por correo electrónico, adjuntando el reporte generado a la dirección del solicitante. & Functional Suitability & Media \\
+FR-316 & El sistema expondrá una interfaz programática (API) para la extracción de datasets de KPIs, permitiendo el consumo de información por parte de herramientas externas de inteligencia de negocio. & Functional Suitability & Alta \\
+FR-317 & El acceso a la API de datos requerirá mecanismos de autenticación segura mediante llaves de acceso revocables y con periodos de vigencia definidos. & Functional Suitability & Alta \\
+FR-318 & El sistema implementará controles de flujo (rate limiting) en las interfaces de datos para garantizar la disponibilidad del servicio y prevenir abusos de consumo. & Functional Suitability & Alta \\
+FR-319 & La API proporcionará metadatos estructurados sobre el esquema de los datos, facilitando el mapeo automático en herramientas de visualización externas. & Functional Suitability & Media \\
+FR-320 & El sistema ofrecerá documentación técnica automatizada de la API, accesible únicamente para usuarios autorizados de nivel operativo o gerencial. & Functional Suitability & Media \\
+FR-321 & El sistema implementará una estrategia de versionado de API para asegurar la compatibilidad hacia atrás durante las actualizaciones del núcleo técnico. & Functional Suitability & Baja \\
+FR-327 & El sistema ejecutará un análisis periódico del historial de fallas y actividad de mantenimiento para generar sugerencias de optimización de frecuencias. & Functional Suitability & Media \\
+FR-328 & El sistema proporcionará un tablero de visualización de sugerencias, permitiendo filtrar las recomendaciones por criticidad del activo y área operativa. & Usability & Media \\
+FR-329 & El sistema categorizará las recomendaciones basándose en la confiabilidad detectada, permitiendo acciones de ajuste proactivo sobre el plan maestro. & Functional Suitability & Baja \\
+FR-330 & La aplicación de cualquier cambio de frecuencia sugerido requerirá una solicitud formal de ajuste con aprobación técnica obligatoria. & Functional Suitability & Alta \\
+FR-331 & El sistema permitirá la desestimación justificada de sugerencias, consolidando los motivos para mejorar los criterios futuros de recomendación. & Functional Suitability & Baja \\
+FR-332 & El sistema calculará una estimación del impacto económico u operativo derivado de la implementación de las sugerencias PMO. & Functional Suitability & Baja \\
+FR-338 & El sistema proporcionará una interfaz de configuración global estructurada en secciones funcionales como identidad corporativa, preferencias regionales y políticas de retención. & Functional Suitability & Media \\
+FR-339 & El sistema permitirá la personalización de los elementos de identidad visual de la plataforma, incluyendo la carga de logotipos institucionales. & Usability & Baja \\
+FR-340 & El sistema permitirá la configuración de parámetros regionales para asegurar que la visualización de fechas y horas sea coherente con la ubicación geográfica de la planta. & Functional Suitability & Media \\
+FR-341 & El sistema soportará la selección de unidades de medida estándar, aplicando las conversiones necesarias en todas las interfaces operativas. & Functional Suitability & Baja \\
+FR-342 & El sistema implementará el control de versiones de la configuración global, permitiendo la reversión de cambios en caso de inconsistencias detectadas. & Reliability & Media \\
+FR-345 & El sistema registrará en un rastro técnico todas las operaciones críticas (Creación, Modificación, Eliminación, Consulta) incluyendo la marca de tiempo, identidad del ejecutor y el estado previo y posterior del dato. & Functional Suitability & Alta \\
+FR-346 & El sistema integrará una cadena de integridad criptográfica para enlazar cada registro de auditoría con el anterior, permitiendo la detección técnica de cualquier intento de manipulación del historial. & Functional Suitability & Alta \\
+FR-347 & El rastro de auditoría operará bajo políticas de inmutabilidad técnica, impidiendo cualquier acción de edición o borrado del registro histórico, incluso para perfiles administrativos. & Functional Suitability & Alta \\
+FR-348 & El sistema proporcionará una interfaz de consulta avanzada para fines de auditoría, permitiendo el filtrado detallado por periodos, usuarios, tipos de operación y entidades afectadas. & Functional Suitability & Alta \\
+FR-349 & Las consultas de auditoría presentarán la información técnica de forma estructurada, permitiendo la visualización detallada de los cambios y la exportación de registros para revisiones externas. & Functional Suitability & Alta \\
+FR-350 & El sistema automatizará el ciclo de vida de los datos de auditoría, gestionando el archivado de registros históricos sin comprometer la integridad de la cadena de trazabilidad. & Functional Suitability & Alta \\
+FR-351 & El sistema realizará validaciones periódicas y automáticas de la integridad del rastro técnico, notificando de inmediato ante cualquier anomalía detectada en los registros. & Functional Suitability & Alta \\
+FR-352 & El sistema incluirá un tablero de análisis de auditoría que visualice las tendencias de actividad técnica y facilite la detección de patrones operativos inusuales. & Functional Suitability & Media \\
+FR-353 & El sistema permitirá la exportación certificada del rastro de auditoría, incluyendo los metadatos de validación criptográfica para su verificación externa en procesos de cumplimiento. & Functional Suitability & Media \\
+NFR-255 & Rendimiento de Validación: La verificación de conflictos estructurales en la matriz de permisos debe completarse en < 500ms para no afectar la experiencia administrativa. & Performance Efficiency & Alta \\
+NFR-256 & Latencia de Autorización: La consulta de permisos durante la operación del usuario debe ser imperceptible (< 10ms) mediante el uso de mecanismos de caché eficientes. & Performance Efficiency & Alta \\
+NFR-257 & Aplicación de Cambios: Las actualizaciones en la matriz de permisos deben propagarse a las sesiones activas en un tiempo máximo de 2 segundos. & Security & Alta \\
+NFR-267 & Almacenamiento Seguro: Las credenciales de acceso se gestionarán bajo estándares criptográficos de alta resistencia para prevenir fugas de información sensible. & Security & Alta \\
+NFR-268 & Registro de Acceso: El sistema mantendrá un registro detallado de todos los intentos de inicio de sesión, permitiendo análisis forenses y detección de anomalías. & Security & Alta \\
+NFR-269 & Expiración de Sesión: Los tokens de seguridad operarán bajo políticas de expiración estricta, reduciendo la ventana de exposición ante posibles accesos no autorizados. & Security & Alta \\
+NFR-270 & Gestión de Correo: El envío de notificaciones de seguridad se realizará de forma asíncrona, garantizando la entrega oportuna de avisos críticos de acceso. & Reliability & Alta \\
+NFR-271 & Alertas Sensibles: El sistema notificará de forma inmediata al usuario ante eventos de seguridad críticos en su cuenta para permitir una respuesta rápida. & Security & Alta \\
+NFR-272 & Control de Políticas: Los parámetros de complejidad de las contraseñas serán configurables por el administrador según las necesidades de seguridad institucional. & Reliability & Media \\
+NFR-273 & Accesibilidad: Los flujos de recuperación de cuenta deben ser inclusivos y compatibles con tecnologías de asistencia visual o auditiva. & Usability & Media \\
+NFR-281 & Cifrado de Credenciales: Los secretos técnicos y claves de integración se gestionarán mediante protocolos de almacenamiento cifrado. & Security & Alta \\
+NFR-282 & Capacidad de Procesamiento: El proceso de sincronización debe ser capaz de gestionar volúmenes industriales de datos en tiempos de ejecución eficientes. & Performance Efficiency & Media \\
+NFR-283 & Seguridad de Tránsito: Las comunicaciones con sistemas externos operarán bajo canales cifrados y contarán con políticas de reintento automático ante fallos de red. & Security & Alta \\
+NFR-289 & Rendimiento de Entrega: El procesamiento y visualización de anuncios debe realizarse de forma eficiente para no degradar los tiempos de acceso inicial a la plataforma. & Performance Efficiency & Alta \\
+NFR-299 & Rendimiento de Respuesta: La visualización del tablero ejecutivo debe garantizar tiempos de carga optimizados mediante técnicas de carga bajo demanda. & Performance Efficiency & Alta \\
+NFR-300 & Exactitud de Cálculos: Las fórmulas de confiabilidad deben adherirse estrictamente a los estándares industriales definidos en la norma ISO 14224. & Reliability & Alta \\
+NFR-301 & Visualización Multiplataforma: Los componentes gráficos deben ser totalmente responsivos y funcionales en distintos dispositivos y navegadores modernos. & Compatibility & Alta \\
+NFR-302 & Estrategia de Cache: El sistema empleará mecanismos de persistencia temporal para las métricas consolidadas, optimizando el acceso recurrente a la información estratégica. & Performance Efficiency & Alta \\
+NFR-303 & Accesibilidad: Las visualizaciones gráficas deben cumplir con estándares de contraste y navegación inclusiva para garantizar la consulta por parte de todos los usuarios. & Usability & Media \\
+NFR-304 & Tratamiento de Vacíos: El sistema debe gestionar de forma coherente los períodos sin datos capturados, evitando la generación de indicadores engañosos. & Reliability & Media \\
+NFR-305 & Protección de Reportes: Los datos extraídos del sistema se gestionarán bajo protocolos de seguridad y cifrado para proteger la confidencialidad de la información estratégica. & Security & Media \\
+NFR-311 & Eficiencia de Generación: El tiempo de procesamiento de reportes anuales complejos no debe exceder los 2 minutos bajo condiciones normales de carga. & Performance Efficiency & Alta \\
+NFR-312 & Optimización de Archivos: El sistema implementará técnicas de compresión para asegurar que los documentos generados mantengan un tamaño manejable sin comprometer la legibilidad. & Performance Efficiency & Alta \\
+NFR-313 & Fidelidad Visual: Las representaciones gráficas en el documento PDF deben conservar la resolución técnica necesaria para su análisis e impresión profesional. & Reliability & Alta \\
+NFR-314 & Gestión de Persistencia Temporal: Los documentos generados se almacenarán en un entorno seguro y se eliminarán automáticamente tras un periodo de vigencia definido. & Security & Alta \\
+NFR-315 & Seguridad de Documentos: El sistema permitirá la protección opcional de los reportes mediante contraseñas cifradas para asegurar la confidencialidad de la información estratégica. & Security & Media \\
+NFR-322 & Desempeño de Interfaz: Las consultas a la API de exportación deben resolverse en < 2 segundos, incluso para peticiones que involucren amplios rangos históricos de datos. & Performance Efficiency & Alta \\
+NFR-323 & Estándares de Seguridad: Las interfaces de datos deben cumplir con protocolos de protección contra ataques comunes y configuraciones de acceso de origen restringido. & Security & Alta \\
+NFR-324 & Seguridad en Tránsito: Todas las transferencias de información técnica a través de la API operarán bajo protocolos de cifrado de red robustos. & Security & Alta \\
+NFR-325 & Continuidad del Servicio: La infraestructura de la API debe garantizar niveles de disponibilidad industrial para soportar procesos de toma de decisiones en tiempo real. & Reliability & Alta \\
+NFR-326 & Gestión de Sobrecarga: El sistema implementará estrategias de regulación de tráfico para mitigar los efectos de picos de demanda o intentos de denegación de servicio. & Security & Media \\
+NFR-333 & Eficiencia del Análisis: Los procesos de cálculo para la optimización de activos deben completarse en ventanas de tiempo que no interfieran con la disponibilidad operativa. & Performance Efficiency & Media \\
+NFR-334 & Transparencia Algorítmica: Cada sugerencia debe acompañarse de los indicadores técnicos de respaldo que justifican la recomendación de cambio. & Usability & Media \\
+NFR-335 & Validación de Muestra: El sistema sólo emitirá recomendaciones cuando el registro histórico alcance el umbral mínimo de representatividad temporal definido. & Reliability & Media \\
+NFR-336 & Interactividad UI: El acceso y navegación por las sugerencias de optimización debe ser ágil para facilitar la revisión gerencial periódica. & Performance Efficiency & Media \\
+NFR-337 & Control de Acceso: Las funcionalidades de aprobación de optimizaciones estarán restringidas a perfiles con autoridad técnica validada. & Security & Alta \\
+NFR-343 & Sincronización de Parámetros: Las actualizaciones de la configuración global deben propagarse de forma eficiente a todas las sesiones de usuario vigentes. & Performance Efficiency & Media \\
+NFR-344 & Integridad de Archivos: El sistema validará técnicamente los recursos multimedia cargados para prevenir la introducción de archivos maliciosos o de formato incompatible. & Security & Media \\
+NFR-354 & Desempeño de Registro: El proceso de captura de auditoría no debe penalizar los tiempos de respuesta de las transacciones operativas del sistema. & Performance Efficiency & Alta \\
+NFR-355 & Rendimiento de Consulta: Las interfaces de revisión técnica deben garantizar tiempos de respuesta eficientes incluso ante grandes volúmenes de datos históricos acumulados. & Performance Efficiency & Alta \\
+NFR-356 & Estructura de Persistencia: El almacenamiento del rastro técnico empleará estrategias de persistencia optimizadas para asegurar la integridad y velocidad de acceso a los datos. & Performance Efficiency & Alta \\
+NFR-357 & Cifrado del Historial: Los datos de auditoría se almacenarán bajo protocolos de cifrado robustos para proteger la información sensible contenida en los registros de cambios. & Security & Alta \\
+NFR-358 & Conservación Normativa: El sistema mantendrá el registro histórico durante el periodo legal y normativo exigido por los estándares de gestión de activos críticos. & Reliability & Alta \\
+NFR-359 & Disponibilidad Offline: La funcionalidad de auditoría debe permitir la extracción de datos para su análisis independiente en entornos técnicos externos. & Reliability & Media \\
+NFR-360 & Meta-Auditoríaoría: El sistema registrará los accesos a las propias herramientas de auditoría para asegurar que el uso de la información de trazabilidad sea también auditable. & Security & Media \\
+\bottomrule
+\end{longtable}
+\normalsize

@@ -1,0 +1,124 @@
+\subsubsection{Requisitos del Módulo de Gestión de Mantenimiento}
+\footnotesize
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.12\textwidth} >{\raggedright\arraybackslash}p{0.50\textwidth} >{\raggedright\arraybackslash}p{0.18\textwidth} >{\raggedright\arraybackslash}p{0.12\textwidth}}
+\toprule
+\rowcolor{gray!15}\textbf{ID} & \textbf{Descripción} & \textbf{Categoría} & \textbf{Prioridad} \\ \midrule
+\endhead
+FR-001 & El sistema permitirá que el Planificador seleccione un activo (Nivel 6 ISO 14224) y vincule uno o más ítems mantenibles (Nivel 8) al plan preventivo. & Functional Suitability & Alta \\
+FR-002 & El formulario de creación del plan debe permitir seleccionar método de mantenimiento: ``basado en tiempo'' (intervalo fijo en semanas) o ``basado en condición'' (basado en monitoreo de KPI/sensor). & Functional Suitability & Alta \\
+FR-003 & El sistema debe calcular automáticamente la próxima Orden de Trabajo basada en la frecuencia seleccionada; para activos con criticidad ``Crítico para Producción'' o ``Crítico para Seguridad'', el intervalo máximo recomendado es <= 8 semanas; si el usuario intenta valores > 8 semanas, se muestra advertencia. & Functional Suitability & Alta \\
+FR-004 & El sistema bloqueará el guardado del plan si faltan campos obligatorios: Activo (Nivel 6), Ítem Mantenible (Nivel 8), Método de Mantenimiento, Frecuencia; mostrará un mensaje claro indicando cuáles campos son requeridos. & Functional Suitability & Alta \\
+FR-005 & El servicio de tareas programadas debe ejecutarse periódicamente, identificar planes activos con vencimiento próximo, y generar las órdenes de trabajo correspondientes. & Functional Suitability & Alta \\
+FR-006 & El Planificador debe poder visualizar el listado de planes preventivos activos con columnas: Activo, Ítem Mantenible, Método, Frecuencia, Próxima Orden de Trabajo, Estado. & Functional Suitability & Alta \\
+FR-010 & El sistema permitirá que un Técnico registre el cierre de una Orden de Trabajo desde el dispositivo móvil incluyendo Horas Hombre Reales. & Functional Suitability & Alta \\
+FR-011 & El formulario de cierre debe permitir seleccionar y guardar: Ítem Mantenible (nivel 8), Modo de Falla, Mecanismo de Falla y Causa de Falla, usando la taxonomía ISO 14224. & Functional Suitability & Alta \\
+FR-012 & El sistema bloqueará el cambio de estado de la Orden de Trabajo hasta que los campos de taxonomía obligatorios estén completos; mostrará un mensaje de error específico si faltan campos (cumplimiento ISO 14224). & Functional Suitability & Alta \\
+FR-013 & El sistema permitirá adjuntar multimedia (foto/video) desde la cámara o galería; los archivos se asocian a la Orden de Trabajo y son visibles para Supervisor e Ingeniero de Confiabilidad. & Functional Suitability & Alta \\
+FR-014 & Al finalizar el formulario, el estado de la Orden de Trabajo pasa a Pendiente de Revisión y se genera una notificación (evento) dirigida al Ingeniero de Confiabilidad con resumen de cambios y KPI relevantes. & Functional Suitability & Media \\
+FR-018 & El sistema permitirá que un Contratista suba informes de trabajo en formato PDF o imagen vinculados a una Orden de Trabajo específica. & Functional Suitability & Alta \\
+FR-019 & Al subir un archivo, el sistema obligará a seleccionar el Ítem Mantenible (Nivel 8) al que pertenece el informe para asegurar la trazabilidad jerárquica. & Functional Suitability & Alta \\
+FR-020 & El sistema validará el formato de archivo (whitelist: PDF, JPG, PNG) y rechazará extensiones no autorizadas por seguridad. & Functional Suitability & Alta \\
+FR-021 & El sistema enviará una notificación automática al Supervisor asignado cuando un nuevo informe sea cargado en una Orden de Trabajo bajo su cargo. & Functional Suitability & Media \\
+FR-022 & El sistema permitirá al Supervisor visualizar, descargar y aprobar/rechazar los informes cargados desde la interfaz de revisión de Orden de Trabajo. & Functional Suitability & Alta \\
+FR-023 & El sistema permitirá filtrar los documentos adjuntos por Ítem Mantenible dentro de la vista de la Orden de Trabajo. & Functional Suitability & Baja \\
+FR-024 & El sistema permitirá que el Contratista elimine un archivo cargado erróneamente SIEMPRE Y CUANDO la Orden de Trabajo no haya sido enviada a revisión. & Functional Suitability & Media \\
+FR-030 & El Supervisor puede iniciar la extracción automática mediante la función correspondiente en la interfaz de gestión de adjuntos de la Orden de Trabajo. & Functional Suitability & Alta \\
+FR-031 & El sistema analiza el documento digital solicitando la recuperación de: horas de mano de obra, lista de materiales y resumen técnico del trabajo. & Functional Suitability & Alta \\
+FR-032 & El motor de procesamiento retorna un conjunto de datos con niveles de confianza técnica por cada campo extraído y una breve justificación del resultado. & Functional Suitability & Alta \\
+FR-033 & Si la confianza técnica es satisfactoria según el umbral configurado, el sistema pre-completa los campos en la Orden de Trabajo con indicadores visuales de calidad de datos. & Functional Suitability & Alta \\
+FR-034 & Si la confianza técnica es insuficiente, el sistema requiere la confirmación manual obligatoria del Supervisor antes de permitir el guardado de la información. & Functional Suitability & Alta \\
+FR-035 & Si un campo crítico no es identificado en el documento, el sistema notifica el vacío informativo y habilita el campo para su ingreso manual. & Functional Suitability & Alta \\
+FR-036 & El Supervisor tendrá la autoridad final para editar o corregir cualquier dato recuperado automáticamente antes de formalizar el cierre de la Orden de Trabajo. & Functional Suitability & Media \\
+FR-037 & Si el servicio de procesamiento no está disponible temporalmente, el sistema implementa reintentos automáticos y finalmente notifica al usuario para proceder manualmente. & Functional Suitability & Media \\
+FR-043 & En la pantalla de detalles de un activo o componente, el sistema mostrará una sección de documentación con la lista de manuales, planos y guías asociados. & Functional Suitability & Alta \\
+FR-044 & Cada documento debe presentar metadatos descriptivos: título, versión, fecha de actualización y estado de disponibilidad local. & Functional Suitability & Alta \\
+FR-045 & El sistema permitirá la visualización de documentos técnicos mediante un visor integrado que no requiera el uso de aplicaciones de terceros. & Functional Suitability & Alta \\
+FR-046 & El visor de documentos debe soportar funciones de navegación básicas: ajuste de escala (zoom), desplazamiento entre páginas y búsqueda de términos. & Functional Suitability & Alta \\
+FR-047 & El sistema permitirá al Técnico marcar documentos para su consulta fuera de línea, asegurando la persistencia de los datos en el almacenamiento seguro del dispositivo. & Functional Suitability & Alta \\
+FR-048 & El sistema permitirá realizar búsquedas por términos técnicos dentro de la lista de documentos asociados a un activo, priorizando los resultados locales. & Functional Suitability & Media \\
+FR-049 & El sistema gestionará el almacenamiento local de documentos, alertando al usuario cuando se alcancen los límites de capacidad definidos. & Functional Suitability & Media \\
+FR-050 & El sistema verificará la vigencia de la versión del documento cada vez que exista conectividad, notificando si existe una actualización disponible en el repositorio central. & Functional Suitability & Media \\
+FR-051 & Si un documento es retirado del repositorio central, el sistema mantendrá la versión local indicando su estado de desactualización o retiro. & Functional Suitability & Baja \\
+FR-058 & El sistema calculará automáticamente el componente de Riesgo para cada solicitud basado en la criticidad del activo y el tipo de fallo detectado. & Functional Suitability & Alta \\
+FR-059 & El sistema calculará el componente de Impacto considerando la duración estimada del tiempo de inactividad y los costos asociados definidos por la planta. & Functional Suitability & Alta \\
+FR-060 & El sistema evaluará la Mantenibilidad basándose en la complejidad de la reparación y la disponibilidad proyectada de los repuestos necesarios. & Functional Suitability & Alta \\
+FR-061 & El sistema integrará el factor Económico analizando el costo estimado de la intervención según la lista de materiales y mano de obra. & Functional Suitability & Alta \\
+FR-062 & El puntaje de prioridad final se consolidará en una escala normalizada, permitiendo que la fórmula de cálculo sea transparente para los auditores. & Functional Suitability & Alta \\
+FR-063 & El sistema clasificará automáticamente las solicitudes en categorías de prioridad visualmente diferenciadas según el puntaje obtenido. & Functional Suitability & Alta \\
+FR-064 & El tablero de gestión organizará las solicitudes por puntaje descendente, restringiendo el reordenamiento manual a usuarios con niveles de autoridad superior. & Functional Suitability & Alta \\
+FR-065 & Cada solicitud presentada en el sistema debe mostrar sus metadatos de prioridad, activo afectado, tipo de intervención y costos estimados. & Functional Suitability & Alta \\
+FR-066 & El sistema permitirá consultar el desglose técnico del cálculo de prioridad, referenciando los estándares industriales aplicables a cada factor. & Functional Suitability & Alta \\
+FR-067 & El sistema proporcionará capacidades de filtrado avanzado por categoría de prioridad, ubicación de activo y rangos de fecha. & Functional Suitability & Media \\
+FR-068 & El sistema generará recomendaciones de agrupación cuando detecte múltiples intervenciones prioritarias pendientes sobre un mismo activo físico. & Functional Suitability & Baja \\
+FR-069 & La información del backlog priorizado podrá exportarse en formatos estructurados para su análisis en herramientas externas. & Functional Suitability & Baja \\
+FR-077 & El sistema permitirá acceder a la interfaz de asistencia técnica desde las órdenes de trabajo, manteniendo el historial de consultas de la sesión activa. & Functional Suitability & Alta \\
+FR-078 & El sistema procesará las consultas en lenguaje natural, realizando una búsqueda semántica en el repositorio de conocimiento indexado del activo. & Functional Suitability & Alta \\
+FR-079 & El motor de inteligencia generará respuestas técnicas basadas exclusivamente en los fragmentos de documentos recuperados, incluyendo citas obligatorias a la fuente original. & Functional Suitability & Alta \\
+FR-080 & El sistema evaluará el nivel de relevancia de la información encontrada; si la confianza es insuficiente, restringirá la generación de la respuesta para evitar interpretaciones erróneas. & Functional Suitability & Alta \\
+FR-081 & El asistente detectará consultas fuera del dominio de mantenimiento, redireccionando al usuario hacia los canales de soporte técnico correspondientes. & Functional Suitability & Alta \\
+FR-082 & En ausencia de conectividad, el sistema deshabilitará las funciones de procesamiento remoto y activará la búsqueda local por palabras clave en los documentos persistidos. & Functional Suitability & Media \\
+FR-083 & La interfaz del asistente incluirá una función para abrir directamente la documentación técnica en la sección referenciada por el motor de inteligencia. & Functional Suitability & Media \\
+FR-084 & El sistema permitirá al personal técnico calificar la utilidad de las respuestas recibidas para alimentar los procesos de mejora continua del motor. & Functional Suitability & Baja \\
+FR-085 & El sistema proporcionará un panel administrativo para supervisar las consultas realizadas y gestionar las posibles inconsistencias detectadas en las respuestas. & Functional Suitability & Baja \\
+FR-091 & El sistema permitirá al Ingeniero de Confiabilidad acceder a la configuración de límites técnicos desde la gestión maestra de activos de nivel 6. & Functional Suitability & Alta \\
+FR-092 & El formulario de definición incluirá campos para describir el límite inicial, el límite final y la selección múltiple de componentes de nivel 8 asociados. & Functional Suitability & Alta \\
+FR-093 & El sistema validará que un componente técnico no pueda ser asignado a múltiples activos simultáneamente para asegurar la integridad de la jerarquía. & Functional Suitability & Alta \\
+FR-094 & El sistema detectará inconsistencias en la jerarquía profunda de los componentes, asegurando que las relaciones padre-hijo se mantengan coherentes en todos los niveles técnicos. & Functional Suitability & Alta \\
+FR-095 & El proceso de guardado de los límites técnicos debe ser transaccional, garantizando que la base de datos se mantenga en un estado consistente ante cualquier interrupción. & Functional Suitability & Alta \\
+FR-096 & El sistema obligará al ingreso de los campos de delimitación antes de permitir la formalización técnica del activo en el catálogo maestro. & Functional Suitability & Alta \\
+FR-097 & La información de límites será accesible en modo lectura para el personal técnico durante la consulta de la ficha del equipo en campo. & Functional Suitability & Media \\
+FR-098 & El sistema proporcionará un historial cronológico de los ajustes realizados en la definición de límites para auditorías de ingeniería. & Functional Suitability & Baja \\
+FR-104 & El sistema validará automáticamente la vigencia de la garantía del activo al momento de registrar una intervención correctiva. & Functional Suitability & Alta \\
+FR-105 & La interfaz de gestión de garantías presentará los datos de contacto del proveedor y los términos específicos de la cobertura técnica disponible. & Functional Suitability & Alta \\
+FR-106 & El sistema permitirá la transición de una orden de trabajo estándar hacia un estado de reclamo de garantía, notificando al personal responsable sobre el inicio del proceso externo. & Functional Suitability & Alta \\
+FR-107 & El sistema implementará un catálogo de razones de omisión de garantía para asegurar que las decisiones de mantenimiento interno sean auditable. & Functional Suitability & Alta \\
+FR-108 & Toda decisión de mantenimiento interno sobre activos garantizados quedará registrada con su respectiva justificación técnica y marca de tiempo. & Functional Suitability & Alta \\
+FR-109 & El sistema omitirá las notificaciones de garantía de forma silenciosa cuando la fecha de cobertura haya expirado según los registros maestros. & Functional Suitability & Alta \\
+FR-110 & El personal autorizado podrá gestionar y actualizar los parámetros de garantía desde la ficha técnica del activo en el catálogo maestro. & Functional Suitability & Media \\
+NFR-007 & El servicio de programación debe contar con mecanismos de tolerancia a fallos y reintento automático en caso de interrupciones del servicio. & Reliability & Alta \\
+NFR-008 & El tiempo de respuesta de la interfaz de carga y gestión debe ser de < 1s para garantizar la fluidez del proceso de planificación. & Performance Efficiency & Media \\
+NFR-009 & El sistema debe soportar el crecimiento del volumen de planes sin degradación del rendimiento. & Reliability & Media \\
+NFR-015 & El almacenamiento persistente local debe garantizar la integridad de los datos ante cierres inesperados y soportar mecanismos de reintento. & Reliability & Alta \\
+NFR-016 & El sistema debe procesar las operaciones en la interfaz móvil en < 2s para no interrumpir el flujo de trabajo del personal en campo. & Performance Efficiency & Media \\
+NFR-017 & El sistema debe ser compatible con los sistemas operativos móviles estándar utilizados en el entorno industrial. & Compatibility & Media \\
+NFR-025 & El sistema debe soportar archivos de hasta 50 MB por carga individual. & Performance Efficiency & Media \\
+NFR-026 & El tiempo de procesamiento y confirmación de carga debe ser < 5s en condiciones normales de red. & Performance Efficiency & Media \\
+NFR-027 & El almacenamiento de documentos debe contar con redundancia para evitar la pérdida de evidencia técnica crítica. & Reliability & Alta \\
+NFR-028 & La interfaz de carga debe ser funcional tanto en navegadores de escritorio como en dispositivos móviles, manteniendo la consistencia visual. & Usability & Media \\
+NFR-029 & El sistema debe realizar un escaneo automático de malware en los archivos cargados antes de permitir su visualización por otros usuarios. & Security & Alta \\
+NFR-038 & El procesamiento de extracción debe completarse en < 15s para no degradar la productividad del supervisor. & Performance Efficiency & Alta \\
+NFR-039 & Los parámetros del motor de procesamiento deben garantizar resultados determinísticos y reproducibles para la misma entrada de datos. & Reliability & Alta \\
+NFR-040 & Las credenciales de acceso a servicios externos de inteligencia deben gestionarse de forma segura y nunca estar expuestas en la lógica de la aplicación. & Security & Alta \\
+NFR-041 & El sistema debe prohibir el guardado automático de datos con baja confianza técnica, forzando la intervención humana como control de calidad. & Reliability & Alta \\
+NFR-042 & El servicio de procesamiento debe contar con mecanismos de mitigación ante posibles caídas del proveedor de inteligencia externo. & Reliability & Media \\
+NFR-052 & La apertura de documentos almacenados localmente debe completarse en < 2s para garantizar la fluidez operativa. & Performance Efficiency & Alta \\
+NFR-053 & El motor de búsqueda local debe retornar resultados en < 1s para el usuario final. & Performance Efficiency & Alta \\
+NFR-054 & La verificación de versiones de documentos debe realizarse en segundo plano sin impactar la interactividad de la interfaz. & Performance Efficiency & Alta \\
+NFR-055 & El visor de documentos debe mantener el estado de la lectura (página actual, nivel de zoom) ante cambios de orientación del dispositivo. & Reliability & Alta \\
+NFR-056 & El sistema debe soportar la reanudación automática de descargas en caso de interrupciones de la conectividad de red. & Reliability & Media \\
+NFR-057 & La interfaz de consulta debe ser compatible con los dispositivos y sistemas operativos móviles definidos en los estándares de la planta. & Compatibility & Alta \\
+NFR-070 & El cálculo masivo de prioridades para el backlog completo debe realizarse en < 5s para garantizar la fluidez del proceso. & Performance Efficiency & Alta \\
+NFR-071 & La visualización del tablero operativo debe emplear técnicas de carga eficiente de datos para mantener una respuesta de < 2s con grandes volúmenes de información. & Performance Efficiency & Alta \\
+NFR-072 & Los parámetros maestros de configuración del modelo de priorización deben estar versionados y protegidos contra accesos no autorizados. & Security & Alta \\
+NFR-073 & La visibilidad de los puntajes de prioridad técnica estará restringida a los roles definidos en la política de gobernanza del sistema. & Security & Alta \\
+NFR-074 & El motor de cálculo debe garantizar resultados consistentes y reproducibles ante las mismas condiciones de entrada de datos. & Reliability & Alta \\
+NFR-075 & El sistema recalculará automáticamente las prioridades ante cambios en la criticidad de los activos maestros para mantener el backlog actualizado. & Reliability & Alta \\
+NFR-076 & Los cambios significativos en la categoría de prioridad de una intervención deben notificar automáticamente al personal de planificación responsable. & Reliability & Media \\
+NFR-086 & El procesamiento de la consulta semántica y la generación de la respuesta técnica debe completarse en < 15s para garantizar la fluidez en campo. & Performance Efficiency & Alta \\
+NFR-087 & El sistema debe contar con mecanismos de reintento automático ante fallos transitorios en la comunicación con los servicios de inteligencia remotos. & Reliability & Alta \\
+NFR-088 & Los parámetros de generación de respuestas deben configurarse para garantizar resultados consistentes y objetivos, minimizando la variabilidad del motor. & Reliability & Alta \\
+NFR-089 & El sistema aplicará políticas de minimización de datos, almacenando únicamente los resúmenes y metadatos necesarios para la trazabilidad operativa. & Security & Alta \\
+NFR-090 & La arquitectura del motor de búsqueda debe soportar el crecimiento del volumen de documentación técnica indexada sin comprometer la latencia. & Performance Efficiency & Alta \\
+NFR-099 & La validación de duplicidad de componentes debe completarse en < 1s para no afectar los flujos administrativos. & Performance Efficiency & Alta \\
+NFR-100 & El motor de validación jerárquica debe soportar el procesamiento eficiente de grandes volúmenes de componentes sin degradar la respuesta del sistema. & Performance Efficiency & Alta \\
+NFR-101 & El sistema debe permitir la gestión de límites en dispositivos móviles, asegurando la persistencia de los cambios incluso en condiciones de baja conectividad. & Reliability & Media \\
+NFR-102 & Las descripciones técnicas de los límites deben soportar la longitud necesaria para detallar especificaciones físicas complejas. & Usability & Media \\
+NFR-103 & El sistema contará con rutinas de verificación de integridad de datos para detectar y reportar cualquier anomalía jerárquica histórica. & Reliability & Baja \\
+NFR-111 & La validación de vigencia de garantía debe realizarse en < 2s para no interrumpir el flujo operativo en campo. & Performance Efficiency & Alta \\
+NFR-112 & Las alertas de garantía deben presentarse de forma clara y destacada, asegurando que el usuario perciba la advertencia antes de proceder. & Usability & Alta \\
+NFR-113 & Los datos de garantía deben estar disponibles en los dispositivos móviles incluso en condiciones de conectividad limitada. & Reliability & Media \\
+NFR-114 & El sistema validará la presencia de justificaciones ante la omisión voluntaria de coberturas externas mediante reglas de negocio obligatorias. & Security & Alta \\
+NFR-115 & El sistema podrá presentar información comparativa de costos de intervención cuando los datos históricos permitan realizar dicha estimación. & Usability & Baja \\
+\bottomrule
+\end{longtable}
+\normalsize

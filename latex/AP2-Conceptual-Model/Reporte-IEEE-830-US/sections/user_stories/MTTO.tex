@@ -1,0 +1,220 @@
+\subsection{Módulo de Gestión de Operaciones de Mantenimiento (MTTO)}
+\noindent\textbf{Ficha Técnica: MTTO-001 - Programación de Mantenimiento Preventivo}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & MTTO-001 \\ \hline
+\textbf{Usuario} & Planificador de Mantenimiento \\ \hline
+\textbf{Prioridad} & MUST \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 5 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Planificador de Mantenimiento
+\item \textbf{Quiero} crear y programar órdenes de trabajo preventivas de forma recurrente, vinculadas a equipos específicos e ítems mantenibles, con método explícito (basado en tiempo o condición).
+\item \textbf{Para} asegurar que el mantenimiento rutinario se ejecute a tiempo según la criticidad operativa, manteniendo trazabilidad y cumplimiento normativo.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Este componente es el núcleo de la estrategia proactiva del sistema, alineado con ISO 14224. La lógica de programación debe soportar disparadores tanto por tiempo como por condición, integrando alertas de criticidad (Producción/Crítico para Seguridad) para optimizar los intervalos de intervención y garantizar la disponibilidad de los activos nivel 6. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Planificador está autenticado en el sistema,
+el activo está registrado con Tag ISO completo,
+y el ítem mantenible (Level 8) está definido} & \parbox[t]{\linewidth}{Cuando selecciona el activo, define método de mantenimiento (``time-based'' o ``condition-based''), establece frecuencia (ej. ``mensual''), y guarda el plan} & \parbox[t]{\linewidth}{Entonces el sistema muestra confirmación ``Plan creado exitosamente'' y el plan aparece en la lista de planes con la próxima WO programada en el calendario} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Planificador está autenticado en el sistema} & \parbox[t]{\linewidth}{Cuando intenta guardar un plan sin:
+Seleccionar un activo
+Definir método de mantenimiento (time-based o condition-based)
+Establecer frecuencia} & \parbox[t]{\linewidth}{Entonces el sistema muestra mensaje de error: ``Campos obligatorios: Activo, Método de Mantenimiento, Frecuencia'' y no crea la orden de trabajo} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Planificador está creando un plan preventivo para un activo con criticidad ``Production Critical''} & \parbox[t]{\linewidth}{Cuando selecciona método ``time-based'' con intervalo ``trimestral'' (12 semanas)} & \parbox[t]{\linewidth}{Entonces el sistema muestra advertencia: ``Para activos Production Critical, se recomienda intervalo $\le$ 8 semanas. ¿Deseas continuar?'' y permite al usuario confirmar o modificar el intervalo} \\ \hline
+\parbox[t]{\linewidth}{Dado que se ha creado exitosamente un plan preventivo recurrente} & \parbox[t]{\linewidth}{Cuando el usuario accede al historial de auditoría del sistema} & \parbox[t]{\linewidth}{Entonces aparece un registro con la información del plan:
+Usuario que creó el plan
+Fecha y hora de creación
+Equipo asignado (Tag ISO)
+Método de mantenimiento (time-based o condition-based)
+Frecuencia programada
+Estado del plan (Activo)} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: MTTO-002 - Cierre Digital de Orden de Trabajo con Taxonomía ISO 14224}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & MTTO-002 \\ \hline
+\textbf{Usuario} & Técnico de Mantenimiento \\ \hline
+\textbf{Prioridad} & MUST \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 8 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Técnico de Mantenimiento
+\item \textbf{Quiero} registrar el cierre de una orden de trabajo desde mi dispositivo móvil, clasificando la falla según la taxonomía ISO 14224 y adjuntando evidencia multimedia.
+\item \textbf{Para} asegurar la trazabilidad técnica, cumplir con los estándares de la industria y permitir el cálculo preciso de indicadores de fiabilidad (MTBF/MTTR).
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Este proceso es crítico para garantizar la calidad de la información según los requerimientos de ISO 14224. La implementación prioriza una experiencia de usuario optimizada para dispositivos móviles en campo, asegurando la captura de datos de falla (modo, mecanismo, causa) incluso en condiciones de baja conectividad mediante una estrategia de sincronización diferida. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico ha finalizado una reparación física y está en la pantalla de la WO en su tablet.} & \parbox[t]{\linewidth}{Cuando ingresa las Horas Hombre Reales y selecciona:
+Ítem Mantenible (Nivel 8): ej. Sello Mecánico.
+Modo de Falla: ej. Fuga Externa.
+Mecanismo de Falla: ej. Erosión.
+Causa de Falla: ej. Desgaste por uso.
+Y presiona ``Finalizar''.} & \parbox[t]{\linewidth}{Entonces el estado de la WO cambia a ``Pendiente de Revisión'', la información se guarda en el historial del activo y se notifican los KPIs actualizados al Ingeniero de Confiabilidad.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico está llenando el formulario de cierre en su tablet.} & \parbox[t]{\linewidth}{Cuando utiliza la función ``Adjuntar Foto/Video'' y captura una imagen de la reparación finalizada.} & \parbox[t]{\linewidth}{Entonces la imagen debe quedar asociada a la orden de trabajo y ser visible para el Supervisor.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico está en el formulario de cierre.} & \parbox[t]{\linewidth}{Cuando intenta finalizar la WO sin haber seleccionado el ``Mecanismo de Falla'' o el ``Ítem Mantenible''.} & \parbox[t]{\linewidth}{Entonces el sistema debe mostrar un mensaje de error: ``Error de cumplimiento ISO 14224: Todos los campos de taxonomía de falla son obligatorios''.
+Y no debe permitir el cambio de estado de la orden.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico está en una zona de la planta sin WiFi y ha abierto una WO.} & \parbox[t]{\linewidth}{Cuando completa el formulario de cierre y presiona ``Finalizar''.} & \parbox[t]{\linewidth}{Entonces el sistema muestra indicador 'Pendiente de Sincronización'
+y permite al usuario ver los datos guardados cuando se restaure la conexión} \\ \hline
+\parbox[t]{\linewidth}{Dado que el activo intervenido es de Clase ``Bomba Centrifuga''.} & \parbox[t]{\linewidth}{Cuando el Técnico abre el selector de ``Modo de Falla''.} & \parbox[t]{\linewidth}{Entonces el sistema solo muestra los modos de falla aplicables a bombas (ej. No debe mostrar ``Falla de Software'' o ``Cortocircuito'' si no son propios de la clase).} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: MTTO-003 - Carga de Informe por Contratista}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & MTTO-003 \\ \hline
+\textbf{Usuario} & Contratista \\ \hline
+\textbf{Prioridad} & SHOULD \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 3 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Contratista
+\item \textbf{Quiero} subir mi informe de trabajo en formato digital a la orden de trabajo asignada
+\item \textbf{Para} cumplir con el requisito de entrega del cliente de forma rápida y asegurar que la evidencia técnica quede registrada oficialmente.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Este componente digitaliza la entrega de informes de terceros, unificando la documentación técnica en un solo repositorio vinculado a la Orden de Trabajo. El sistema debe validar la integridad y el formato de los documentos cargados para asegurar que la información sea procesable y segura, facilitando la revisión inmediata por parte del supervisor. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Contratista está autenticado y en la pantalla de la WO completada.} & \parbox[t]{\linewidth}{Cuando selecciona un archivo PDF válido y hace clic en ``Subir''.} & \parbox[t]{\linewidth}{Entonces el sistema solicita seleccionar el Ítem Mantenible (ej. Motor, Acople) asociado al informe, confirma que el archivo se ha adjuntado a la WO, muestra el nombre del archivo en la lista de adjuntos, y envía notificación al Supervisor que hay un informe para revisar.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Contratista está autenticado y en la pantalla de la WO.} & \parbox[t]{\linewidth}{Cuando intenta subir un archivo que NO es PDF o imagen (ej. .exe, .txt).} & \parbox[t]{\linewidth}{Entonces el sistema muestra mensaje de error: ``Formato de archivo no válido. Solo se aceptan: PDF, JPG, PNG'', NO adjunta el archivo, y permite al Contratista intentar nuevamente.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Contratista está en la pantalla de adjuntar archivo.} & \parbox[t]{\linewidth}{Cuando intenta subir un archivo PDF válido pero mayor a 50 MB.} & \parbox[t]{\linewidth}{Entonces el sistema muestra advertencia: ``Archivo muy grande (máximo 50 MB)'' y sugiere comprimir el PDF antes de reintentar.} \\ \hline
+\parbox[t]{\linewidth}{Dado que un informe PDF ha sido adjuntado a una WO.} & \parbox[t]{\linewidth}{Cuando el Supervisor accede a la WO para revisión.} & \parbox[t]{\linewidth}{Entonces el sistema muestra lista de adjuntos con nombre, tamaño y fecha de carga, permite descargar el archivo directamente, muestra quién lo adjuntó y cuándo, y permite filtrar los adjuntos por Ítem Mantenible.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: MTTO-004 - Extracción Automática de Datos de Informes}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & MTTO-004 \\ \hline
+\textbf{Usuario} & Supervisor de Mantenimiento \\ \hline
+\textbf{Prioridad} & SHOULD \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 5 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Supervisor de Mantenimiento
+\item \textbf{Quiero} que el sistema extraiga automáticamente la información clave de los documentos digitales (horas reales, repuestos utilizados, descripción del trabajo) y la presente en un resumen listo para validar.
+\item \textbf{Para} reducir el tiempo de cierre de las órdenes de trabajo y asegurar la captura precisa de datos técnicos del mantenimiento.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Esta funcionalidad de vanguardia busca automatizar la ingesta de datos técnicos mediante el procesamiento cognitivo de documentos digitales. Aunque el éxito de la extracción está condicionado por la calidad de los informes de origen, el sistema implementa un flujo de validación humana obligatoria y un indicador de confianza técnica para garantizar la integridad de la base de datos de confiabilidad. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que un Contratista ha subido un PDF a una WO y está pendiente de aprobación.} & \parbox[t]{\linewidth}{Cuando el Supervisor abre la WO.} & \parbox[t]{\linewidth}{Entonces el sistema muestra un resumen con los datos clave (horas reales, repuestos, descripción) extraídos del PDF.} \\ \hline
+\parbox[t]{\linewidth}{Dado que un Contratista ha subido un PDF que no contiene la ``lista de materiales''.} & \parbox[t]{\linewidth}{Cuando el Supervisor abre la WO.} & \parbox[t]{\linewidth}{Entonces el sistema muestra un aviso de validación: ``Información faltante: no se pudo extraer la lista de materiales. Por favor, revise el documento manualmente.''} \\ \hline
+\parbox[t]{\linewidth}{Dado que el sistema ha mostrado el resumen de extracción de datos.} & \parbox[t]{\linewidth}{Cuando el Supervisor presiona ``Aprobar''.} & \parbox[t]{\linewidth}{Entonces la WO cambia a estado ``Aprobada'' y el resumen queda registrado como parte del cierre.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: MTTO-020 - Consulta de Manuales en Móvil}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & MTTO-020 \\ \hline
+\textbf{Usuario} & Técnico de Mantenimiento \\ \hline
+\textbf{Prioridad} & SHOULD \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 3 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Técnico de Mantenimiento
+\item \textbf{Quiero} buscar y consultar los manuales técnicos y planos vinculados a la jerarquía de activos directamente desde la aplicación operativa
+\item \textbf{Para} obtener la información necesaria en el sitio de la reparación y asegurar que la intervención se realice bajo las especificaciones del fabricante.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Esta funcionalidad busca descentralizar el acceso a la información técnica, permitiendo que el personal operativo consulte manuales y planos directamente en el punto de trabajo. Aunque es una mejora de productividad significativa para el prototipo conceptual, su implementación en producción requiere una estrategia de gestión documental robusta y un visor de documentos integrado con capacidades de operación fuera de línea. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico ha escaneado el QR de una bomba (Level 6 ISO 14224) y está en su ficha móvil, o ha seleccionado un Ítem Mantenible (Level 8) específico.} & \parbox[t]{\linewidth}{Cuando selecciona la pestaña ``Documentación'' y toca el archivo ``Manual de Servicio.pdf''.} & \parbox[t]{\linewidth}{Entonces el documento debe abrirse en el visor integrado de la tablet sin necesidad de salir de la aplicación, mostrando el contexto del componente o equipo seleccionado.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico tiene conexión a internet y visualiza la lista de planos.} & \parbox[t]{\linewidth}{Cuando presiona el botón ``Descargar'' o ``Hacer disponible sin conexión'' sobre un plano eléctrico.} & \parbox[t]{\linewidth}{Entonces el archivo debe descargarse y un icono debe indicar que está disponible para futuras consultas sin internet, permitiendo visualizar el documento incluso sin conexión.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: MTTO-026 - Gestión de Backlog mediante Priorización Objetiva (RIME)}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & MTTO-026 \\ \hline
+\textbf{Usuario} & Planificador de Mantenimiento \\ \hline
+\textbf{Prioridad} & MUST \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 5 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Planificador de Mantenimiento
+\item \textbf{Quiero} que el sistema asigne automáticamente una prioridad a las tareas basada en la criticidad del activo y el riesgo operacional
+\item \textbf{Para} eliminar la subjetividad en la programación y asegurar que los recursos se orienten a los activos de mayor riesgo para la organización.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & La implementación de la matriz RIME (Risk, Impact, Mantenibilidad, Economy) es esencial para la gestión de activos bajo ISO 55001. Este modelo de puntuación objetiva permite ordenar el trabajo diario basándose en la criticidad real y el impacto financiero, optimizando el uso de la mano de obra y los materiales en el backlog de mantenimiento. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Planificador está revisando una nueva Solicitud de Trabajo.} & \parbox[t]{\linewidth}{Cuando el sistema detecta que el activo es ``Crítico para Seguridad'' y el trabajo es una ``Reparación Urgente''.} & \parbox[t]{\linewidth}{Entonces el sistema calcula y muestra un puntaje RIME de 100 en la cabecera de la solicitud.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Programador abre el tablero de tareas pendientes.} & \parbox[t]{\linewidth}{Cuando el sistema carga la lista.} & \parbox[t]{\linewidth}{Entonces las órdenes con mayor puntaje RIME aparecen en la parte superior del listado de forma automática.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: MTTO-028 - Asistente de Consulta de Documentación con IA (RAG)}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & MTTO-028 \\ \hline
+\textbf{Usuario} & Técnico de Mantenimiento \\ \hline
+\textbf{Prioridad} & SHOULD \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 5 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Técnico de Mantenimiento
+\item \textbf{Quiero} realizar consultas en lenguaje natural sobre los procedimientos técnicos y manuales integrados en el sistema
+\item \textbf{Para} obtener respuestas rápidas con referencias explícitas a la documentación original y asegurar una ejecución técnica correcta en campo.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Esta funcionalidad de innovación busca reducir el tiempo de búsqueda de información técnica mediante el uso de arquitectura RAG (Retrieval Augmented Generation). Al indexar los manuales técnicos del activo, el sistema permite que el técnico realice consultas contextuales, garantizando que cada respuesta técnica esté respaldada por una referencia directa a la documentación del fabricante, minimizando así el riesgo operativo por errores de interpretación. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico está en una WO en campo y abre el asistente de IA.} & \parbox[t]{\linewidth}{Cuando pregunta: ``¿Cuál es la temperatura máxima de operación del rodamiento SKF X-100?''} & \parbox[t]{\linewidth}{Entonces el chatbot responde con la respuesta extraída del manual y dice: ``Respuesta encontrada en Manual SKF, página 45, sección 'Especificaciones Técnicas'. Por favor confirma leyendo la página 45 antes de actuar''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico pregunta algo no relacionado con la documentación disponible.} & \parbox[t]{\linewidth}{Cuando pregunta: ``¿Cuál es la capital de Francia?''} & \parbox[t]{\linewidth}{Entonces el chatbot responde: ``No puedo responder esa pregunta basándome en los manuales disponibles. Por favor consulta la documentación técnica o contacta al supervisor.''} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico está sin conexión a internet.} & \parbox[t]{\linewidth}{Cuando abre el chatbot e intenta hacer una pregunta.} & \parbox[t]{\linewidth}{Entonces el sistema le sugiere: ``Consulta disponible solo con conexión. Mientras tanto, usa búsqueda local en manuales descargados''} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico ha hecho una consulta al asistente IA.} & \parbox[t]{\linewidth}{Cuando el Supervisor revisa el historial de la WO.} & \parbox[t]{\linewidth}{Entonces aparece un registro con: timestamp, pregunta, respuesta resumida, y referencia a documento/página (sin almacenar respuesta completa).} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: MTTO-029 - Definición de Límites Físicos de Activos}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & MTTO-029 \\ \hline
+\textbf{Usuario} & Ingeniero de Confiabilidad \\ \hline
+\textbf{Prioridad} & MUST \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 3 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Ingeniero de Confiabilidad
+\item \textbf{Quiero} definir y validar los límites físicos de cada activo maestro, especificando sus puntos de inicio, fin y componentes internos integrados
+\item \textbf{Para} garantizar que la jerarquía técnica sea coherente y evitar la duplicidad en las actividades de mantenimiento o errores en la clasificación de fallos.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Esta funcionalidad es un requerimiento mandatorio de ISO 14224 para la integridad de los datos de fiabilidad. La definición precisa de los límites (Boundaries) asegura que la jerarquía de activos sea única y coherente, eliminando ambigüedades en la asignación de costos y responsabilidades técnicas entre activos adyacentes. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Ingeniero de Confiabilidad está en la pantalla ``Definir Límites'' de la ``Bomba Centrífuga P-101''.} & \parbox[t]{\linewidth}{Cuando ingresa el Punto Inicial (``Brida de succión''), Punto Final (``Brida descarga'') y selecciona los Componentes Incluidos (Motor, Sello) y presiona ``Guardar Límites''.} & \parbox[t]{\linewidth}{Entonces el sistema muestra un mensaje de confirmación ``Límites definidos correctamente'' y los componentes seleccionados aparecen listados en la ficha del equipo.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el componente ``Motor Eléctrico M-101'' ya pertenece a la ``Bomba P-101''.} & \parbox[t]{\linewidth}{Cuando el Ingeniero intenta añadir ese mismo ``Motor M-101'' a los límites del ``Compresor C-201''.} & \parbox[t]{\linewidth}{Entonces el sistema muestra una advertencia bloqueante: ``Conflicto: El componente ya está asignado a P-101. Debe liberarlo antes de reasignarlo''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico consulta la ficha de la ``Bomba P-101''.} & \parbox[t]{\linewidth}{Cuando despliega la sección ``Límites de Equipo''.} & \parbox[t]{\linewidth}{Entonces ve claramente el texto descriptivo del Inicio y Fin del límite físico, junto con la lista de componentes que pertenecen a este activo.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: MTTO-030 - Gestión de Garantías de Activos}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & MTTO-030 \\ \hline
+\textbf{Usuario} & Planificador de Mantenimiento \\ \hline
+\textbf{Prioridad} & SHOULD \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 3 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Planificador de Mantenimiento
+\item \textbf{Quiero} recibir notificaciones automáticas cuando se gestione una intervención sobre un activo con garantía vigente
+\item \textbf{Para} evaluar la conveniencia de realizar un reclamo formal con el proveedor externo y optimizar los costos de mantenimiento de la organización.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Esta funcionalidad optimiza el retorno sobre la inversión (ROI) de los activos al automatizar la detección de coberturas vigentes. Al integrar las fechas de garantía con el flujo de creación de órdenes de trabajo, el sistema previene el gasto innecesario de recursos internos y asegura el cumplimiento de los contratos de soporte con proveedores externos. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que el activo ``Compresor C-301'' tiene una garantía válida hasta el año 2027.} & \parbox[t]{\linewidth}{Cuando el Planificador intenta crear una Orden de Trabajo Correctiva para este activo.} & \parbox[t]{\linewidth}{Entonces el sistema interrumpe el proceso con una alerta: ``Este equipo tiene garantía vigente con Atlas Copco. ¿Desea crear un Reclamo de Garantía en lugar de una OT Interna?''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que se ha mostrado la alerta de garantía vigente.} & \parbox[t]{\linewidth}{Cuando el Planificador selecciona la opción ``Crear Reclamo''.} & \parbox[t]{\linewidth}{Entonces el formulario cambia de tipo ``WO Interna'' a ``Reclamo de Garantía'', ocultando los campos de costos internos y mostrando los campos de contacto del proveedor.} \\ \hline
+\parbox[t]{\linewidth}{Dado que se ha mostrado la alerta de garantía vigente.} & \parbox[t]{\linewidth}{Cuando el Planificador selecciona ``Ignorar y Crear OT Interna''.} & \parbox[t]{\linewidth}{Entonces el sistema exige ingresar un comentario de justificación (ej. ``Daño no cubierto'') antes de permitir guardar la orden.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}

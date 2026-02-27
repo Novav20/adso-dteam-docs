@@ -1,0 +1,140 @@
+\subsection{Módulo de Gestión de Recursos e Inventario (INV)}
+\noindent\textbf{Ficha Técnica: INV-005 - Creación de Ficha Técnica de Activo (Equipment Unit)}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & INV-005 \\ \hline
+\textbf{Usuario} & Ingeniero de Proyectos \\ \hline
+\textbf{Prioridad} & MUST \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 5 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Ingeniero de Proyectos
+\item \textbf{Quiero} crear la ficha técnica digital de un nuevo activo físico con sus datos de identificación y parámetros operativos mínimos
+\item \textbf{Para} disponer de un registro maestro oficial que permita la trazabilidad del ciclo de vida, la vinculación a planes de mantenimiento y la captura del historial de fallas.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & La creación de la Equipment Unit representa la formalización digital del activo físico según ISO 14224 Nivel 6. El sistema implementa validaciones de integridad de datos para asegurar que cada registro cuente con los parámetros técnicos y operativos necesarios para su posterior gestión de confiabilidad, garantizando la unicidad del Tag industrial en todo el ecosistema de la planta. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Ingeniero de Proyectos está en la pantalla ``Nuevo Activo''.} & \parbox[t]{\linewidth}{Cuando el Ingeniero completa los campos obligatorios ISO 14224: Tag Number, Clase de Equipo, Fabricante, Estado Operativo y Fecha de Inicio y presiona ``Guardar''} & \parbox[t]{\linewidth}{Entonces el sistema crea el activo, muestra un mensaje de éxito y redirige al usuario a la ficha del equipo recién creado.} \\ \hline
+\parbox[t]{\linewidth}{Dado que ya existe un activo activo con el Tag ``P-101''.} & \parbox[t]{\linewidth}{Cuando el Ingeniero intenta crear otro activo con el mismo Tag ``P-101''.} & \parbox[t]{\linewidth}{Entonces el sistema muestra una alerta: ``El Tag P-101 ya está en uso. Verifique si desea editar el existente''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Ingeniero de Proyectos está creando un nuevo activo.} & \parbox[t]{\linewidth}{Cuando el Ingeniero intenta guardar sin haber seleccionado la ``Clase de Equipo'' (ej. Bomba Centrifuga).} & \parbox[t]{\linewidth}{Entonces el sistema impide guardar y resalta el campo con el mensaje: ``Campo obligatorio según norma ISO 14224''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Ingeniero de Proyectos está ingresando las fechas del activo.} & \parbox[t]{\linewidth}{Cuando el Ingeniero ingresa una ``Fecha de Inicio'' anterior a la ``Fecha de Compra''.} & \parbox[t]{\linewidth}{Entonces el sistema muestra una advertencia de inconsistencia temporal.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: INV-006 - Gestión de Movimientos de Inventario}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & INV-006 \\ \hline
+\textbf{Usuario} & Jefe de Almacén \\ \hline
+\textbf{Prioridad} & MUST \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 8 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Jefe de Almacén
+\item \textbf{Quiero} registrar técnicamente las entradas, salidas y devoluciones de materiales y repuestos críticos
+\item \textbf{Para} mantener la integridad absoluta entre el inventario físico y digital, garantizando la disponibilidad de materiales para mantenimiento y la asignación correcta de costos operativos.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Esta funcionalidad es crítica para el control de costos operativos y la trazabilidad de la cadena de suministro técnica. El sistema implementa procesos transaccionales para entradas (Receipt), salidas (Issue) y devoluciones (Return), asegurando que los niveles de inventario y la asignación de costos a las órdenes de trabajo sean precisos y auditables en tiempo real. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que llega una Orden de Compra de 50 rodamientos SKF 6205.} & \parbox[t]{\linewidth}{Cuando el Almacenista registra la recepción: Repuesto ``BRG-6205'', Cantidad 50, Ubicación ``Warehouse A - Bin 12''.} & \parbox[t]{\linewidth}{Entonces el sistema incrementa Cantidad Física en 50, registra transacción tipo ``Receipt'' con timestamp y muestra confirmación ``Recepción registrada: +50 unidades''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que existe Orden de Trabajo ``OT-1234'' planificada con 10 rodamientos reservados.} & \parbox[t]{\linewidth}{Cuando el Técnico solicita retirar 10 unidades de ``BRG-6205'' para OT-1234.} & \parbox[t]{\linewidth}{Entonces el sistema valida: Disponible (Físico - Reservado) >= 10, deduce 10 unidades de Cantidad Física, libera reserva, carga costo a OT-1234 y registra transacción tipo ``Issue''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el repuesto ``BRG-6205'' tiene: Físico = 5, Reservado = 3, Disponible = 2.} & \parbox[t]{\linewidth}{Cuando el Técnico intenta retirar 5 unidades.} & \parbox[t]{\linewidth}{Entonces el sistema bloquea la transacción y muestra mensaje: ``Stock insuficiente. Disponible: 2 unidades (5 físicas - 3 reservadas). Requiere Orden de Compra''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Técnico retiró 10 rodamientos pero solo usó 8 en OT-1234.} & \parbox[t]{\linewidth}{Cuando registra devolución de 2 unidades de ``BRG-6205'' desde OT-1234.} & \parbox[t]{\linewidth}{Entonces el sistema incrementa Cantidad Física en 2, genera crédito (reversa) en OT-1234 por el costo de 2 unidades y registra transacción tipo ``Return''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el repuesto ``BRG-6205'' tiene: Físico = 95, Max Level = 100.} & \parbox[t]{\linewidth}{Cuando se devuelven 10 unidades (total sería 105).} & \parbox[t]{\linewidth}{Entonces el sistema acepta la devolución pero genera alerta: ``Advertencia: Stock sobrepasa Max Level (105 > 100). Revisar órdenes de compra pendientes para posible cancelación''.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: INV-007 - Validación y Alta de Activos Nuevos}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & INV-007 \\ \hline
+\textbf{Usuario} & Ingeniero de Proyectos \\ \hline
+\textbf{Prioridad} & MUST \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 5 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Ingeniero de Proyectos
+\item \textbf{Quiero} revisar y completar técnicamente la ficha de los activos nuevos en estado preliminar
+\item \textbf{Para} garantizar que todos los datos de ingeniería, manuales y modelos jerárquicos sean correctos antes de autorizar la liberación operativa y el mantenimiento del activo.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Esta historia define el punto de control de calidad para la integridad del catálogo maestro. El flujo de validación técnica garantiza que ningún activo entre en operación sin contar con la documentación mínima requerida por ISO 14224, permitiendo la detección temprana de inconsistencias y asegurando una transición fluida entre las fases de proyecto y operación. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que existe un registro ``Bomba P-New'' creado por Almacén en estado ``Borrador''.} & \parbox[t]{\linewidth}{Cuando el Ingeniero de Confiabilidad completa los campos técnicos obligatorios (Nivel 6 ISO 14224: Tag, Modelo, Fabricante, Serial, Ubicación FL, Manuales, Foto) y cambia el estado a ``Operativo''.} & \parbox[t]{\linewidth}{Entonces el activo debe cambiar de estado inmediatamente a ``Operativo'', ser visible para los Técnicos en el mapa interactivo y disponible para asignarle planes de mantenimiento preventivo.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Ingeniero de Confiabilidad revisa un activo en estado ``Borrador'' que no corresponde a la compra realizada o presenta inconsistencias de datos.} & \parbox[t]{\linewidth}{Cuando selecciona la opción ``Rechazar/Devolver'' y proporciona motivo (ej. ``Serial no coincide con PO'').} & \parbox[t]{\linewidth}{Entonces el registro debe marcarse como ``Devuelto a Almacén'', generar un comentario interno con el motivo, y enviar notificación al Jefe de Almacén para que revise la entrada física del material.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: INV-021 - Monitor de Reabastecimiento (Stock Alerts)}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & INV-021 \\ \hline
+\textbf{Usuario} & Jefe de Almacén \\ \hline
+\textbf{Prioridad} & SHOULD \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 5 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Jefe de Almacén
+\item \textbf{Quiero} recibir notificaciones automáticas cuando los niveles de inventario desciendan del punto crítico definido, con priorización basada en la clasificación técnica de los repuestos
+\item \textbf{Para} iniciar oportunamente los procesos de adquisición y evitar interrupciones en la disponibilidad de los activos críticos de la planta.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Este componente implementa una gestión inteligente de inventarios basada en la criticidad ABC. Al automatizar la detección de niveles críticos de stock, el sistema permite que el personal de almacén se enfoque en los repuestos de alto impacto (Clase A), optimizando el flujo de caja y reduciendo el riesgo de lucro cesante por indisponibilidad de materiales. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que existe alerta activa para ``Sello SM-100'' con Disponible = 2, Min = 5, Max = 20.} & \parbox[t]{\linewidth}{Cuando el Planificador hace clic en botón ``Crear Orden de Compra'' junto a la alerta.} & \parbox[t]{\linewidth}{Entonces el sistema abre formulario de Purchase Requisition pre-llenado con: Part = SM-100, Cantidad Sugerida = 18 (Max - Disponible), Vendor = último usado o ``Por asignar'' si no existe historial.} \\ \hline
+\parbox[t]{\linewidth}{Dado ue el repuesto ``Rodamiento 6205'' tiene: Clasificación ABC ``B'', Disponible = 8, Min Level = 10.} & \parbox[t]{\linewidth}{Cuando el sistema detecta la condición de bajo stock.} & \parbox[t]{\linewidth}{Entonces genera alerta de prioridad ``Media'' en dashboard con mensaje: ``MODERADO: BRG-6205 por debajo de Min (8 < 10). Revisar en planificación diaria''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el repuesto ``Sello Mecánico SM-100'' tiene: Clasificación ABC ``A'', Disponible = 2, Min Level = 5.} & \parbox[t]{\linewidth}{Cuando el nivel de stock disponible cae por debajo del mínimo (por consumo de material o revisión periódica del sistema).} & \parbox[t]{\linewidth}{Entonces el sistema genera alerta de prioridad ``Alta'' visible inmediatamente en dashboard con mensaje: ``CRÍTICO: SM-100 por debajo de Min (2 < 5). Acción inmediata requerida'' y envía notificación push/email al Planificador.} \\ \hline
+\parbox[t]{\linewidth}{Dado que existe alerta activa para ``BRG-6205''.} & \parbox[t]{\linewidth}{Cuando se recibe material y Disponible sube a 15 (> Min Level = 10).} & \parbox[t]{\linewidth}{Entonces el sistema marca la alerta como ``Resuelta'' automáticamente y la mueve a pestaña ``Historial de Alertas Resueltas'' con timestamp de resolución.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el repuesto ``Tornillo M8'' tiene: Clasificación ABC ``C'', Disponible = 45, Min Level = 50.} & \parbox[t]{\linewidth}{Cuando el sistema detecta la condición de bajo stock.} & \parbox[t]{\linewidth}{Entonces añade el item a la ``Lista de Compra Semanal'' (sin alerta urgente) visible en pestaña separada del dashboard.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: INV-027 - Creación de Ubicaciones Funcionales (Functional Locations)}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & INV-027 \\ \hline
+\textbf{Usuario} & Ingeniero de Proyectos \\ \hline
+\textbf{Prioridad} & MUST \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 3 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Ingeniero de Proyectos
+\item \textbf{Quiero} definir la estructura jerárquica de ubicaciones funcionales de la organización, independientemente de los activos físicos instalados
+\item \textbf{Para} disponer de un registro maestro de las posiciones operativas que permita preservar el historial técnico y de mantenimiento a través del tiempo, incluso ante la sustitución de equipos.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & Las Ubicaciones Funcionales constituyen la arquitectura base del árbol de activos según ISO 14224. Al desacoplar la posición operativa del equipo físico, el sistema permite la acumulación histórica de datos de fiabilidad sobre un proceso específico, garantizando la trazabilidad a largo plazo y facilitando la navegación jerárquica desde la planta hasta el punto de intervención. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que existe la ubicación ``Planta Cartagena''.} & \parbox[t]{\linewidth}{Cuando agrego una nueva ubicación ``Sistema de Bombeo'' como hija de ``Planta Cartagena''.} & \parbox[t]{\linewidth}{Entonces el sistema guarda la relación jerárquica y muestra ``Sistema de Bombeo'' indentado bajo la planta.} \\ \hline
+\parbox[t]{\linewidth}{Dado que existe una ubicación con el Tag ``P-101''.} & \parbox[t]{\linewidth}{Cuando intento crear otra ubicación con el mismo Tag ``P-101'' en una sección diferente.} & \parbox[t]{\linewidth}{Entonces el sistema muestra un error: ``El Tag P-101 ya existe en el sistema'' y bloquea la creación.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Ingeniero de Proyectos está en el módulo de ``Ubicaciones Funcionales''.} & \parbox[t]{\linewidth}{Cuando creo una Ubicación Funcional de Nivel 3 (Instalación) con el nombre ``Planta Cartagena''.} & \parbox[t]{\linewidth}{Entonces el sistema crea el nodo raíz del árbol y permite agregarle secciones hijas.} \\ \hline
+\parbox[t]{\linewidth}{Dado que ``Sistema A'' es padre de ``Subsistema B''.} & \parbox[t]{\linewidth}{Cuando intento mover ``Sistema A'' para que sea hijo de ``Subsistema B''.} & \parbox[t]{\linewidth}{Entonces el sistema impide la acción para evitar un bucle infinito en la jerarquía.} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
+\noindent\textbf{Ficha Técnica: INV-031 - Gestión de Catálogo de Repuestos (Part Master)}
+\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline
+\textbf{Número} & INV-031 \\ \hline
+\textbf{Usuario} & Jefe de Almacén \\ \hline
+\textbf{Prioridad} & MUST \\ \hline
+\textbf{Puntos Estimados de Esfuerzo} & 5 \\ \hline
+\textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
+\item \textbf{Como} Jefe de Almacén
+\item \textbf{Quiero} crear y administrar la información técnica de los repuestos, incluyendo su clasificación, taxonomía y política de inventario
+\item \textbf{Para} garantizar la existencia de un catálogo técnico único y estandarizado que facilite la planificación de materiales y el control eficiente de las existencias críticas.
+\end{itemize}\vspace{2pt}} \\ \hline
+\textbf{Observaciones} & El Part Master centraliza el conocimiento técnico de los repuestos y suministros operativos. Mediante el uso de códigos de producto jerárquicos (Commodity Codes) y clasificación ABC, el sistema permite un control riguroso de la cadena de suministro técnica, implementando además mecanismos de detección de duplicados para asegurar la pureza del catálogo maestro. \\ \hline
+\end{longtable}\normalsize
+\noindent\textit{Criterios de Aceptación:}
+\footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
+\textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Jefe de Almacén está en la pantalla ``Nuevo Repuesto''.} & \parbox[t]{\linewidth}{Cuando ingresa: SKU ``BRG-6205'', Descripción ``Rodamiento 6205'', Fabricante ``SKF'', Commodity Code ``000-020-6205'' (Mechanical $\rightarrow$ Bearings $\rightarrow$ 6205), Clasificación ABC ``B'', Tipo ``Stock Item''.
+Y presiona ``Guardar''.} & \parbox[t]{\linewidth}{Entonces el sistema crea el repuesto, muestra mensaje ``Repuesto creado exitosamente'' y redirige a la ficha de la parte con los datos ingresados.} \\ \hline
+\parbox[t]{\linewidth}{Dado que ya existe un repuesto con descripción ``Rodamiento Ball 6205''.} & \parbox[t]{\linewidth}{Cuando el Jefe de Almacén intenta crear otro con descripción ``Bearing 6205''.} & \parbox[t]{\linewidth}{Entonces el sistema detecta similitud (>90\%) y muestra advertencia: ``Posible duplicado detectado: 'Rodamiento Ball 6205' (SKU: BRG-001). ¿Desea reutilizar existente o crear nuevo?''} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Jefe de Almacén marca un item como ``Direct Purchase'' (Non-Stock).} & \parbox[t]{\linewidth}{Cuando guarda el repuesto.} & \parbox[t]{\linewidth}{Entonces el sistema oculta campos de stock (Min Level, Max Level, Bin Location) y muestra mensaje informativo: ``Este item se compra directamente para órdenes específicas sin pasar por inventario''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Jefe de Almacén selecciona Commodity Class ``Mechanical'' (000).} & \parbox[t]{\linewidth}{Cuando despliega el selector de Sub-Class.} & \parbox[t]{\linewidth}{Entonces el sistema muestra solo sub-categorías válidas: ``Bearings (020)'', ``Belts (010)'', ``Seals (030)'', etc. (navegación tipo árbol).} \\ \hline
+\end{longtable}\normalsize
+\vspace{1em}
