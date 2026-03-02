@@ -38,7 +38,7 @@
 \noindent\textit{Criterios de Aceptación:}
 \footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
 \textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
-\parbox[t]{\linewidth}{Dado que el usuario ``Juan Pérez'' ha dejado la empresa pero tiene 50 Órdenes de Trabajo cerradas en su historial.} & \parbox[t]{\linewidth}{Cuando el Administrador hace clic en ``Desactivar Usuario''.} & \parbox[t]{\linewidth}{Entonces el sistema cambia su estado a INACTIVO, revoca su token de sesión actual, pero mantiene su nombre visible en todos los registros históricos (Audit Trail).} \\ \hline
+\parbox[t]{\linewidth}{Dado que el usuario ``Juan Pérez'' ha dejado la empresa pero tiene 50 Órdenes de Trabajo cerradas en su historial.} & \parbox[t]{\linewidth}{Cuando el Administrador hace clic en ``Desactivar Usuario''.} & \parbox[t]{\linewidth}{Entonces el sistema cambia su estado a INACTIVO, revoca su token de sesión actual, pero mantiene su nombre visible en todos los registros históricos (Auditoría Trail).} \\ \hline
 \parbox[t]{\linewidth}{Dado que un usuario intenta iniciar sesión con una contraseña incorrecta 3 veces consecutivas.} & \parbox[t]{\linewidth}{Cuando falla el cuarto intento.} & \parbox[t]{\linewidth}{Entonces el sistema bloquea la cuenta temporalmente por 15 minutos y envía una alerta de seguridad al correo registrado.} \\ \hline
 \parbox[t]{\linewidth}{Dado que un usuario olvidó su contraseña.} & \parbox[t]{\linewidth}{Cuando solicita el restablecimiento desde la pantalla de Login.} & \parbox[t]{\linewidth}{Entonces recibe un enlace seguro (token de un solo uso) con validez de 1 hora para definir una nueva credencial que cumpla la política de complejidad (mínimo 12 caracteres).} \\ \hline
 \end{longtable}\normalsize
@@ -144,8 +144,8 @@
 \noindent\textit{Criterios de Aceptación:}
 \footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
 \textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
-\parbox[t]{\linewidth}{Dado que el Gerente está viendo el Dashboard de KPIs.} & \parbox[t]{\linewidth}{Cuando selecciona la opción ``Exportar Dataset (CSV/JSON)''.} & \parbox[t]{\linewidth}{Entonces el sistema debe generar un archivo estructurado y limpio, listo para ser importado en herramientas como Power BI o Excel.} \\ \hline
-\parbox[t]{\linewidth}{Dado que el Gerente utiliza una herramienta de BI externa (ej. Power BI Desktop).} & \parbox[t]{\linewidth}{Cuando configura el conector web con la URL de la API de Reportes del sistema y su credencial.} & \parbox[t]{\linewidth}{Entonces la herramienta externa debe ser capaz de importar la tabla de datos históricos de KPIs y permitir su actualización automática.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Gerente está viendo el Dashboard de KPIs.} & \parbox[t]{\linewidth}{Cuando selecciona la opción ``Exportar Dataset estructurado''.} & \parbox[t]{\linewidth}{Entonces el sistema debe generar un archivo con formato compatible para ser importado en herramientas de oficina.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Gerente utiliza una herramienta de BI externa.} & \parbox[t]{\linewidth}{Cuando configura el conector con la interfaz de conexión programática del sistema y su credencial.} & \parbox[t]{\linewidth}{Entonces la herramienta externa debe ser capaz de importar la tabla de datos históricos de KPIs y permitir su actualización automática.} \\ \hline
 \end{longtable}\normalsize
 \vspace{1em}
 \noindent\textbf{Ficha Técnica: ADM-022 - Sugerencias de Optimización (PMO)}
@@ -186,7 +186,7 @@
 \noindent\textit{Criterios de Aceptación:}
 \footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
 \textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
-\parbox[t]{\linewidth}{Dado que el Administrador se encuentra en la pantalla de ``Configuración General''.} & \parbox[t]{\linewidth}{Cuando encuentra en la pantalla de ``Configuración General''.Cuando carga un archivo de imagen (PNG/JPG) en el campo ``Logo Corporativo'' y guarda los cambios.} & \parbox[t]{\linewidth}{Entonces el logo en la barra de navegación superior se actualiza inmediatamente para reflejar la nueva imagen.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Administrador se encuentra en la pantalla de ``Configuración General''.} & \parbox[t]{\linewidth}{Cuando carga un archivo de imagen (PNG/JPG) en el campo ``Logo Corporativo'' y guarda los cambios.} & \parbox[t]{\linewidth}{Entonces el logo en la barra de navegación superior se actualiza inmediatamente para reflejar la nueva imagen.} \\ \hline
 \parbox[t]{\linewidth}{Dado que el Administrador está en la configuración regional y la hora actual del sistema está en UTC.} & \parbox[t]{\linewidth}{Cuando selecciona ``UTC-5 (Colombia)'' en la lista desplegable de Zona Horaria.} & \parbox[t]{\linewidth}{Entonces todas las fechas y horas mostradas en las Órdenes de Trabajo deben ajustarse automáticamente a la nueva zona seleccionada.} \\ \hline
 \end{longtable}\normalsize
 \vspace{1em}
@@ -207,8 +207,8 @@
 \noindent\textit{Criterios de Aceptación:}
 \footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
 \textbf{Contexto} & \textbf{Acción} & \textbf{Resultado} \\ \hline
-\parbox[t]{\linewidth}{Dado que un Planificador cambia la ``Prioridad'' de una Orden de Trabajo de ``Alta'' a ``Baja''.} & \parbox[t]{\linewidth}{Cuando guarda los cambios.} & \parbox[t]{\linewidth}{Entonces el sistema registra automáticamente una entrada de auditoría con: Quién: ``Carlos.Gomez''; Cuándo: 2026-02-21 10:30:05 UTC; Qué: Entidad ``WorkOrder'', ID ``WO-1052''; Detalle: Campo ``Priority'' cambió de ``High'' a ``Low''.} \\ \hline
-\parbox[t]{\linewidth}{Dado que el Auditor está investigando el historial del activo ``Bomba P-101''.} & \parbox[t]{\linewidth}{Cuando filtra el registro de auditoría por ``EntityID = P-101''.} & \parbox[t]{\linewidth}{Entonces visualiza una línea de tiempo completa de todos los cambios de estado, mantenimientos y modificaciones de atributos desde su creación.} \\ \hline
+\parbox[t]{\linewidth}{Dado que un Planificador cambia la ``Prioridad'' de una Orden de Trabajo de ``Alta'' a ``Baja''.} & \parbox[t]{\linewidth}{Cuando guarda los cambios.} & \parbox[t]{\linewidth}{Entonces el sistema registra automáticamente una entrada de auditoría con: Quién: ``Carlos.Gomez''; Cuándo: 2026-02-21 10:30:05 UTC; Qué: Entidad ``WorkOrder'', ID ``WO-1052''; Detalle: Campo ``Priority'' cambió de ``Alta'' a ``Baja''.} \\ \hline
+\parbox[t]{\linewidth}{Dado que el Auditoríaor está investigando el historial del activo ``Bomba P-101''.} & \parbox[t]{\linewidth}{Cuando filtra el registro de auditoría por ``EntityID = P-101''.} & \parbox[t]{\linewidth}{Entonces visualiza una línea de tiempo completa de todos los cambios de estado, mantenimientos y modificaciones de atributos desde su creación.} \\ \hline
 \parbox[t]{\linewidth}{Dado que un usuario intenta eliminar un registro de ``Repuesto'' del inventario maestro.} & \parbox[t]{\linewidth}{Cuando confirma la acción.} & \parbox[t]{\linewidth}{Entonces el sistema marca el registro como inactivo (Soft-Delete) y crea una entrada de auditoría de tipo ``DELETE\_ATTEMPT'' con la justificación ingresada (si aplica).} \\ \hline
 \end{longtable}\normalsize
 \vspace{1em}
