@@ -4,11 +4,11 @@ import re
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
-TEX_DIR = (SCRIPT_DIR / "sections").resolve()
+TEX_DIR = (SCRIPT_DIR.parent / "sections").resolve()
 
 MD_DIR_CANDIDATES = [
-    (SCRIPT_DIR / "../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/Draft-Report").resolve(),
-    (SCRIPT_DIR / "../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/Report-Draft").resolve(),
+    (SCRIPT_DIR / "../../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/Draft-Report").resolve(),
+    (SCRIPT_DIR / "../../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/Report-Draft").resolve(),
 ]
 
 FILE_MAP = {

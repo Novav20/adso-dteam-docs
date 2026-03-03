@@ -4,10 +4,10 @@ from pathlib import Path
 
 # Configuración de rutas relativas
 SCRIPT_DIR = Path(__file__).parent
-BASE_SENA_DIR = SCRIPT_DIR / "../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1"
+BASE_SENA_DIR = SCRIPT_DIR / "../../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1"
 US_DIR = BASE_SENA_DIR / "EV03-User-Stories"
 TR_FILE = US_DIR / "EV03-Transversal-Requirements.md"
-OUTPUT_DIR = SCRIPT_DIR / "sections/appendices"
+OUTPUT_DIR = SCRIPT_DIR.parent / "sections/appendices"
 
 def escape_latex(text):
     if not text: return ""

@@ -106,9 +106,19 @@ def parse_us_file(file_path):
     return meta, description, observations
 
 def generate_tex():
-    base_path = "../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/EV03-User-Stories"
-    output_dir = "sections/user_stories"
-    scenarios_by_us = load_gherkin_csv("../../../assets/docs/databases/gherkin.csv")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    report_dir = os.path.dirname(script_dir)
+    base_path = os.path.normpath(os.path.join(
+        script_dir,
+        "..", "..", "..", "..", "..",
+        "sena-evidence", "01-Analysis", "AP2-Conceptual-Model", "GA2-220501093-AA1", "EV03-User-Stories"
+    ))
+    output_dir = os.path.join(report_dir, "sections", "user_stories")
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    gherkin_csv = os.path.join(report_dir, "..", "..", "..", "assets", "docs", "databases", "gherkin.csv")
+    scenarios_by_us = load_gherkin_csv(os.path.normpath(gherkin_csv))
     
     epic_names = {"MTTO": "Gestión de Operaciones de Mantenimiento", "INV": "Gestión de Recursos e Inventario",
                   "VIS": "Visualización y Gemelo Digital", "ADM": "Administración e Inteligencia de Negocio"}
