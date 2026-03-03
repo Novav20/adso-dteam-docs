@@ -9,14 +9,15 @@ Este SRS constituye la línea base técnica para la transición hacia la fase de
 El sistema \textbf{``Gemelo Digital EAM''} es una plataforma híbrida diseñada para optimizar la gestión operativa y estratégica mediante la convergencia de datos de sensores (IoT), modelos 3D y motores de inferencia IA.
 
 Esta solución busca transformar los procesos manuales o desconectados que actualmente impactan la eficiencia de la planta, específicamente:
+
 \begin{itemize}
     \item \textbf{Captura de Datos en Campo:} Reemplazo de checklists en papel por formularios digitales que alimentan indicadores en tiempo real.
     \item \textbf{Ingesta de Informes Externos:} Automatización de la extracción de datos de reportes de contratistas mediante inteligencia artificial.
     \item \textbf{Acceso a Información Técnica:} Disponibilidad inmediata de planos y manuales en el punto de trabajo vía dispositivos móviles.
     \item \textbf{Verificación de Stock:} Validación automática de repuestos antes de la programación de intervenciones.
 \end{itemize}
-
 \textbf{El sistema SÍ incluirá:}
+
 \begin{enumerate}
     \item \textbf{Gobernanza de Mantenimiento:} Ciclo de vida completo de órdenes de trabajo con priorización objetiva mediante matriz RIME y cierre digital bajo taxonomía ISO 14224.
     \item \textbf{Control de Recursos:} Gestión de activos serializados (Equipment Units) y control de stock crítico basado en clasificación ABC y prevención de duplicados vía Commodity Codes.
@@ -25,18 +26,18 @@ Esta solución busca transformar los procesos manuales o desconectados que actua
     \item \textbf{Inteligencia y Auditoría:} Consola de administración con control de acceso RBAC granular, auditoría inmutable con cadena de integridad criptográfica (Hash-Chaining) y dashboards de KPIs (MTBF, MTTR).
     \item \textbf{Framework de Asistencia IA:} Motor de asistencia técnica basado en RAG (Retrieval-Augmented Generation) para consulta de manuales en lenguaje natural.
 \end{enumerate}
-
 \textbf{El sistema NO incluirá (Exclusiones y Consideraciones Futuras):}
+
 \begin{enumerate}
     \item \textbf{Edición de Malla 3D:} El sistema consume modelos existentes pero no permite el modelado geométrico interno.
     \item \textbf{Integración ERP Financiera:} La sincronización automática con sistemas contables externos se difiere a fases posteriores debido a dependencias de APIs de terceros.
     \item \textbf{Control Industrial Activo (SCADA/HMI):} Capacidad para enviar comandos de parada o arranque directo a la maquinaria. Se excluye explícitamente en esta fase para garantizar la seguridad funcional de la planta, operando en modo de ``monitoreo''.
     \item \textbf{Integración con Suites de Productividad:} Sincronización nativa con plataformas como Google Workspace u Office 365 para la gestión de identidad y notificaciones avanzadas (Diferido a versiones posteriores).
 \end{enumerate}
-
 \subsection{Definiciones, Acrónimos y Abreviaturas}
 
 \textbf{Nomenclatura de Módulos}
+
 \begin{itemize}
     \item \textbf{ADM:} Administración e Inteligencia de Negocio.
     \item \textbf{INV:} Gestión de Recursos e Inventario.
@@ -44,8 +45,8 @@ Esta solución busca transformar los procesos manuales o desconectados que actua
     \item \textbf{VIS:} Visualización y Gemelo Digital.
     \item \textbf{TR:} Requisito Transversal (Arquitectura Común).
 \end{itemize}
-
 \textbf{Términos Técnicos y del Dominio}
+
 \begin{itemize}
     \item \textbf{API (Application Programming Interface):} Interfaz que permite la comunicación e intercambio de datos entre dos sistemas de software independientes.
     \item \textbf{CMMS (Computerized Maintenance Management System):} Software diseñado para simplificar la gestión del mantenimiento de activos.
@@ -65,18 +66,19 @@ Esta solución busca transformar los procesos manuales o desconectados que actua
     \item \textbf{SIL-2 (Safety Integrity Level 2):} Nivel de integridad de seguridad aplicado a la lógica de software crítica.
     \item \textbf{Sidecar Pattern:} Patrón de diseño que desacopla la visualización de la inteligencia de datos.
 \end{itemize}
-
 \subsection{Referencias}
 \begin{sloppypar}
+
 \textbf{Normas y Estándares Técnicos}
+
 \begin{itemize}
     \item International Organization for Standardization. (2023). \textit{Systems and software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — Product quality model} (ISO/IEC 25010:2023).
     \item International Organization for Standardization. (2016). \textit{Petroleum, petrochemical and natural gas industries — Collection and exchange of reliability and maintenance data for equipment} (ISO 14224:2016).
     \item International Organization for Standardization. (2014). \textit{Asset management — Management systems — Requirements} (ISO 55001:2014).
     \item International Electrotechnical Commission. (2010). \textit{Functional safety of electrical\slash electronic\slash programmable electronic safety-related systems} (IEC 61508).
 \end{itemize}
-
 \textbf{Bibliografía Académica}
+
 \begin{itemize}
     \item Chen, S., Turanoglu Bekar, E., Bokrantz, J., \& Skoogh, A. (2025). AI-enhanced digital twins in maintenance: Systematic review, industrial challenges, and bridging research–practice gaps. \textit{Journal of Manufacturing Systems}, 82, 678-699. \url{https://doi.org/10.1016/j.jmsy.2025.07.006}
     \item Cohn, M. (2004). \textit{User Stories Applied: For Agile Software Development}. Addison-Wesley Professional.

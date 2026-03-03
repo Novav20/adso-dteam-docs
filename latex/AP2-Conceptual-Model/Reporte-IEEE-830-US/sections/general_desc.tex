@@ -6,65 +6,62 @@ El sistema ``Gemelo Digital EAM'' se define como una capa de operación avanzada
 Aunque el sistema se diseñará para garantizar compatibilidad teórica con plataformas comerciales mediante el estándar \textbf{MIMOSA (OSA-EAI)}, para efectos del prototipo funcional se empleará una estrategia de simulación mediante un \textbf{Mock Server} o una instancia comunitaria de \textbf{Odoo}, demostrando la capacidad de intercambio de datos vía API REST/JSON bajo los lineamientos de seguridad de \textbf{OWASP (API Security)}.
 
 El sistema interactúa con las siguientes entidades externas:
+
 \begin{itemize}
     \item \textbf{Hardware IoT:} Captura de datos en tiempo real (voltaje, vibración, presión) para lógica de bloqueo funcional.
     \item \textbf{Infraestructura Mobile:} Dispositivos tablets con capacidades biométricas y de captura multimedia para reportes en campo.
     \item \textbf{Ecosistema de Datos:} Consumo de modelos 3D en formatos abiertos (GLB/STEP) y bases de datos relacionales para la persistencia del historial de activos.
 \end{itemize}
-
 \subsection{Funciones del Producto}
 El sistema se organiza en cuatro dominios funcionales integrados mediante una \textbf{Estrategia de Navegación Jerárquica por Zonas}:
+
 \begin{enumerate}
     \item \textbf{Gestión de Operaciones (MTTO):} Digitalización del ciclo de vida de mantenimiento, desde el reporte de falla hasta el cierre de la orden, optimizando la captura de datos en campo.
     \item \textbf{Control de Inventario (INV):} Administración de la cadena de suministro de repuestos críticos y taxonomía jerárquica de activos según ISO 14224.
     \item \textbf{Visualización Predictiva (VIS):} Interfaz interactiva basada en escenas 3D aisladas por zonas (Spot Scenes), permitiendo una digitalización progresiva sin comprometer el rendimiento en dispositivos móviles. Incluye capas de seguridad operativa (LOTO/PTW).
     \item \textbf{Gobernanza y Administración (ADM):} Control de políticas de seguridad, gestión de usuarios y aseguramiento de la integridad de la auditoría.
 \end{enumerate}
-
 \subsection{Características de los Usuarios}
 Se han identificado tres perfiles críticos cuyos atributos determinan los requisitos de usabilidad y seguridad del sistema:
 
 \begin{itemize}
     \item \textbf{Perfil Estratégico (Gerentes/Supervisores):}
-    \begin{itemize}
-        \item \textit{Nivel Educativo/Técnico:} Profesionales en Ingeniería o Administración con alta competencia en gestión de activos.
-        \item \textit{Frecuencia de Uso:} Diaria (Supervisores) a Semanal (Gerentes).
-        \item \textit{Nivel de Autoridad:} Alta (Aprobación de presupuestos, cambios en criticidad y gestión de riesgos).
-        \item \textit{Necesidad:} Información sintetizada en Dashboards para decisiones de disponibilidad.
-    \end{itemize}
-
-    \item \textbf{Perfil Operativo (Técnicos/Inspectores):}
-    \begin{itemize}
-        \item \textit{Nivel Educativo/Técnico:} Personal técnico/tecnológico con destreza en maquinaria física pero variabilidad en competencias digitales.
-        \item \textit{Frecuencia de Uso:} Intensiva y continua durante la jornada laboral.
-        \item \textit{Nivel de Autoridad:} Ejecución (Reporte de fallas, cierre de actividades y cumplimiento de seguridad).
-        \item \textit{Necesidad:} Interfaces \textbf{Mobile-First}, botones amplios y operación \textbf{Offline-First} en entornos hostiles.
-    \end{itemize}
-
-    \item \textbf{Perfil Especializado (Ingenieros de Confiabilidad/Administradores):}
-    \begin{itemize}
-        \item \textit{Nivel Educativo/Técnico:} Profesionales especializados en Mecatrónica o Sistemas con conocimientos avanzados en CAD y bases de datos.
-        \item \textit{Frecuencia de Uso:} Diaria e intensiva para configuración.
-        \item \textit{Nivel de Autoridad:} Configuración (Administración de taxonomías, gestión de mallas 3D y políticas de seguridad).
-        \item \textit{Necesidad:} Acceso total a parámetros del sistema y densidad de información técnica.
-    \end{itemize}
+\begin{itemize}
+    \item \textit{Nivel Educativo/Técnico:} Profesionales en Ingeniería o Administración con alta competencia en gestión de activos.
+    \item \textit{Frecuencia de Uso:} Diaria (Supervisores) a Semanal (Gerentes).
+    \item \textit{Nivel de Autoridad:} Alta (Aprobación de presupuestos, cambios en criticidad y gestión de riesgos).
+    \item \textit{Necesidad:} Información sintetizada en Dashboards para decisiones de disponibilidad.
 \end{itemize}
-
+    \item \textbf{Perfil Operativo (Técnicos/Inspectores):}
+\begin{itemize}
+    \item \textit{Nivel Educativo/Técnico:} Personal técnico/tecnológico con destreza en maquinaria física pero variabilidad en competencias digitales.
+    \item \textit{Frecuencia de Uso:} Intensiva y continua durante la jornada laboral.
+    \item \textit{Nivel de Autoridad:} Ejecución (Reporte de fallas, cierre de actividades y cumplimiento de seguridad).
+    \item \textit{Necesidad:} Interfaces \textbf{Mobile-First}, botones amplios y operación \textbf{Offline-First} en entornos hostiles.
+\end{itemize}
+    \item \textbf{Perfil Especializado (Ingenieros de Confiabilidad/Administradores):}
+\begin{itemize}
+    \item \textit{Nivel Educativo/Técnico:} Profesionales especializados en Mecatrónica o Sistemas con conocimientos avanzados en CAD y bases de datos.
+    \item \textit{Frecuencia de Uso:} Diaria e intensiva para configuración.
+    \item \textit{Nivel de Autoridad:} Configuración (Administración de taxonomías, gestión de mallas 3D y políticas de seguridad).
+    \item \textit{Necesidad:} Acceso total a parámetros del sistema y densidad de información técnica.
+\end{itemize}
+\end{itemize}
 \subsection{Restricciones}
+
 \begin{itemize}
     \item \textbf{Conectividad:} El sistema debe garantizar la integridad de los datos en zonas de ``sombra'' de red mediante sincronización diferida.
     \item \textbf{Seguridad Funcional:} La lógica de bloqueo activo (Energy Zero) debe implementar el principio de \textbf{falla segura (fail-safe)}, priorizando la seguridad física del operario ante cualquier anomalía o pérdida de señal de los sensores.
     \item \textbf{Estándar Visual:} Cumplimiento estricto del estándar \textbf{HPHMI Grayscale} para reducir la carga cognitiva del usuario.
     \item \textbf{Rendimiento:} La visualización 3D debe mantenerse por debajo del límite de saturación de VRAM de dispositivos móviles estándar.
 \end{itemize}
-
 \subsection{Suposiciones y Dependencias}
+
 \begin{itemize}
     \item Se asume la disponibilidad de modelos CAD simplificados por parte del equipo de Ingeniería del cliente.
     \item La precisión de la extracción de datos mediante IA depende de la legibilidad técnica de los informes cargados por los contratistas.
     \item El despliegue final depende de la infraestructura de red Wi-Fi industrial para la sincronización de activos críticos.
     \item \textbf{Viabilidad de Dispositivos:} Aunque el entorno ideal de producción son las Tablets para la visualización de planos complejos, para la demostración académica se priorizará la compatibilidad con \textbf{teléfonos inteligentes}, empleando un diseño responsivo que soporte la estrategia \textbf{Offline-First}.
 \end{itemize}
-
 \subsection{Delimitación del Proyecto (MVP)}
 Para garantizar la viabilidad técnica y el cumplimiento de los cronogramas de la Fase de Desarrollo, se establece que el \textbf{Producto Mínimo Viable (MVP)} estará constituido exclusivamente por los requisitos identificados con prioridad \textbf{MUST} (escala MoSCoW) y prioridad \textbf{Alta} (escala técnica), teniendo en cuenta el análisis de dependencias que se realice. Las funcionalidades marcadas como SHOULD, COULD o WON'T en este documento forman parte de la visión a largo plazo del sistema y serán abordadas en iteraciones posteriores.
