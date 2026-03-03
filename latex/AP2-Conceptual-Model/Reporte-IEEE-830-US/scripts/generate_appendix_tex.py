@@ -7,7 +7,6 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).parent
 BASE_SENA_DIR = SCRIPT_DIR / "../../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1"
 US_DIR = BASE_SENA_DIR / "EV03-User-Stories"
-TR_FILE = US_DIR / "EV03-Transversal-Requirements.md"
 OUTPUT_DIR = SCRIPT_DIR.parent / "sections/appendices"
 SRS_CSV = SCRIPT_DIR.parent.parent.parent.parent / "assets/docs/databases/srs.csv"
 
@@ -32,37 +31,24 @@ def escape_latex(text):
     text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
     return text.strip()
 
-def parse_md_table(content):
-    rows = []
-    lines = content.split('\n')
-    for line in lines:
-        if line.strip().startswith('|') and not re.match(r'^[|\s:-]+$', line.strip()):
-            parts = [p.strip() for p in line.split('|')]
-            if len(parts) >= 4:
-                parts[1] = re.sub(r'\*+', '', parts[1])
-                rows.append(parts[1:-1])
-    return rows
-
 def collect_requirements():
-    trs = []
-    if TR_FILE.exists():
-        tr_content = TR_FILE.read_text(encoding='utf-8')
-        tr_rows = parse_md_table(tr_content)
-        for r in tr_rows:
-            if re.search(r'TR-\d+-(FR|NFR)-\d+', r[0]):
-                trs.append({
-                    'id': r[0], 
-                    'desc': r[2] if len(r) > 2 else "", 
-                    'prio': r[1] if len(r) > 1 else "High"
-                })
-
-    epic_data = {"MTTO": [], "INV": [], "VIS": [], "ADM": [], "COMMON": trs}
+    epic_data = {"MTTO": [], "INV": [], "VIS": [], "ADM": [], "COMMON": []}
 
     if SRS_CSV.exists():
         with open(SRS_CSV, 'r', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 req_id = (row.get('Req ID') or "").strip().upper()
+                if re.match(r'^TR-\d+-(FR|NFR)-\d+$', req_id):
+                    desc = (row.get('Descripción') or "").strip()
+                    desc = re.sub(r'^TR-\d+-(FR|NFR)-\d+:\s*', '', desc)
+                    epic_data["COMMON"].append({
+                        'id': req_id,
+                        'desc': desc,
+                        'prio': (row.get('Prioridad') or "Media").strip(),
+                    })
+                    continue
+
                 if not re.match(r'^(FR|NFR)-\d+$', req_id):
                     continue
 
@@ -132,11 +118,11 @@ def generate_all():
     data = collect_requirements()
     
     epic_names = {
-        "COMMON": "Requisitos Transversales",
         "MTTO": "Requisitos del Módulo de Gestión de Mantenimiento", 
         "INV": "Requisitos del Módulo de Gestión de Inventario", 
         "VIS": "Requisitos del Módulo de Visualización Digital", 
-        "ADM": "Requisitos del Módulo de Administración"
+        "ADM": "Requisitos del Módulo de Administración",
+        "COMMON": "Requisitos Transversales"
     }
     
     for epic, name in epic_names.items():

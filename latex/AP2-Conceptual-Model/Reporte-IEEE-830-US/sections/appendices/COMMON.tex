@@ -4,88 +4,88 @@
 \toprule
 \rowcolor{gray!15}\textbf{ID} & \textbf{Descripción} & \textbf{Prioridad} \\ \midrule
 \endhead
-TR-001-FR-01 & El sistema DEBE registrar para cada operacion critica: timestamp, identificador del operador, tipo de operacion (crear, modificar, eliminar, consultar, ajustar), tipo de entidad afectada, identificador de entidad, y estados anterior/posterior. & Alta \\
-TR-001-FR-02 & El sistema DEBE garantizar inmutabilidad de los registros de auditoria, impidiendo su modificacion o eliminacion por cualquier rol, incluyendo administrador. & Alta \\
-TR-001-FR-03 & El sistema DEBE mantener una cadena de integridad criptografica entre registros consecutivos que permita detectar manipulacion o corrupcion de datos. & Media \\
-TR-001-FR-04 & El sistema DEBE soportar consultas de auditoria filtradas por rango de fechas, usuario, tipo de operacion, tipo de entidad e identificador especifico. & Media \\
-TR-001-NFR-01 & Los registros de auditoria NO pueden modificarse ni eliminarse post-creacion. El sistema rechaza cualquier intento con error de permiso denegado. & Alta \\
-TR-001-NFR-02 & La escritura de registros de auditoria NO debe bloquear las transacciones principales del sistema. Objetivo: <50ms (percentil 95). & Alta \\
-TR-001-NFR-03 & Los registros de auditoria se conservan por minimo 7 anios (requisito ISO 55000 para activos industriales criticos), con soporte de archivado a almacenamiento de largo plazo. & Media \\
-TR-001-NFR-04 & El sistema debe soportar exportacion de auditoria completa en formato estructurado para auditorias externas, incluyendo verificacion de cadena de integridad. & Baja \\
-TR-002-FR-01 & El sistema DEBE cifrar datos sensibles en reposo usando un algoritmo de cifrado autenticado que cumpla estandares internacionales de criptografia. & Alta \\
-TR-002-FR-02 & El sistema DEBE generar claves de cifrado mediante generadores criptograficamente seguros y almacenarlas en un gestor de secretos centralizado. Las claves NO deben estar en codigo fuente. & Alta \\
-TR-002-FR-03 & El sistema DEBE implementar rotacion automatica de claves de cifrado cada 90 dias, verificando la migracion completa antes de deprecar la clave anterior. & Alta \\
-TR-002-FR-04 & El sistema DEBE soportar cifrado a nivel de campo para datos especificamente sensibles (justificaciones, metadatos de auditoria con datos personales). & Media \\
-TR-002-NFR-01 & El cifrado/descifrado NO debe anadir mas del 10\% de overhead a las operaciones de lectura/escritura. & Alta \\
-TR-002-NFR-02 & El algoritmo de cifrado debe ser compatible con estandares de certificacion internacionales para entornos regulados. & Alta \\
-TR-002-NFR-03 & Todos los accesos a claves de cifrado deben registrarse en auditoria [TR-001]. & Media \\
-TR-003-FR-01 & El sistema DEBE calcular un hash criptografico de cada archivo al momento de carga o creacion, almacenando el resultado en los metadatos del archivo. & Alta \\
-TR-003-FR-02 & El sistema DEBE verificar integridad al recuperar un archivo, comparando el hash recalculado con el almacenado. Si no coinciden: rechazar, registrar alerta de seguridad [TR-001]. & Alta \\
-TR-003-FR-03 & El sistema DEBE ejecutar verificaciones periodicas de integridad sobre una muestra aleatoria de archivos almacenados. & Media \\
-TR-003-NFR-01 & El calculo de integridad NO debe bloquear la carga o descarga de archivos. Debe ejecutarse de forma asincrona. & Alta \\
-TR-003-NFR-02 & Si la verificacion de integridad falla, el sistema DEBE generar una alerta critica inmediata al equipo de seguridad con los detalles del archivo afectado. & Alta \\
-TR-003-NFR-03 & El hash calculado NO puede modificarse post-creacion. Si un archivo se reemplaza, se crea un nuevo registro manteniendo el historial del anterior. & Media \\
-TR-004-FR-01 & El sistema DEBE implementar control de frecuencia de solicitudes configurable por tipo de operacion, usuario, rol y ventana de tiempo. & Alta \\
-TR-004-FR-02 & El sistema DEBE rechazar solicitudes que excedan el limite configurado, comunicando al cliente el tiempo de espera antes de reintentar. & Alta \\
-TR-004-FR-03 & El sistema DEBE registrar las violaciones de limite en auditoria [TR-001] para detectar patrones de abuso. & Media \\
-TR-004-FR-04 & El sistema DEBE soportar rafagas controladas sin penalizar al usuario, siempre que el promedio no exceda el limite configurado. & Media \\
-TR-004-NFR-01 & La verificacion de limite NO debe anadir mas de 10ms de latencia a la solicitud. & Alta \\
-TR-004-NFR-02 & Los limites deben ser configurables sin redespliegue de codigo y los cambios deben aplicar en menos de 1 minuto. & Alta \\
-TR-005-FR-01 & El sistema DEBE cifrar todas las conexiones de red usando protocolos de transporte seguros vigentes, deshabilitando versiones obsoletas o vulnerables. & Alta \\
-TR-005-FR-02 & El sistema DEBE forzar el uso de conexiones seguras en todos los clientes mediante cabeceras de seguridad de transporte. & Alta \\
-TR-005-FR-03 & El sistema DEBE usar certificados emitidos por una Autoridad Certificadora confiable, con renovacion automatica antes de su expiracion. & Alta \\
-TR-005-FR-04 & El sistema DEBE cifrar las conexiones a base de datos, validando el certificado del servidor en ambiente de produccion. & Media \\
-TR-005-NFR-01 & El sistema de monitoreo debe alertar 15 dias antes de la expiracion de certificados, con alerta critica si el plazo es menor a 7 dias. & Alta \\
-TR-005-NFR-02 & Las conexiones fallidas por problemas de cifrado deben registrarse en logs de seguridad con detalles del cliente y la razon del fallo. & Media \\
-TR-006-FR-01 & El sistema DEBE autenticar usuarios mediante credenciales temporales verificables con expiracion temporal, conteniendo como minimo: identificador de usuario, roles asignados y marca de tiempo de emision. & Alta \\
-TR-006-FR-02 & El sistema DEBE validar el token en cada solicitud protegida: verificar firma, verificar vigencia y extraer roles. Si la validacion falla, denegar el acceso. & Alta \\
-TR-006-FR-03 & El sistema DEBE implementar una matriz de permisos RBAC con roles predefinidos: Admin, Supervisor, Ingeniero de Confiabilidad, Planificador Avanzado, Tecnico, Contratista. Cada operacion define roles permitidos. & Alta \\
-TR-006-FR-04 & El sistema DEBE registrar en auditoria [TR-001] todos los intentos de acceso denegado para detectar intentos de escalada de privilegios. & Alta \\
-TR-006-FR-05 & El sistema DEBE soportar control de acceso basado en propiedad: los recursos creados por un usuario solo son accesibles por el, su supervisor o un administrador. & Media \\
-TR-006-NFR-01 & Los tokens deben expirar al finalizar la jornada laboral (8 horas). El cliente debe soportar renovacion automatica o re-autenticacion. & Alta \\
-TR-006-NFR-02 & Las claves de firma de tokens deben almacenarse en un gestor de secretos centralizado con rotacion trimestral. & Alta \\
-TR-006-NFR-03 & La verificacion de autorizacion NO debe anadir mas de 5ms de latencia a la solicitud. & Media \\
-TR-006-NFR-04 & El sistema debe soportar revocacion inmediata de tokens (blacklist) para casos de compromiso de seguridad. & Media \\
-TR-007-FR-01 & El sistema DEBE mantener una replica local de los datos operativos necesarios para operar sin conexion: ordenes de trabajo, activos, programaciones y metadatos de documentos. & Alta \\
-TR-007-FR-02 & El sistema DEBE encolar las operaciones realizadas offline con metadatos de sincronizacion (tipo de operacion, entidad, datos, estado de sincronizacion). & Alta \\
-TR-007-FR-03 & El sistema DEBE sincronizar automaticamente al detectar conectividad, procesando la cola en orden cronologico. & Alta \\
-TR-007-FR-04 & El sistema DEBE implementar sincronizacion incremental: solo transferir registros modificados desde la ultima sincronizacion exitosa. & Alta \\
-TR-007-FR-05 & El sistema DEBE detectar conflictos de sincronizacion y presentar al usuario opciones de resolucion cuando un registro fue modificado tanto en servidor como en dispositivo. & Media \\
-TR-007-FR-06 & El sistema DEBE implementar reintentos con retroceso exponencial para sincronizaciones fallidas, notificando al usuario tras agotar los intentos. & Media \\
-TR-007-NFR-01 & La base de datos local debe estar cifrada [TR-002] usando una clave derivada de las credenciales del usuario. Sin credenciales, los datos locales deben ser inaccesibles. & Alta \\
-TR-007-NFR-02 & El cache local debe tener un limite de tamano configurable para evitar llenar el almacenamiento del dispositivo, eliminando registros antiguos sin operaciones pendientes. & Alta \\
-TR-007-NFR-03 & La interfaz debe mostrar claramente el estado de sincronizacion (sincronizado, pendiente, fallido) con marca de tiempo de la ultima sincronizacion exitosa. & Media \\
-TR-007-NFR-04 & Las sincronizaciones exitosas deben registrarse en auditoria [TR-001] en el servidor. & Media \\
-TR-008-FR-01 & El sistema DEBE implementar los 9 niveles de ISO 14224:2016 como estructura maestra: Nivel 1 (Ubicacion), Nivel 2 (Seccion), Nivel 3 (Subsistema), Nivel 4 (Sistema), Nivel 5 (Familia), Nivel 6 (Unidad de Equipo), Nivel 7 (Ensamble), Nivel 8 (Item Mantenible), Nivel 9 (Parte/Pieza). & Alta \\
-TR-008-FR-02 & El sistema DEBE validar unicidad de componentes: un Item Mantenible (Nivel 8) NO puede pertenecer a dos Unidades de Equipo (Nivel 6) simultaneamente. & Alta \\
-TR-008-FR-03 & El sistema DEBE validar integridad jerarquica: cada activo debe tener un padre valido y debe existir un camino completo desde Nivel 1 hasta su nivel. Impedir eliminacion de niveles superiores con dependientes asignados. & Alta \\
-TR-008-FR-04 & El sistema DEBE exponer servicios de consulta de activos por nivel jerarquico y ruta completa desde Nivel 1 hasta el activo consultado. & Alta \\
-TR-008-FR-05 & El sistema DEBE prevenir ciclos en la jerarquia: un activo no puede ser padre de su propio ancestro, directa o indirectamente. & Media \\
-TR-008-FR-06 & El sistema DEBE soportar busqueda y filtrado de activos por nivel, criticidad y estado operativo, y generar reportes de cobertura taxonomica. & Media \\
-TR-008-NFR-01 & Las validaciones de unicidad y busquedas por nivel deben ejecutarse en <500ms para catalogos de hasta 50,000 activos. & Alta \\
-TR-008-NFR-02 & Las operaciones de creacion/modificacion de jerarquia deben ser transaccionales: si la validacion falla, todos los cambios se revierten. & Alta \\
-TR-008-NFR-03 & Los errores de validacion deben ser especificos y accionables, indicando exactamente que componente y relacion causa el problema. & Media \\
-TR-008-NFR-04 & Las violaciones de jerarquia y cambios a la taxonomia deben registrarse en auditoria [TR-001]. & Media \\
-TR-009-FR-01 & El sistema DEBE abstraer la integracion con multiples proveedores de IA detras de una interfaz unica, soportando cambio de proveedor sin afectar logica de negocio y fallover automatico. & Alta \\
-TR-009-FR-02 & El sistema DEBE implementar puntaje de confianza (0-100) para todas las operaciones de IA, con indicadores visuales: verde (>=85\%), amarillo (70-84\%), rojo (<70\%). Resultados rojos requieren validacion manual. & Alta \\
-TR-009-FR-03 & El sistema DEBE registrar en auditoria [TR-001] todas las invocaciones de IA incluyendo: modelo, hash del prompt, hash del resultado, puntaje de confianza, identificador de usuario. & Media \\
-TR-009-FR-04 & El sistema DEBE soportar fallback a procesamiento manual: si el servicio de IA no esta disponible o la confianza es insuficiente, el usuario puede completar los campos manualmente. & Media \\
-TR-009-NFR-01 & La invocacion a servicios de IA debe completarse en <30 segundos (percentil 95). Si excede 45 segundos, retornar error y sugerir fallback manual. & Alta \\
-TR-009-NFR-02 & El sistema debe realizar seguimiento de costos por proveedor, por usuario y por dia, alertando si el gasto proyectado supera el presupuesto configurado. & Media \\
-TR-009-NFR-03 & Los datos enviados a servicios externos de IA NO deben contener informacion personal identificable (PII) no necesaria para la operacion. & Media \\
-TR-010-FR-01 & El sistema DEBE mantener conexiones persistentes con los clientes conectados, con deteccion automatica de desconexiones. & Alta \\
-TR-010-FR-02 & El sistema DEBE publicar cambios criticos a todos los clientes conectados con latencia <1 segundo: cambios en permisos de trabajo (LOTO), movimientos de inventario, actualizaciones de estado de WO. & Alta \\
-TR-010-FR-03 & El sistema DEBE sincronizar permisos de usuario en <10 segundos: si un administrador revoca un permiso, el cambio debe reflejarse en la sesion activa del usuario afectado. & Media \\
-TR-010-FR-04 & El sistema DEBE implementar control de autorizacion en las notificaciones: solo enviar actualizaciones a clientes con roles autorizados para ver esa informacion. & Media \\
-TR-010-NFR-01 & El sistema debe soportar 1000+ conexiones simultaneas sin degradacion de rendimiento. & Alta \\
-TR-010-NFR-02 & La interfaz debe renderizar actualizaciones sin parpadeo. Objetivo: >=30 FPS en movil, >=60 FPS en escritorio. & Alta \\
-TR-010-NFR-03 & Si el canal de tiempo real no esta disponible, el sistema debe degradar automaticamente a consultas periodicas, informando al usuario del modo degradado. & Media \\
-TR-011-FR-01 & El sistema DEBE emplear una paleta de grises neutros para el fondo de las pantallas operativas, minimizando el contraste no funcional para reducir la fatiga visual. & Alta \\
-TR-011-FR-02 & El sistema DEBE reservar el uso de colores saturados (Rojo, Amarillo, Naranja) únicamente para la señalización de alarmas o estados críticos de seguridad. & Alta \\
-TR-011-FR-03 & El sistema DEBE preferir indicadores de estilo analógico (moving bars, gauges con rangos normales sombreados) sobre simples valores digitales para proporcionar contexto inmediato. & Media \\
-TR-011-FR-04 & El sistema DEBE evitar animaciones decorativas (ej. bombas girando, flujo moviéndose) a menos que representen una advertencia crítica de seguridad. & Media \\
-TR-011-NFR-01 & La paleta de colores de alarma debe cumplir con el estándar WCAG 2.1 AA para garantizar la legibilidad por personas con daltonismo. & Alta \\
-TR-011-NFR-02 & El contraste entre el fondo gris y los elementos estáticos (tuberías, recipientes) debe ser suficiente para la visibilidad en condiciones de alta iluminación en planta. & Media \\
+TR-001-FR-361 & El sistema DEBE registrar para cada operacion critica: timestamp, identificador del operador, tipo de operacion (crear, modificar, eliminar, consultar, ajustar), tipo de entidad afectada, identificador de entidad, y estados anterior/posterior. & Alta \\
+TR-001-FR-362 & El sistema DEBE garantizar inmutabilidad de los registros de auditoria, impidiendo su modificacion o eliminacion por cualquier rol, incluyendo administrador. & Alta \\
+TR-001-FR-363 & El sistema DEBE mantener una cadena de integridad criptografica entre registros consecutivos que permita detectar manipulacion o corrupcion de datos. & Media \\
+TR-001-FR-364 & El sistema DEBE soportar consultas de auditoria filtradas por rango de fechas, usuario, tipo de operacion, tipo de entidad e identificador especifico. & Media \\
+TR-001-NFR-365 & Los registros de auditoria NO pueden modificarse ni eliminarse post-creacion. El sistema rechaza cualquier intento con error de permiso denegado. & Alta \\
+TR-001-NFR-366 & La escritura de registros de auditoria NO debe bloquear las transacciones principales del sistema. Objetivo: <50ms (percentil 95). & Alta \\
+TR-001-NFR-367 & Los registros de auditoria se conservan por minimo 7 años (requisito ISO 55000 para activos industriales criticos), con soporte de archivado a almacenamiento de largo plazo. & Media \\
+TR-001-NFR-368 & El sistema debe soportar exportacion de auditoria completa en formato estructurado para auditorias externas, incluyendo verificacion de cadena de integridad. & Baja \\
+TR-002-FR-369 & El sistema DEBE cifrar datos sensibles en reposo usando un algoritmo de cifrado autenticado que cumpla estandares internacionales de criptografia. & Alta \\
+TR-002-FR-370 & El sistema DEBE generar claves de cifrado mediante generadores criptograficamente seguros y almacenarlas en un gestor de secretos centralizado. Las claves NO deben estar en codigo fuente. & Alta \\
+TR-002-FR-371 & El sistema DEBE implementar rotacion automatica de claves de cifrado cada 90 dias, verificando la migracion completa antes de deprecar la clave anterior. & Alta \\
+TR-002-FR-372 & El sistema DEBE soportar cifrado a nivel de campo para datos especificamente sensibles (justificaciones, metadatos de auditoria con datos personales). & Media \\
+TR-002-NFR-373 & El cifrado/descifrado NO debe anadir mas del 10\% de overhead a las operaciones de lectura/escritura. & Alta \\
+TR-002-NFR-374 & El algoritmo de cifrado debe ser compatible con estandares de certificacion internacionales para entornos regulados. & Alta \\
+TR-002-NFR-375 & Todos los accesos a claves de cifrado deben registrarse en auditoria [TR-001]. & Media \\
+TR-003-FR-376 & El sistema DEBE calcular un hash criptografico de cada archivo al momento de carga o creacion, almacenando el resultado en los metadatos del archivo. & Alta \\
+TR-003-FR-377 & El sistema DEBE verificar integridad al recuperar un archivo, comparando el hash recalculado con el almacenado. Si no coinciden: rechazar, registrar alerta de seguridad [TR-001]. & Alta \\
+TR-003-FR-378 & El sistema DEBE ejecutar verificaciones periodicas de integridad sobre una muestra aleatoria de archivos almacenados. & Media \\
+TR-003-NFR-379 & El calculo de integridad NO debe bloquear la carga o descarga de archivos. Debe ejecutarse de forma asincrona. & Alta \\
+TR-003-NFR-380 & Si la verificacion de integridad falla, el sistema DEBE generar una alerta critica inmediata al equipo de seguridad con los detalles del archivo afectado. & Alta \\
+TR-003-NFR-381 & El hash calculado NO puede modificarse post-creacion. Si un archivo se reemplaza, se crea un nuevo registro manteniendo el historial del anterior. & Media \\
+TR-004-FR-382 & El sistema DEBE implementar control de frecuencia de solicitudes configurable por tipo de operacion, usuario, rol y ventana de tiempo. & Alta \\
+TR-004-FR-383 & El sistema DEBE rechazar solicitudes que excedan el limite configurado, comunicando al cliente el tiempo de espera antes de reintentar. & Alta \\
+TR-004-FR-384 & El sistema DEBE registrar las violaciones de limite en auditoria [TR-001] para detectar patrones de abuso. & Media \\
+TR-004-FR-385 & El sistema DEBE soportar rafagas controladas sin penalizar al usuario, siempre que el promedio no exceda el limite configurado. & Media \\
+TR-004-NFR-386 & La verificacion de limite NO debe anadir mas de 10ms de latencia a la solicitud. & Alta \\
+TR-004-NFR-387 & Los limites deben ser configurables sin redespliegue de codigo y los cambios deben aplicar en menos de 1 minuto. & Alta \\
+TR-005-FR-388 & El sistema DEBE cifrar todas las conexiones de red usando protocolos de transporte seguros vigentes, deshabilitando versiones obsoletas o vulnerables. & Alta \\
+TR-005-FR-389 & El sistema DEBE forzar el uso de conexiones seguras en todos los clientes mediante cabeceras de seguridad de transporte. & Alta \\
+TR-005-FR-390 & El sistema DEBE usar certificados emitidos por una Autoridad Certificadora confiable, con renovacion automatica antes de su expiracion. & Alta \\
+TR-005-FR-391 & El sistema DEBE cifrar las conexiones a base de datos, validando el certificado del servidor en ambiente de produccion. & Media \\
+TR-005-NFR-392 & El sistema de monitoreo debe alertar 15 dias antes de la expiracion de certificados, con alerta critica si el plazo es menor a 7 dias. & Alta \\
+TR-005-NFR-393 & Las conexiones fallidas por problemas de cifrado deben registrarse en logs de seguridad con detalles del cliente y la razon del fallo. & Media \\
+TR-006-FR-394 & El sistema DEBE autenticar usuarios mediante credenciales temporales verificables con expiracion temporal, conteniendo como minimo: identificador de usuario, roles asignados y marca de tiempo de emision. & Alta \\
+TR-006-FR-395 & El sistema DEBE validar el token en cada solicitud protegida: verificar firma, verificar vigencia y extraer roles. Si la validacion falla, denegar el acceso. & Alta \\
+TR-006-FR-396 & El sistema DEBE implementar una matriz de permisos RBAC con roles predefinidos: Admin, Supervisor, Ingeniero de Confiabilidad, Planificador Avanzado, Tecnico, Contratista. Cada operacion define roles permitidos. & Alta \\
+TR-006-FR-397 & El sistema DEBE registrar en auditoria [TR-001] todos los intentos de acceso denegado para detectar intentos de escalada de privilegios. & Alta \\
+TR-006-FR-398 & El sistema DEBE soportar control de acceso basado en propiedad: los recursos creados por un usuario solo son accesibles por el, su supervisor o un administrador. & Media \\
+TR-006-NFR-399 & Los tokens deben expirar al finalizar la jornada laboral (8 horas). El cliente debe soportar renovacion automatica o re-autenticacion. & Alta \\
+TR-006-NFR-400 & Las claves de firma de tokens deben almacenarse en un gestor de secretos centralizado con rotacion trimestral. & Alta \\
+TR-006-NFR-401 & La verificacion de autorizacion NO debe anadir mas de 5ms de latencia a la solicitud. & Media \\
+TR-006-NFR-402 & El sistema debe soportar revocacion inmediata de tokens (blacklist) para casos de compromiso de seguridad. & Media \\
+TR-007-FR-403 & El sistema DEBE mantener una replica local de los datos operativos necesarios para operar sin conexion: ordenes de trabajo, activos, programaciones y metadatos de documentos. & Alta \\
+TR-007-FR-404 & El sistema DEBE encolar las operaciones realizadas offline con metadatos de sincronizacion (tipo de operacion, entidad, datos, estado de sincronizacion). & Alta \\
+TR-007-FR-405 & El sistema DEBE sincronizar automaticamente al detectar conectividad, procesando la cola en orden cronologico. & Alta \\
+TR-007-FR-406 & El sistema DEBE implementar sincronizacion incremental: solo transferir registros modificados desde la ultima sincronizacion exitosa. & Alta \\
+TR-007-FR-407 & El sistema DEBE detectar conflictos de sincronizacion y presentar al usuario opciones de resolucion cuando un registro fue modificado tanto en servidor como en dispositivo. & Media \\
+TR-007-FR-408 & El sistema DEBE implementar reintentos con retroceso exponencial para sincronizaciones fallidas, notificando al usuario tras agotar los intentos. & Media \\
+TR-007-NFR-409 & La base de datos local debe estar cifrada [TR-002] usando una clave derivada de las credenciales del usuario. Sin credenciales, los datos locales deben ser inaccesibles. & Alta \\
+TR-007-NFR-410 & El cache local debe tener un limite de tamano configurable para evitar llenar el almacenamiento del dispositivo, eliminando registros antiguos sin operaciones pendientes. & Alta \\
+TR-007-NFR-411 & La interfaz debe mostrar claramente el estado de sincronizacion (sincronizado, pendiente, fallido) con marca de tiempo de la ultima sincronizacion exitosa. & Media \\
+TR-007-NFR-412 & Las sincronizaciones exitosas deben registrarse en auditoria [TR-001] en el servidor. & Media \\
+TR-008-FR-413 & El sistema DEBE implementar los 9 niveles de ISO 14224:2016 como estructura maestra: Nivel 1 (Ubicacion), Nivel 2 (Seccion), Nivel 3 (Subsistema), Nivel 4 (Sistema), Nivel 5 (Familia), Nivel 6 (Unidad de Equipo), Nivel 7 (Ensamble), Nivel 8 (Item Mantenible), Nivel 9 (Parte/Pieza). & Alta \\
+TR-008-FR-414 & El sistema DEBE validar unicidad de componentes: un Item Mantenible (Nivel 8) NO puede pertenecer a dos Unidades de Equipo (Nivel 6) simultaneamente. & Alta \\
+TR-008-FR-415 & El sistema DEBE validar integridad jerarquica: cada activo debe tener un padre valido y debe existir un camino completo desde Nivel 1 hasta su nivel. Impedir eliminacion de niveles superiores con dependientes asignados. & Alta \\
+TR-008-FR-416 & El sistema DEBE exponer servicios de consulta de activos por nivel jerarquico y ruta completa desde Nivel 1 hasta el activo consultado. & Alta \\
+TR-008-FR-417 & El sistema DEBE prevenir ciclos en la jerarquia: un activo no puede ser padre de su propio ancestro, directa o indirectamente. & Media \\
+TR-008-FR-418 & El sistema DEBE soportar busqueda y filtrado de activos por nivel, criticidad y estado operativo, y generar reportes de cobertura taxonomica. & Media \\
+TR-008-NFR-419 & Las validaciones de unicidad y busquedas por nivel deben ejecutarse en <500ms para catalogos de hasta 50,000 activos. & Alta \\
+TR-008-NFR-420 & Las operaciones de creacion/modificacion de jerarquia deben ser transaccionales: si la validacion falla, todos los cambios se revierten. & Alta \\
+TR-008-NFR-421 & Los errores de validacion deben ser especificos y accionables, indicando exactamente que componente y relacion causa el problema. & Media \\
+TR-008-NFR-422 & Las violaciones de jerarquia y cambios a la taxonomia deben registrarse en auditoria [TR-001]. & Media \\
+TR-009-FR-423 & El sistema DEBE abstraer la integracion con multiples proveedores de IA detras de una interfaz unica, soportando cambio de proveedor sin afectar logica de negocio y fallover automatico. & Alta \\
+TR-009-FR-424 & El sistema DEBE implementar puntaje de confianza (0-100) para todas las operaciones de IA, con indicadores visuales: verde (>=85\%), amarillo (70-84\%), rojo (<70\%). Resultados rojos requieren validacion manual. & Alta \\
+TR-009-FR-425 & El sistema DEBE registrar en auditoria [TR-001] todas las invocaciones de IA incluyendo: modelo, hash del prompt, hash del resultado, puntaje de confianza, identificador de usuario. & Media \\
+TR-009-FR-426 & El sistema DEBE soportar fallback a procesamiento manual: si el servicio de IA no esta disponible o la confianza es insuficiente, el usuario puede completar los campos manualmente. & Media \\
+TR-009-NFR-427 & La invocacion a servicios de IA debe completarse en <30 segundos (percentil 95). Si excede 45 segundos, retornar error y sugerir fallback manual. & Alta \\
+TR-009-NFR-428 & El sistema debe realizar seguimiento de costos por proveedor, por usuario y por dia, alertando si el gasto proyectado supera el presupuesto configurado. & Media \\
+TR-009-NFR-429 & Los datos enviados a servicios externos de IA NO deben contener informacion personal identificable (PII) no necesaria para la operacion. & Media \\
+TR-010-FR-430 & El sistema DEBE mantener conexiones persistentes con los clientes conectados, con deteccion automatica de desconexiones. & Alta \\
+TR-010-FR-431 & El sistema DEBE publicar cambios criticos a todos los clientes conectados con latencia <1 segundo: cambios en permisos de trabajo (LOTO), movimientos de inventario, actualizaciones de estado de WO. & Alta \\
+TR-010-FR-432 & El sistema DEBE sincronizar permisos de usuario en <10 segundos: si un administrador revoca un permiso, el cambio debe reflejarse en la sesion activa del usuario afectado. & Media \\
+TR-010-FR-433 & El sistema DEBE implementar control de autorizacion en las notificaciones: solo enviar actualizaciones a clientes con roles autorizados para ver esa informacion. & Media \\
+TR-010-NFR-434 & El sistema debe soportar 1000+ conexiones simultaneas sin degradacion de rendimiento. & Alta \\
+TR-010-NFR-435 & La interfaz debe renderizar actualizaciones sin parpadeo. Objetivo: >=30 FPS en movil, >=60 FPS en escritorio. & Alta \\
+TR-010-NFR-436 & Si el canal de tiempo real no esta disponible, el sistema debe degradar automaticamente a consultas periodicas, informando al usuario del modo degradado. & Media \\
+TR-011-FR-437 & El sistema DEBE emplear una paleta de grises neutros para el fondo de las pantallas operativas, minimizando el contraste no funcional para reducir la fatiga visual. & Alta \\
+TR-011-FR-438 & El sistema DEBE reservar el uso de colores saturados (Rojo, Amarillo, Naranja) únicamente para la señalización de alarmas o estados críticos de seguridad. & Alta \\
+TR-011-FR-439 & El sistema DEBE preferir indicadores de estilo analógico (moving bars, gauges con rangos normales sombreados) sobre simples valores digitales para proporcionar contexto inmediato. & Media \\
+TR-011-FR-440 & El sistema DEBE evitar animaciones decorativas (ej. bombas girando, flujo moviéndose) a menos que representen una advertencia crítica de seguridad. & Media \\
+TR-011-NFR-441 & La paleta de colores de alarma debe cumplir con el estándar WCAG 2.1 AA para garantizar la legibilidad por personas con daltonismo. & Alta \\
+TR-011-NFR-442 & El contraste entre el fondo gris y los elementos estáticos (tuberías, recipientes) debe ser suficiente para la visibilidad en condiciones de alta iluminación en planta. & Media \\
 \bottomrule
 \end{longtable}
 \normalsize
