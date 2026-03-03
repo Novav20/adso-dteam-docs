@@ -9,7 +9,7 @@
 \textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
 \item \textbf{Como} Planificador de Mantenimiento
 \item \textbf{Quiero} crear y programar órdenes de trabajo preventivas de forma recurrente, vinculadas a equipos específicos e ítems mantenibles, con método explícito (basado en tiempo o condición).
-\item \textbf{Para} asegurar que el mantenimiento rutinario se ejecute a tiempo según la criticidad operativa, manteniendo trazabilidad y cumplimiento normativo.
+\item \textbf{Para} asegurar que el mantenimiento rutinario se ejecute a tiempo según criticidad operativa, manteniendo trazabilidad conforme a la normativa ISO y reduciendo el riesgo de fallos por olvido.
 \end{itemize}\vspace{2pt}} \\ \hline
 \textbf{Observaciones} & Este componente es el núcleo de la estrategia proactiva del sistema, alineado con ISO 14224. La lógica de programación debe soportar disparadores tanto por tiempo como por condición, integrando alertas de criticidad (Producción/Crítico para Seguridad) para optimizar los intervalos de intervención y garantizar la disponibilidad de los activos nivel 6. \\ \hline
 \end{longtable}\normalsize
@@ -56,7 +56,7 @@
 \textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
 \item \textbf{Como} Contratista
 \item \textbf{Quiero} subir mi informe de trabajo en formato digital a la orden de trabajo asignada
-\item \textbf{Para} cumplir con el requisito de entrega del cliente de forma rápida y asegurar que la evidencia técnica quede registrada oficialmente.
+\item \textbf{Para} cumplir con el requisito de entrega del cliente de forma rápida y digital.
 \end{itemize}\vspace{2pt}} \\ \hline
 \textbf{Observaciones} & Este componente digitaliza la entrega de informes de terceros, unificando la documentación técnica en un solo repositorio vinculado a la Orden de Trabajo. El sistema debe validar la integridad y el formato de los documentos cargados para asegurar que la información sea procesable y segura, facilitando la revisión inmediata por parte del supervisor. \\ \hline
 \end{longtable}\normalsize
@@ -79,7 +79,7 @@
 \textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
 \item \textbf{Como} Supervisor de Mantenimiento
 \item \textbf{Quiero} que el sistema extraiga automáticamente la información clave de los documentos digitales (horas reales, repuestos utilizados, descripción del trabajo) y la presente en un resumen listo para validar.
-\item \textbf{Para} reducir el tiempo de cierre de las órdenes de trabajo y asegurar la captura precisa de datos técnicos del mantenimiento.
+\item \textbf{Para} reducir el tiempo de cierre de Orden de Trabajo y asegurar trazabilidad de datos técnicos del mantenimiento
 \end{itemize}\vspace{2pt}} \\ \hline
 \textbf{Observaciones} & Esta funcionalidad de vanguardia busca automatizar la ingesta de datos técnicos mediante el procesamiento cognitivo de documentos digitales. Aunque el éxito de la extracción está condicionado por la calidad de los informes de origen, el sistema implementa un flujo de validación humana obligatoria y un indicador de confianza técnica para garantizar la integridad de la base de datos de confiabilidad. \\ \hline
 \end{longtable}\normalsize
@@ -101,7 +101,7 @@
 \textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
 \item \textbf{Como} Técnico de Mantenimiento
 \item \textbf{Quiero} buscar y consultar los manuales técnicos y planos vinculados a la jerarquía de activos directamente desde la aplicación operativa
-\item \textbf{Para} obtener la información necesaria en el sitio de la reparación y asegurar que la intervención se realice bajo las especificaciones del fabricante.
+\item \textbf{Para} consultar la información necesaria en el sitio de la reparación sin tener que desplazarme a la oficina o buscar carpetas físicas, asegurando que la documentación sea relevante al componente que estoy interviniendo.
 \end{itemize}\vspace{2pt}} \\ \hline
 \textbf{Observaciones} & Esta funcionalidad busca descentralizar el acceso a la información técnica, permitiendo que el personal operativo consulte manuales y planos directamente en el punto de trabajo. Aunque es una mejora de productividad significativa para el prototipo conceptual, su implementación en producción requiere una estrategia de gestión documental robusta y un visor de documentos integrado con capacidades de operación fuera de línea. \\ \hline
 \end{longtable}\normalsize
@@ -122,7 +122,7 @@
 \textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
 \item \textbf{Como} Planificador de Mantenimiento
 \item \textbf{Quiero} que el sistema asigne automáticamente una prioridad a las tareas basada en la criticidad del activo y el riesgo operacional
-\item \textbf{Para} eliminar la subjetividad en la programación y asegurar que los recursos se orienten a los activos de mayor riesgo para la organización.
+\item \textbf{Para} eliminar la subjetividad en la programación y asegurar que los recursos se enfoquen en los problemas de mayor riesgo para la planta.
 \end{itemize}\vspace{2pt}} \\ \hline
 \textbf{Observaciones} & La implementación de la matriz RIME (Risk, Impact, Mantenibilidad, Economy) es esencial para la gestión de activos bajo ISO 55001. Este modelo de puntuación objetiva permite ordenar el trabajo diario basándose en la criticidad real y el impacto financiero, optimizando el uso de la mano de obra y los materiales en el backlog de mantenimiento. \\ \hline
 \end{longtable}\normalsize
@@ -143,7 +143,7 @@
 \textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
 \item \textbf{Como} Técnico de Mantenimiento
 \item \textbf{Quiero} realizar consultas en lenguaje natural sobre los procedimientos técnicos y manuales integrados en el sistema
-\item \textbf{Para} obtener respuestas rápidas con referencias explícitas a la documentación original y asegurar una ejecución técnica correcta en campo.
+\item \textbf{Para} obtener respuestas rápidas con referencias explícitas a página/sección específica del manual, asegurando que confirme la información en la fuente original antes de actuar.
 \end{itemize}\vspace{2pt}} \\ \hline
 \textbf{Observaciones} & Esta funcionalidad de innovación busca reducir el tiempo de búsqueda de información técnica mediante el uso de arquitectura RAG (Retrieval Augmented Generation). Al indexar los manuales técnicos del activo, el sistema permite que el técnico realice consultas contextuales, garantizando que cada respuesta técnica esté respaldada por una referencia directa a la documentación del fabricante, minimizando así el riesgo operativo por errores de interpretación. \\ \hline
 \end{longtable}\normalsize
@@ -166,7 +166,7 @@
 \textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
 \item \textbf{Como} Ingeniero de Confiabilidad
 \item \textbf{Quiero} definir y validar los límites físicos de cada activo maestro, especificando sus puntos de inicio, fin y componentes internos integrados
-\item \textbf{Para} garantizar que la jerarquía técnica sea coherente y evitar la duplicidad en las actividades de mantenimiento o errores en la clasificación de fallos.
+\item \textbf{Para} garantizar que cada activo tenga límites físicos claros (inicio/fin + componentes incluidos), previniendo duplicación de mantenimiento o asignación incorrecta de fallos.
 \end{itemize}\vspace{2pt}} \\ \hline
 \textbf{Observaciones} & Esta funcionalidad es un requerimiento mandatorio de ISO 14224 para la integridad de los datos de fiabilidad. La definición precisa de los límites (Boundaries) asegura que la jerarquía de activos sea única y coherente, eliminando ambigüedades en la asignación de costos y responsabilidades técnicas entre activos adyacentes. \\ \hline
 \end{longtable}\normalsize
@@ -188,7 +188,7 @@
 \textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
 \item \textbf{Como} Planificador de Mantenimiento
 \item \textbf{Quiero} recibir notificaciones automáticas cuando se gestione una intervención sobre un activo con garantía vigente
-\item \textbf{Para} evaluar la conveniencia de realizar un reclamo formal con el proveedor externo y optimizar los costos de mantenimiento de la organización.
+\item \textbf{Para} aprovechar cobertura de garantía antes de realizar mantenimiento interno, optimizando costos y evitando trabajo redundante en equipos aún garantizados.
 \end{itemize}\vspace{2pt}} \\ \hline
 \textbf{Observaciones} & Esta funcionalidad optimiza el retorno sobre la inversión (ROI) de los activos al automatizar la detección de coberturas vigentes. Al integrar las fechas de garantía con el flujo de creación de órdenes de trabajo, el sistema previene el gasto innecesario de recursos internos y asegura el cumplimiento de los contratos de soporte con proveedores externos. \\ \hline
 \end{longtable}\normalsize

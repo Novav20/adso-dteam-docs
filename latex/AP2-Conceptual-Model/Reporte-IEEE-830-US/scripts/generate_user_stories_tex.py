@@ -30,33 +30,15 @@ def escape_latex(text):
     
     return text.strip()
 
-def format_us_description(desc_text):
-    """Extrae las 3 partes de la US de forma robusta y las devuelve como lista LaTeX."""
-    if not desc_text: return "N/A"
-    
-    # Normalizar: quitar negritas y citaciones de Markdown
-    clean = re.sub(r'\*\*', '', desc_text)
-    clean = re.sub(r'^\s*>\s*', '', clean, flags=re.MULTILINE)
-    
-    # Dividir por líneas para evitar que palabras como "como" dentro de un paréntesis activen la regex
-    lines = clean.split('\n')
-    como = ""
-    quiero = ""
-    para = ""
-    
-    for line in lines:
-        line = line.strip()
-        # Solo capturar si la línea EMPIEZA con la palabra clave
-        if re.match(r'^como\b', line, re.I):
-            como = re.sub(r'^como\s*(?::)?\s*', '', line, flags=re.I)
-        elif re.match(r'^quiero\b', line, re.I):
-            quiero = re.sub(r'^quiero\s*(?::)?\s*', '', line, flags=re.I)
-        elif re.match(r'^para\b', line, re.I):
-            para = re.sub(r'^para\s*(?::)?\s*', '', line, flags=re.I)
-            
+def format_us_description(como, quiero, para):
+    """Construye la descripción de US (Como/Quiero/Para) como lista LaTeX."""
+    como = re.sub(r'^\s*como\s*', '', (como or "").strip(), flags=re.IGNORECASE)
+    quiero = re.sub(r'^\s*quiero\s*', '', (quiero or "").strip(), flags=re.IGNORECASE)
+    para = re.sub(r'^\s*para\s*', '', (para or "").strip(), flags=re.IGNORECASE)
+
     if not (como or quiero or para):
-        return escape_latex(' '.join(clean.split()))
-    
+        return "N/A"
+
     parts = []
     if como: parts.append(f"\\item \\textbf{{Como}} {escape_latex(como)}")
     if quiero: parts.append(f"\\item \\textbf{{Quiero}} {escape_latex(quiero)}")
@@ -66,6 +48,19 @@ def format_us_description(desc_text):
     res.extend(parts)
     res.append(r"\end{itemize}\vspace{2pt}}")
     return "\n".join(res)
+
+def clean_role(role_text):
+    if not role_text:
+        return "N/A"
+    role = re.sub(r'\s*\(https?://[^)]*\)', '', role_text).strip()
+    return role if role else "N/A"
+
+def clean_story_title(us_id, title_text):
+    title = (title_text or "").strip()
+    if not title:
+        return us_id
+    pattern = rf'^\s*{re.escape(us_id)}\s*[:\-–—]\s*'
+    return re.sub(pattern, '', title, flags=re.IGNORECASE).strip()
 
 def load_gherkin_csv(csv_path):
     scenarios_by_us = {}
@@ -84,66 +79,74 @@ def load_gherkin_csv(csv_path):
     except Exception as e: print(f"❌ Error CSV: {e}")
     return scenarios_by_us
 
-def parse_us_file(file_path):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    meta = {}
-    meta_match = re.search(r'^---\s*\n(.*?)\n---', content, re.DOTALL | re.MULTILINE)
-    if meta_match:
-        for line in meta_match.group(1).split('\n'):
-            if ':' in line:
-                k, v = line.split(':', 1)
-                meta[k.strip().lower()] = v.strip().strip('"').strip("'")
-    
-    desc_match = re.search(r'##\s+(?:📋\s*)?Descripción de la Historia\s*\n(.*?)(?=\n##|\Z)', content, re.DOTALL | re.IGNORECASE)
-    description = desc_match.group(1).strip() if desc_match else ""
-    
-    observations = meta.get('observaciones', '')
-    if not observations:
-        obs_match = re.search(r'##\s+(?:📝\s*)?Observaciones\s*\n(.*?)(?=\n##|\n---|\Z)', content, re.DOTALL | re.IGNORECASE)
-        observations = obs_match.group(1).strip() if obs_match else "N/A"
-    
-    return meta, description, observations
+def load_user_stories_csv(csv_path):
+    stories_by_epic = {"MTTO": [], "INV": [], "VIS": [], "ADM": []}
+
+    with open(csv_path, 'r', encoding='utf-8-sig') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            epic = (row.get('Epic') or "").strip().upper()
+            us_id = (row.get('US ID') or "").strip().upper()
+            if epic not in stories_by_epic or not us_id:
+                continue
+
+            story = {
+                'us_id': us_id,
+                'nombre': clean_story_title(us_id, (row.get('Nombre') or "").strip()),
+                'usuario': clean_role((row.get('Rol (Como ...)') or row.get('Como') or "").strip()),
+                'prioridad': (row.get('MoSCoW') or "N/A").strip(),
+                'puntos': (row.get('Puntos Fibonacci') or "N/A").strip(),
+                'como': (row.get('Como') or "").strip(),
+                'quiero': (row.get('Quiero') or row.get('Acción') or "").strip(),
+                'para': (row.get('Para') or row.get('Beneficio') or "").strip(),
+                'observaciones': (row.get('Observaciones') or "N/A").strip(),
+            }
+            stories_by_epic[epic].append(story)
+
+    def us_sort_key(item):
+        match = re.search(r'-(\d+)$', item['us_id'])
+        return int(match.group(1)) if match else 999999
+
+    for epic in stories_by_epic:
+        stories_by_epic[epic].sort(key=us_sort_key)
+
+    return stories_by_epic
 
 def generate_tex():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     report_dir = os.path.dirname(script_dir)
-    base_path = os.path.normpath(os.path.join(
-        script_dir,
-        "..", "..", "..", "..", "..",
-        "sena-evidence", "01-Analysis", "AP2-Conceptual-Model", "GA2-220501093-AA1", "EV03-User-Stories"
-    ))
+    user_stories_csv = os.path.join(report_dir, "..", "..", "..", "assets", "docs", "databases", "user_stories.csv")
+    user_stories_csv = os.path.normpath(user_stories_csv)
     output_dir = os.path.join(report_dir, "sections", "user_stories")
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     gherkin_csv = os.path.join(report_dir, "..", "..", "..", "assets", "docs", "databases", "gherkin.csv")
     scenarios_by_us = load_gherkin_csv(os.path.normpath(gherkin_csv))
+    stories_by_epic = load_user_stories_csv(user_stories_csv)
     
     epic_names = {"MTTO": "Gestión de Operaciones de Mantenimiento", "INV": "Gestión de Recursos e Inventario",
                   "VIS": "Visualización y Gemelo Digital", "ADM": "Administración e Inteligencia de Negocio"}
 
     for epic in ["MTTO", "INV", "VIS", "ADM"]:
-        epic_dir = os.path.join(base_path, epic)
-        if not os.path.exists(epic_dir): continue
+        stories = stories_by_epic.get(epic, [])
+        if not stories:
+            continue
         
         epic_tex = [f"\\subsection{{Módulo de {epic_names[epic]} ({epic})}}"]
-        files = sorted([f for f in os.listdir(epic_dir) if f.endswith(".md")], 
-                      key=lambda x: int(re.search(r'\d+', x).group()) if re.search(r'\d+', x) else 0)
         
-        for file in files:
-            meta, desc, obs = parse_us_file(os.path.join(epic_dir, file))
-            us_id = meta.get('id', file.replace('.md', '')).upper()
+        for story in stories:
+            us_id = story['us_id']
             
-            epic_tex.append(r"\noindent\textbf{Ficha Técnica: " + us_id + " - " + escape_latex(meta.get('nombre', '')) + "}")
+            epic_tex.append(r"\noindent\textbf{Ficha Técnica: " + us_id + " - " + escape_latex(story.get('nombre', '')) + "}")
             epic_tex.append(r"\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}")
             epic_tex.append(r"\rowcolors{2}{tableBlue}{white}\begin{longtable}{|p{0.21\textwidth}|p{0.74\textwidth}|}\hline")
             epic_tex.append(f"\\textbf{{Número}} & {us_id} \\\\ \\hline")
-            epic_tex.append(f"\\textbf{{Usuario}} & {escape_latex(meta.get('rol', 'N/A'))} \\\\ \\hline")
-            epic_tex.append(f"\\textbf{{Prioridad}} & {escape_latex(meta.get('prioridad', 'N/A'))} \\\\ \\hline")
-            epic_tex.append(f"\\textbf{{Puntos Estimados de Esfuerzo}} & {meta.get('puntos', 'N/A')} \\\\ \\hline")
-            epic_tex.append(f"\\textbf{{Descripción}} & {format_us_description(desc)} \\\\ \\hline")
-            epic_tex.append(f"\\textbf{{Observaciones}} & {escape_latex(obs)} \\\\ \\hline")
+            epic_tex.append(f"\\textbf{{Usuario}} & {escape_latex(story.get('usuario', 'N/A'))} \\\\ \\hline")
+            epic_tex.append(f"\\textbf{{Prioridad}} & {escape_latex(story.get('prioridad', 'N/A'))} \\\\ \\hline")
+            epic_tex.append(f"\\textbf{{Puntos Estimados de Esfuerzo}} & {escape_latex(story.get('puntos', 'N/A'))} \\\\ \\hline")
+            epic_tex.append(f"\\textbf{{Descripción}} & {format_us_description(story.get('como', ''), story.get('quiero', ''), story.get('para', ''))} \\\\ \\hline")
+            epic_tex.append(f"\\textbf{{Observaciones}} & {escape_latex(story.get('observaciones', 'N/A'))} \\\\ \\hline")
             epic_tex.append(r"\end{longtable}\normalsize")
             
             scenarios = scenarios_by_us.get(us_id, [])

@@ -1,5 +1,6 @@
 import os
 import re
+import csv
 from pathlib import Path
 
 # Configuración de rutas relativas
@@ -8,6 +9,7 @@ BASE_SENA_DIR = SCRIPT_DIR / "../../../../../sena-evidence/01-Analysis/AP2-Conce
 US_DIR = BASE_SENA_DIR / "EV03-User-Stories"
 TR_FILE = US_DIR / "EV03-Transversal-Requirements.md"
 OUTPUT_DIR = SCRIPT_DIR.parent / "sections/appendices"
+SRS_CSV = SCRIPT_DIR.parent.parent.parent.parent / "assets/docs/databases/srs.csv"
 
 def escape_latex(text):
     if not text: return ""
@@ -55,23 +57,31 @@ def collect_requirements():
                 })
 
     epic_data = {"MTTO": [], "INV": [], "VIS": [], "ADM": [], "COMMON": trs}
-    for epic in ["MTTO", "INV", "VIS", "ADM"]:
-        epic_dir = US_DIR / epic
-        if not epic_dir.exists(): continue
-        files = sorted(list(epic_dir.glob("*.md")))
-        for f in files:
-            content = f.read_text(encoding='utf-8')
-            tables = re.findall(r'## (?:Requisitos|Criterios).*?\n(.*?)(?=\n##|\Z)', content, re.DOTALL)
-            for table_text in tables:
-                rows = parse_md_table(table_text)
-                for r in rows:
-                    if re.match(r'^(FR|NFR)-\d+', r[0]):
-                        epic_data[epic].append({
-                            'id': r[0], 
-                            'desc': r[1], 
-                            'cat': r[2] if len(r) > 2 else "Functional", 
-                            'prio': r[3] if len(r) > 3 else "High"
-                        })
+
+    if SRS_CSV.exists():
+        with open(SRS_CSV, 'r', encoding='utf-8-sig') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                req_id = (row.get('Req ID') or "").strip().upper()
+                if not re.match(r'^(FR|NFR)-\d+$', req_id):
+                    continue
+
+                related_story = (row.get('Historia Relacionada') or "").strip().upper()
+                epic_match = re.match(r'^(MTTO|INV|VIS|ADM)-\d+', related_story)
+                if not epic_match:
+                    continue
+                epic = epic_match.group(1)
+
+                desc = (row.get('Descripción') or "").strip()
+                desc = re.sub(r'^(FR|NFR)-\d+:\s*', '', desc)
+
+                epic_data[epic].append({
+                    'id': req_id,
+                    'desc': desc,
+                    'cat': (row.get('Categoría ISO 25010') or "Functional Suitability").strip(),
+                    'prio': (row.get('Prioridad') or "Media").strip(),
+                })
+
     return epic_data
 
 def generate_epic_tex(epic, reqs, name):

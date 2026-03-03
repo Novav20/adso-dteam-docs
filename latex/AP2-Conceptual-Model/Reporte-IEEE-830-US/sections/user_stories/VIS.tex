@@ -55,7 +55,7 @@
 \item \textbf{Quiero} visualizar la vista explosionada (despiece) del activo seleccionado en 3D
 \item \textbf{Para} identificar la ubicación exacta de un componente interno antes de iniciar el desarme físico.
 \end{itemize}\vspace{2pt}} \\ \hline
-\textbf{Observaciones} & La vista explosionada (despiece) representa un nivel avanzado de visualización para facilitar intervenciones complejas. Debido a su alta demanda de recursos gráficos y modelado especializado, se clasifica como una funcionalidad opcional (COULD) que requiere modelos 3D jerárquicos y optimizados para visualización web intensiva por hardware, ofreciendo una alternativa interactiva a los manuales técnicos tradicionales. \\ \hline
+\textbf{Observaciones} & La vista explosionada (despiece) representa un nivel avanzado de visualización para facilitar intervenciones complejas. Debido a su alta demanda de recursos gráficos y modelado especializado, se clasifica como una funcionalidad opcional que requiere modelos 3D jerárquicos y optimizados para visualización web intensiva por hardware, ofreciendo una alternativa interactiva a los manuales técnicos tradicionales. \\ \hline
 \end{longtable}\normalsize
 \noindent\textit{Criterios de Aceptación:}
 \footnotesize\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.34\textwidth}|}\hline
@@ -97,7 +97,7 @@
 \textbf{Puntos Estimados de Esfuerzo} & 5 \\ \hline
 \textbf{Descripción} & \parbox[t]{\linewidth}{\vspace{2pt}\begin{itemize}[leftmargin=1.5em, nosep, topsep=0pt]
 \item \textbf{Como} Ingeniero de Proyectos
-\item \textbf{Quiero} definir la jerarquía de componentes de un activo (ej. Bomba -> Motor -> Rodamiento) y asociar un modelo 3D a cada nivel
+\item \textbf{Quiero} definir la jerarquía de componentes de un activo (ej. Bomba \$\textbackslash\{\}to\$ Motor \$\textbackslash\{\}to\$ Rodamiento) y asociar un modelo 3D a cada nivel
 \item \textbf{Para} construir la vista explosionada del Gemelo Digital y permitir que los técnicos accedan a la información del componente específico en campo.
 \end{itemize}\vspace{2pt}} \\ \hline
 \textbf{Observaciones} & Esta herramienta administrativa permite la configuración granular de la jerarquía de activos, facilitando la construcción del Gemelo Digital multinivel. Arquitectónicamente, se sugiere seguir el patrón Sidecar para el almacenamiento pesado (modelos 3D en almacenamiento de blob/objetos y metadatos en backend central), garantizando alta escalabilidad. Aunque el MVP operará con una estructura simplificada, esta funcionalidad asegura la viabilidad a futuro. \\ \hline
