@@ -7,6 +7,8 @@ SCRIPT_DIR = Path(__file__).parent
 TEX_DIR = (SCRIPT_DIR.parent / "sections").resolve()
 
 MD_DIR_CANDIDATES = [
+    (SCRIPT_DIR / "../../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093/AA1/Draft-Report").resolve(),
+    (SCRIPT_DIR / "../../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093/AA1/Report-Draft").resolve(),
     (SCRIPT_DIR / "../../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/Draft-Report").resolve(),
     (SCRIPT_DIR / "../../../../../sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093-AA1/Report-Draft").resolve(),
 ]
@@ -20,6 +22,10 @@ FILE_MAP = {
 
 
 def resolve_md_dir() -> Path:
+    for path in MD_DIR_CANDIDATES:
+        if path.exists() and all((path / name).exists() for name in FILE_MAP):
+            return path
+
     for path in MD_DIR_CANDIDATES:
         if path.exists():
             return path
