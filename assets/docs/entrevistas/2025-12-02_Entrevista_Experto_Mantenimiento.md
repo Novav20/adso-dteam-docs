@@ -1,6 +1,6 @@
 # 2025-12-02_Entrevista_Experto_Mantenimiento
 
-- Fecha: 02 de diciembre de 2024 (Contexto)
+- Fecha: 02 de diciembre de 2025 (Contexto)
 - Participantes:
   - **Juan David** (Entrevistador)
   - **Ingeniero** (Entrevistado – Gerente/Ingeniero de Mantenimiento y Proyectos)
