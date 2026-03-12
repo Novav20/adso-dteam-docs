@@ -1,0 +1,273 @@
+' Source academic evidence: sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093/AA2/class-diagram.puml
+' Artifact: domain class diagram
+' Purpose: Technical PlantUML source extracted from academic evidence for canonical engineering ownership.
+
+@startuml DomainModel
+' --- CONFIGURACIÓN VISUAL ---
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 80
+
+skinparam class {
+    BackgroundColor #EBF5FB
+    BorderColor #2E86C1
+    BorderThickness 2
+    ArrowColor #154360
+    AttributeIconSize 0
+}
+
+' Estilo del logo "C" (Clase)
+skinparam stereotypeCBackgroundColor #AED6F1
+skinparam stereotypeCBorderColor #2E86C1
+
+skinparam package {
+    BackgroundColor #FFFFFF
+    BorderColor #AED6F1
+    FontStyle bold
+}
+
+' --- CAPA 1: FOUNDATION LAYER (ISO 14224) ---
+package "Taxonomía de Activos (ISO 14224)" {
+    together {
+        class FunctionalLocation {
+            - tagNumber: String
+            - name: String
+            - description: String
+            - criticality: String
+            - geographicLocation: String
+            - hierarchyLevel: int
+            + create()
+            + reorganizeTree()
+        }
+
+        class EquipmentClass {
+            - className: String
+            - description: String
+            - manufacturerStandard: String
+            + defineServiceBOM()
+            + listValidFailureModes()
+        }
+
+        class EquipmentUnit {
+            - serialNumber: String
+            - manufacturer: String
+            - model: String
+            - acquisitionDate: Date
+            - installationDate: Date
+            - operationStartDate: Date
+            - operatingHours: long
+            - status: String
+            + activate()
+            + decommission()
+        }
+
+        class Subunit {
+            - subunitType: String
+            - name: String
+        }
+
+        class MaintainableItem {
+            - componentName: String
+            - subunitType: String
+            - sparePartType: String
+            - designAttributes: String
+            - status: String
+            + replace()
+        }
+    }
+
+    FunctionalLocation "1" *-- "0..*" FunctionalLocation : "jerarquía"
+    FunctionalLocation "1" o-- "0..1" EquipmentUnit : "instala"
+    EquipmentClass "1" -- "0..*" EquipmentUnit : "categoriza"
+    EquipmentUnit "1" *-- "1..*" Subunit : "se compone de"
+    Subunit "1" *-- "1..*" MaintainableItem : "contiene"
+}
+
+' --- CAPA 2: TRANSACTIONAL LAYER (MTTO) ---
+package "Operaciones de Mantenimiento (MTTO)" {
+    class WorkRequest {
+        - description: String
+        - priority: String
+        - requestDate: DateTime
+        - requestSource: String
+        - status: String
+        + promoteToWorkOrder()
+        + reject()
+    }
+
+    class MaintenancePlan {
+        - maintenanceMethod: String
+        - frequency: String
+        - nextWorkOrderDate: Date
+        - status: String
+        + calculateNextWorkOrder()
+    }
+
+    class WorkOrder {
+        - currentStatus: String
+        - maintenanceMethod: String
+        - creationDate: DateTime
+        - scheduledDate: DateTime
+        - actualStart: DateTime
+        - actualFinish: DateTime
+        - criticality: String
+        + schedule()
+        + close()
+    }
+
+    class WorkOrderHistory {
+        - oldStatus: String
+        - newStatus: String
+        - timestamp: DateTime
+        - durationSeconds: long
+        + recordTransition()
+    }
+
+    class FailureRecord {
+        - failureId: UUID
+        - failureMode: String
+        - failureMechanism: String
+        - failureCause: String
+        - downtime: double
+        - status: String
+        + classifyFailure()
+    }
+
+    class BacklogItem {
+        - priorityScore: int
+        - status: String
+        + calculateRIME()
+        + orderBacklog()
+    }
+
+    EquipmentUnit "1" -- "0..*" WorkRequest : "genera"
+    WorkRequest "0..1" -- "0..1" WorkOrder : "se convierte en"
+    EquipmentUnit "1" -- "0..*" MaintenancePlan : "posee"
+    EquipmentUnit "1" -- "0..*" WorkOrder : "se ejecuta sobre"
+    WorkOrder "1" *-- "0..*" WorkOrderHistory : "registra cambios en"
+    WorkOrder "1" -- "0..1" FailureRecord : "reporta"
+    MaintenancePlan "1" -- "0..*" WorkOrder : "dispara"
+    EquipmentUnit "1" -- "0..*" BacklogItem : "está listado en"
+    EquipmentClass "1" -- "0..*" FailureRecord : "define opciones de"
+}
+
+' --- CAPA 3: RESOURCE LAYER (INV) ---
+package "Control de Recursos (INV)" {
+    class SparePart {
+        - sku: String
+        - description: String
+        - manufacturer: String
+        - commodityCode: String
+        - reorderPoint: int
+        - status: String
+        + classifyMaterial()
+    }
+
+    class InventoryTransaction {
+        - quantity: double
+        - transactionType: String
+        - timestamp: DateTime
+        - reason: String
+        + recordIssue()
+        + recordReceipt()
+    }
+
+    class Warehouse {
+        - name: String
+        - location: String
+        - capacity: double
+        + updateStock()
+    }
+
+    class Supplier {
+        - name: String
+        - contactInfo: String
+        - warrantyTerms: String
+        + manageWarranty()
+    }
+
+    MaintainableItem "1" -- "0..*" SparePart : "requiere"
+    SparePart "1" -- "0..*" InventoryTransaction : "involucrado en"
+    Warehouse "1" -- "0..*" InventoryTransaction : "almacena"
+    WorkOrder "1" -- "0..*" InventoryTransaction : "genera"
+    Supplier "1" -- "0..*" SparePart : "suministra"
+    EquipmentClass "1" -- "0..*" SparePart : "estandariza"
+}
+
+' --- CAPA 4: DIGITAL TWIN LAYER (VIS) ---
+package "Convergencia Gemelo Digital (VIS)" {
+    class MeshMapping {
+        - meshUuid: String
+        - mappingStatus: String
+        - lastSyncTime: DateTime
+    }
+
+    class TelemetrySignal {
+        - signalType: String
+        - value: double
+        - unit: String
+        - threshold: double
+        - timestamp: DateTime
+    }
+
+    class VisualLayer {
+        - layerType: String
+        - opacityLevel: double
+        - status: String
+    }
+
+    class SpatialMetadata {
+        - position: String
+        - rotation: String
+        - scale: String
+        + updateMetadata()
+    }
+
+    EquipmentUnit "1" -- "0..1" MeshMapping : "representado por"
+    EquipmentUnit "1" -- "0..*" TelemetrySignal : "monitoreado por"
+    MeshMapping "1" -- "1" SpatialMetadata : "ubicado en"
+    WorkOrder "1" -- "0..*" VisualLayer : "visualizada en"
+}
+
+' --- CAPA 5: GOVERNANCE LAYER (ADM) ---
+package "Seguridad y Gobernanza (ADM)" {
+    class User {
+        - username: String
+        - email: String
+        - status: String
+        + assignRole()
+    }
+
+    class Role {
+        - roleName: String
+        - description: String
+        + validateSoD()
+    }
+
+    class WorkOrderAssignment {
+        - roleInWork: String
+        - assignedAt: DateTime
+        + assignTechnician()
+    }
+
+    class AuditLog {
+        - entityType: String
+        - actionType: String
+        - timestamp: DateTime
+        - integrityHash: String
+        + verifyIntegrity()
+    }
+
+    User "1" -- "1..*" Role : "posee"
+    User "1" -- "0..*" WorkOrderAssignment : "asignado a"
+    WorkOrder "1" -- "0..*" WorkOrderAssignment : "requiere de"
+    AuditLog "0..*" -- "1" User : "generado por"
+}
+
+note bottom of AuditLog : Registro inmutable con hashes
+note bottom of FailureRecord : Basado en ISO 14224
+note bottom of FunctionalLocation : Solo 1 activo actual por slot
+@enduml
