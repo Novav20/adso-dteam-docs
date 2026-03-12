@@ -1,0 +1,64 @@
+' Source academic evidence: sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093/AA1/EV02-Use-Cases/Casos-Uso-VIS.md
+' Module: VIS
+' Purpose: Technical PlantUML source extracted from academic narrative for reuse in technical documentation.
+
+@startuml VIS-UseCases
+skinparam packageStyle rectangle
+left to right direction
+
+' Configuración de colores profesionales
+skinparam usecase {
+  BackgroundColor #EBF5FB
+  BorderColor #2E86C1
+  BorderThickness 2
+  FontName Segoe UI
+  FontSize 12
+}
+
+skinparam actor {
+  BackgroundColor #1B4F72
+  BorderColor #154360
+  FontName Segoe UI
+  FontSize 11
+}
+
+skinparam package {
+  BackgroundColor #FDFEFE
+  BorderColor #AED6F1
+  FontName Segoe UI
+  FontSize 13
+  FontStyle bold
+}
+
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+
+' Actores
+actor "Inspector\nHSEQ" as HSEQ #1B4F72
+actor "Técnico de\nMantenimiento" as Tecnico #1B4F72
+actor "Supervisor de\nMantenimiento" as Supervisor #1B4F72
+actor "Ingeniero de\nProyectos" as Ingeniero #1B4F72
+
+' Paquete principal
+package "Módulo de Visualización" {
+
+  usecase "UC-VIS-001\nVisualizar\nPermisos de\nTrabajo" as UCVIS001 #EBF5FB
+  usecase "UC-VIS-002\nZoom Semántico\ny Navegación" as UCVIS002 #EBF5FB
+  usecase "UC-VIS-003\nVista Explosionada\n(Despiece)" as UCVIS003 #EBF5FB
+  usecase "UC-VIS-004\nRuta LOTO y\nBloqueo Activo" as UCVIS004 #EBF5FB
+  usecase "UC-VIS-005\nJerarquía de\nComponentes 3D" as UCVIS005 #EBF5FB
+}
+
+' Relaciones Actor-Caso de Uso
+HSEQ --> UCVIS001
+Supervisor --> UCVIS002
+Tecnico --> UCVIS003
+Tecnico --> UCVIS004
+Ingeniero --> UCVIS005
+
+' Relaciones entre Casos de Uso
+UCVIS004 ..> UCVIS002 : <<extend>>
+UCVIS003 ..> UCVIS005 : <<include>>
+UCVIS001 ..> UCVIS002 : <<include>>
+
+@enduml

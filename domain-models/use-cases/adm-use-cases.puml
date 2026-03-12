@@ -1,0 +1,76 @@
+' Source academic evidence: sena-evidence/01-Analysis/AP2-Conceptual-Model/GA2-220501093/AA1/EV02-Use-Cases/Casos-Uso-ADM.md
+' Module: ADM
+' Purpose: Technical PlantUML source extracted from academic narrative for reuse in technical documentation.
+
+@startuml ADM-UseCases
+skinparam packageStyle rectangle
+left to right direction
+
+' Configuración de colores profesionales
+skinparam usecase {
+  BackgroundColor #EBF5FB
+  BorderColor #2E86C1
+  BorderThickness 2
+  FontName Segoe UI
+  FontSize 12
+}
+
+skinparam actor {
+  BackgroundColor #1B4F72
+  BorderColor #154360
+  FontName Segoe UI
+  FontSize 11
+}
+
+skinparam package {
+  BackgroundColor #FDFEFE
+  BorderColor #AED6F1
+  FontName Segoe UI
+  FontSize 13
+  FontStyle bold
+}
+
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+
+' Actores
+actor "Administrador\ndel Sistema" as Admin #1B4F72
+actor "Gerente de\nPlanta" as Gerente #1B4F72
+actor "Auditor" as Auditor #1B4F72
+actor "Ingeniero de\nConfiabilidad" as Confiabilidad #1B4F72
+
+' Paquete principal
+package "Módulo de Administración" {
+
+  usecase "UC-ADM-001\nGestionar Roles\ny Permisos" as UCADM001 #EBF5FB
+  usecase "UC-ADM-002\nGestionar Usuarios\ny Ciclo de Vida" as UCADM002 #EBF5FB
+  usecase "UC-ADM-003\nConfigurar\nIntegración ERP" as UCADM003 #EBF5FB
+  usecase "UC-ADM-004\nPublicar\nAnuncios" as UCADM004 #EBF5FB
+  usecase "UC-ADM-005\nDashboard\nEjecutivo KPI" as UCADM005 #EBF5FB
+  usecase "UC-ADM-006\nGenerar Reportes\nEjecutivos" as UCADM006 #EBF5FB
+  usecase "UC-ADM-007\nSincronizar\nDatos BI" as UCADM007 #EBF5FB
+  usecase "UC-ADM-008\nSugerencias\nPMO" as UCADM008 #EBF5FB
+  usecase "UC-ADM-009\nConfigurar\nSistema" as UCADM009 #EBF5FB
+  usecase "UC-ADM-010\nAuditoría\nInmutable" as UCADM010 #EBF5FB
+}
+
+' Relaciones Actor-Caso de Uso
+Admin --> UCADM001
+Admin --> UCADM002
+Admin --> UCADM003
+Admin --> UCADM004
+Admin --> UCADM009
+Gerente --> UCADM005
+Gerente --> UCADM006
+Gerente --> UCADM007
+Confiabilidad --> UCADM008
+Auditor --> UCADM010
+Gerente --> UCADM010
+
+' Relaciones entre Casos de Uso
+UCADM006 ..> UCADM005 : <<include>>
+UCADM007 ..> UCADM005 : <<include>>
+UCADM001 ..> UCADM010 : <<include>>
+UCADM002 ..> UCADM010 : <<include>>
+
+@enduml
