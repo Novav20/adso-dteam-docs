@@ -78,7 +78,6 @@ endwhile (Sí)
 
 |Gemelo Digital 2D/3D|
 :Registrar validación de seguridad;
-:Registrar evento 'LOTO_VALIDATED' (TR-001);
 
 |Sensores IoT / Backend / Auditoría|
 :Registrar evento 'LOTO_VALIDATED' (TR-001);
