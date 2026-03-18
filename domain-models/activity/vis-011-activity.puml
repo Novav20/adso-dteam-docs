@@ -1,0 +1,112 @@
+@startuml VIS-011-ActivityDiagram
+' Models User Story: VIS-011 (Unified 2D/3D Version)
+' Reference: ADR 001 - Hybrid Visualization Strategy
+' --- CONFIGURACIÓN VISUAL ---
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 10
+skinparam ConditionEndStyle diamond
+skinparam linetype ortho
+
+skinparam activity {
+    BackgroundColor #EBF5FB
+    BorderColor #2E86C1
+    BarColor #1B4F72
+    StartColor #1B4F72
+    EndColor #1B4F72
+}
+
+' Compact layout tweaks
+skinparam activity {
+    Padding 6
+    HorizontalSpacing 18
+    VerticalSpacing 10
+}
+scale 0.85
+
+|#FDFEFE|Técnico de Mantenimiento|
+|#FDFEFE|Gemelo Digital 2D/3D|
+|#FDFEFE|Sensores IoT / Backend / Auditoría|
+
+|Técnico de Mantenimiento|
+start
+:Abrir Orden de Trabajo;
+:Seleccionar "Ver Ruta LOTO";
+
+|Gemelo Digital 2D/3D|
+:Cargar representación visual del activo;
+note right: Carga 2D/3D según zoom.
+
+:Renderizar puntos de aislamiento;
+:Trazar líneas de energía dinámicas;
+
+' CORRECCIÓN: Se eliminaron los dos puntos ":" al inicio
+|Sensores IoT / Backend / Auditoría|
+:Capturar telemetría en tiempo real;
+if (¿Comunicación activa?) then (No)
+    |Gemelo Digital 2D/3D|
+    :Mostrar error "Pérdida de Telemetría";
+    :BLOQUEO FAIL-SAFE;
+    note right: Implementa: NFR-238
+    stop
+else (Sí)
+    :Validar umbrales de energía;
+endif
+
+|Gemelo Digital 2D/3D|
+:Actualizar colores de trazabilidad;
+
+|Técnico de Mantenimiento|
+:Revisar Checklist LOTO en tablet;
+:Confirmar bloqueo físico de cada punto;
+
+|Gemelo Digital 2D/3D|
+while (¿Sensores detectan Energía Cero?) is (No)
+    :Mostrar alerta de PELIGRO;
+    :Mantener botón "Iniciar Trabajo" deshabilitado;
+    |Técnico de Mantenimiento|
+    :Verificar bloqueos físicos;
+    :Confirmar bloqueo físico de cada punto;
+    |Gemelo Digital 2D/3D|
+    :Solicitar nueva verificación;
+endwhile (Sí)
+
+:Habilitar botón "Iniciar Trabajo";
+
+' CORRECCIÓN LÓGICA: Esta acción la hace el técnico
+|Técnico de Mantenimiento|
+:Presionar "Iniciar Trabajo";
+
+|Gemelo Digital 2D/3D|
+:Registrar validación de seguridad;
+:Registrar evento 'LOTO_VALIDATED' (TR-001);
+
+|Sensores IoT / Backend / Auditoría|
+:Registrar evento 'LOTO_VALIDATED' (TR-001);
+
+|Gemelo Digital 2D/3D|
+:Cambiar estado de OT a "En Ejecución";
+
+split
+    |Técnico de Mantenimiento|
+    :Ejecutar mantenimiento;
+    stop
+split again
+    |Sensores IoT / Backend / Auditoría|
+    while (¿Se detecta energía accidental?) is (No)
+        :Monitoreo continuo;
+    endwhile (Sí)
+
+    |Sensores IoT / Backend / Auditoría|
+    :Disparar alarma inmediata;
+
+    |Gemelo Digital 2D/3D|
+    :Suspender OT por riesgo;
+    note right: Implementa: FR-232
+
+    :Notificar a Supervisor HSEQ;
+
+    |Sensores IoT / Backend / Auditoría|
+    :Registrar evento 'LOTO_BREACH_ALARM' (TR-001);
+    stop
+end split
+@enduml

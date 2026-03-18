@@ -1,0 +1,87 @@
+@startuml MTTO-001-ActivityDiagram
+' Models User Story: MTTO-001
+' --- CONFIGURACIÓN VISUAL ---
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 10
+skinparam ConditionEndStyle diamond
+skinparam linetype ortho
+
+skinparam activity {
+    BackgroundColor #EBF5FB
+    BorderColor #2E86C1
+    BarColor #1B4F72
+    StartColor #1B4F72
+    EndColor #1B4F72
+}
+
+' Compact layout tweaks
+skinparam activity {
+    Padding 6
+    HorizontalSpacing 18
+    VerticalSpacing 10
+}
+scale 0.9
+
+|#FDFEFE|Planificador|
+|#FDFEFE|Sistema EAM|
+|#FDFEFE|Ingeniero de Confiabilidad|
+
+|Planificador|
+start
+:Acceder al módulo de Planificación;
+:Seleccionar "Crear Plan Preventivo";
+
+|Sistema EAM|
+:Mostrar formulario de creación;
+
+|Planificador|
+:Búsqueda de activo por Tag (Nivel 6);
+:Vincular Ítem Mantenible (Nivel 8);
+:Definir Método (Tiempo/Condición);
+:Establecer Frecuencia;
+:Ingresar Descripción técnica;
+:Solicitar guardado del plan;
+
+|Sistema EAM|
+if (¿Campos obligatorios completos?) then (No)
+    :Mostrar error y resaltar campos;
+    detach
+else (Sí)
+    if (¿Activo tiene límites definidos?) then (No)
+        :Mostrar advertencia técnica;
+        stop
+    else (Sí)
+        if (¿Es activo crítico Y frecuencia > 8 sem?) then (Sí)
+            :Mostrar advertencia de seguridad;
+            |Planificador|
+            if (¿Desea ajustar intervalo?) then (Sí)
+                :Modificar frecuencia;
+                |Sistema EAM|
+                :Validar nuevo intervalo;
+            else (No)
+                |Planificador|
+                :Confirmar excepción de seguridad;
+                |Sistema EAM|
+            endif
+        else (No)
+        endif
+    endif
+endif
+
+:Calcular próxima fecha de Orden de Trabajo;
+:Registrar en Auditoría Inmutable [TR-001];
+:Generar primera Órden en estado "Programada";
+note right
+    Verifica: 'Programada' debe ser un
+    estado de entrada válido en la
+    máquina de estados de WorkOrder.
+    (ver clase WorkOrderHistory)
+end note
+:Activar servicio de tareas recurrentes;
+:Mostrar confirmación de plan creado;
+
+|Ingeniero de Confiabilidad|
+:Recibir notificación de nuevo plan;
+stop
+
+@enduml
