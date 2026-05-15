@@ -1,7 +1,10 @@
+---
+Fecha: 2026-03-18
+Estatus: Aceptado
+---
+
 # ADR 001: Estrategia de Visualización Híbrida (2D Primero, 3D Evolutivo)
 
-**Fecha:** 18 de marzo de 2026
-**Estatus:** Aceptado
 **Contexto:**
 El proyecto del Gemelo Digital EAM tiene como objetivo final la visualización 3D avanzada. Sin embargo, las restricciones de tiempo y recursos para la versión inicial (MVP) requieren una implementación rápida y funcional.
 
