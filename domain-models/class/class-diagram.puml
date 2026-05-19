@@ -29,6 +29,15 @@ skinparam package {
     FontStyle bold
 }
 
+legend top right
+    |= Control Documental (ISO 9001:2015) |
+    | **Código:** GD-DM-UML-001 |
+    | **Versión:** 1.1-MVP |
+    | **Fecha:** 2026-05-19 |
+    | **Estado:** En Auditoría |
+    | **Autor:** Juan David / ADSO |
+endlegend
+
 ' --- CAPA 1: FOUNDATION LAYER (ISO 14224) ---
 package "Taxonomía de Activos (ISO 14224)" {
     together {
@@ -55,6 +64,10 @@ package "Taxonomía de Activos (ISO 14224)" {
             - serialNumber: String
             - manufacturer: String
             - model: String
+            - purchaseDate: Date
+            - rejectionReason: String
+            - boundaryStart: String
+            - boundaryEnd: String
             - acquisitionDate: Date
             - installationDate: Date
             - operationStartDate: Date
@@ -94,6 +107,10 @@ package "Operaciones de Mantenimiento (MTTO)" {
         - requestDate: DateTime
         - requestSource: String
         - status: String
+        - riskFactor: Enum
+        - impactFactor: Enum
+        - maintainabilityFactor: Enum
+        - economyFactor: Enum
         + promoteToWorkOrder()
         + reject()
     }
@@ -101,6 +118,7 @@ package "Operaciones de Mantenimiento (MTTO)" {
     class MaintenancePlan {
         - maintenanceMethod: String
         - frequency: String
+        - frequencyType: Enum
         - nextWorkOrderDate: Date
         - status: String
         + calculateNextWorkOrder()
@@ -113,9 +131,16 @@ package "Operaciones de Mantenimiento (MTTO)" {
         - scheduledDate: DateTime
         - actualStart: DateTime
         - actualFinish: DateTime
+        - actualLaborHours: Decimal
         - criticality: String
         + schedule()
         + close()
+    }
+
+    class MediaAttachment {
+        - fileUrl: String
+        - fileType: Enum
+        - uploadedAt: DateTime
     }
 
     class WorkOrderHistory {
@@ -152,6 +177,7 @@ package "Operaciones de Mantenimiento (MTTO)" {
     MaintenancePlan "1" -- "0..*" WorkOrder : "dispara"
     EquipmentUnit "1" -- "0..*" BacklogItem : "está listado en"
     EquipmentClass "1" -- "0..*" FailureRecord : "define opciones de"
+    WorkOrder "1" *-- "0..*" MediaAttachment : "contiene"
 }
 
 ' --- CAPA 3: RESOURCE LAYER (INV) ---
