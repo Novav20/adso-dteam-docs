@@ -35,7 +35,7 @@ legend top right
     | **Versión:** 1.1-MVP |
     | **Fecha:** 2026-05-19 |
     | **Estado:** En Auditoría |
-    | **Autor:** Juan David / ADSO |
+    | **Autor:** Juan David |
 endlegend
 
 ' --- CAPA 1: FOUNDATION LAYER (ISO 14224) ---
@@ -188,6 +188,12 @@ package "Control de Recursos (INV)" {
         - manufacturer: String
         - commodityCode: String
         - reorderPoint: int
+        - unitOfMeasure: String
+        - stockPolicy: Enum
+        - quantityOnHand: Decimal
+        - reservedQuantity: Decimal
+        - maxCapacity: Decimal
+        - unitCost: Decimal
         - status: String
         + classifyMaterial()
     }
@@ -197,6 +203,7 @@ package "Control de Recursos (INV)" {
         - transactionType: String
         - timestamp: DateTime
         - reason: String
+        - totalCost: Decimal
         + recordIssue()
         + recordReceipt()
     }
@@ -237,6 +244,20 @@ package "Convergencia Gemelo Digital (VIS)" {
         - unit: String
         - threshold: double
         - timestamp: DateTime
+        - isSafetyCritical: Boolean
+    }
+
+    class WorkPermit {
+        - permitIdentifier: String
+        - permitType: Enum
+        - contractorName: String
+        - status: Enum
+    }
+
+    class IsolationPoint {
+        - isolationTag: String
+        - isolationType: Enum
+        - isVerified: Boolean
     }
 
     class VisualLayer {
@@ -256,6 +277,8 @@ package "Convergencia Gemelo Digital (VIS)" {
     EquipmentUnit "1" -- "0..*" TelemetrySignal : "monitoreado por"
     MeshMapping "1" -- "1" SpatialMetadata : "ubicado en"
     WorkOrder "1" -- "0..*" VisualLayer : "visualizada en"
+    EquipmentUnit "1" -- "0..*" WorkPermit : "autoriza intervención en"
+    WorkOrder "1" *-- "1..*" IsolationPoint : "requiere bloqueo de"
 }
 
 ' --- CAPA 5: GOVERNANCE LAYER (ADM) ---
@@ -264,13 +287,28 @@ package "Seguridad y Gobernanza (ADM)" {
         - username: String
         - email: String
         - status: String
+        - passwordHash: String
+        - failedLoginAttempts: int
+        - lockoutUntil: DateTime
         + assignRole()
     }
 
     class Role {
         - roleName: String
         - description: String
+        - isSystemRole: Boolean
         + validateSoD()
+    }
+
+    class Permission {
+        - module: String
+        - action: String
+    }
+
+    class AuthToken {
+        - tokenHash: String
+        - expiresAt: DateTime
+        - isUsed: Boolean
     }
 
     class WorkOrderAssignment {
@@ -284,10 +322,15 @@ package "Seguridad y Gobernanza (ADM)" {
         - actionType: String
         - timestamp: DateTime
         - integrityHash: String
+        - entityIdentifier: String
+        - previousState: JSON
+        - newState: JSON
         + verifyIntegrity()
     }
 
     User "1" -- "1..*" Role : "posee"
+    Role "1" *-- "0..*" Permission : "concede"
+    User "1" *-- "0..*" AuthToken : "posee"
     User "1" -- "0..*" WorkOrderAssignment : "asignado a"
     WorkOrder "1" -- "0..*" WorkOrderAssignment : "requiere de"
     AuditLog "0..*" -- "1" User : "generado por"
