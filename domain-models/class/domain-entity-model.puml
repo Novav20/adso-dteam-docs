@@ -32,7 +32,7 @@ skinparam package {
 legend top right
     |= Control Documental (ISO 9001:2015) |
     | **Código:** GD-DM-UML-001 |
-    | **Versión:** 1.1-MVP |
+    | **Versión:** 1.2-MVP |
     | **Fecha:** 2026-05-19 |
     | **Estado:** En Auditoría |
     | **Autor:** Juan David |
@@ -41,7 +41,7 @@ endlegend
 ' --- CAPA 1: FOUNDATION LAYER (ISO 14224) ---
 package "Taxonomía de Activos (ISO 14224)" {
     together {
-        class FunctionalLocation {
+        class FunctionalLocation <<Aggregate Root>> {
             - tagNumber: String
             - name: String
             - description: String
@@ -52,7 +52,7 @@ package "Taxonomía de Activos (ISO 14224)" {
             + reorganizeTree()
         }
 
-        class EquipmentClass {
+        class EquipmentClass <<Aggregate Root>> {
             - className: String
             - description: String
             - manufacturerStandard: String
@@ -60,7 +60,7 @@ package "Taxonomía de Activos (ISO 14224)" {
             + listValidFailureModes()
         }
 
-        class EquipmentUnit {
+        class EquipmentUnit <<Aggregate Root>> {
             - serialNumber: String
             - manufacturer: String
             - model: String
@@ -72,17 +72,19 @@ package "Taxonomía de Activos (ISO 14224)" {
             - installationDate: Date
             - operationStartDate: Date
             - operatingHours: long
-            - status: String
+            - operationalStatus: String
+            - lifecycleStatus: String
+            - maintenanceStatus: String
             + activate()
             + decommission()
         }
 
-        class Subunit {
+        class Subunit <<Entity>> {
             - subunitType: String
             - name: String
         }
 
-        class MaintainableItem {
+        class MaintainableItem <<Entity>> {
             - componentName: String
             - subunitType: String
             - sparePartType: String
@@ -101,7 +103,7 @@ package "Taxonomía de Activos (ISO 14224)" {
 
 ' --- CAPA 2: TRANSACTIONAL LAYER (MTTO) ---
 package "Operaciones de Mantenimiento (MTTO)" {
-    class WorkRequest {
+    class WorkRequest <<Aggregate Root>> {
         - description: String
         - priority: String
         - requestDate: DateTime
@@ -115,7 +117,7 @@ package "Operaciones de Mantenimiento (MTTO)" {
         + reject()
     }
 
-    class MaintenancePlan {
+    class MaintenancePlan <<Aggregate Root>> {
         - maintenanceMethod: String
         - frequency: String
         - frequencyType: Enum
@@ -124,7 +126,7 @@ package "Operaciones de Mantenimiento (MTTO)" {
         + calculateNextWorkOrder()
     }
 
-    class WorkOrder {
+    class WorkOrder <<Aggregate Root>> {
         - currentStatus: String
         - maintenanceMethod: String
         - creationDate: DateTime
@@ -137,13 +139,13 @@ package "Operaciones de Mantenimiento (MTTO)" {
         + close()
     }
 
-    class MediaAttachment {
+    class MediaAttachment <<Value Object>> {
         - fileUrl: String
         - fileType: Enum
         - uploadedAt: DateTime
     }
 
-    class WorkOrderHistory {
+    class WorkOrderHistory <<Entity>> {
         - oldStatus: String
         - newStatus: String
         - timestamp: DateTime
@@ -151,7 +153,7 @@ package "Operaciones de Mantenimiento (MTTO)" {
         + recordTransition()
     }
 
-    class FailureRecord {
+    class FailureRecord <<Entity>> {
         - failureId: UUID
         - failureMode: String
         - failureMechanism: String
@@ -161,7 +163,7 @@ package "Operaciones de Mantenimiento (MTTO)" {
         + classifyFailure()
     }
 
-    class BacklogItem {
+    class BacklogItem <<Entity>> {
         - priorityScore: int
         - status: String
         + calculateRIME()
@@ -182,7 +184,7 @@ package "Operaciones de Mantenimiento (MTTO)" {
 
 ' --- CAPA 3: RESOURCE LAYER (INV) ---
 package "Control de Recursos (INV)" {
-    class SparePart {
+    class SparePart <<Aggregate Root>> {
         - sku: String
         - description: String
         - manufacturer: String
@@ -198,7 +200,7 @@ package "Control de Recursos (INV)" {
         + classifyMaterial()
     }
 
-    class InventoryTransaction {
+    class InventoryTransaction <<Entity>> {
         - quantity: double
         - transactionType: String
         - timestamp: DateTime
@@ -208,14 +210,14 @@ package "Control de Recursos (INV)" {
         + recordReceipt()
     }
 
-    class Warehouse {
+    class Warehouse <<Aggregate Root>> {
         - name: String
         - location: String
         - capacity: double
         + updateStock()
     }
 
-    class Supplier {
+    class Supplier <<Aggregate Root>> {
         - name: String
         - contactInfo: String
         - warrantyTerms: String
@@ -232,13 +234,13 @@ package "Control de Recursos (INV)" {
 
 ' --- CAPA 4: DIGITAL TWIN LAYER (VIS) ---
 package "Convergencia Gemelo Digital (VIS)" {
-    class MeshMapping {
+    class MeshMapping <<Entity>> {
         - meshUuid: String
         - mappingStatus: String
         - lastSyncTime: DateTime
     }
 
-    class TelemetrySignal {
+    class TelemetrySignal <<Entity>> {
         - signalType: String
         - value: double
         - unit: String
@@ -247,26 +249,26 @@ package "Convergencia Gemelo Digital (VIS)" {
         - isSafetyCritical: Boolean
     }
 
-    class WorkPermit {
+    class WorkPermit <<Aggregate Root>> {
         - permitIdentifier: String
         - permitType: Enum
         - contractorName: String
         - status: Enum
     }
 
-    class IsolationPoint {
+    class IsolationPoint <<Entity>> {
         - isolationTag: String
         - isolationType: Enum
         - isVerified: Boolean
     }
 
-    class VisualLayer {
+    class VisualLayer <<Entity>> {
         - layerType: String
         - opacityLevel: double
         - status: String
     }
 
-    class SpatialMetadata {
+    class SpatialMetadata <<Value Object>> {
         - position: String
         - rotation: String
         - scale: String
@@ -283,7 +285,7 @@ package "Convergencia Gemelo Digital (VIS)" {
 
 ' --- CAPA 5: GOVERNANCE LAYER (ADM) ---
 package "Seguridad y Gobernanza (ADM)" {
-    class User {
+    class User <<Aggregate Root>> {
         - username: String
         - email: String
         - status: String
@@ -293,31 +295,31 @@ package "Seguridad y Gobernanza (ADM)" {
         + assignRole()
     }
 
-    class Role {
+    class Role <<Aggregate Root>> {
         - roleName: String
         - description: String
         - isSystemRole: Boolean
         + validateSoD()
     }
 
-    class Permission {
+    class Permission <<Value Object>> {
         - module: String
         - action: String
     }
 
-    class AuthToken {
+    class AuthToken <<Entity>> {
         - tokenHash: String
         - expiresAt: DateTime
         - isUsed: Boolean
     }
 
-    class WorkOrderAssignment {
+    class WorkOrderAssignment <<Entity>> {
         - roleInWork: String
         - assignedAt: DateTime
         + assignTechnician()
     }
 
-    class AuditLog {
+    class AuditLog <<Entity>> {
         - entityType: String
         - actionType: String
         - timestamp: DateTime
