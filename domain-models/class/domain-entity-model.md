@@ -1,7 +1,7 @@
 ---
-code: GD-DM-DOC-001
-version: 1.2-MVP
-date: 2026-05-19
+code: DT-DM-DOC-001
+version: 1.3-MVP
+date: 2026-05-20
 status: Draft
 author: Juan David
 standard: 
@@ -178,6 +178,16 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `PDF` | Portable Document Format (Formato de Documento Portátil). |
 | `JPG` | Archivo de imagen JPEG. |
 | `PNG` | Archivo de imagen Portable Network Graphics. |
+
+### 4.11 `MaintainableItem.status`
+
+| Valor | Significado | Norma de Referencia |
+|---|---|---|
+| `OPERATIONAL` | Saludable y operando dentro de los parámetros de diseño. | ISO 13374 (Normal) |
+| `DEGRADED` | Falla parcial o advertencia de condición; requiere monitoreo o intervención planificada. | ISO 14224 (Partial Failure) / ISO 13374 (Alert) |
+| `FAILED` | Falla funcional completa; el ítem ya no puede realizar su función requerida. | ISO 14224 (Complete Failure) |
+| `UNDER_REPAIR` | El componente está siendo mantenido, reparado o reemplazado activamente. | Estado transaccional EAM |
+| `REPLACED` | Fin del ciclo de vida del componente en esa ubicación; conservado para historial de MTBF. | Historial de Confiabilidad |
 
 ## 5. Tabla de Trazabilidad de Columnas Físicas
 
