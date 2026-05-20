@@ -343,10 +343,27 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `AuditLog` | `previousState` | `JSON` | NULL |  | Imagen previa (before-image) para trazabilidad de auditoría. |
 | `AuditLog` | `newState` | `JSON` | NULL |  | Imagen posterior (after-image) para trazabilidad de auditoría. |
 
-## 6. Notas Finales
+## 6. Matriz de Correspondencia de Tipos de Datos (SQL Estándar vs. PostgreSQL)
+
+Para garantizar la viabilidad física del modelo lógico y su correcta implementación en el motor de base de datos seleccionado (**PostgreSQL**), se ha validado y mapeado formalmente cada tipo de datos físico propuesto:
+
+| Tipo Físico (Estándar SQL) | Tipo Nativo en PostgreSQL | Equivalente Técnico Alternativo | Impacto Técnico / Justificación en PostgreSQL |
+| :--- | :--- | :--- | :--- |
+| `VARCHAR(N)` | `VARCHAR(N)` o `CHARACTER VARYING(N)` | `TEXT` | PostgreSQL maneja cadenas de longitud variable eficientemente. `TEXT` no tiene penalización de rendimiento y se prefiere cuando no se requiere un límite estricto de longitud de caracteres. |
+| `SMALLINT` | `SMALLINT` o `INT2` | Ninguno | Entero con signo de 2 bytes (rango -32,768 a 32,767). Óptimo para cardinalidades y niveles taxonómicos (como `hierarchyLevel`). |
+| `INT` | `INTEGER` o `INT4` | Ninguno | Entero con signo de 4 bytes (rango -2,147,483,648 a 2,147,483,647). Estándar para contadores simples (como `failedLoginAttempts`). |
+| `BIGINT` | `BIGINT` o `INT8` | Ninguno | Entero con signo de 8 bytes. Usado para métricas acumuladas grandes como horas operativas (`operatingHours`) y duraciones de transición. |
+| `DATE` | `DATE` | Ninguno | Tipo de datos de 4 bytes para almacenar fechas de calendario sin zona horaria (año, mes, día). |
+| `TIMESTAMP` | `TIMESTAMP` | `TIMESTAMPTZ` (Recomendado) | `TIMESTAMP` almacena fecha y hora sin zona horaria. Se recomienda `TIMESTAMPTZ` (Timestamp con zona horaria) para logs de auditoría, marcas de creación e inicio de órdenes de trabajo para evitar discrepancias por husos horarios. |
+| `DECIMAL(P,S)` | `DECIMAL(P,S)` o `NUMERIC(P,S)` | Ninguno | Tipo de precisión exacta con escala de usuario. Esencial para valores monetarios (`unitCost`), dimensiones de sensores (`value`, `threshold`) y porcentajes exactos (`opacityLevel`). |
+| `UUID` | `UUID` | Ninguno | Tipo de datos nativo de 128 bits para Identificadores Únicos Universales (UUID). Mucho más eficiente que almacenar UUID como `VARCHAR(36)`. Requiere cargar la extensión `uuid-ossp` o usar la función nativa `gen_random_uuid()` para generación de llaves en la base de datos. |
+| `BOOLEAN` | `BOOLEAN` o `BOOL` | Ninguno | Tipo lógico que almacena `TRUE` o `FALSE`. |
+| `JSON` | `JSON` | `JSONB` (Recomendado) | `JSON` almacena el texto literal, lo cual requiere parseo en cada consulta. Se recomienda usar `JSONB` (JSON Binario Descompuesto) porque almacena el contenido en formato binario, soporta indexación rápida (índices GIN) y es mucho más eficiente para consultas de auditoría (`previousState` y `newState`). |
+
+## 7. Notas Finales
 
 - El modelo de dominio debe seguir siendo la fuente de verdad del negocio hasta que se genere el ERD físico.
 - Los vocabularios controlados que son estables y de baja cardinalidad pueden hacerse cumplir mediante restricciones `CHECK`.
 - Los vocabularios que probablemente cambiarán o crecerán deben trasladarse a tablas de búsqueda (lookup tables).
 - Los registros de fallas y auditorías deben permanecer de solo adición (append-only) y rastreables.
-- El vocabulario relacionado con la seguridad para permisos y puntos de aislamiento debe tratarse como datos de cumplimiento controlados, no como texto libre.ext.
+- El vocabulario relacionado con la seguridad para permisos y puntos de aislamiento debe tratarse como datos de cumplimiento controlados, no como texto libre.
