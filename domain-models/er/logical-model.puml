@@ -1,0 +1,106 @@
+@startuml LogicalModel
+' --- CONFIGURACIÓN VISUAL ---
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 80
+
+' Paleta de colores consistente con el modelo de dominio
+skinparam class {
+    BackgroundColor #EBF5FB
+    BorderColor #2E86C1
+    BorderThickness 1.5
+    ArrowColor #154360
+    AttributeIconSize 0
+}
+
+' Paquetes con borde más oscuro y fondo de contraste
+skinparam package {
+    BackgroundColor #F8F9F9
+    BorderColor #1B4F72
+    BorderThickness 1.5
+    FontStyle bold
+}
+
+' Leyenda e Información General (ISO 9001:2015)
+legend top right
+    |= Control Documental (ISO 9001:2015) |
+    | **Código:** DT-ERD-LOG-001 |
+    | **Versión:** 1.0-Draft |
+    | **Fecha:** 2026-05-20 |
+    | **Estado:** En Revisión (Segmento A) |
+    | **Autor:** Juan David |
+endlegend
+
+package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
+    entity "functional_locations" as functional_locations {
+        * id : UUID <<PK>>
+        --
+        * tag_number : VARCHAR(50) <<unique>>
+        * name : VARCHAR(150)
+        description : VARCHAR(255)
+        * criticality : VARCHAR(30)
+        geographic_location : VARCHAR(150)
+        * hierarchy_level : SMALLINT
+        parent_id : UUID <<FK>>
+    }
+
+    entity "equipment_classes" as equipment_classes {
+        * id : UUID <<PK>>
+        --
+        * class_name : VARCHAR(120) <<unique>>
+        description : VARCHAR(255)
+        manufacturer_standard : VARCHAR(120)
+    }
+
+    entity "equipment_units" as equipment_units {
+        * id : UUID <<PK>>
+        --
+        * serial_number : VARCHAR(100) <<unique>>
+        * manufacturer : VARCHAR(120)
+        * model : VARCHAR(120)
+        * purchase_date : DATE
+        rejection_reason : VARCHAR(255)
+        * boundary_start : VARCHAR(150)
+        * boundary_end : VARCHAR(150)
+        * acquisition_date : DATE
+        installation_date : DATE
+        operation_start_date : DATE
+        * operating_hours : BIGINT
+        * operational_status : VARCHAR(20)
+        * lifecycle_status : VARCHAR(20)
+        * maintenance_status : VARCHAR(30)
+        functional_location_id : UUID <<FK, unique>>
+        * equipment_class_id : UUID <<FK>>
+    }
+
+    entity "subunits" as subunits {
+        * id : UUID <<PK>>
+        --
+        * equipment_unit_id : UUID <<FK>>
+        * subunit_type : VARCHAR(80)
+        * name : VARCHAR(120)
+    }
+
+    entity "maintainable_items" as maintainable_items {
+        * id : UUID <<PK>>
+        --
+        * subunit_id : UUID <<FK>>
+        * component_name : VARCHAR(120)
+        * subunit_type : VARCHAR(80)
+        spare_part_type : VARCHAR(80)
+        design_attributes : VARCHAR(255)
+        * status : VARCHAR(30)
+    }
+}
+
+' Relaciones
+functional_locations ||--o{ functional_locations : "parent_id"
+functional_locations ||--o| equipment_units : "instala"
+equipment_classes ||--o{ equipment_units : "categoriza"
+equipment_units ||--|{ subunits : "se compone de (ON DELETE CASCADE)"
+subunits ||--|{ maintainable_items : "contiene (ON DELETE CASCADE)"
+
+@enduml
