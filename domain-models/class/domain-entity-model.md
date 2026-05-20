@@ -1,27 +1,28 @@
 ---
-document_control:
-  code: GD-DM-DOC-001
-  version: 1.2-MVP
-  date: 2026-05-19
-  status: Draft
-  author: Juan David
-  approver: Antigravity
-  standard: ISO 9001:2015 / ISO 14224:2016 / ISO 55000-Series
+code: GD-DM-DOC-001
+version: 1.2-MVP
+date: 2026-05-19
+status: Draft
+author: Juan David
+standard: 
+  - ISO 9001:2015 
+  - ISO 14224:2016
+  - ISO 55000-Series
 ---
 
 # Domain Entity Model
 
 ## 1. Purpose
 
-This document is the business companion to the PlantUML domain model for the Gemelo Digital solution. It acts as the Single Source of Truth (SSoT) for domain meaning, tactical DDD boundaries, enum vocabularies, and preliminary persistence rules before the physical ERD is generated.
+This document is the business companion to the domain model for the Digital Twin solution. It acts as the Single Source of Truth (SSoT) for domain meaning, tactical DDD boundaries, enum vocabularies, and preliminary persistence rules before the physical ERD is generated.
 
-The document is intentionally focused on business rules and storage traceability rather than implementation details. The PlantUML model defines the structure; this document explains why each element exists, how it should be interpreted, and how it should be constrained in the database layer.
+The document is intentionally focused on business rules and storage traceability rather than implementation details. The uml model defines the structure; this document explains why each element exists, how it should be interpreted, and how it should be constrained in the database layer.
 
 ## 2. Critical Synthesis Decisions
 
 ### 2.1 Status Splitting on `EquipmentUnit`
 
-The previous single `status` field is intentionally decomposed into three separate dimensions:
+The `status` field is decomposed into three separate dimensions:
 
 - `operationalStatus`: captures the real operational condition of the asset, such as uptime, downtime, or standby state, in line with ISO 14224 reliability and operating-state logic.
 - `lifecycleStatus`: captures the business and accounting phase of the asset, such as storage, installation, commissioning, or decommissioning, which is more aligned with asset-management lifecycle governance.
@@ -80,7 +81,7 @@ The approved capsule set provides strong guidance for LOTO, competence, and safe
 | `WorkOrderAssignment` | `Entity` | Auditable relationship between a user/role and a work order. | ISO 55000 competency gatekeeping |
 | `AuditLog` | `Entity` | Append-only audit record containing before/after state. | ISO 9000 audit evidence and record immutability |
 
-## 4. Controlled Vocabulary (Enums)
+## 4. Controlled Vocabulary
 
 ### 4.1 `EquipmentUnit.operationalStatus`
 
