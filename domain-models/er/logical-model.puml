@@ -28,9 +28,9 @@ skinparam package {
 legend top right
     |= Control Documental (ISO 9001:2015) |
     | **Código:** DT-ERD-LOG-001 |
-    | **Versión:** 1.0-Draft |
+    | **Versión:** 1.1-Draft |
     | **Fecha:** 2026-05-20 |
-    | **Estado:** En Revisión (Segmento A) |
+    | **Estado:** En Revisión (Segmento B) |
     | **Autor:** Juan David |
 endlegend
 
@@ -102,5 +102,104 @@ functional_locations ||--o| equipment_units : "instala"
 equipment_classes ||--o{ equipment_units : "categoriza"
 equipment_units ||--|{ subunits : "se compone de (ON DELETE CASCADE)"
 subunits ||--|{ maintainable_items : "contiene (ON DELETE CASCADE)"
+
+package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
+    entity "work_requests" as work_requests {
+        * id : UUID <<PK>>
+        --
+        * equipment_unit_id : UUID <<FK>>
+        * description : VARCHAR(255)
+        * priority : VARCHAR(20)
+        * request_date : TIMESTAMP
+        * request_source : VARCHAR(80)
+        * status : VARCHAR(20)
+        * risk_factor : VARCHAR(20)
+        * impact_factor : VARCHAR(20)
+        * maintainability_factor : VARCHAR(20)
+        * economy_factor : VARCHAR(20)
+    }
+
+    entity "maintenance_plans" as maintenance_plans {
+        * id : UUID <<PK>>
+        --
+        * equipment_unit_id : UUID <<FK>>
+        * maintenance_method : VARCHAR(80)
+        * frequency : VARCHAR(50)
+        * frequency_type : VARCHAR(20)
+        * next_work_order_date : DATE
+        * status : VARCHAR(20)
+    }
+
+    entity "work_orders" as work_orders {
+        * id : UUID <<PK>>
+        --
+        * equipment_unit_id : UUID <<FK>>
+        maintenance_plan_id : UUID <<FK>>
+        work_request_id : UUID <<FK, unique>>
+        * current_status : VARCHAR(30)
+        * maintenance_method : VARCHAR(80)
+        * creation_date : TIMESTAMP
+        scheduled_date : TIMESTAMP
+        actual_start : TIMESTAMP
+        actual_finish : TIMESTAMP
+        actual_labor_hours : DECIMAL(10,2)
+        * criticality : VARCHAR(30)
+    }
+
+    entity "work_order_histories" as work_order_histories {
+        * id : UUID <<PK>>
+        --
+        * work_order_id : UUID <<FK>>
+        old_status : VARCHAR(30)
+        * new_status : VARCHAR(30)
+        * timestamp : TIMESTAMP
+        duration_seconds : BIGINT
+    }
+
+    entity "failure_records" as failure_records {
+        * id : UUID <<PK>>
+        --
+        * work_order_id : UUID <<FK, unique>>
+        maintainable_item_id : UUID <<FK>>
+        * failure_mode : VARCHAR(80)
+        * failure_mechanism : VARCHAR(80)
+        * failure_cause : VARCHAR(80)
+        * downtime : DECIMAL(10,2)
+        * status : VARCHAR(20)
+    }
+
+    entity "backlog_items" as backlog_items {
+        * id : UUID <<PK>>
+        --
+        * equipment_unit_id : UUID <<FK>>
+        * work_request_id : UUID <<FK, unique>>
+        * priority_score : INT
+        * status : VARCHAR(20)
+    }
+
+    entity "media_attachments" as media_attachments {
+        * id : UUID <<PK>>
+        --
+        * work_order_id : UUID <<FK>>
+        * file_url : VARCHAR(255)
+        * file_type : VARCHAR(20)
+        * uploaded_at : TIMESTAMP
+    }
+}
+
+' Relaciones Segmento B
+equipment_units ||--o{ work_requests : "genera"
+equipment_units ||--o{ maintenance_plans : "posee"
+equipment_units ||--o{ work_orders : "mantenido por"
+equipment_units ||--o{ backlog_items : "está listado en"
+
+work_requests |o--o| work_orders : "se convierte en"
+maintenance_plans ||--o{ work_orders : "dispara"
+
+work_orders ||--o{ work_order_histories : "registra cambios en (ON DELETE CASCADE)"
+work_orders ||--o| failure_records : "reporta"
+maintainable_items ||--o{ failure_records : "experimenta"
+work_orders ||--o{ media_attachments : "adjunta (ON DELETE CASCADE)"
+work_requests ||--o| backlog_items : "prioriza"
 
 @enduml
