@@ -1,7 +1,7 @@
 ---
 code: DT-DM-DOC-001
-version: 1.3-MVP
-date: 2026-05-20
+version: 1.4-MVP
+date: 2026-05-22
 status: Draft
 author: Juan David
 standard: 
@@ -189,6 +189,68 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `UNDER_REPAIR` | El componente está siendo mantenido, reparado o reemplazado activamente. | Estado transaccional EAM |
 | `REPLACED` | Fin del ciclo de vida del componente en esa ubicación; conservado para historial de MTBF. | Historial de Confiabilidad |
 
+### 4.12 `WorkRequest.status`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `NEW` | Solicitud recién creada y pendiente de evaluación. | Admisión básica de CMMS |
+| `APPROVED` | Aprobada y promovida a Orden de Trabajo (`WorkOrder`). | Transición a planificación |
+| `REJECTED` | Rechazada por ser inválida, duplicada o falsa alarma. | Trazabilidad de falsos positivos |
+
+### 4.13 `MaintenancePlan.status`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `DRAFT` | Plan en fase de diseño o revisión técnica, inactivo. | Control documental |
+| `ACTIVE` | Activo y disparando órdenes de trabajo según su ciclo. | Operativo |
+| `INACTIVE` | Desactivado temporalmente por parada o cambio operativo. | Suspensión de ciclos |
+| `ARCHIVED` | Obsoleto o reemplazado; conservado para historial de auditoría. | ISO 55001 Ciclo de Vida |
+
+### 4.14 `MaintenancePlan.maintenanceMethod`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `PREVENTIVE` | Mantenimiento preventivo sistemático (basado en tiempo/uso). | ISO 14224 (Preventative) |
+| `PREDICTIVE` | Monitoreo predictivo (análisis de vibraciones, termografía, etc.). | ISO 14224 (Condition-based) |
+| `CONDITION_BASED` | Acciones directas disparadas por límites de sensores en telemetría. | ISO 13374 / CBM |
+
+### 4.15 `WorkOrder.currentStatus`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `PLANNING` | Definición de repuestos, permisos LOTO y recursos. | FSM - Planificación |
+| `WAITING_PARTS` | Espera activa de repuestos en almacén/compras. | FSM - Cuello de botella logístico |
+| `SCHEDULED` | Asignado con técnico y fecha de ejecución programada. | FSM - Programación |
+| `IN_PROGRESS` | El técnico está ejecutando la labor (clock-in activo). | FSM - Ejecución ("Wrench Time") |
+| `COMPLETE` | Trabajo técnico finalizado, en espera de revisión. | FSM - Pre-cierre técnico |
+| `CLOSED` | Cerrada administrativamente e ingresados los códigos de falla. | FSM - QA / Auditoría ISO 14224 |
+
+### 4.16 `WorkOrder.maintenanceMethod`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `CORRECTIVE` | Mantenimiento correctivo reactivo (reparación tras falla). | ISO 14224 (Corrective) |
+| `PREVENTIVE` | Preventivo sistemático programado (derivado de plan). | ISO 14224 (Preventative) |
+| `PREDICTIVE` | Monitoreo o inspección predictiva programada. | ISO 14224 (Condition-based) |
+| `IMPROVEMENT` | Modificación, rediseño o mejora técnica (CAPEX/OPEX). | Gestión de Cambios / Ingeniería |
+
+### 4.17 `WorkOrder.criticality`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `EMERGENCY` | Detención total de planta, riesgo de seguridad o ambiental inminente. | Criticidad Máxima |
+| `URGENT` | Falla con impacto operativo inmediato; reparar en menos de 24-48h. | Prioridad Alta |
+| `NORMAL` | Planificable dentro de los ciclos y ventanas semanales. | Prioridad Media |
+| `LOW` | Tareas estéticas o menores de conveniencia operativa. | Prioridad Baja |
+
+### 4.18 `BacklogItem.status`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `PENDING` | En espera de análisis técnico o definición de materiales. | Cola de planificación |
+| `READY` | Planificado completamente y listo para ser calendarizado. | Listo para programar |
+| `DEFERRED` | Aplazado intencionalmente (falta de presupuesto o parada general). | Suspensión en cola |
+
 ## 5. Tabla de Trazabilidad de Columnas Físicas
 
 **Nota:** Las llaves foráneas (Foreign Keys) derivadas de las asociaciones se omiten en la lista de campos a continuación para mayor legibilidad, pero deben agregarse en el ERD físico. El siguiente mapeo se centra en los campos lógicos que ya están presentes en el modelo de PlantUML.
@@ -241,34 +303,34 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `WorkRequest` | `impactFactor` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario controlado RIME. |
 | `WorkRequest` | `maintainabilityFactor` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario controlado RIME. |
 | `WorkRequest` | `economyFactor` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario controlado RIME. |
-| `MaintenancePlan` | `maintenanceMethod` | `VARCHAR(80)` | NOT NULL |  | Estrategia de mantenimiento. |
+| `MaintenancePlan` | `maintenanceMethod` | `VARCHAR(80)` | NOT NULL | CHECK o lookup | Estrategia de mantenimiento (PM, PdM, CBM). |
 | `MaintenancePlan` | `frequency` | `VARCHAR(80)` | NOT NULL |  | Descripción de la frecuencia legible por humanos. |
 | `MaintenancePlan` | `frequencyType` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Cadencia controlada del plan. |
-| `MaintenancePlan` | `nextWorkOrderDate` | `DATE` | NULL |  | Fecha de ejecución programada. |
-| `MaintenancePlan` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida del plan. |
-| `WorkOrder` | `currentStatus` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida de ejecución. |
-| `WorkOrder` | `maintenanceMethod` | `VARCHAR(80)` | NOT NULL |  | Método de mantenimiento. |
+| `MaintenancePlan` | `nextWorkOrderDate` | `DATE` | NULL |  | Fecha de ejecución programada (Calculada). |
+| `MaintenancePlan` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida del plan (documento). |
+| `WorkOrder` | `currentStatus` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida de ejecución (FSM). |
+| `WorkOrder` | `maintenanceMethod` | `VARCHAR(80)` | NOT NULL | CHECK o lookup | Método de mantenimiento (Correctivo, Preventivo, etc.). |
 | `WorkOrder` | `creationDate` | `TIMESTAMP` | NOT NULL |  | Marca de tiempo (timestamp) de creación de la orden. |
 | `WorkOrder` | `scheduledDate` | `TIMESTAMP` | NULL |  | Inicio planeado. |
 | `WorkOrder` | `actualStart` | `TIMESTAMP` | NULL |  | Inicio real de la ejecución. |
 | `WorkOrder` | `actualFinish` | `TIMESTAMP` | NULL |  | Finalización real de la ejecución. |
-| `WorkOrder` | `actualLaborHours` | `DECIMAL(10,2)` | NULL |  | Duración laboral real. |
-| `WorkOrder` | `criticality` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Etiqueta de impacto de la orden de trabajo. |
+| `WorkOrder` | `actualLaborHours` | `DECIMAL(10,2)` | NULL |  | Duración laboral real (Calculada). |
+| `WorkOrder` | `criticality` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Etiqueta de criticidad / prioridad de la OT. |
 | `MediaAttachment` | `fileUrl` | `VARCHAR(255)` | NOT NULL |  | Ubicación de la evidencia. |
 | `MediaAttachment` | `fileType` | `VARCHAR(10)` | NOT NULL | CHECK o lookup | Formato de archivo adjunto controlado. |
 | `MediaAttachment` | `uploadedAt` | `TIMESTAMP` | NOT NULL |  | Tiempo de subida/ingesta de la evidencia. |
-| `WorkOrderHistory` | `oldStatus` | `VARCHAR(20)` | NOT NULL |  | Estado anterior del ciclo de vida. |
+| `WorkOrderHistory` | `oldStatus` | `VARCHAR(20)` | NULL |  | Estado anterior del ciclo de vida (NULL si es primer estado). |
 | `WorkOrderHistory` | `newStatus` | `VARCHAR(20)` | NOT NULL |  | Nuevo estado del ciclo de vida. |
 | `WorkOrderHistory` | `timestamp` | `TIMESTAMP` | NOT NULL |  | Tiempo de transición. |
-| `WorkOrderHistory` | `durationSeconds` | `BIGINT` | NOT NULL |  | Tiempo empleado en el estado. |
+| `WorkOrderHistory` | `durationSeconds` | `BIGINT` | NULL |  | Tiempo empleado en el estado (Calculado al transicionar). |
 | `FailureRecord` | `failureId` | `UUID` | NOT NULL | PK | Identidad del evento de falla. |
 | `FailureRecord` | `failureMode` | `VARCHAR(120)` | NOT NULL | CHECK o lookup | Codificación de fallas de la ISO 14224. |
 | `FailureRecord` | `failureMechanism` | `VARCHAR(120)` | NOT NULL | CHECK o lookup | Codificación de fallas de la ISO 14224. |
 | `FailureRecord` | `failureCause` | `VARCHAR(120)` | NOT NULL | CHECK o lookup | Codificación de fallas de la ISO 14224. |
-| `FailureRecord` | `downtime` | `DECIMAL(10,2)` | NOT NULL |  | Métrica de análisis de confiabilidad. |
+| `FailureRecord` | `downtime` | `DECIMAL(10,2)` | NOT NULL |  | Métrica de análisis de confiabilidad (Calculada). |
 | `FailureRecord` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del registro de fallas. |
-| `BacklogItem` | `priorityScore` | `INT` | NOT NULL |  | Puntaje del backlog derivado de RIME. |
-| `BacklogItem` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida del backlog. |
+| `BacklogItem` | `priorityScore` | `INT` | NOT NULL |  | Puntaje del backlog derivado de RIME (Calculado). |
+| `BacklogItem` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida del backlog (priorización). |
 
 ### 5.3 Inventario y Suministro
 

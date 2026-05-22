@@ -28,9 +28,9 @@ skinparam package {
 legend top right
     |= Control Documental (ISO 9001:2015) |
     | **Código:** DT-ERD-LOG-001 |
-    | **Versión:** 1.1-Draft |
-    | **Fecha:** 2026-05-20 |
-    | **Estado:** En Revisión (Segmento B) |
+    | **Versión:** 1.2-Draft |
+    | **Fecha:** 2026-05-22 |
+    | **Estado:** En Revisión (Segmento B - Sincronizado) |
     | **Autor:** Juan David |
 endlegend
 
@@ -136,22 +136,22 @@ package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
         * equipment_unit_id : UUID <<FK>>
         maintenance_plan_id : UUID <<FK>>
         work_request_id : UUID <<FK, unique>>
-        * current_status : VARCHAR(30)
+        * current_status : VARCHAR(20)
         * maintenance_method : VARCHAR(80)
         * creation_date : TIMESTAMP
         scheduled_date : TIMESTAMP
         actual_start : TIMESTAMP
         actual_finish : TIMESTAMP
         actual_labor_hours : DECIMAL(10,2)
-        * criticality : VARCHAR(30)
+        * criticality : VARCHAR(20)
     }
 
     entity "work_order_histories" as work_order_histories {
         * id : UUID <<PK>>
         --
         * work_order_id : UUID <<FK>>
-        old_status : VARCHAR(30)
-        * new_status : VARCHAR(30)
+        old_status : VARCHAR(20)
+        * new_status : VARCHAR(20)
         * timestamp : TIMESTAMP
         duration_seconds : BIGINT
     }
@@ -161,9 +161,9 @@ package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
         --
         * work_order_id : UUID <<FK, unique>>
         maintainable_item_id : UUID <<FK>>
-        * failure_mode : VARCHAR(80)
-        * failure_mechanism : VARCHAR(80)
-        * failure_cause : VARCHAR(80)
+        * failure_mode : VARCHAR(120)
+        * failure_mechanism : VARCHAR(120)
+        * failure_cause : VARCHAR(120)
         * downtime : DECIMAL(10,2)
         * status : VARCHAR(20)
     }
