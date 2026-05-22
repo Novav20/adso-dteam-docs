@@ -28,9 +28,9 @@ skinparam package {
 legend top right
     |= Control Documental (ISO 9001:2015) |
     | **Código:** DT-ERD-LOG-001 |
-    | **Versión:** 1.3-Draft |
+    | **Versión:** 1.4-Draft |
     | **Fecha:** 2026-05-22 |
-    | **Estado:** En Revisión (Segmento C - Sincronizado) |
+    | **Estado:** En Revisión (Segmento D - Sincronizado) |
     | **Autor:** Juan David |
 endlegend
 
@@ -136,6 +136,7 @@ package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
         * equipment_unit_id : UUID <<FK>>
         maintenance_plan_id : UUID <<FK>>
         work_request_id : UUID <<FK, unique>>
+        work_permit_id : UUID <<FK>>
         * current_status : VARCHAR(20)
         * maintenance_method : VARCHAR(80)
         * creation_date : TIMESTAMP
@@ -251,6 +252,73 @@ package "Control de Recursos (INV)" as inv_module {
     }
 }
 
+package "Convergencia Gemelo Digital (VIS)" as vis_module {
+    entity "mesh_mappings" as mesh_mappings {
+        * id : UUID <<PK>>
+        --
+        * equipment_unit_id : UUID <<FK, unique>>
+        * mesh_uuid : VARCHAR(80) <<unique>>
+        * mapping_status : VARCHAR(20)
+        last_sync_time : TIMESTAMP
+    }
+
+    entity "spatial_metadata" as spatial_metadata {
+        * mesh_mapping_id : UUID <<PK, FK>>
+        --
+        * position : VARCHAR(120)
+        rotation : VARCHAR(120)
+        scale : VARCHAR(120)
+    }
+
+    entity "telemetry_signals" as telemetry_signals {
+        * id : UUID <<PK>>
+        --
+        * equipment_unit_id : UUID <<FK>>
+        * signal_type : VARCHAR(80)
+        * value : DECIMAL(18,6)
+        * unit : VARCHAR(20)
+        threshold : DECIMAL(18,6)
+        * timestamp : TIMESTAMP
+        * is_safety_critical : BOOLEAN
+    }
+
+    entity "work_permits" as work_permits {
+        * id : UUID <<PK>>
+        --
+        * equipment_unit_id : UUID <<FK>>
+        * permit_identifier : VARCHAR(80) <<unique>>
+        * permit_type : VARCHAR(30)
+        * contractor_name : VARCHAR(150)
+        * status : VARCHAR(20)
+    }
+
+    entity "isolation_points" as isolation_points {
+        * id : UUID <<PK>>
+        --
+        * equipment_unit_id : UUID <<FK>>
+        * isolation_tag : VARCHAR(80) <<unique>>
+        * isolation_type : VARCHAR(20)
+        * is_verified : BOOLEAN
+    }
+
+    entity "work_order_isolations" as work_order_isolations {
+        * work_order_id : UUID <<PK, FK>>
+        * isolation_point_id : UUID <<PK, FK>>
+        --
+        * is_isolated : BOOLEAN
+        isolated_at : TIMESTAMP
+    }
+
+    entity "visual_layers" as visual_layers {
+        * id : UUID <<PK>>
+        --
+        * work_order_id : UUID <<FK>>
+        * layer_type : VARCHAR(80)
+        * opacity_level : DECIMAL(5,2)
+        * status : VARCHAR(20)
+    }
+}
+
 ' Relaciones Segmento B
 equipment_units ||--o{ work_requests : "genera"
 equipment_units ||--o{ maintenance_plans : "posee"
@@ -278,5 +346,18 @@ spare_parts ||--|{ work_order_spare_parts : "es consumido en"
 
 maintainable_items ||--|{ maintainable_item_spare_parts : "requiere (ON DELETE CASCADE)"
 spare_parts ||--|{ maintainable_item_spare_parts : "es repuesto para"
+
+' Relaciones Segmento D
+equipment_units ||--o| mesh_mappings : "representado por"
+mesh_mappings ||--|| spatial_metadata : "ubicado en (ON DELETE CASCADE)"
+equipment_units ||--o{ telemetry_signals : "monitoreado por"
+equipment_units ||--o{ work_permits : "autoriza intervención en"
+equipment_units ||--o{ isolation_points : "contiene"
+
+work_permits ||--o{ work_orders : "valida ejecución de"
+work_orders ||--o{ visual_layers : "visualizada en (ON DELETE CASCADE)"
+
+work_orders ||--|{ work_order_isolations : "requiere (ON DELETE CASCADE)"
+isolation_points ||--|{ work_order_isolations : "bloqueado por"
 
 @enduml

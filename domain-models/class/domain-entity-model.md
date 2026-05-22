@@ -1,6 +1,6 @@
 ---
 code: DT-DM-DOC-001
-version: 1.5-MVP
+version: 1.6-MVP
 date: 2026-05-22
 status: Draft
 author: Juan David
@@ -225,6 +225,11 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `COMPLETE` | Trabajo técnico finalizado, en espera de revisión. | FSM - Pre-cierre técnico |
 | `CLOSED` | Cerrada administrativamente e ingresados los códigos de falla. | FSM - QA / Auditoría ISO 14224 |
 
+**Restricciones de Transición FSM (Seguridad Industrial & LOTO):**
+*   Para transicionar de cualquier estado previo (`PLANNING`, `SCHEDULED`, `WAITING_PARTS`) a **`IN_PROGRESS`**, el sistema debe verificar programáticamente las siguientes precondiciones:
+    1.  **Permiso de Trabajo (`WorkPermit`):** Debe existir un permiso de trabajo asociado y su estado (`status`) debe ser estrictamente `APPROVED`.
+    2.  **Bloqueo y Etiquetado (`LOTO`):** Todos los puntos de aislamiento declarados para la orden de trabajo en la tabla intermedia `work_order_isolations` deben tener su estado de bloqueo verificado (`is_isolated = TRUE` e `isolated_at` no nulo).
+
 ### 4.16 `WorkOrder.maintenanceMethod`
 
 | Valor | Significado | Norma / Concepto |
@@ -266,6 +271,41 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `RECEIPT` | Entrada de inventario (compra, devolución, transferencia). | Ingesta de Stock |
 | `ISSUE` | Salida de inventario (consumo en Orden de Trabajo). | Carga a Costos de OT |
 | `ADJUSTMENT` | Ajuste manual/automático por discrepancia en conteo físico. | Conciliación de Inventario |
+
+### 4.21 `MeshMapping.mappingStatus`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `MAPPED` | El activo está correctamente vinculado a su representación 3D en el gemelo. | Vinculación Digital |
+| `UNMAPPED` | Falta cargar o posicionar la malla 3D del activo. | Gemelo Incompleto |
+| `SYNC_ERROR` | Error de consistencia o carga entre el motor gráfico y la DB. | Error de Sincronización |
+
+### 4.22 `WorkPermit.permitType`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `HOT_WORK` | Trabajo con fuentes de ignición o llama abierta (requiere extintor). | Seguridad Industrial (OSHA) |
+| `COLD_WORK` | Trabajo estándar sin peligro de chispa (mecánico, limpieza). | Seguridad Industrial (OSHA) |
+| `CONFINED_SPACE` | Entrada a tanques, ductos o áreas con ventilación limitada. | Espacio Confinado (Riesgo Alto) |
+| `ELECTRICAL` | Intervención en líneas de alta o media tensión (requiere LOTO). | Riesgo Eléctrico |
+
+### 4.23 `WorkPermit.status`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `PENDING` | Permiso solicitado por el supervisor, en evaluación de seguridad. | Ciclo de Autorización |
+| `APPROVED` | Permiso autorizado y vigente para la fecha programada. | Permiso Activo |
+| `EXPIRED` | Vencido (se superó la ventana horaria permitida para la labor). | Control de Riesgos |
+| `REVOKED` | Cancelado por condiciones inseguras detectadas en campo. | Intervención de Emergencia |
+
+### 4.24 `IsolationPoint.isolationType`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `ELECTRICAL` | Apertura de disyuntores, breakers o desconexión de cables. | LOTO Eléctrico |
+| `MECHANICAL` | Cierre de válvulas, instalación de bridas ciegas o bloqueos físicos. | LOTO Mecánico |
+| `PNEUMATIC` | Purga y bloqueo de líneas de aire comprimido. | LOTO Neumático |
+| `HYDRAULIC` | Bloqueo de líneas de fluido a presión. | LOTO Hidráulico |
 
 ## 5. Tabla de Trazabilidad de Columnas Físicas
 
@@ -382,8 +422,8 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 
 | Entidad | Campo Lógico | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación |
 |---|---|---|---|---|---|
-| `MeshMapping` | `meshUuid` | `UUID` | NOT NULL | UNIQUE | Identidad del mapeo del gemelo digital. |
-| `MeshMapping` | `mappingStatus` | `VARCHAR(30)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida del mapeo. |
+| `MeshMapping` | `meshUuid` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identidad o ruta del modelo 3D del activo. |
+| `MeshMapping` | `mappingStatus` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado de vinculación del gemelo digital. |
 | `MeshMapping` | `lastSyncTime` | `TIMESTAMP` | NULL |  | Tiempo de la última sincronización. |
 | `TelemetrySignal` | `signalType` | `VARCHAR(80)` | NOT NULL |  | Etiqueta de la señal del sensor. |
 | `TelemetrySignal` | `value` | `DECIMAL(18,6)` | NOT NULL |  | Valor de la medición cruda. |
@@ -398,6 +438,8 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `IsolationPoint` | `isolationTag` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identidad del punto de aislamiento. |
 | `IsolationPoint` | `isolationType` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario de aislamiento. |
 | `IsolationPoint` | `isVerified` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Estado de verificación. |
+| `WorkOrderIsolation` | `isIsolated` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Estado de bloqueo verificado para el trabajo específico. |
+| `WorkOrderIsolation` | `isolatedAt` | `TIMESTAMP` | NULL |  | Marca de tiempo en que se ejecutó el bloqueo. |
 | `VisualLayer` | `layerType` | `VARCHAR(80)` | NOT NULL |  | Tipo de representación visual. |
 | `VisualLayer` | `opacityLevel` | `DECIMAL(5,2)` | NOT NULL | CHECK (0..1) | Control de renderizado. |
 | `VisualLayer` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado de la capa visual. |
