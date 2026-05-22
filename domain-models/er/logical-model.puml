@@ -28,9 +28,9 @@ skinparam package {
 legend top right
     |= Control Documental (ISO 9001:2015) |
     | **Código:** DT-ERD-LOG-001 |
-    | **Versión:** 1.2-Draft |
+    | **Versión:** 1.3-Draft |
     | **Fecha:** 2026-05-22 |
-    | **Estado:** En Revisión (Segmento B - Sincronizado) |
+    | **Estado:** En Revisión (Segmento C - Sincronizado) |
     | **Autor:** Juan David |
 endlegend
 
@@ -187,6 +187,70 @@ package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
     }
 }
 
+package "Control de Recursos (INV)" as inv_module {
+    entity "suppliers" as suppliers {
+        * id : UUID <<PK>>
+        --
+        * name : VARCHAR(120)
+        * contact_info : VARCHAR(255)
+        * warranty_terms : VARCHAR(255)
+    }
+
+    entity "warehouses" as warehouses {
+        * id : UUID <<PK>>
+        --
+        * name : VARCHAR(80)
+        * location : VARCHAR(255)
+        * capacity : DECIMAL(12,4)
+    }
+
+    entity "spare_parts" as spare_parts {
+        * id : UUID <<PK>>
+        --
+        * sku : VARCHAR(80) <<unique>>
+        * description : VARCHAR(255)
+        * manufacturer : VARCHAR(120)
+        commodity_code : VARCHAR(80)
+        * reorder_point : DECIMAL(12,4)
+        * unit_of_measure : VARCHAR(20)
+        * stock_policy : VARCHAR(20)
+        * quantity_on_hand : DECIMAL(12,4)
+        * reserved_quantity : DECIMAL(12,4)
+        * max_capacity : DECIMAL(12,4)
+        * unit_cost : DECIMAL(12,2)
+        * status : VARCHAR(20)
+        * supplier_id : UUID <<FK>>
+        equipment_class_id : UUID <<FK>>
+    }
+
+    entity "inventory_transactions" as inventory_transactions {
+        * id : UUID <<PK>>
+        --
+        * spare_part_id : UUID <<FK>>
+        * warehouse_id : UUID <<FK>>
+        work_order_id : UUID <<FK>>
+        * quantity : DECIMAL(12,4)
+        * transaction_type : VARCHAR(20)
+        * timestamp : TIMESTAMP
+        * reason : VARCHAR(255)
+        * total_cost : DECIMAL(12,2)
+    }
+
+    entity "work_order_spare_parts" as work_order_spare_parts {
+        * work_order_id : UUID <<PK, FK>>
+        * spare_part_id : UUID <<PK, FK>>
+        --
+        * planned_quantity : DECIMAL(12,4)
+        actual_quantity : DECIMAL(12,4)
+    }
+
+    entity "maintainable_item_spare_parts" as maintainable_item_spare_parts {
+        * maintainable_item_id : UUID <<PK, FK>>
+        * spare_part_id : UUID <<PK, FK>>
+        --
+    }
+}
+
 ' Relaciones Segmento B
 equipment_units ||--o{ work_requests : "genera"
 equipment_units ||--o{ maintenance_plans : "posee"
@@ -201,5 +265,18 @@ work_orders ||--o| failure_records : "reporta"
 maintainable_items ||--o{ failure_records : "experimenta"
 work_orders ||--o{ media_attachments : "adjunta (ON DELETE CASCADE)"
 work_requests ||--o| backlog_items : "prioriza"
+
+' Relaciones Segmento C
+suppliers ||--o{ spare_parts : "suministra"
+equipment_classes ||--o{ spare_parts : "estandariza"
+spare_parts ||--o{ inventory_transactions : "involucrado en"
+warehouses ||--o{ inventory_transactions : "almacena"
+work_orders ||--o{ inventory_transactions : "genera"
+
+work_orders ||--|{ work_order_spare_parts : "requiere (ON DELETE CASCADE)"
+spare_parts ||--|{ work_order_spare_parts : "es consumido en"
+
+maintainable_items ||--|{ maintainable_item_spare_parts : "requiere (ON DELETE CASCADE)"
+spare_parts ||--|{ maintainable_item_spare_parts : "es repuesto para"
 
 @enduml

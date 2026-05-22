@@ -1,6 +1,6 @@
 ---
 code: DT-DM-DOC-001
-version: 1.4-MVP
+version: 1.5-MVP
 date: 2026-05-22
 status: Draft
 author: Juan David
@@ -251,6 +251,22 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `READY` | Planificado completamente y listo para ser calendarizado. | Listo para programar |
 | `DEFERRED` | Aplazado intencionalmente (falta de presupuesto o parada general). | Suspensión en cola |
 
+### 4.19 `SparePart.status`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `ACTIVE` | Activo y disponible para consumo y compras. | Gestión de Stock |
+| `OBSOLETE` | Obsoleto, no se permite nueva compra (se mantiene para historial). | ISO 55001 Ciclo de Vida |
+| `SUSPENDED` | Temporalmente bloqueado por control de calidad o problemas del proveedor. | Control de Calidad |
+
+### 4.20 `InventoryTransaction.transactionType`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `RECEIPT` | Entrada de inventario (compra, devolución, transferencia). | Ingesta de Stock |
+| `ISSUE` | Salida de inventario (consumo en Orden de Trabajo). | Carga a Costos de OT |
+| `ADJUSTMENT` | Ajuste manual/automático por discrepancia en conteo físico. | Conciliación de Inventario |
+
 ## 5. Tabla de Trazabilidad de Columnas Físicas
 
 **Nota:** Las llaves foráneas (Foreign Keys) derivadas de las asociaciones se omiten en la lista de campos a continuación para mayor legibilidad, pero deben agregarse en el ERD físico. El siguiente mapeo se centra en los campos lógicos que ya están presentes en el modelo de PlantUML.
@@ -340,25 +356,27 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `SparePart` | `description` | `VARCHAR(255)` | NOT NULL |  | Descripción de la parte legible por humanos. |
 | `SparePart` | `manufacturer` | `VARCHAR(120)` | NOT NULL |  | Identidad del proveedor/fabricante. |
 | `SparePart` | `commodityCode` | `VARCHAR(80)` | NULL |  | Código de clasificación. |
-| `SparePart` | `reorderPoint` | `DECIMAL(18,2)` | NOT NULL |  | Disparador (trigger) de inventario. |
-| `SparePart` | `unitOfMeasure` | `VARCHAR(20)` | NOT NULL |  | Unidad de inventario. |
-| `SparePart` | `stockPolicy` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Política de inventario controlada. |
-| `SparePart` | `quantityOnHand` | `DECIMAL(18,2)` | NOT NULL |  | Cantidad disponible. |
-| `SparePart` | `reservedQuantity` | `DECIMAL(18,2)` | NOT NULL | DEFAULT 0 | Stock asignado o reservado. |
-| `SparePart` | `maxCapacity` | `DECIMAL(18,2)` | NULL |  | Límite máximo de almacenamiento. |
-| `SparePart` | `unitCost` | `DECIMAL(18,2)` | NOT NULL |  | Seguimiento de costos. |
-| `SparePart` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida de la parte. |
-| `InventoryTransaction` | `quantity` | `DECIMAL(18,2)` | NOT NULL |  | Cantidad de movimiento. |
-| `InventoryTransaction` | `transactionType` | `VARCHAR(30)` | NOT NULL | CHECK o lookup | Clasificación de emisión/recepción/ajuste. |
-| `InventoryTransaction` | `timestamp` | `TIMESTAMP` | NOT NULL |  | Tiempo de la transacción. |
-| `InventoryTransaction` | `reason` | `VARCHAR(255)` | NOT NULL |  | Justificación de la transacción. |
-| `InventoryTransaction` | `totalCost` | `DECIMAL(18,2)` | NOT NULL |  | Trazabilidad financiera. |
-| `Warehouse` | `name` | `VARCHAR(120)` | NOT NULL | UNIQUE | Identidad del almacén. |
-| `Warehouse` | `location` | `VARCHAR(150)` | NOT NULL |  | Ubicación física. |
-| `Warehouse` | `capacity` | `DECIMAL(18,2)` | NOT NULL |  | Capacidad de almacenamiento. |
-| `Supplier` | `name` | `VARCHAR(150)` | NOT NULL | UNIQUE | Identidad del proveedor. |
-| `Supplier` | `contactInfo` | `VARCHAR(255)` | NULL |  | Registro de contacto. |
-| `Supplier` | `warrantyTerms` | `VARCHAR(255)` | NULL |  | Contexto de la garantía comercial. |
+| `SparePart` | `reorderPoint` | `DECIMAL(12,4)` | NOT NULL |  | Umbral mínimo de activación de compra. |
+| `SparePart` | `unitOfMeasure` | `VARCHAR(20)` | NOT NULL |  | Unidad de medida estándar (UoM). |
+| `SparePart` | `stockPolicy` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Política de reabastecimiento (Min/Max, Reorder Point, JIT). |
+| `SparePart` | `quantityOnHand` | `DECIMAL(12,4)` | NOT NULL |  | Cantidad actualmente en inventario físico. |
+| `SparePart` | `reservedQuantity` | `DECIMAL(12,4)` | NOT NULL | DEFAULT 0 | Stock comprometido para órdenes planificadas. |
+| `SparePart` | `maxCapacity` | `DECIMAL(12,4)` | NULL |  | Límite físico del almacén para la parte. |
+| `SparePart` | `unitCost` | `DECIMAL(12,2)` | NOT NULL |  | Costo unitario estándar de adquisición. |
+| `SparePart` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado de disponibilidad del repuesto. |
+| `InventoryTransaction` | `quantity` | `DECIMAL(12,4)` | NOT NULL |  | Cantidad transada (positiva para entradas, negativa para salidas). |
+| `InventoryTransaction` | `transactionType` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Tipo de movimiento (RECEIPT, ISSUE, ADJUSTMENT). |
+| `InventoryTransaction` | `timestamp` | `TIMESTAMP` | NOT NULL |  | Registro temporal preciso del movimiento. |
+| `InventoryTransaction` | `reason` | `VARCHAR(255)` | NOT NULL |  | Razón del movimiento o referencia a documentos externos. |
+| `InventoryTransaction` | `totalCost` | `DECIMAL(12,2)` | NOT NULL |  | Costo total de la transacción (Cantidad * Costo). |
+| `Warehouse` | `name` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identidad del almacén. |
+| `Warehouse` | `location` | `VARCHAR(255)` | NOT NULL |  | Dirección o ubicación física del almacén. |
+| `Warehouse` | `capacity` | `DECIMAL(12,4)` | NOT NULL |  | Capacidad máxima volumétrica o de carga del almacén. |
+| `Supplier` | `name` | `VARCHAR(120)` | NOT NULL | UNIQUE | Identidad comercial del proveedor. |
+| `Supplier` | `contactInfo` | `VARCHAR(255)` | NOT NULL |  | Teléfono, correo o dirección de contacto. |
+| `Supplier` | `warrantyTerms` | `VARCHAR(255)` | NOT NULL |  | Términos estándar de garantía comercial. |
+| `WorkOrderSparePart` | `plannedQuantity` | `DECIMAL(12,4)` | NOT NULL |  | Repuestos planificados antes de la ejecución de la OT. |
+| `WorkOrderSparePart` | `actualQuantity` | `DECIMAL(12,4)` | NULL |  | Repuestos realmente consumidos durante la ejecución de la OT. |
 
 ### 5.4 Convergencia Digital y Visualización de Seguridad
 
