@@ -307,6 +307,30 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `PNEUMATIC` | Purga y bloqueo de líneas de aire comprimido. | LOTO Neumático |
 | `HYDRAULIC` | Bloqueo de líneas de fluido a presión. | LOTO Hidráulico |
 
+### 4.25 `User.status`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `ACTIVE` | Cuenta activa y autorizada para interactuar con la plataforma. | Ciclo de Vida de Cuenta |
+| `INACTIVE` | Cuenta desactivada temporal o permanentemente (historial preservado). | Ciclo de Vida de Cuenta |
+| `LOCKED` | Bloqueada automáticamente tras exceder intentos fallidos de login. | Mitigación de Fuerza Bruta |
+
+### 4.26 `WorkOrderAssignment.roleInWork`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `TECHNICIAN` | Técnico ejecutor que realiza la labor y registra wrench time. | Ejecución Técnica |
+| `SUPERVISOR` | Supervisor que firma el cierre técnico y aprueba LOTO. | Responsable de Línea |
+| `PLANNER` | Planificador que diseña la orden, asigna repuestos y tiempos. | Ingeniería de Mantenimiento |
+
+### 4.27 `AuditLog.actionType`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `CREATE` | Registro inicial de un nuevo objeto en el sistema. | Auditoría ISO 9001 |
+| `UPDATE` | Modificación de campos existentes (rastrea estado previo). | Auditoría ISO 9001 |
+| `DELETE` | Eliminación lógica o física de una entidad crítica. | Auditoría ISO 9001 |
+
 ## 5. Tabla de Trazabilidad de Columnas Físicas
 
 **Nota:** Las llaves foráneas (Foreign Keys) derivadas de las asociaciones se omiten en la lista de campos a continuación para mayor legibilidad, pero deben agregarse en el ERD físico. El siguiente mapeo se centra en los campos lógicos que ya están presentes en el modelo de PlantUML.
@@ -451,29 +475,29 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 
 | Entidad | Campo Lógico | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación |
 |---|---|---|---|---|---|
-| `User` | `username` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identidad de la cuenta. |
-| `User` | `email` | `VARCHAR(150)` | NOT NULL | UNIQUE | Identidad de contacto e inicio de sesión. |
-| `User` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida de la cuenta. |
-| `User` | `passwordHash` | `VARCHAR(255)` | NOT NULL |  | Seguridad de la credencial. |
-| `User` | `failedLoginAttempts` | `INT` | NOT NULL | DEFAULT 0 | Control de bloqueos. |
-| `User` | `lockoutUntil` | `TIMESTAMP` | NULL |  | Ventana de bloqueo (lockout) de cuenta. |
-| `Role` | `roleName` | `VARCHAR(80)` | NOT NULL | UNIQUE | Nombre del rol de autorización. |
-| `Role` | `description` | `VARCHAR(255)` | NULL |  | Significado del rol. |
-| `Role` | `isSystemRole` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Protección de rol raíz/administrador. |
-| `Permission` | `module` | `VARCHAR(80)` | NOT NULL |  | Alcance (scope) de autorización. |
-| `Permission` | `action` | `VARCHAR(80)` | NOT NULL |  | Acción de autorización. |
-| `AuthToken` | `tokenHash` | `VARCHAR(255)` | NOT NULL | UNIQUE | Seguridad del token. |
-| `AuthToken` | `expiresAt` | `TIMESTAMP` | NOT NULL |  | Control de caducidad. |
-| `AuthToken` | `isUsed` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Estado de uso único (one-time-use). |
-| `WorkOrderAssignment` | `roleInWork` | `VARCHAR(80)` | NOT NULL |  | Rol asignado en la ejecución. |
-| `WorkOrderAssignment` | `assignedAt` | `TIMESTAMP` | NOT NULL |  | Tiempo de asignación. |
-| `AuditLog` | `entityType` | `VARCHAR(80)` | NOT NULL |  | Tipo de entidad auditada. |
-| `AuditLog` | `actionType` | `VARCHAR(80)` | NOT NULL |  | Acción auditada. |
-| `AuditLog` | `timestamp` | `TIMESTAMP` | NOT NULL |  | Tiempo del evento de auditoría. |
-| `AuditLog` | `integrityHash` | `VARCHAR(255)` | NOT NULL |  | Evidencia de manipulación (tamper evidence). |
-| `AuditLog` | `entityIdentifier` | `VARCHAR(120)` | NOT NULL |  | Correlaciona el registro con el objeto de negocio. |
-| `AuditLog` | `previousState` | `JSON` | NULL |  | Imagen previa (before-image) para trazabilidad de auditoría. |
-| `AuditLog` | `newState` | `JSON` | NULL |  | Imagen posterior (after-image) para trazabilidad de auditoría. |
+| `User` | `username` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identidad de la cuenta de usuario. |
+| `User` | `email` | `VARCHAR(150)` | NOT NULL | UNIQUE | Correo electrónico institucional y de contacto. |
+| `User` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado de la cuenta (ACTIVE, INACTIVE, LOCKED). |
+| `User` | `passwordHash` | `VARCHAR(255)` | NOT NULL |  | Hash de la contraseña de acceso (PBKDF2/BCrypt). |
+| `User` | `failedLoginAttempts` | `INT` | NOT NULL | DEFAULT 0 | Contador de intentos fallidos de autenticación. |
+| `User` | `lockoutUntil` | `TIMESTAMP` | NULL |  | Fin del periodo de bloqueo temporal. |
+| `Role` | `roleName` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identificador del rol de usuario (ej. Planner, Technician). |
+| `Role` | `description` | `VARCHAR(255)` | NULL |  | Descripción del alcance del rol. |
+| `Role` | `isSystemRole` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Bandera para roles inmutables del sistema. |
+| `RolePermission` | `module` | `VARCHAR(80)` | NOT NULL |  | Módulo del sistema (ej. MTTO, INV, VIS). |
+| `RolePermission` | `action` | `VARCHAR(80)` | NOT NULL |  | Acción permitida (ej. READ, CREATE, UPDATE, SIGN_OFF). |
+| `AuthToken` | `tokenHash` | `VARCHAR(255)` | NOT NULL | UNIQUE | Hash del token de autenticación API / sesión. |
+| `AuthToken` | `expiresAt` | `TIMESTAMP` | NOT NULL |  | Fecha y hora de expiración del token. |
+| `AuthToken` | `isUsed` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Indica si el token ya fue consumido (uso único). |
+| `WorkOrderAssignment` | `roleInWork` | `VARCHAR(50)` | NOT NULL |  | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR). |
+| `WorkOrderAssignment` | `assignedAt` | `TIMESTAMP` | NOT NULL |  | Registro temporal de la asignación. |
+| `AuditLog` | `entityType` | `VARCHAR(80)` | NOT NULL |  | Nombre de la tabla/entidad auditada. |
+| `AuditLog` | `entityIdentifier` | `VARCHAR(80)` | NOT NULL |  | Identificador UUID de la fila modificada. |
+| `AuditLog` | `actionType` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Tipo de operación DML (CREATE, UPDATE, DELETE). |
+| `AuditLog` | `timestamp` | `TIMESTAMP` | NOT NULL |  | Registro temporal preciso del evento de cambio. |
+| `AuditLog` | `previousState` | `JSON` | NULL |  | Representación JSON del estado de los campos antes de la acción. |
+| `AuditLog` | `newState` | `JSON` | NULL |  | Representación JSON del estado de los campos después de la acción. |
+| `AuditLog` | `integrityHash` | `VARCHAR(255)` | NOT NULL |  | Hash SHA-256 encadenado para detectar manipulación del log. |
 
 ## 6. Matriz de Correspondencia de Tipos de Datos (SQL Estándar vs. PostgreSQL)
 

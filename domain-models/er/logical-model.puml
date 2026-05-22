@@ -28,9 +28,9 @@ skinparam package {
 legend top right
     |= Control Documental (ISO 9001:2015) |
     | **Código:** DT-ERD-LOG-001 |
-    | **Versión:** 1.4-Draft |
+    | **Versión:** 1.5-Draft |
     | **Fecha:** 2026-05-22 |
-    | **Estado:** En Revisión (Segmento D - Sincronizado) |
+    | **Estado:** Aprobado (Segmento E - Sincronizado) |
     | **Autor:** Juan David |
 endlegend
 
@@ -319,6 +319,72 @@ package "Convergencia Gemelo Digital (VIS)" as vis_module {
     }
 }
 
+package "Seguridad y Gobernanza (ADM)" as adm_module {
+    entity "users" as users {
+        * id : UUID <<PK>>
+        --
+        * username : VARCHAR(80) <<unique>>
+        * email : VARCHAR(150) <<unique>>
+        * status : VARCHAR(20)
+        * password_hash : VARCHAR(255)
+        * failed_login_attempts : INT
+        lockout_until : TIMESTAMP
+    }
+
+    entity "roles" as roles {
+        * id : UUID <<PK>>
+        --
+        * role_name : VARCHAR(80) <<unique>>
+        description : VARCHAR(255)
+        * is_system_role : BOOLEAN
+    }
+
+    entity "user_roles" as user_roles {
+        * user_id : UUID <<PK, FK>>
+        * role_id : UUID <<PK, FK>>
+        --
+    }
+
+    entity "role_permissions" as role_permissions {
+        * id : UUID <<PK>>
+        --
+        * role_id : UUID <<FK>>
+        * module : VARCHAR(80)
+        * action : VARCHAR(80)
+    }
+
+    entity "auth_tokens" as auth_tokens {
+        * id : UUID <<PK>>
+        --
+        * user_id : UUID <<FK>>
+        * token_hash : VARCHAR(255) <<unique>>
+        * expires_at : TIMESTAMP
+        * is_used : BOOLEAN
+    }
+
+    entity "work_order_assignments" as work_order_assignments {
+        * id : UUID <<PK>>
+        --
+        * work_order_id : UUID <<FK>>
+        * user_id : UUID <<FK>>
+        * role_in_work : VARCHAR(50)
+        * assigned_at : TIMESTAMP
+    }
+
+    entity "audit_logs" as audit_logs {
+        * id : UUID <<PK>>
+        --
+        user_id : UUID <<FK>>
+        * entity_type : VARCHAR(80)
+        * entity_identifier : VARCHAR(80)
+        * action_type : VARCHAR(20)
+        * timestamp : TIMESTAMP
+        previous_state : JSON
+        new_state : JSON
+        * integrity_hash : VARCHAR(255)
+    }
+}
+
 ' Relaciones Segmento B
 equipment_units ||--o{ work_requests : "genera"
 equipment_units ||--o{ maintenance_plans : "posee"
@@ -359,5 +425,14 @@ work_orders ||--o{ visual_layers : "visualizada en (ON DELETE CASCADE)"
 
 work_orders ||--|{ work_order_isolations : "requiere (ON DELETE CASCADE)"
 isolation_points ||--|{ work_order_isolations : "bloqueado por"
+
+' Relaciones Segmento E
+users ||--|{ user_roles : "asociado a (ON DELETE CASCADE)"
+roles ||--|{ user_roles : "concedido a (ON DELETE CASCADE)"
+roles ||--o{ role_permissions : "contiene (ON DELETE CASCADE)"
+users ||--o{ auth_tokens : "autenticado con (ON DELETE CASCADE)"
+users ||--o{ work_order_assignments : "se le asigna (ON DELETE CASCADE)"
+work_orders ||--o{ work_order_assignments : "asigna personal (ON DELETE CASCADE)"
+users ||--o{ audit_logs : "genera (ON DELETE SET NULL)"
 
 @enduml
