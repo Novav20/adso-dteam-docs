@@ -3,7 +3,7 @@ code: DT-DM-DOC-001
 version: 1.6-MVP
 date: 2026-05-22
 status: Draft
-author: Juan David
+author: Juan David Julio Serrano
 standard: 
   - ISO 9001:2015 
   - ISO 14224:2016
@@ -278,26 +278,34 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 |---|---|---|
 | `HOT_WORK` | Trabajo con fuentes de ignición o llama abierta (requiere extintor). | Seguridad Industrial (OSHA) |
 | `COLD_WORK` | Trabajo estándar sin peligro de chispa (mecánico, limpieza). | Seguridad Industrial (OSHA) |
-| `CONFINED_SPACE` | Entrada a tanques, ductos o áreas con ventilación limitada. | Espacio Confinado (Riesgo Alto) |
+| `CONFINED_SPACE` | Entrada a tanques, ductos o áreas con ventilación limitada. | Espacio Confinado (Alto Riesgo) |
 | `ELECTRICAL` | Intervención en líneas de alta o media tensión (requiere LOTO). | Riesgo Eléctrico |
+| `WORK_AT_HEIGHT` | Trabajo a más de 1.5m de altura con riesgo de caída. | Alturas (OSHA / Res. 4272) |
+| `EXCAVATION` | Excavaciones, zanjas o movimientos de tierra profundos. | Excavación (OSHA) |
+| `CHEMICAL` | Manejo o exposición a químicos peligrosos o gases nocivos. | Riesgo Químico |
 
 ### 4.23 `WorkPermit.status`
 
 | Valor | Significado | Norma / Concepto |
 |---|---|---|
-| `PENDING` | Permiso solicitado por el supervisor, en evaluación de seguridad. | Ciclo de Autorización |
-| `APPROVED` | Permiso autorizado y vigente para la fecha programada. | Permiso Activo |
-| `EXPIRED` | Vencido (se superó la ventana horaria permitida para la labor). | Control de Riesgos |
-| `REVOKED` | Cancelado por condiciones inseguras detectadas en campo. | Intervención de Emergencia |
+| `DRAFT` | Permiso preparado por el ejecutor pero aún no radicado. | Ciclo de Autorización |
+| `PENDING` | Radicado y en proceso de evaluación y firma por el supervisor. | Ciclo de Autorización |
+| `APPROVED` | Autorizado formalmente (habilita la orden de trabajo). | Permiso Activo / FSM Trigger |
+| `EXPIRED` | Vencido automáticamente (se superó la ventana horaria de vigencia). | Control de Riesgos |
+| `REVOKED` | Cancelado inmediatamente por condiciones inseguras en campo. | Intervención de Emergencia |
+| `CLOSED` | Finalizado formalmente tras concluir la intervención y retirar LOTO. | Cierre de Operación |
 
 ### 4.24 `IsolationPoint.isolationType`
 
 | Valor | Significado | Norma / Concepto |
 |---|---|---|
-| `ELECTRICAL` | Apertura de disyuntores, breakers o desconexión de cables. | LOTO Eléctrico |
-| `MECHANICAL` | Cierre de válvulas, instalación de bridas ciegas o bloqueos físicos. | LOTO Mecánico |
-| `PNEUMATIC` | Purga y bloqueo de líneas de aire comprimido. | LOTO Neumático |
-| `HYDRAULIC` | Bloqueo de líneas de fluido a presión. | LOTO Hidráulico |
+| `ELECTRICAL` | Apertura de disyuntores, breakers o desconexión física. | LOTO Eléctrico (OSHA) |
+| `MECHANICAL` | Bloqueos mecánicos, pasadores o trabas físicas. | LOTO Mecánico |
+| `PNEUMATIC` | Purga y bloqueo de líneas de aire o gases comprimidos. | LOTO Neumático |
+| `HYDRAULIC` | Cierre de válvulas de fluido y purga de acumuladores. | LOTO Hidráulico |
+| `CHEMICAL` | Cierre de doble válvula y purga (Double Block and Bleed). | LOTO Químico / Proceso |
+| `THERMAL` | Aislamiento térmico de superficies calientes o criogénicas. | LOTO Térmico |
+| `GRAVITATIONAL` | Bloques físicos para prevenir caída de masas suspendidas. | LOTO de Gravedad |
 
 ### 4.25 `User.status`
 
