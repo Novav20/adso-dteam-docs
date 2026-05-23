@@ -126,42 +126,34 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `OPERATING_HOURS` | El plan es impulsado por las horas de funcionamiento acumuladas. |
 | `CYCLES` | El plan es impulsado por ciclos o arranques. |
 
-### 4.6 `WorkPermit.permitType`
+### 4.6 `TelemetrySignal.signalType`
 
-| Valor | Significado |
-|---|---|
-| `HOT_WORK` | Trabajo que involucra llama, chispas, soldadura o corte. |
-| `CONFINED_SPACE` | Trabajo dentro de un área confinada o de acceso restringido. |
-| `ELECTRICAL_WORK` | Trabajo en o cerca de sistemas eléctricos energizados. |
-| `WORK_AT_HEIGHT` | Trabajo en altura con riesgo de caída. |
-| `EXCAVATION` | Trabajo que expone riesgos del subsuelo o trincheras. |
-| `CHEMICAL` | Trabajo que involucra químicos peligrosos o riesgo de exposición. |
-| `THERMAL` | Trabajo que involucra riesgos de alta temperatura. |
-| `OTHER` | Tipo de permiso específico del sitio no cubierto por la lista estándar. |
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `TEMPERATURE` | Medición térmica. | Sensor de Temperatura |
+| `PRESSURE` | Medición de presión de fluidos/gases. | Sensor de Presión |
+| `VIBRATION` | Medición de oscilaciones mecánicas. | Análisis de Vibraciones |
+| `FLOW_RATE` | Medición de caudal o flujo. | Caudalímetro |
+| `VOLTAGE` | Medición de tensión eléctrica. | Sensor de Tensión |
+| `RPM` | Medición de velocidad angular. | Tacómetro |
 
-### 4.7 `WorkPermit.status`
+### 4.7 `VisualLayer.status`
 
-| Valor | Significado |
-|---|---|
-| `DRAFT` | Permiso preparado pero aún no emitido. |
-| `ISSUED` | Permiso aprobado y liberado. |
-| `ACTIVE` | El permiso está actualmente en vigor. |
-| `SUSPENDED` | El permiso está pausado temporalmente. |
-| `CLOSED` | El permiso ha sido cerrado formalmente. |
-| `EXPIRED` | La ventana de validez del permiso ha expirado. |
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `VISIBLE` | Capa visualizada activamente en el visor 3D. | Estado Renderizado |
+| `HIDDEN` | Capa oculta temporalmente. | Estado Renderizado |
+| `GHOSTED` | Capa visible con transparencia para revelar interiores. | Estado Renderizado |
 
-### 4.8 `IsolationPoint.isolationType`
+### 4.8 `RolePermission.module`
 
-| Valor | Significado |
-|---|---|
-| `ELECTRICAL` | Aislamiento de energía eléctrica. |
-| `MECHANICAL` | Aislamiento de energía mecánica. |
-| `HYDRAULIC` | Aislamiento de energía hidráulica. |
-| `PNEUMATIC` | Aislamiento de energía neumática. |
-| `THERMAL` | Aislamiento de energía térmica. |
-| `CHEMICAL` | Aislamiento químico. |
-| `GRAVITATIONAL` | Riesgo de gravedad / energía potencial almacenada. |
-| `OTHER` | Tipo de aislamiento específico del sitio no cubierto por la lista estándar. |
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `ASSETS` | Gestión de taxonomía, equipos y planes. | Dominio de Activos |
+| `MAINTENANCE` | Gestión de solicitudes, backlog e historial. | Dominio de Mantenimiento |
+| `INVENTORY` | Gestión de repuestos, almacenes y movimientos. | Dominio de Inventario |
+| `SAFETY` | Gestión de telemetría, permisos LOTO y aislamientos. | Dominio de Seguridad |
+| `SYSTEM` | Gobernanza, usuarios, roles y logs de auditoría. | Dominio IAM |
 
 ### 4.9 `SparePart.stockPolicy`
 
@@ -467,9 +459,9 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `VisualLayer` | `layerType` | `VARCHAR(80)` | NOT NULL |  | Tipo de representación visual. |
 | `VisualLayer` | `opacityLevel` | `DECIMAL(5,2)` | NOT NULL | CHECK (0..1) | Control de renderizado. |
 | `VisualLayer` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado de la capa visual. |
-| `SpatialMetadata` | `position` | `VARCHAR(120)` | NOT NULL |  | Coordenada espacial o descriptor. |
-| `SpatialMetadata` | `rotation` | `VARCHAR(120)` | NULL |  | Descriptor de orientación. |
-| `SpatialMetadata` | `scale` | `VARCHAR(120)` | NULL |  | Descriptor de escala. |
+| `SpatialMetadata` | `position` | `JSON` | NOT NULL |  | Coordenada espacial vectorial (ej. x,y,z). |
+| `SpatialMetadata` | `rotation` | `JSON` | NULL |  | Descriptor de orientación (ej. cuaternión). |
+| `SpatialMetadata` | `scale` | `JSON` | NULL |  | Descriptor de escala. |
 
 ### 5.5 Gobernanza y Seguridad
 
