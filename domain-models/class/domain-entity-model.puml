@@ -32,9 +32,9 @@ skinparam package {
 legend top right
     |= Control Documental (ISO 9001:2015) |
     | **Código:** DT-DM-UML-001 |
-    | **Versión:** 1.2-MVP |
-    | **Fecha:** 2026-05-19 |
-    | **Estado:** En Auditoría |
+    | **Versión:** 1.7 |
+    | **Fecha:** 2026-05-24 |
+    | **Estado:** Auditoría Normativa Completada |
     | **Autor:** Juan David |
 endlegend
 
@@ -72,9 +72,13 @@ package "Taxonomía de Activos (ISO 14224)" {
             - installationDate: Date
             - operationStartDate: Date
             - operatingHours: long
+            - surveillanceHours: long
             - operationalStatus: String
             - lifecycleStatus: String
             - maintenanceStatus: String
+            - healthStatus: String
+            - disposalDate: Date
+            - disposalReason: String
             + activate()
             + decommission()
         }
@@ -196,6 +200,7 @@ package "Control de Recursos (INV)" {
         - reservedQuantity: Decimal
         - maxCapacity: Decimal
         - unitCost: Decimal
+        - isRebuildable: Boolean
         - status: String
         + classifyMaterial()
     }
@@ -292,6 +297,8 @@ package "Seguridad y Gobernanza (ADM)" {
         - passwordHash: String
         - failedLoginAttempts: int
         - lockoutUntil: DateTime
+        - mfaEnabled: Boolean
+        - totpSecret: String
         + assignRole()
     }
 
@@ -311,6 +318,8 @@ package "Seguridad y Gobernanza (ADM)" {
         - tokenHash: String
         - expiresAt: DateTime
         - isUsed: Boolean
+        - ipAddress: String
+        - userAgent: String
     }
 
     class WorkOrderAssignment <<Entity>> {

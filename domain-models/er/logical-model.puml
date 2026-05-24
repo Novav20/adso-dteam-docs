@@ -28,9 +28,9 @@ skinparam package {
 legend top right
     |= Control Documental (ISO 9001:2015) |
     | **Código:** DT-ERD-LOG-001 |
-    | **Versión:** 1.6-MVP |
-    | **Fecha:** 2026-05-23 |
-    | **Estado:** Aprobado (Preparado para NotebookLM) |
+    | **Versión:** 1.7 |
+    | **Fecha:** 2026-05-24 |
+    | **Estado:** Auditoría Normativa Completada |
     | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -69,9 +69,13 @@ package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
         installation_date : DATE
         operation_start_date : DATE
         * operating_hours : BIGINT
+        * surveillance_hours : BIGINT
+        disposal_date : DATE
+        disposal_reason : VARCHAR(255)
         * operational_status : VARCHAR(20)
         * lifecycle_status : VARCHAR(20)
         * maintenance_status : VARCHAR(30)
+        health_status : VARCHAR(30)
         functional_location_id : UUID <<FK, unique>>
         * equipment_class_id : UUID <<FK>>
     }
@@ -91,7 +95,7 @@ package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
         * component_name : VARCHAR(120)
         * subunit_type : VARCHAR(80)
         spare_part_type : VARCHAR(80)
-        design_attributes : VARCHAR(255)
+        design_attributes : JSONB
         * status : VARCHAR(30)
     }
 }
@@ -215,6 +219,7 @@ package "Control de Recursos (INV)" as inv_module {
         * reorder_point : DECIMAL(12,4)
         * unit_of_measure : VARCHAR(20)
         * stock_policy : VARCHAR(20)
+        * is_rebuildable : BOOLEAN
         * quantity_on_hand : DECIMAL(12,4)
         * reserved_quantity : DECIMAL(12,4)
         * max_capacity : DECIMAL(12,4)
@@ -329,6 +334,8 @@ package "Seguridad y Gobernanza (ADM)" as adm_module {
         * password_hash : VARCHAR(255)
         * failed_login_attempts : INT
         lockout_until : TIMESTAMP
+        * mfa_enabled : BOOLEAN
+        totp_secret : VARCHAR(255)
     }
 
     entity "roles" as roles {
@@ -360,6 +367,8 @@ package "Seguridad y Gobernanza (ADM)" as adm_module {
         * token_hash : VARCHAR(255) <<unique>>
         * expires_at : TIMESTAMP
         * is_used : BOOLEAN
+        ip_address : VARCHAR(45)
+        user_agent : VARCHAR(255)
     }
 
     entity "work_order_assignments" as work_order_assignments {

@@ -1,13 +1,15 @@
 ---
 code: DT-DM-DOC-001
-version: 1.6-MVP
-date: 2026-05-22
-status: Draft
+version: 1.7
+date: 2026-05-24
+status: Auditoría Normativa Completada
 author: Juan David Julio Serrano
 standard: 
   - ISO 9001:2015 
   - ISO 14224:2016
   - ISO 55000-Series
+  - ISO 13374-Series
+  - ISO 27001:2022
 ---
 
 # Modelo de Entidades del Dominio
@@ -22,11 +24,12 @@ El documento se enfoca intencionalmente en las reglas de negocio y la trazabilid
 
 ### 2.1 División del Estado en `EquipmentUnit`
 
-El campo `status` se descompone en tres dimensiones separadas:
+El campo `status` se descompone en cuatro dimensiones independientes y especializadas:
 
 - `operationalStatus`: captura la condición operativa real del activo, como el estado de actividad (uptime), inactividad (downtime) o espera (standby), en línea con la lógica de confiabilidad y estado operativo de la ISO 14224.
-- `lifecycleStatus`: captura la fase contable y de negocio del activo, como almacenamiento, instalación, puesta en marcha (commissioning) o desmantelamiento (decommissioning), lo cual está más alineado con la gobernanza del ciclo de vida en la gestión de activos.
+- `lifecycleStatus`: captura la fase contable y de negocio del activo, como almacenamiento, instalación, puesta en marcha (commissioning) o desmantelamiento (decommissioning), lo cual está más alineado con la gobernanza del ciclo de vida en la gestión de activos (ISO 55000).
 - `maintenanceStatus`: captura el contexto actual de mantenimiento, como si el activo está operativo, bajo mantenimiento o bajo prueba.
+- `healthStatus`: captura la salud física y mecánica consolidada (Undetermined, Good, Fair, Serious, Critical, etc.) basada en telemetría de monitoreo de condición (ISO 13374).
 
 Esta división reduce el acoplamiento, evita sobrecargar la lógica de negocio y previene almacenar significados no relacionados en un solo campo. También facilita la validación transaccional porque cada dimensión puede restringirse de forma independiente.
 
@@ -331,6 +334,18 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `UPDATE` | Modificación de campos existentes (rastrea estado previo). | Auditoría ISO 9001 |
 | `DELETE` | Eliminación lógica o física de una entidad crítica. | Auditoría ISO 9001 |
 
+### 4.28 `EquipmentUnit.healthStatus`
+
+| Valor | Significado | Norma / Concepto |
+|---|---|---|
+| `UNDETERMINED` | Estado de salud desconocido. | ISO 13374-4 Health Assessment |
+| `GOOD` | Todos los indicadores dentro de límites normales. | ISO 13374-4 Health Assessment |
+| `FAIR` | Algunas anomalías leves detectadas, sin riesgo inmediato. | ISO 13374-4 Health Assessment |
+| `SERIOUS_BUT_STABLE` | Anomalías serias pero sin empeoramiento progresivo. | ISO 13374-4 Health Assessment |
+| `SERIOUS` | Anomalías serias en deterioro. | ISO 13374-4 Health Assessment |
+| `CRITICAL_BUT_STABLE` | Condición crítica que no empeora a corto plazo. | ISO 13374-4 Health Assessment |
+| `CRITICAL` | Falla inminente, intervención inmediata requerida. | ISO 13374-4 Health Assessment |
+
 ## 5. Tabla de Trazabilidad de Columnas Físicas
 
 **Nota:** Las llaves foráneas (Foreign Keys) derivadas de las asociaciones se omiten en la lista de campos a continuación para mayor legibilidad, pero deben agregarse en el ERD físico. El siguiente mapeo se centra en los campos lógicos que ya están presentes en el modelo de PlantUML.
@@ -359,15 +374,19 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `EquipmentUnit` | `installationDate` | `DATE` | NULL |  | La instalación puede estar pendiente. |
 | `EquipmentUnit` | `operationStartDate` | `DATE` | NULL |  | El inicio operativo puede estar pendiente. |
 | `EquipmentUnit` | `operatingHours` | `BIGINT` | NOT NULL | DEFAULT 0 | Seguimiento de confiabilidad y uso. |
+| `EquipmentUnit` | `surveillanceHours` | `BIGINT` | NOT NULL | DEFAULT 0 | Tiempo de vigilancia/standby para cálculo preciso de fallas (ISO 14224). |
+| `EquipmentUnit` | `disposalDate` | `DATE` | NULL |  | Registro de fin de vida para trazabilidad de pasivos (ISO 55000). |
+| `EquipmentUnit` | `disposalReason` | `VARCHAR(255)` | NULL |  | Razón del retiro o desmantelamiento del activo. |
 | `EquipmentUnit` | `operationalStatus` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario de estado operativo controlado. |
 | `EquipmentUnit` | `lifecycleStatus` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario de ciclo de vida controlado. |
 | `EquipmentUnit` | `maintenanceStatus` | `VARCHAR(30)` | NOT NULL | CHECK o lookup | Vocabulario de estado de mantenimiento controlado. |
+| `EquipmentUnit` | `healthStatus` | `VARCHAR(30)` | NULL | CHECK o lookup | Vocabulario de estado de salud general (ISO 13374-4). |
 | `Subunit` | `subunitType` | `VARCHAR(80)` | NOT NULL |  | Taxonomía del subcomponente. |
 | `Subunit` | `name` | `VARCHAR(120)` | NOT NULL |  | Etiqueta del subcomponente. |
 | `MaintainableItem` | `componentName` | `VARCHAR(120)` | NOT NULL |  | Identidad del ítem mantenible. |
 | `MaintainableItem` | `subunitType` | `VARCHAR(80)` | NOT NULL |  | Clasificación taxonómica. |
 | `MaintainableItem` | `sparePartType` | `VARCHAR(80)` | NULL |  | Correspondencia opcional de partes de repuesto. |
-| `MaintainableItem` | `designAttributes` | `VARCHAR(255)` | NULL |  | Propiedades estáticas de diseño. |
+| `MaintainableItem` | `designAttributes` | `JSONB` | NULL |  | Propiedades estáticas de diseño estructuradas (ISO 14224 Anexo A). |
 | `MaintainableItem` | `status` | `VARCHAR(30)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida del ítem. |
 
 ### 5.2 Mantenimiento y Gestión de Trabajo
@@ -423,6 +442,7 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `SparePart` | `reorderPoint` | `DECIMAL(12,4)` | NOT NULL |  | Umbral mínimo de activación de compra. |
 | `SparePart` | `unitOfMeasure` | `VARCHAR(20)` | NOT NULL |  | Unidad de medida estándar (UoM). |
 | `SparePart` | `stockPolicy` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Política de reabastecimiento (Min/Max, Reorder Point, JIT). |
+| `SparePart` | `isRebuildable` | `BOOLEAN` | NOT NULL | DEFAULT false | Indica si la parte se desecha o se envía a taller para reparación. |
 | `SparePart` | `quantityOnHand` | `DECIMAL(12,4)` | NOT NULL |  | Cantidad actualmente en inventario físico. |
 | `SparePart` | `reservedQuantity` | `DECIMAL(12,4)` | NOT NULL | DEFAULT 0 | Stock comprometido para órdenes planificadas. |
 | `SparePart` | `maxCapacity` | `DECIMAL(12,4)` | NULL |  | Límite físico del almacén para la parte. |
@@ -481,6 +501,8 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `User` | `passwordHash` | `VARCHAR(255)` | NOT NULL |  | Hash de la contraseña de acceso (PBKDF2/BCrypt). |
 | `User` | `failedLoginAttempts` | `INT` | NOT NULL | DEFAULT 0 | Contador de intentos fallidos de autenticación. |
 | `User` | `lockoutUntil` | `TIMESTAMP` | NULL |  | Fin del periodo de bloqueo temporal. |
+| `User` | `mfaEnabled` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Bandera que indica si la autenticación multifactor está activa. |
+| `User` | `totpSecret` | `VARCHAR(255)` | NULL |  | Secreto compartido para autenticación TOTP (Autenticador). |
 | `Role` | `roleName` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identificador del rol de usuario (ej. Planner, Technician). |
 | `Role` | `description` | `VARCHAR(255)` | NULL |  | Descripción del alcance del rol. |
 | `Role` | `isSystemRole` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Bandera para roles inmutables del sistema. |
@@ -489,6 +511,8 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `AuthToken` | `tokenHash` | `VARCHAR(255)` | NOT NULL | UNIQUE | Hash del token de autenticación API / sesión. |
 | `AuthToken` | `expiresAt` | `TIMESTAMP` | NOT NULL |  | Fecha y hora de expiración del token. |
 | `AuthToken` | `isUsed` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Indica si el token ya fue consumido (uso único). |
+| `AuthToken` | `ipAddress` | `VARCHAR(45)` | NULL |  | Dirección IP desde la que se emitió el token (IPv4/IPv6). |
+| `AuthToken` | `userAgent` | `VARCHAR(255)` | NULL |  | Identificador del cliente/navegador para fingerprinting. |
 | `WorkOrderAssignment` | `roleInWork` | `VARCHAR(50)` | NOT NULL |  | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR). |
 | `WorkOrderAssignment` | `assignedAt` | `TIMESTAMP` | NOT NULL |  | Registro temporal de la asignación. |
 | `AuditLog` | `entityType` | `VARCHAR(80)` | NOT NULL |  | Nombre de la tabla/entidad auditada. |
