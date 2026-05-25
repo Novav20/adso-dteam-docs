@@ -18,7 +18,7 @@ standard:
 
 Este documento es el complemento de negocio para el modelo de dominio de la solución del Gemelo Digital. Actúa como la Única Fuente de Verdad (SSoT) para el significado del dominio, los límites tácticos de DDD, los vocabularios de enumeradores (enums) y las reglas preliminares de persistencia antes de generar el ERD físico.
 
-El documento se enfoca intencionalmente en las reglas de negocio y la trazabilidad del almacenamiento en lugar de los detalles de implementación. El modelo UML define la estructura; este documento explica por qué existe cada elemento, cómo debe interpretarse y cómo debe restringirse en la capa de base de datos.
+El documento se enfoca en las reglas de negocio y la trazabilidad del almacenamiento en lugar de los detalles de implementación. El modelo UML define la estructura; este documento explica por qué existe cada elemento, cómo debe interpretarse y cómo debe restringirse en la capa de base de datos.
 
 ## 2. Decisiones Críticas de Síntesis
 

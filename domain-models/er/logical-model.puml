@@ -101,7 +101,7 @@ package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
 }
 
 ' Relaciones
-functional_locations ||--o{ functional_locations : "parent_id"
+functional_locations o|--o{ functional_locations : "parent_id"
 functional_locations ||--o| equipment_units : "instala"
 equipment_classes ||--o{ equipment_units : "categoriza"
 equipment_units ||--|{ subunits : "se compone de (ON DELETE CASCADE)"
