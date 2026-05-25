@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="Electron" modified="2026-05-24T00:00:00.000Z" agent="5.0" version="20.0.0" type="device">
+  <diagram id="diagram1" name="Conceptual Model">
+    <mxGraphModel dx="1000" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="taxonomy_module" value="Taxonomía de Activos (ISO 14224)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F8F9F9;strokeColor=#1B4F72;fontStyle=1;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="80" y="60" width="260" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="functional_locations" value="FunctionalLocation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="taxonomy_module">
+          <mxGeometry x="20" y="40" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="equipment_classes" value="EquipmentClass" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="taxonomy_module">
+          <mxGeometry x="20" y="140" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="equipment_units" value="EquipmentUnit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="taxonomy_module">
+          <mxGeometry x="20" y="240" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="subunits" value="Subunit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="taxonomy_module">
+          <mxGeometry x="20" y="340" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="maintainable_items" value="MaintainableItem" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="taxonomy_module">
+          <mxGeometry x="20" y="440" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="maintenance_module" value="Operaciones de Mantenimiento (MTTO)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F8F9F9;strokeColor=#1B4F72;fontStyle=1;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="380" y="60" width="260" height="640" as="geometry" />
+        </mxCell>
+        <mxCell id="work_requests" value="WorkRequest" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="maintenance_module">
+          <mxGeometry x="20" y="40" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="maintenance_plans" value="MaintenancePlan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="maintenance_module">
+          <mxGeometry x="20" y="140" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="work_orders" value="WorkOrder" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="maintenance_module">
+          <mxGeometry x="20" y="240" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="work_order_histories" value="WorkOrderHistory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="maintenance_module">
+          <mxGeometry x="20" y="340" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="failure_records" value="FailureRecord" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="maintenance_module">
+          <mxGeometry x="20" y="440" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="media_attachments" value="MediaAttachment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="maintenance_module">
+          <mxGeometry x="20" y="540" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory_module" value="Control de Recursos (INV)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F8F9F9;strokeColor=#1B4F72;fontStyle=1;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="680" y="60" width="260" height="440" as="geometry" />
+        </mxCell>
+        <mxCell id="spare_parts" value="SparePart" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="inventory_module">
+          <mxGeometry x="20" y="40" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory_transactions" value="InventoryTransaction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="inventory_module">
+          <mxGeometry x="20" y="140" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="warehouses" value="Warehouse" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="inventory_module">
+          <mxGeometry x="20" y="240" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="suppliers" value="Supplier" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="inventory_module">
+          <mxGeometry x="20" y="340" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="visual_module" value="Convergencia Gemelo Digital (VIS)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F8F9F9;strokeColor=#1B4F72;fontStyle=1;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="980" y="60" width="260" height="540" as="geometry" />
+        </mxCell>
+        <mxCell id="mesh_mappings" value="MeshMapping" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="visual_module">
+          <mxGeometry x="20" y="40" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="telemetry_signals" value="TelemetrySignal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="visual_module">
+          <mxGeometry x="20" y="140" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="work_permits" value="WorkPermit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="visual_module">
+          <mxGeometry x="20" y="240" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="isolation_points" value="IsolationPoint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="visual_module">
+          <mxGeometry x="20" y="340" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="visual_layers" value="VisualLayer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="visual_module">
+          <mxGeometry x="20" y="440" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="admin_module" value="Seguridad y Gobernanza (ADM)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F8F9F9;strokeColor=#1B4F72;fontStyle=1;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="60" width="260" height="640" as="geometry" />
+        </mxCell>
+        <mxCell id="users" value="User" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="admin_module">
+          <mxGeometry x="20" y="40" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="roles" value="Role" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="admin_module">
+          <mxGeometry x="20" y="140" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="permissions" value="Permission" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="admin_module">
+          <mxGeometry x="20" y="240" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="auth_tokens" value="AuthToken" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="admin_module">
+          <mxGeometry x="20" y="340" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="work_order_assignments" value="WorkOrderAssignment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="admin_module">
+          <mxGeometry x="20" y="440" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="audit_logs" value="AuditLog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2E86C1;fontStyle=1" vertex="1" parent="admin_module">
+          <mxGeometry x="20" y="540" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_0" value="1 contiene 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="functional_locations" target="functional_locations">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_1" value="1 aloja 0..1" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="functional_locations" target="equipment_units">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_2" value="1 clasifica 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="equipment_classes" target="equipment_units">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_3" value="1 se compone de 1..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="equipment_units" target="subunits">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_4" value="1 contiene 1..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="subunits" target="maintainable_items">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_5" value="1 genera 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="equipment_units" target="work_requests">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_6" value="1 tiene 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="equipment_units" target="maintenance_plans">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_7" value="1 recibe 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="equipment_units" target="work_orders">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_8" value="0..1 asociado a 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="maintainable_items" target="work_requests">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_9" value="0..1 asociado a 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="maintainable_items" target="maintenance_plans">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_10" value="0..1 se convierte en 0..1" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="work_requests" target="work_orders">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_11" value="1 programa 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="maintenance_plans" target="work_orders">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_12" value="1 registra 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="work_orders" target="work_order_histories">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_13" value="1 reporta 0..1" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="work_orders" target="failure_records">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_14" value="1 adjunta 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="work_orders" target="media_attachments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_15" value="1 define modos de 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="equipment_classes" target="failure_records">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_16" value="1 requiere 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="maintainable_items" target="spare_parts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_17" value="1 genera 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="spare_parts" target="inventory_transactions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_18" value="1 registra en 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="warehouses" target="inventory_transactions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_19" value="1 consume 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="work_orders" target="inventory_transactions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_20" value="1 provee 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="suppliers" target="spare_parts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_21" value="1 estandariza 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="equipment_classes" target="spare_parts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_22" value="1 vincula 0..1" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="equipment_units" target="mesh_mappings">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_23" value="1 transmite 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="equipment_units" target="telemetry_signals">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_24" value="1 requiere para 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="equipment_units" target="work_permits">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_25" value="1 exige 1..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="work_permits" target="isolation_points">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_26" value="1 proyecta en 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="work_orders" target="visual_layers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_27" value="1 tiene 1..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="users" target="roles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_28" value="1 concede 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="roles" target="permissions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_29" value="1 inicia 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="users" target="auth_tokens">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_30" value="1 ejecuta 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="users" target="work_order_assignments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_31" value="1 asigna a 0..*" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="work_orders" target="work_order_assignments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_32" value="0..* registra accion de 1" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="audit_logs" target="users">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
