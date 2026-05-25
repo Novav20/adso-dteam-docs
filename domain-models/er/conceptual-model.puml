@@ -34,228 +34,44 @@ legend top right
 endlegend
 
 package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
-    entity "FunctionalLocation" as functional_locations {
-        tag_number (Identifier)
-        name
-        description
-        criticality
-        geographic_location
-        hierarchy_level
-    }
-
-    entity "EquipmentClass" as equipment_classes {
-        class_name (Identifier)
-        description
-        manufacturer_standard
-    }
-
-    entity "EquipmentUnit" as equipment_units {
-        serial_number (Identifier)
-        manufacturer
-        model
-        purchase_date
-        acquisition_date
-        installation_date
-        operation_start_date
-        operating_hours
-        surveillance_hours
-        disposal_date
-        disposal_reason
-        operational_status
-        lifecycle_status
-        maintenance_status
-        health_status
-    }
-
-    entity "Subunit" as subunits {
-        subunit_type
-        name
-    }
-
-    entity "MaintainableItem" as maintainable_items {
-        component_name
-        spare_part_type
-        design_attributes
-        status
-    }
+    entity "FunctionalLocation" as functional_locations
+    entity "EquipmentClass" as equipment_classes
+    entity "EquipmentUnit" as equipment_units
+    entity "Subunit" as subunits
+    entity "MaintainableItem" as maintainable_items
 }
 
 package "Operaciones de Mantenimiento (MTTO)" as maintenance_module {
-    entity "WorkRequest" as work_requests {
-        description
-        priority
-        request_date
-        request_source
-        status
-        risk_factor
-        impact_factor
-        maintainability_factor
-        economy_factor
-    }
-
-    entity "MaintenancePlan" as maintenance_plans {
-        maintenance_method
-        frequency
-        frequency_type
-        next_work_order_date
-        status
-    }
-
-    entity "WorkOrder" as work_orders {
-        current_status
-        maintenance_method
-        creation_date
-        scheduled_date
-        actual_start
-        actual_finish
-        actual_labor_hours
-        criticality
-    }
-
-    entity "WorkOrderHistory" as work_order_histories {
-        old_status
-        new_status
-        timestamp
-        duration_seconds
-    }
-
-    entity "FailureRecord" as failure_records {
-        failure_mode
-        failure_mechanism
-        failure_cause
-        downtime
-        status
-    }
-
-    entity "MediaAttachment" as media_attachments {
-        file_url
-        file_type
-        uploaded_at
-    }
+    entity "WorkRequest" as work_requests
+    entity "MaintenancePlan" as maintenance_plans
+    entity "WorkOrder" as work_orders
+    entity "WorkOrderHistory" as work_order_histories
+    entity "FailureRecord" as failure_records
+    entity "MediaAttachment" as media_attachments
 }
 
 package "Control de Recursos (INV)" as inventory_module {
-    entity "SparePart" as spare_parts {
-        sku (Identifier)
-        description
-        manufacturer
-        commodity_code
-        reorder_point
-        unit_of_measure
-        stock_policy
-        quantity_on_hand
-        reserved_quantity
-        max_capacity
-        unit_cost
-        is_rebuildable
-        status
-    }
-
-    entity "InventoryTransaction" as inventory_transactions {
-        quantity
-        transaction_type
-        timestamp
-        reason
-        total_cost
-    }
-
-    entity "Warehouse" as warehouses {
-        name
-        location
-        capacity
-    }
-
-    entity "Supplier" as suppliers {
-        name
-        contact_info
-        warranty_terms
-    }
+    entity "SparePart" as spare_parts
+    entity "InventoryTransaction" as inventory_transactions
+    entity "Warehouse" as warehouses
+    entity "Supplier" as suppliers
 }
 
 package "Convergencia Gemelo Digital (VIS)" as visual_module {
-    entity "MeshMapping" as mesh_mappings {
-        mesh_uuid
-        mapping_status
-        last_sync_time
-        position
-        rotation
-        scale
-    }
-
-    entity "TelemetrySignal" as telemetry_signals {
-        signal_type
-        value
-        unit
-        threshold
-        timestamp
-        is_safety_critical
-    }
-
-    entity "WorkPermit" as work_permits {
-        permit_identifier
-        permit_type
-        contractor_name
-        status
-    }
-
-    entity "IsolationPoint" as isolation_points {
-        isolation_tag
-        isolation_type
-        is_verified
-    }
-
-    entity "VisualLayer" as visual_layers {
-        layer_type
-        opacity_level
-        status
-    }
+    entity "MeshMapping" as mesh_mappings
+    entity "TelemetrySignal" as telemetry_signals
+    entity "WorkPermit" as work_permits
+    entity "IsolationPoint" as isolation_points
+    entity "VisualLayer" as visual_layers
 }
 
 package "Seguridad y Gobernanza (ADM)" as admin_module {
-    entity "User" as users {
-        username (Identifier)
-        email
-        status
-        password_hash
-        failed_login_attempts
-        lockout_until
-        mfa_enabled
-        totp_secret
-    }
-
-    entity "Role" as roles {
-        role_name (Identifier)
-        description
-        is_system_role
-    }
-
-    entity "Permission" as permissions {
-        module
-        action
-    }
-
-    entity "AuthToken" as auth_tokens {
-        token_hash
-        expires_at
-        is_used
-        ip_address
-        user_agent
-    }
-
-    entity "WorkOrderAssignment" as work_order_assignments {
-        role_in_work
-        assigned_at
-    }
-
-    entity "AuditLog" as audit_logs {
-        entity_type
-        action_type
-        timestamp
-        entity_identifier
-        previous_state
-        new_state
-        integrity_hash
-    }
+    entity "User" as users
+    entity "Role" as roles
+    entity "Permission" as permissions
+    entity "AuthToken" as auth_tokens
+    entity "WorkOrderAssignment" as work_order_assignments
+    entity "AuditLog" as audit_logs
 }
 
 ' --- RELACIONES CONCEPTUALES ---
