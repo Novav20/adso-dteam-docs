@@ -1,0 +1,306 @@
+@startuml ConceptualModel
+' --- CONFIGURACIÓN VISUAL ---
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 80
+
+' Paleta de colores consistente con el modelo de dominio
+skinparam class {
+    BackgroundColor #EBF5FB
+    BorderColor #2E86C1
+    BorderThickness 1.5
+    ArrowColor #154360
+    AttributeIconSize 0
+}
+
+skinparam package {
+    BackgroundColor #F8F9F9
+    BorderColor #1B4F72
+    BorderThickness 1.5
+    FontStyle bold
+}
+
+' Leyenda e Información General (ISO 9001:2015)
+legend top right
+    |= Control Documental (ISO 9001:2015) |
+    | **Código:** DT-ERD-CON-001 |
+    | **Versión:** 1.7 |
+    | **Fecha:** 2026-05-24 |
+    | **Estado:** Auditoría Normativa Completada |
+    | **Autor:** Juan David Julio Serrano |
+endlegend
+
+package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
+    entity "Ubicación Funcional" as functional_locations {
+        tag_number (Identificador)
+        nombre
+        descripcion
+        criticalidad
+        ubicacion_geografica
+        nivel_jerarquia
+    }
+
+    entity "Clase de Equipo" as equipment_classes {
+        nombre_clase (Identificador)
+        descripcion
+        norma_fabricante
+    }
+
+    entity "Unidad de Equipo" as equipment_units {
+        numero_serie (Identificador)
+        fabricante
+        modelo
+        fecha_compra
+        fecha_adquisicion
+        fecha_instalacion
+        fecha_inicio_operacion
+        horas_operacion
+        horas_vigilancia
+        fecha_descarte
+        razon_descarte
+        estado_operativo
+        estado_ciclo_vida
+        estado_mantenimiento
+        estado_salud
+    }
+
+    entity "Subunidad" as subunits {
+        tipo_subunidad
+        nombre
+    }
+
+    entity "Elemento Mantenible" as maintainable_items {
+        nombre_componente
+        tipo_repuesto
+        atributos_diseno
+        estado
+    }
+}
+
+package "Operaciones de Mantenimiento (MTTO)" as maintenance_module {
+    entity "Solicitud de Trabajo" as work_requests {
+        descripcion
+        prioridad
+        fecha_solicitud
+        origen_solicitud
+        estado
+        factor_riesgo
+        factor_impacto
+        factor_mantenibilidad
+        factor_economia
+    }
+
+    entity "Plan de Mantenimiento" as maintenance_plans {
+        metodo_mantenimiento
+        frecuencia
+        tipo_frecuencia
+        proxima_orden_fecha
+        estado
+    }
+
+    entity "Orden de Trabajo" as work_orders {
+        estado_actual
+        metodo_mantenimiento
+        fecha_creacion
+        fecha_programada
+        fecha_inicio_real
+        fecha_fin_real
+        horas_hombre_reales
+        criticalidad
+    }
+
+    entity "Historial de Orden" as work_order_histories {
+        estado_anterior
+        estado_nuevo
+        marca_temporal
+        duracion_segundos
+    }
+
+    entity "Registro de Falla" as failure_records {
+        modo_falla
+        mecanismo_falla
+        causa_falla
+        tiempo_inactividad
+        estado
+    }
+
+    entity "Anexo de Media" as media_attachments {
+        url_archivo
+        tipo_archivo
+        fecha_subida
+    }
+}
+
+package "Control de Recursos (INV)" as inventory_module {
+    entity "Repuesto / Material" as spare_parts {
+        sku (Identificador)
+        descripcion
+        fabricante
+        codigo_comodidad
+        punto_reorden
+        unidad_medida
+        politica_stock
+        cantidad_disponible
+        cantidad_reservada
+        capacidad_maxima
+        costo_unitario
+        es_reconstruible
+        estado
+    }
+
+    entity "Transacción de Inventario" as inventory_transactions {
+        cantidad
+        tipo_transaccion
+        marca_temporal
+        motivo
+        costo_total
+    }
+
+    entity "Bodega" as warehouses {
+        nombre
+        ubicacion
+        capacidad
+    }
+
+    entity "Proveedor" as suppliers {
+        nombre
+        informacion_contacto
+        terminos_garantia
+    }
+}
+
+package "Convergencia Gemelo Digital (VIS)" as visual_module {
+    entity "Mapeo 3D" as mesh_mappings {
+        uuid_malla
+        estado_mapeo
+        ultima_sincronizacion
+        posicion
+        rotacion
+        escala
+    }
+
+    entity "Señal de Telemetría" as telemetry_signals {
+        tipo_senal
+        valor
+        unidad
+        umbral
+        marca_temporal
+        es_critico_seguridad
+    }
+
+    entity "Permiso de Trabajo" as work_permits {
+        identificador_permiso
+        tipo_permiso
+        nombre_contratista
+        estado
+    }
+
+    entity "Punto de Aislamiento (LOTO)" as isolation_points {
+        etiqueta_aislamiento
+        tipo_aislamiento
+        esta_verificado
+    }
+
+    entity "Capa Visual" as visual_layers {
+        tipo_capa
+        nivel_opacidad
+        estado
+    }
+}
+
+package "Seguridad y Gobernanza (ADM)" as admin_module {
+    entity "Usuario" as users {
+        nombre_usuario (Identificador)
+        email
+        estado
+        hash_contrasena
+        intentos_fallidos
+        bloqueado_hasta
+        mfa_activado
+        secreto_totp
+    }
+
+    entity "Rol" as roles {
+        nombre_rol (Identificador)
+        descripcion
+        es_rol_sistema
+    }
+
+    entity "Permiso" as permissions {
+        modulo
+        accion
+    }
+
+    entity "Token de Autenticación" as auth_tokens {
+        hash_token
+        fecha_expiracion
+        esta_usado
+        direccion_ip
+        agente_usuario
+    }
+
+    entity "Asignación de Orden" as work_order_assignments {
+        rol_en_trabajo
+        fecha_asignacion
+    }
+
+    entity "Log de Auditoría" as audit_logs {
+        tipo_entidad
+        tipo_accion
+        marca_temporal
+        identificador_entidad
+        estado_previo
+        estado_nuevo
+        hash_integridad
+    }
+}
+
+' --- RELACIONES CONCEPTUALES ---
+
+' Taxonomía
+functional_locations "1" -- "0..*" functional_locations : "contiene"
+functional_locations "1" -- "0..1" equipment_units : "aloja"
+equipment_classes "1" -- "0..*" equipment_units : "clasifica"
+equipment_units "1" -- "1..*" subunits : "se compone de"
+subunits "1" -- "1..*" maintainable_items : "contiene"
+
+' Mantenimiento
+equipment_units "1" -- "0..*" work_requests : "genera"
+equipment_units "1" -- "0..*" maintenance_plans : "tiene"
+equipment_units "1" -- "0..*" work_orders : "recibe"
+maintainable_items "0..1" -- "0..*" work_requests : "asociado a"
+maintainable_items "0..1" -- "0..*" maintenance_plans : "asociado a"
+work_requests "0..1" -- "0..1" work_orders : "se convierte en"
+maintenance_plans "1" -- "0..*" work_orders : "programa"
+work_orders "1" -- "0..*" work_order_histories : "registra"
+work_orders "1" -- "0..1" failure_records : "reporta"
+work_orders "1" -- "0..*" media_attachments : "adjunta"
+equipment_classes "1" -- "0..*" failure_records : "define modos de"
+
+' Inventario
+maintainable_items "1" -- "0..*" spare_parts : "requiere"
+spare_parts "1" -- "0..*" inventory_transactions : "genera"
+warehouses "1" -- "0..*" inventory_transactions : "registra en"
+work_orders "1" -- "0..*" inventory_transactions : "consume"
+suppliers "1" -- "0..*" spare_parts : "provee"
+equipment_classes "1" -- "0..*" spare_parts : "estandariza"
+
+' Gemelo Digital (VIS)
+equipment_units "1" -- "0..1" mesh_mappings : "vincula"
+equipment_units "1" -- "0..*" telemetry_signals : "transmite"
+equipment_units "1" -- "0..*" work_permits : "requiere para"
+work_permits "1" -- "1..*" isolation_points : "exige"
+work_orders "1" -- "0..*" visual_layers : "proyecta en"
+
+' Gobernanza / Seguridad (ADM)
+users "1" -- "1..*" roles : "tiene"
+roles "1" -- "0..*" permissions : "concede"
+users "1" -- "0..*" auth_tokens : "inicia"
+users "1" -- "0..*" work_order_assignments : "ejecuta"
+work_orders "1" -- "0..*" work_order_assignments : "asigna a"
+audit_logs "0..*" -- "1" users : "registra accion de"
+
+@enduml
