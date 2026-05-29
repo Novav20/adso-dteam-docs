@@ -1,0 +1,279 @@
+<mxfile host="65bd71144e">
+    <diagram id="n_No_S75mFsz3PqYF3U4" name="Page-1">
+        <mxGraphModel dx="1471" dy="447" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="24" value="Taxonomía de Activos (ISO 14224)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#F5F5F5;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+                    <mxGeometry x="-90" y="100" width="930" height="1270" as="geometry">
+                        <mxRectangle x="380" y="230" width="140" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="20" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;elbow=vertical;exitX=0.47;exitY=0;exitDx=0;exitDy=0;startArrow=diamondThin;startFill=1;endArrow=none;endFill=0;exitPerimeter=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" parent="24" source="18" target="18" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="260" y="139.95999999999998" as="sourcePoint"/>
+                        <mxPoint x="387.5" y="202.96" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="230" y="410"/>
+                            <mxPoint x="325" y="410"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="21" value="jerarquía" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="20" vertex="1" connectable="0">
+                    <mxGeometry x="0.2459" y="-1" relative="1" as="geometry">
+                        <mxPoint x="-21" y="-2" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="22" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="20" vertex="1" connectable="0">
+                    <mxGeometry x="0.8542" y="1" relative="1" as="geometry">
+                        <mxPoint x="-4" y="40" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="23" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="20" vertex="1" connectable="0">
+                    <mxGeometry x="-0.9276" y="1" relative="1" as="geometry">
+                        <mxPoint x="6" y="-3" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="47" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="20" vertex="1" connectable="0">
+                    <mxGeometry x="0.8904" relative="1" as="geometry">
+                        <mxPoint x="18" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="18" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;FunctionalLocation&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ TagNumber: String&lt;br&gt;+ Name: String&lt;br&gt;+ ParentId: UUID&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Create(locationData: FunctionalLocationDTO): FunctionalLocation&lt;br&gt;+ ReorganizeTree(newParentId: UUID, validationOnly: Boolean): OperationResult&lt;br&gt;+ ValidateUniqueness(tagNumber: String): Boolean&lt;br&gt;+ GetDescendants(maxDepth: Integer): List&lt;FunctionalLocation&gt;&lt;br&gt;+ ValidateHierarchyIntegrity(): ValidationResult&lt;br&gt;+ GetParent(): Optional&lt;FunctionalLocation&gt;&lt;br&gt;+ GetChildren(): List&lt;FunctionalLocation&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" parent="24" vertex="1">
+                    <mxGeometry x="70" y="460" width="340" height="250.04" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;EquipmentClass&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ ClassName: String&lt;br&gt;+ Description: String&lt;br&gt;+ ManufacturerStandard: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ DefineServiceBOM(bomComponents: List&lt;BOMItem&gt;): ServiceBillOfMaterials&lt;br&gt;+ ListValidFailureModes(equipmentSubclass: String): List&lt;FailureMode&gt;&lt;br&gt;+ GetFailureModeHierarchy(): FailureModeTaxonomy&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" parent="24" vertex="1">
+                    <mxGeometry x="520" y="90" width="360" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;EquipmentUnit&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ SerialNumber: String&lt;br&gt;+ Manufacturer: String&lt;br&gt;+ Model: String&lt;br&gt;+ PurchaseDate: Date&lt;br&gt;+ RejectionReason: String&lt;br&gt;+ BoundaryStart: String&lt;br&gt;+ BoundaryEnd: String&lt;br&gt;+ AcquisitionDate: Date&lt;br&gt;+ InstallationDate: Date&lt;br&gt;+ OperationStartDate: Date&lt;br&gt;+ OperatingHours: long&lt;br&gt;+ SurveillanceHours: long&lt;br&gt;+ OperationalStatus: String&lt;br&gt;+ LifecycleStatus: String&lt;br&gt;+ MaintenanceStatus: String&lt;br&gt;+ HealthStatus: String&lt;br&gt;+ DisposalDate: Date&lt;br&gt;+ DisposalReason: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Activate(): EquipmentUnitState&lt;br&gt;+ Decommission(disposalReason: String, disposalDate: Date): EquipmentUnitState&lt;br&gt;+ ValidateWarranty(interventionDate: Date): WarrantyValidationResult&lt;br&gt;+ Install(functionalLocationId: UUID, installationDate: Date): void&lt;br&gt;+ UpdateOperatingHours(additionalHours: long): void&lt;br&gt;+ RegisterSubunit(subunitData: SubunitDTO): Subunit&lt;br&gt;+ SyncWithDigitalTwin(meshMapping: MeshMapping): SyncResult&lt;br&gt;+ ValidateBoundaries(): ValidationResult&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" parent="24" vertex="1">
+                    <mxGeometry x="500" y="350.02" width="400" height="470" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;Subunit&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ SubunitType: String&lt;br&gt;+ Name: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ AddMaintainableItem(itemData: MaintainableItemDTO): MaintainableItem&lt;br&gt;+ Replace(newItem: MaintainableItem, replacementReason: String): void&lt;br&gt;+ GetMaintainableItems(): List&lt;MaintainableItem&gt;&lt;br&gt;+ GetTotalOperatingHours(): Long&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" parent="24" vertex="1">
+                    <mxGeometry x="520" y="920" width="360" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;MaintainableItem&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ ComponentName: String&lt;br&gt;+ SubunitType: String&lt;br&gt;+ SparePartType: String&lt;br&gt;+ DesignAttributes: String&lt;br&gt;+ Status: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Replace(replacementPartId: UUID, reason: String): ReplacementRecord&lt;br&gt;+ UpdateStatus(newStatus: MaintainableItemStatus): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" parent="24" vertex="1">
+                    <mxGeometry x="60" y="920" width="330" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="instala" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;elbow=vertical;startArrow=diamondThin;startFill=0;endArrow=none;endFill=0;" parent="24" source="18" target="25" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="28" connectable="0" vertex="1">
+                    <mxGeometry x="0.06" relative="1" as="geometry">
+                        <mxPoint x="-37" y="13" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="33" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="28" connectable="0" vertex="1">
+                    <mxGeometry x="0.94" y="1" relative="1" as="geometry">
+                        <mxPoint x="-7" y="14" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="29" value="categoriza" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;elbow=vertical;endArrow=none;endFill=0;" parent="24" source="19" target="25" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="29" connectable="0" vertex="1">
+                    <mxGeometry x="0.06" relative="1" as="geometry">
+                        <mxPoint y="-27" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="35" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="29" connectable="0" vertex="1">
+                    <mxGeometry x="0.94" y="1" relative="1" as="geometry">
+                        <mxPoint x="-1" y="-8" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="30" value="se compone de" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;elbow=vertical;startArrow=diamondThin;startFill=1;endArrow=none;endFill=0;" parent="24" source="25" target="26" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="30" connectable="0" vertex="1">
+                    <mxGeometry x="0.06" relative="1" as="geometry">
+                        <mxPoint x="15" y="-25" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="37" value="1..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="30" connectable="0" vertex="1">
+                    <mxGeometry x="0.94" y="1" relative="1" as="geometry">
+                        <mxPoint x="20" y="-10" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="31" value="contiene" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;elbow=vertical;startArrow=diamondThin;startFill=1;endArrow=none;endFill=0;" parent="24" source="26" target="27" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="31" connectable="0" vertex="1">
+                    <mxGeometry x="0.06" relative="1" as="geometry">
+                        <mxPoint x="44" y="-15" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="39" value="1..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="31" connectable="0" vertex="1">
+                    <mxGeometry x="0.94" y="1" relative="1" as="geometry">
+                        <mxPoint x="14" y="-16" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="100" value="Operaciones de Mantenimiento (MTTO)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#F5F5F5;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="100" width="1280" height="1270" as="geometry">
+                        <mxRectangle x="380" y="230" width="140" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="105" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;FailureRecord&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ FailureId: UUID&lt;br&gt;+ FailureMode: String&lt;br&gt;+ FailureMechanism: String&lt;br&gt;+ FailureCause: String&lt;br&gt;+ Downtime: double&lt;br&gt;+ Status: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ ClassifyFailure()&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;" parent="100" vertex="1">
+                    <mxGeometry x="60" y="545" width="400" height="215" as="geometry"/>
+                </mxCell>
+                <mxCell id="106" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;BacklogItem&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ PriorityScore: int&lt;br&gt;+ Status: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ CalculateRIME()&lt;br&gt;+ OrderBacklog()&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;" parent="100" vertex="1">
+                    <mxGeometry x="60" y="962.5" width="400" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="234" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=none;endFill=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" parent="100" source="102" target="103" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="235" value="dispara" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="234" connectable="0" vertex="1">
+                    <mxGeometry x="-0.0493" y="2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="237" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="234" connectable="0" vertex="1">
+                    <mxGeometry x="-0.942" y="-2" relative="1" as="geometry">
+                        <mxPoint x="2" y="-11" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="238" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="234" connectable="0" vertex="1">
+                    <mxGeometry x="0.9645" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="102" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;MaintenancePlan&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ MaintenanceMethod: String&lt;br&gt;+ Frequency: String&lt;br&gt;+ FrequencyType: Enum&lt;br&gt;+ NextWorkOrderDate: Date&lt;br&gt;+ Status: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ CalculateNextWorkOrder()&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;" parent="100" vertex="1">
+                    <mxGeometry x="60" y="82.5" width="400" height="195" as="geometry"/>
+                </mxCell>
+                <mxCell id="239" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;" parent="100" source="101" target="103" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="240" value="se convierte&lt;br&gt;en" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="239" connectable="0" vertex="1">
+                    <mxGeometry x="-0.1673" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="245" value="0..1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="239" connectable="0" vertex="1">
+                    <mxGeometry x="-0.8609" y="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="246" value="0..1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="239" connectable="0" vertex="1">
+                    <mxGeometry x="0.887" y="-2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="101" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;WorkRequest&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Description: String&lt;br&gt;+ Priority: String&lt;br&gt;+ RequestDate: DateTime&lt;br&gt;+ RequestSource: String&lt;br&gt;+ Status: String&lt;br&gt;+ RiskFactor: Enum&lt;br&gt;+ ImpactFactor: Enum&lt;br&gt;+ MaintainabilityFactor: Enum&lt;br&gt;+ EconomyFactor: Enum&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ PromoteToWorkOrder()&lt;br&gt;+ Reject()&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;" parent="100" vertex="1">
+                    <mxGeometry x="790" y="45" width="400" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="241" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;exitX=0.005;exitY=0.407;exitDx=0;exitDy=0;exitPerimeter=0;" parent="100" source="103" target="105" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="242" value="reporta" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="241" connectable="0" vertex="1">
+                    <mxGeometry x="0.3636" y="-2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="243" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="241" connectable="0" vertex="1">
+                    <mxGeometry x="-0.9078" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="244" value="0..1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="241" connectable="0" vertex="1">
+                    <mxGeometry x="0.8674" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="103" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;WorkOrder&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ CurrentStatus: String&lt;br&gt;+ MaintenanceMethod: String&lt;br&gt;+ CreationDate: DateTime&lt;br&gt;+ ScheduledDate: DateTime&lt;br&gt;+ ActualStart: DateTime&lt;br&gt;+ ActualFinish: DateTime&lt;br&gt;+ ActualLaborHours: Decimal&lt;br&gt;+ Criticality: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Schedule()&lt;br&gt;+ Close()&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;" parent="100" vertex="1">
+                    <mxGeometry x="835" y="545" width="310" height="265" as="geometry"/>
+                </mxCell>
+                <mxCell id="107" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Value Object&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;MediaAttachment&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ FileUrl: String&lt;br&gt;+ FileType: Enum&lt;br&gt;+ UploadedAt: DateTime&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;" parent="100" vertex="1">
+                    <mxGeometry x="840" y="962.5" width="300" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="226" value="contiene" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;startArrow=diamondThin;startFill=1;endArrow=none;endFill=0;" parent="100" source="103" target="107" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="227" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="226" connectable="0" vertex="1">
+                    <mxGeometry x="0.06" relative="1" as="geometry">
+                        <mxPoint x="20" y="-71" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="228" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="226" connectable="0" vertex="1">
+                    <mxGeometry x="0.94" y="1" relative="1" as="geometry">
+                        <mxPoint x="18" y="-10" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="104" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;WorkOrderHistory&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ OldStatus: String&lt;br&gt;+ NewStatus: String&lt;br&gt;+ Timestamp: DateTime&lt;br&gt;+ DurationSeconds: long&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ RecordTransition()&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;" parent="100" vertex="1">
+                    <mxGeometry x="600" y="962.5" width="180" height="175" as="geometry"/>
+                </mxCell>
+                <mxCell id="211" value="registra cambios en" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;startArrow=diamondThin;startFill=1;endArrow=none;endFill=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="100" source="103" target="104" edge="1">
+                    <mxGeometry x="0.6013" relative="1" as="geometry">
+                        <mxPoint x="660" y="930" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="212" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="211" connectable="0" vertex="1">
+                    <mxGeometry x="0.06" relative="1" as="geometry">
+                        <mxPoint x="130" y="-31" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="213" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="211" connectable="0" vertex="1">
+                    <mxGeometry x="0.94" y="1" relative="1" as="geometry">
+                        <mxPoint x="18" y="-10" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="269" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;" parent="1" source="25" target="106" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="270" value="está listado" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="269" vertex="1" connectable="0">
+                    <mxGeometry x="0.0514" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="271" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="269" vertex="1" connectable="0">
+                    <mxGeometry x="-0.9563" y="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="272" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="269" vertex="1" connectable="0">
+                    <mxGeometry x="0.9371" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="273" value="Control de Recursos (INV)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#F5F5F5;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+                    <mxGeometry x="-80" y="1420" width="920" height="610" as="geometry">
+                        <mxRectangle x="380" y="230" width="140" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="279" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/i&gt;&lt;b&gt;SparePart&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Sku: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Description: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Manufacturer: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- CommodityCode: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- ReorderPoint: int&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- UnitOfMeasure: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- StockPolicy: Enum&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- QuantityOnHand: Decimal&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- ReservedQuantity: Decimal&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- MaxCapacity: Decimal&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- UnitCost: Decimal&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- IsRebuildable: Boolean&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Status: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ ClassifyMaterial()&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" parent="273" vertex="1">
+                    <mxGeometry x="30" y="90" width="340" height="250.04" as="geometry"/>
+                </mxCell>
+                <mxCell id="280" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;InventoryTransaction&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Quantity: double&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- TransactionType: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Timestamp: DateTime&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Reason: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- TotalCost: Decimal&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ RecordIssue()&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ RecordReceipt()&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" parent="273" vertex="1">
+                    <mxGeometry x="520" y="90" width="360" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="296" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/i&gt;&lt;b&gt;Supplier&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Name: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- ContactInfo: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- WarrantyTerms: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;color: rgb(63, 63, 63);&quot;&gt;+ ManageWarranty()&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" parent="273" vertex="1">
+                    <mxGeometry x="30" y="420" width="340" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="297" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/i&gt;&lt;b&gt;Warehouse&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Name: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Location: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Capacity: double&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;color: rgb(63, 63, 63);&quot;&gt;+ ManageWarranty()&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" parent="273" vertex="1">
+                    <mxGeometry x="520" y="410" width="340" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="298" value="Convergencia Gemelo Digital (VIS)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#F5F5F5;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="1">
+                    <mxGeometry x="860" y="1420" width="1280" height="610" as="geometry">
+                        <mxRectangle x="380" y="230" width="140" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="300" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;VisualLayer&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- LayerType: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- OpacityLevel: double&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Status: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" vertex="1" parent="298">
+                    <mxGeometry x="900" y="70" width="360" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="305" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;IsolationPoint&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- IsolationTag: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- IsolationType: Enum&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- IsVerified: Boolean&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" vertex="1" parent="298">
+                    <mxGeometry x="900" y="410" width="360" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="306" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Aggregate Root&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;WorkPermit&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- PermitIdentifier: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- PermitType: Enum&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- ContractorName: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Status: Enum&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" vertex="1" parent="298">
+                    <mxGeometry x="460" y="400" width="360" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="307" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Value Object&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;SpatialMetadata&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Position: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Rotation: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Scale: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;color: rgb(63, 63, 63);&quot;&gt;+ UpdateMetadata()&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" vertex="1" parent="298">
+                    <mxGeometry x="460" y="70" width="360" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="308" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;MeshMapping&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- LayerType: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- OpacityLevel: double&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Status: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" vertex="1" parent="298">
+                    <mxGeometry x="30" y="70" width="360" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="309" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Entity&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;TelemetrySignal&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- SignalType: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Value: double&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Unit: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Threshold: double&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Timestamp: DateTime&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- IsSafetyCritical: Boolean&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#2E86C1;rounded=1;arcSize=6;strokeWidth=2;perimeterSpacing=0;" vertex="1" parent="298">
+                    <mxGeometry x="30" y="370" width="360" height="170" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
