@@ -26,12 +26,12 @@ skinparam package {
 
 ' Leyenda e Información General (ISO 9001:2015)
 legend top right
-    |= Control Documental (ISO 9001:2015) |
-    | **Código:** DT-ERD-LOG-001 |
-    | **Versión:** 1.7 |
-    | **Fecha:** 2026-05-24 |
-    | **Estado:** Auditoría Normativa Completada |
-    | **Autor:** Juan David Julio Serrano |
+|= Control Documental (ISO 9001:2015) |
+| **Código:** DT-ERD-LOG-001 |
+| **Versión:** 1.8 |
+| **Fecha:** 2026-05-29 |
+| **Estado:** Auditoría Normativa Completada |
+| **Autor:** Juan David Julio Serrano |
 endlegend
 
 package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
@@ -101,347 +101,383 @@ package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
 }
 
 ' Relaciones
-functional_locations ||--o{ functional_locations : "parent_id"
-functional_locations ||--o| equipment_units : "instala"
-equipment_classes ||--o{ equipment_units : "categoriza"
-equipment_units ||--|{ subunits : "se compone de (ON DELETE CASCADE)"
-subunits ||--|{ maintainable_items : "contiene (ON DELETE CASCADE)"
+functional_locations ||--o{
+    functional_locations : "parent_id"
+    functional_locations ||--o| equipment_units : "instala"
+    equipment_classes ||--o{
+        equipment_units : "categoriza"
+        equipment_units ||--|{
+            subunits : "se compone de (ON DELETE CASCADE)"
+            subunits ||--|{
+                maintainable_items : "contiene (ON DELETE CASCADE)"
 
-package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
-    entity "work_requests" as work_requests {
-        * id : UUID <<PK>>
-        --
-        * equipment_unit_id : UUID <<FK>>
-        * description : VARCHAR(255)
-        * priority : VARCHAR(20)
-        * request_date : TIMESTAMP
-        * request_source : VARCHAR(80)
-        * status : VARCHAR(20)
-        * risk_factor : VARCHAR(20)
-        * impact_factor : VARCHAR(20)
-        * maintainability_factor : VARCHAR(20)
-        * economy_factor : VARCHAR(20)
-    }
+                package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
+                    entity "work_requests" as work_requests {
+                        * id : UUID <<PK>>
+                        --
+                        * equipment_unit_id : UUID <<FK>>
+                        * description : VARCHAR(255)
+                        * priority : VARCHAR(20)
+                        * request_date : TIMESTAMP
+                        * request_source : VARCHAR(80)
+                        * status : VARCHAR(20)
+                        * risk_factor : VARCHAR(20)
+                        * impact_factor : VARCHAR(20)
+                        * maintainability_factor : VARCHAR(20)
+                        * economy_factor : VARCHAR(20)
+                    }
 
-    entity "maintenance_plans" as maintenance_plans {
-        * id : UUID <<PK>>
-        --
-        * equipment_unit_id : UUID <<FK>>
-        * maintenance_method : VARCHAR(80)
-        * frequency : VARCHAR(50)
-        * frequency_type : VARCHAR(20)
-        * next_work_order_date : DATE
-        * status : VARCHAR(20)
-    }
+                    entity "maintenance_plans" as maintenance_plans {
+                        * id : UUID <<PK>>
+                        --
+                        * equipment_unit_id : UUID <<FK>>
+                        * maintenance_method : VARCHAR(80)
+                        * frequency : VARCHAR(50)
+                        * frequency_type : VARCHAR(20)
+                        * next_work_order_date : DATE
+                        * status : VARCHAR(20)
+                    }
 
-    entity "work_orders" as work_orders {
-        * id : UUID <<PK>>
-        --
-        * equipment_unit_id : UUID <<FK>>
-        maintenance_plan_id : UUID <<FK>>
-        work_request_id : UUID <<FK, unique>>
-        work_permit_id : UUID <<FK>>
-        * current_status : VARCHAR(20)
-        * maintenance_method : VARCHAR(80)
-        * creation_date : TIMESTAMP
-        scheduled_date : TIMESTAMP
-        actual_start : TIMESTAMP
-        actual_finish : TIMESTAMP
-        actual_labor_hours : DECIMAL(10,2)
-        * criticality : VARCHAR(20)
-    }
+                    entity "work_orders" as work_orders {
+                        * id : UUID <<PK>>
+                        --
+                        * equipment_unit_id : UUID <<FK>>
+                        maintenance_plan_id : UUID <<FK>>
+                        work_request_id : UUID <<FK, unique>>
+                        work_permit_id : UUID <<FK>>
+                        * current_status : VARCHAR(20)
+                        * maintenance_method : VARCHAR(80)
+                        * creation_date : TIMESTAMP
+                        scheduled_date : TIMESTAMP
+                        actual_start : TIMESTAMP
+                        actual_finish : TIMESTAMP
+                        actual_labor_hours : DECIMAL(10,2)
+                        * criticality : VARCHAR(20)
+                    }
 
-    entity "work_order_histories" as work_order_histories {
-        * id : UUID <<PK>>
-        --
-        * work_order_id : UUID <<FK>>
-        old_status : VARCHAR(20)
-        * new_status : VARCHAR(20)
-        * timestamp : TIMESTAMP
-        duration_seconds : BIGINT
-    }
+                    entity "work_order_histories" as work_order_histories {
+                        * id : UUID <<PK>>
+                        --
+                        * work_order_id : UUID <<FK>>
+                        old_status : VARCHAR(20)
+                        * new_status : VARCHAR(20)
+                        * timestamp : TIMESTAMP
+                        duration_seconds : BIGINT
+                    }
 
-    entity "failure_records" as failure_records {
-        * id : UUID <<PK>>
-        --
-        * work_order_id : UUID <<FK, unique>>
-        maintainable_item_id : UUID <<FK>>
-        * failure_mode : VARCHAR(120)
-        * failure_mechanism : VARCHAR(120)
-        * failure_cause : VARCHAR(120)
-        * downtime : DECIMAL(10,2)
-        * status : VARCHAR(20)
-    }
+                    entity "failure_records" as failure_records {
+                        * id : UUID <<PK>>
+                        --
+                        * work_order_id : UUID <<FK, unique>>
+                        maintainable_item_id : UUID <<FK>>
+                        * failure_mode : VARCHAR(120)
+                        * failure_mechanism : VARCHAR(120)
+                        * failure_cause : VARCHAR(120)
+                        * downtime : DECIMAL(10,2)
+                        * status : VARCHAR(20)
+                    }
 
-    entity "backlog_items" as backlog_items {
-        * id : UUID <<PK>>
-        --
-        * equipment_unit_id : UUID <<FK>>
-        * work_request_id : UUID <<FK, unique>>
-        * priority_score : INT
-        * status : VARCHAR(20)
-    }
+                    entity "backlog_items" as backlog_items {
+                        * id : UUID <<PK>>
+                        --
+                        * equipment_unit_id : UUID <<FK>>
+                        * work_request_id : UUID <<FK, unique>>
+                        * priority_score : INT
+                        * status : VARCHAR(20)
+                    }
 
-    entity "media_attachments" as media_attachments {
-        * id : UUID <<PK>>
-        --
-        * work_order_id : UUID <<FK>>
-        * file_url : VARCHAR(255)
-        * file_type : VARCHAR(20)
-        * uploaded_at : TIMESTAMP
-    }
-}
+                    entity "media_attachments" as media_attachments {
+                        * id : UUID <<PK>>
+                        --
+                        * work_order_id : UUID <<FK>>
+                        * file_url : VARCHAR(255)
+                        * file_type : VARCHAR(20)
+                        * uploaded_at : TIMESTAMP
+                    }
+                }
 
-package "Control de Recursos (INV)" as inv_module {
-    entity "suppliers" as suppliers {
-        * id : UUID <<PK>>
-        --
-        * name : VARCHAR(120)
-        * contact_info : VARCHAR(255)
-        * warranty_terms : VARCHAR(255)
-    }
+                package "Control de Recursos (INV)" as inv_module {
+                    entity "suppliers" as suppliers {
+                        * id : UUID <<PK>>
+                        --
+                        * name : VARCHAR(120)
+                        * contact_info : VARCHAR(255)
+                        * warranty_terms : VARCHAR(255)
+                    }
 
-    entity "warehouses" as warehouses {
-        * id : UUID <<PK>>
-        --
-        * name : VARCHAR(80)
-        * location : VARCHAR(255)
-        * capacity : DECIMAL(12,4)
-    }
+                    entity "warehouses" as warehouses {
+                        * id : UUID <<PK>>
+                        --
+                        * name : VARCHAR(80)
+                        * location : VARCHAR(255)
+                        * capacity : DECIMAL(12,4)
+                    }
 
-    entity "spare_parts" as spare_parts {
-        * id : UUID <<PK>>
-        --
-        * sku : VARCHAR(80) <<unique>>
-        * description : VARCHAR(255)
-        * manufacturer : VARCHAR(120)
-        commodity_code : VARCHAR(80)
-        * reorder_point : DECIMAL(12,4)
-        * unit_of_measure : VARCHAR(20)
-        * stock_policy : VARCHAR(20)
-        * is_rebuildable : BOOLEAN
-        * quantity_on_hand : DECIMAL(12,4)
-        * reserved_quantity : DECIMAL(12,4)
-        * max_capacity : DECIMAL(12,4)
-        * unit_cost : DECIMAL(12,2)
-        * status : VARCHAR(20)
-        * supplier_id : UUID <<FK>>
-        equipment_class_id : UUID <<FK>>
-    }
+                    entity "spare_parts" as spare_parts {
+                        * id : UUID <<PK>>
+                        --
+                        * sku : VARCHAR(80) <<unique>>
+                        * description : VARCHAR(255)
+                        * manufacturer : VARCHAR(120)
+                        commodity_code : VARCHAR(80)
+                        * reorder_point : DECIMAL(12,4)
+                        * unit_of_measure : VARCHAR(20)
+                        * stock_policy : VARCHAR(20)
+                        * is_rebuildable : BOOLEAN
+                        * quantity_on_hand : DECIMAL(12,4)
+                        * reserved_quantity : DECIMAL(12,4)
+                        * max_capacity : DECIMAL(12,4)
+                        * unit_cost : DECIMAL(12,2)
+                        * status : VARCHAR(20)
+                        * supplier_id : UUID <<FK>>
+                        equipment_class_id : UUID <<FK>>
+                    }
 
-    entity "inventory_transactions" as inventory_transactions {
-        * id : UUID <<PK>>
-        --
-        * spare_part_id : UUID <<FK>>
-        * warehouse_id : UUID <<FK>>
-        work_order_id : UUID <<FK>>
-        * quantity : DECIMAL(12,4)
-        * transaction_type : VARCHAR(20)
-        * timestamp : TIMESTAMP
-        * reason : VARCHAR(255)
-        * total_cost : DECIMAL(12,2)
-    }
+                    entity "inventory_transactions" as inventory_transactions {
+                        * id : UUID <<PK>>
+                        --
+                        * spare_part_id : UUID <<FK>>
+                        * warehouse_id : UUID <<FK>>
+                        work_order_id : UUID <<FK>>
+                        * quantity : DECIMAL(12,4)
+                        * transaction_type : VARCHAR(20)
+                        * timestamp : TIMESTAMP
+                        * reason : VARCHAR(255)
+                        * total_cost : DECIMAL(12,2)
+                    }
 
-    entity "work_order_spare_parts" as work_order_spare_parts {
-        * work_order_id : UUID <<PK, FK>>
-        * spare_part_id : UUID <<PK, FK>>
-        --
-        * planned_quantity : DECIMAL(12,4)
-        actual_quantity : DECIMAL(12,4)
-    }
+                    entity "material_requirements" as material_requirements {
+                        * work_order_id : UUID <<PK, FK>>
+                        * spare_part_id : UUID <<PK, FK>>
+                        --
+                        * planned_quantity : DECIMAL(12,4)
+                        actual_quantity : DECIMAL(12,4)
+                        * is_reserved : BOOLEAN
+                    }
 
-    entity "maintainable_item_spare_parts" as maintainable_item_spare_parts {
-        * maintainable_item_id : UUID <<PK, FK>>
-        * spare_part_id : UUID <<PK, FK>>
-        --
-    }
-}
+                    entity "maintainable_item_spare_parts" as maintainable_item_spare_parts {
+                        * maintainable_item_id : UUID <<PK, FK>>
+                        * spare_part_id : UUID <<PK, FK>>
+                        --
+                    }
+                }
 
-package "Convergencia Gemelo Digital (VIS)" as vis_module {
-    entity "mesh_mappings" as mesh_mappings {
-        * id : UUID <<PK>>
-        --
-        * equipment_unit_id : UUID <<FK, unique>>
-        * mesh_uuid : VARCHAR(80) <<unique>>
-        * mapping_status : VARCHAR(20)
-        last_sync_time : TIMESTAMP
-    }
+                package "Convergencia Gemelo Digital (VIS)" as vis_module {
+                    entity "mesh_mappings" as mesh_mappings {
+                        * id : UUID <<PK>>
+                        --
+                        * equipment_unit_id : UUID <<FK, unique>>
+                        * mesh_uuid : VARCHAR(80) <<unique>>
+                        * mapping_status : VARCHAR(20)
+                        last_sync_time : TIMESTAMP
+                    }
 
-    entity "spatial_metadata" as spatial_metadata {
-        * mesh_mapping_id : UUID <<PK, FK>>
-        --
-        * position : JSONB
-        rotation : JSONB
-        scale : JSONB
-    }
+                    entity "spatial_metadata" as spatial_metadata {
+                        * mesh_mapping_id : UUID <<PK, FK>>
+                        --
+                        * position : JSONB
+                        rotation : JSONB
+                        scale : JSONB
+                    }
 
-    entity "telemetry_signals" as telemetry_signals {
-        * id : UUID <<PK>>
-        --
-        * equipment_unit_id : UUID <<FK>>
-        * signal_type : VARCHAR(80)
-        * value : DECIMAL(18,6)
-        * unit : VARCHAR(20)
-        threshold : DECIMAL(18,6)
-        * timestamp : TIMESTAMP
-        * is_safety_critical : BOOLEAN
-    }
+                    entity "telemetry_signals" as telemetry_signals {
+                        * id : UUID <<PK>>
+                        --
+                        * equipment_unit_id : UUID <<FK>>
+                        * signal_type : VARCHAR(80)
+                        * value : DECIMAL(18,6)
+                        * unit : VARCHAR(20)
+                        threshold : DECIMAL(18,6)
+                        * timestamp : TIMESTAMP
+                        * is_safety_critical : BOOLEAN
+                    }
 
-    entity "work_permits" as work_permits {
-        * id : UUID <<PK>>
-        --
-        * equipment_unit_id : UUID <<FK>>
-        * permit_identifier : VARCHAR(80) <<unique>>
-        * permit_type : VARCHAR(30)
-        * contractor_name : VARCHAR(150)
-        * status : VARCHAR(20)
-    }
+                    entity "work_permits" as work_permits {
+                        * id : UUID <<PK>>
+                        --
+                        * equipment_unit_id : UUID <<FK>>
+                        * permit_identifier : VARCHAR(80) <<unique>>
+                        * permit_type : VARCHAR(30)
+                        * contractor_name : VARCHAR(150)
+                        * status : VARCHAR(20)
+                    }
 
-    entity "isolation_points" as isolation_points {
-        * id : UUID <<PK>>
-        --
-        * equipment_unit_id : UUID <<FK>>
-        * isolation_tag : VARCHAR(80) <<unique>>
-        * isolation_type : VARCHAR(20)
-        * is_verified : BOOLEAN
-    }
+                    entity "isolation_points" as isolation_points {
+                        * id : UUID <<PK>>
+                        --
+                        * equipment_unit_id : UUID <<FK>>
+                        * isolation_tag : VARCHAR(80) <<unique>>
+                        * isolation_type : VARCHAR(20)
+                        * is_verified : BOOLEAN
+                    }
 
-    entity "work_order_isolations" as work_order_isolations {
-        * work_order_id : UUID <<PK, FK>>
-        * isolation_point_id : UUID <<PK, FK>>
-        --
-        * is_isolated : BOOLEAN
-        isolated_at : TIMESTAMP
-    }
+                    entity "work_order_isolations" as work_order_isolations {
+                        * work_order_id : UUID <<PK, FK>>
+                        * isolation_point_id : UUID <<PK, FK>>
+                        --
+                        * is_isolated : BOOLEAN
+                        isolated_at : TIMESTAMP
+                    }
 
-    entity "visual_layers" as visual_layers {
-        * id : UUID <<PK>>
-        --
-        * work_order_id : UUID <<FK>>
-        * layer_type : VARCHAR(80)
-        * opacity_level : DECIMAL(5,2)
-        * status : VARCHAR(20)
-    }
-}
+                    entity "visual_layers" as visual_layers {
+                        * id : UUID <<PK>>
+                        --
+                        * work_order_id : UUID <<FK>>
+                        * layer_type : VARCHAR(80)
+                        * opacity_level : DECIMAL(5,2)
+                        * status : VARCHAR(20)
+                    }
+                }
 
-package "Seguridad y Gobernanza (ADM)" as adm_module {
-    entity "users" as users {
-        * id : UUID <<PK>>
-        --
-        * username : VARCHAR(80) <<unique>>
-        * email : VARCHAR(150) <<unique>>
-        * status : VARCHAR(20)
-        * password_hash : VARCHAR(255)
-        * failed_login_attempts : INT
-        lockout_until : TIMESTAMP
-        * mfa_enabled : BOOLEAN
-        totp_secret : VARCHAR(255)
-    }
+                package "Seguridad y Gobernanza (ADM)" as adm_module {
+                    entity "users" as users {
+                        * id : UUID <<PK>>
+                        --
+                        * username : VARCHAR(80) <<unique>>
+                        * email : VARCHAR(150) <<unique>>
+                        * status : VARCHAR(20)
+                        * password_hash : VARCHAR(255)
+                        * failed_login_attempts : INT
+                        lockout_until : TIMESTAMP
+                        * mfa_enabled : BOOLEAN
+                        totp_secret : VARCHAR(255)
+                    }
 
-    entity "roles" as roles {
-        * id : UUID <<PK>>
-        --
-        * role_name : VARCHAR(80) <<unique>>
-        description : VARCHAR(255)
-        * is_system_role : BOOLEAN
-    }
+                    entity "roles" as roles {
+                        * id : UUID <<PK>>
+                        --
+                        * role_name : VARCHAR(80) <<unique>>
+                        description : VARCHAR(255)
+                        * is_system_role : BOOLEAN
+                    }
 
-    entity "user_roles" as user_roles {
-        * user_id : UUID <<PK, FK>>
-        * role_id : UUID <<PK, FK>>
-        --
-    }
+                    entity "user_roles" as user_roles {
+                        * user_id : UUID <<PK, FK>>
+                        * role_id : UUID <<PK, FK>>
+                        --
+                    }
 
-    entity "role_permissions" as role_permissions {
-        * id : UUID <<PK>>
-        --
-        * role_id : UUID <<FK>>
-        * module : VARCHAR(80)
-        * action : VARCHAR(80)
-    }
+                    entity "role_permissions" as role_permissions {
+                        * id : UUID <<PK>>
+                        --
+                        * role_id : UUID <<FK>>
+                        * module : VARCHAR(80)
+                        * action : VARCHAR(80)
+                    }
 
-    entity "auth_tokens" as auth_tokens {
-        * id : UUID <<PK>>
-        --
-        * user_id : UUID <<FK>>
-        * token_hash : VARCHAR(255) <<unique>>
-        * expires_at : TIMESTAMP
-        * is_used : BOOLEAN
-        ip_address : VARCHAR(45)
-        user_agent : VARCHAR(255)
-    }
+                    entity "auth_tokens" as auth_tokens {
+                        * id : UUID <<PK>>
+                        --
+                        * user_id : UUID <<FK>>
+                        * token_hash : VARCHAR(255) <<unique>>
+                        * expires_at : TIMESTAMP
+                        * is_used : BOOLEAN
+                        ip_address : VARCHAR(45)
+                        user_agent : VARCHAR(255)
+                    }
 
-    entity "work_order_assignments" as work_order_assignments {
-        * id : UUID <<PK>>
-        --
-        * work_order_id : UUID <<FK>>
-        * user_id : UUID <<FK>>
-        * role_in_work : VARCHAR(50)
-        * assigned_at : TIMESTAMP
-    }
+                    entity "work_order_assignments" as work_order_assignments {
+                        * id : UUID <<PK>>
+                        --
+                        * work_order_id : UUID <<FK>>
+                        * user_id : UUID <<FK>>
+                        * role_in_work : VARCHAR(50)
+                        * assigned_at : TIMESTAMP
+                    }
 
-    entity "audit_logs" as audit_logs {
-        * id : UUID <<PK>>
-        --
-        user_id : UUID <<FK>>
-        * entity_type : VARCHAR(80)
-        * entity_identifier : VARCHAR(80)
-        * action_type : VARCHAR(20)
-        * timestamp : TIMESTAMP
-        previous_state : JSON
-        new_state : JSON
-        * integrity_hash : VARCHAR(255)
-    }
-}
+                    entity "audit_logs" as audit_logs {
+                        * id : UUID <<PK>>
+                        --
+                        user_id : UUID <<FK>>
+                        * entity_type : VARCHAR(80)
+                        * entity_identifier : VARCHAR(80)
+                        * action_type : VARCHAR(20)
+                        * timestamp : TIMESTAMP
+                        previous_state : JSON
+                        new_state : JSON
+                        * integrity_hash : VARCHAR(255)
+                    }
+                }
 
-' Relaciones Segmento B
-equipment_units ||--o{ work_requests : "genera"
-equipment_units ||--o{ maintenance_plans : "posee"
-equipment_units ||--o{ work_orders : "mantenido por"
-equipment_units ||--o{ backlog_items : "está listado en"
+                ' Relaciones Segmento B
+                equipment_units ||--o{
+                    work_requests : "genera"
+                    equipment_units ||--o{
+                        maintenance_plans : "posee"
+                        equipment_units ||--o{
+                            work_orders : "mantenido por"
+                            equipment_units ||--o{
+                                backlog_items : "está listado en"
 
-work_requests |o--o| work_orders : "se convierte en"
-maintenance_plans ||--o{ work_orders : "dispara"
+                                work_requests |o--o| work_orders : "se convierte en"
+                                maintenance_plans ||--o{
+                                    work_orders : "dispara"
 
-work_orders ||--o{ work_order_histories : "registra cambios en (ON DELETE CASCADE)"
-work_orders ||--o| failure_records : "reporta"
-maintainable_items ||--o{ failure_records : "experimenta"
-work_orders ||--o{ media_attachments : "adjunta (ON DELETE CASCADE)"
-work_requests ||--o| backlog_items : "prioriza"
+                                    work_orders ||--o{
+                                        work_order_histories : "registra cambios en (ON DELETE CASCADE)"
+                                        work_orders ||--o| failure_records : "reporta"
+                                        maintainable_items ||--o{
+                                            failure_records : "experimenta"
+                                            work_orders ||--o{
+                                                media_attachments : "adjunta (ON DELETE CASCADE)"
+                                                work_requests ||--o| backlog_items : "prioriza"
 
-' Relaciones Segmento C
-suppliers ||--o{ spare_parts : "suministra"
-equipment_classes ||--o{ spare_parts : "estandariza"
-spare_parts ||--o{ inventory_transactions : "involucrado en"
-warehouses ||--o{ inventory_transactions : "almacena"
-work_orders ||--o{ inventory_transactions : "genera"
+                                                ' Relaciones Segmento C
+                                                suppliers ||--o{
+                                                    spare_parts : "suministra"
+                                                    equipment_classes ||--o{
+                                                        spare_parts : "estandariza"
+                                                        spare_parts ||--o{
+                                                            inventory_transactions : "involucrado en"
+                                                            warehouses ||--o{
+                                                                inventory_transactions : "almacena"
+                                                                work_orders ||--o{
+                                                                    inventory_transactions : "genera"
 
-work_orders ||--|{ work_order_spare_parts : "requiere (ON DELETE CASCADE)"
-spare_parts ||--|{ work_order_spare_parts : "es consumido en"
+                                                                    work_orders ||--|{
+                                                                        material_requirements : "planifica (ON DELETE CASCADE)"
+                                                                        spare_parts ||--|{
+                                                                            material_requirements : "es consumido en"
 
-maintainable_items ||--|{ maintainable_item_spare_parts : "requiere (ON DELETE CASCADE)"
-spare_parts ||--|{ maintainable_item_spare_parts : "es repuesto para"
+                                                                            maintainable_items ||--|{
+                                                                                maintainable_item_spare_parts : "requiere (ON DELETE CASCADE)"
+                                                                                spare_parts ||--|{
+                                                                                    maintainable_item_spare_parts : "es repuesto para"
 
-' Relaciones Segmento D
-equipment_units ||--o| mesh_mappings : "representado por"
-mesh_mappings ||--|| spatial_metadata : "ubicado en (ON DELETE CASCADE)"
-equipment_units ||--o{ telemetry_signals : "monitoreado por"
-equipment_units ||--o{ work_permits : "autoriza intervención en"
-equipment_units ||--o{ isolation_points : "contiene"
+                                                                                    ' Relaciones Segmento D
+                                                                                    equipment_units ||--o| mesh_mappings : "representado por"
+                                                                                    mesh_mappings ||--|| spatial_metadata : "ubicado en (ON DELETE CASCADE)"
+                                                                                    equipment_units ||--o{
+                                                                                        telemetry_signals : "monitoreado por"
+                                                                                        equipment_units ||--o{
+                                                                                            work_permits : "autoriza intervención en"
+                                                                                            equipment_units ||--o{
+                                                                                                isolation_points : "contiene"
 
-work_permits ||--o{ work_orders : "valida ejecución de"
-work_orders ||--o{ visual_layers : "visualizada en (ON DELETE CASCADE)"
+                                                                                                work_permits ||--o{
+                                                                                                    work_orders : "valida ejecución de"
+                                                                                                    work_orders ||--o{
+                                                                                                        visual_layers : "visualizada en (ON DELETE CASCADE)"
 
-work_orders ||--|{ work_order_isolations : "requiere (ON DELETE CASCADE)"
-isolation_points ||--|{ work_order_isolations : "bloqueado por"
+                                                                                                        work_orders ||--|{
+                                                                                                            work_order_isolations : "requiere (ON DELETE CASCADE)"
+                                                                                                            isolation_points ||--|{
+                                                                                                                work_order_isolations : "bloqueado por"
 
-' Relaciones Segmento E
-users ||--|{ user_roles : "asociado a (ON DELETE CASCADE)"
-roles ||--|{ user_roles : "concedido a (ON DELETE CASCADE)"
-roles ||--o{ role_permissions : "contiene (ON DELETE CASCADE)"
-users ||--o{ auth_tokens : "autenticado con (ON DELETE CASCADE)"
-users ||--o{ work_order_assignments : "se le asigna (ON DELETE CASCADE)"
-work_orders ||--o{ work_order_assignments : "asigna personal (ON DELETE CASCADE)"
-users ||--o{ audit_logs : "genera (ON DELETE SET NULL)"
+                                                                                                                ' Relaciones Segmento E
+                                                                                                                users ||--|{
+                                                                                                                    user_roles : "asociado a (ON DELETE CASCADE)"
+                                                                                                                    roles ||--|{
+                                                                                                                        user_roles : "concedido a (ON DELETE CASCADE)"
+                                                                                                                        roles ||--o{
+                                                                                                                            role_permissions : "contiene (ON DELETE CASCADE)"
+                                                                                                                            users ||--o{
+                                                                                                                                auth_tokens : "autenticado con (ON DELETE CASCADE)"
+                                                                                                                                users ||--o{
+                                                                                                                                    work_order_assignments : "se le asigna (ON DELETE CASCADE)"
+                                                                                                                                    work_orders ||--o{
+                                                                                                                                        work_order_assignments : "asigna personal (ON DELETE CASCADE)"
+                                                                                                                                        users ||--o{
+                                                                                                                                            audit_logs : "genera (ON DELETE SET NULL)"
 
-@enduml
+                                                                                                                                            @enduml

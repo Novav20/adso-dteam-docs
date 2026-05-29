@@ -1,11 +1,11 @@
 ---
 code: DT-DM-DOC-001
-version: 1.7
-date: 2026-05-24
+version: 1.8
+date: 2026-05-29
 status: Auditoría Normativa Completada
 author: Juan David Julio Serrano
-standard: 
-  - ISO 9001:2015 
+standard:
+  - ISO 9001:2015
   - ISO 14224:2016
   - ISO 55000-Series
   - ISO 13374-Series
@@ -53,36 +53,37 @@ El conjunto de cápsulas aprobadas proporciona una fuerte orientación para LOTO
 
 ## 3. Tabla de Mapeo de Estereotipos
 
-| Entidad | Estereotipo DDD | Justificación | Estándar de Referencia |
-|---|---|---|---|
-| `FunctionalLocation` | `Aggregate Root` | Posee la jerarquía de ubicación del activo y la definición del límite. | ISO 14224 Capítulos 8.1 y 8.2 |
-| `EquipmentClass` | `Aggregate Root` | Posee la taxonomía de la clase del activo y la semántica de los límites específicos de la clase. | ISO 14224 Anexo A |
-| `EquipmentUnit` | `Aggregate Root` | Posee el registro de inventario y la división de estado de tres vías para un activo físico. | ISO 14224 Capítulo 9.1 y Tabla 5 |
-| `Subunit` | `Entity` | Depende del ciclo de vida del activo padre y del contexto de la taxonomía. | ISO 14224 Taxonomía Niveles 6–9 |
-| `MaintainableItem` | `Entity` | Representa el nivel reparable más bajo utilizado para mantenimiento y análisis de fallas. | ISO 14224 Taxonomía Niveles 8–9 |
-| `WorkRequest` | `Aggregate Root` | Inicia el flujo de admisión de mantenimiento y posee los factores de priorización RIME. | ISO 55000 orientación de riesgos y decisiones; ADR 002 |
-| `MaintenancePlan` | `Aggregate Root` | Posee un cronograma de mantenimiento planificado y su cadencia. | ISO 14224 orientación de datos de mantenimiento |
-| `WorkOrder` | `Aggregate Root` | Posee la ejecución, el historial, los adjuntos y los registros de trabajo descendentes. | ISO 14224 datos de eventos; ISO 9000 control de registros |
-| `MediaAttachment` | `Value Object` | Carga útil (payload) de evidencia pura sin identidad de negocio independiente. | ISO 9000 información documentada y registros |
-| `WorkOrderHistory` | `Entity` | Registro de transición del ciclo de vida de solo adición (append-only) para una orden de trabajo. | ISO 9000 inmutabilidad de registros |
-| `FailureRecord` | `Entity` | Evento de falla histórico vinculado al historial del equipo y mantenimiento. | ISO 14224 lógica de fallas |
-| `BacklogItem` | `Entity` | Registro de priorización derivado vinculado a la admisión de mantenimiento y al contexto del activo. | ISO 55000 orientación de clasificación de riesgos |
-| `SparePart` | `Aggregate Root` | Registro maestro de inventario para una familia de partes con política de stock y datos de costos. | ISO 14224 datos de inventario; ISO 55000 orientación de planificación |
-| `InventoryTransaction` | `Entity` | Registro de movimiento rastreable vinculado a partes, órdenes de trabajo y almacenes. | ISO 14224 datos de transacciones; ISO 9000 trazabilidad |
-| `Warehouse` | `Aggregate Root` | Representa un límite de ubicación de stock con reglas de capacidad. | ISO 55000 orientación de planificación de recursos |
-| `Supplier` | `Aggregate Root` | Posee la identidad de adquisiciones, el contexto comercial y la lógica de garantías. | ISO 9000 información documentada |
-| `MeshMapping` | `Entity` | Registro de mapeo persistente entre el activo físico y la visualización digital. | ISO 9000 separación de datos vs. información |
-| `TelemetrySignal` | `Entity` | Registro de medición cruda con marca de tiempo utilizado para trazabilidad y analítica de seguridad. | ISO 9000 seguimiento y medición |
-| `WorkPermit` | `Aggregate Root` | Límite de autorización de seguridad para una intervención en campo. | ISO 55000 orientación de competencias y LOTO |
-| `IsolationPoint` | `Entity` | Registro de aislamiento controlado ejecutado bajo un permiso o alcance de trabajo. | ISO 55000 orientación LOTO; ISO 14224 gobernanza de seguridad |
-| `VisualLayer` | `Entity` | Registro de presentación asociado con una orden de trabajo y estado visual. | ISO 9000 comportamiento de registros |
-| `SpatialMetadata` | `Value Object` | Descriptor inmutable de ubicación y geometría para un artefacto visual. | ISO 9000 separación de datos vs. información |
-| `User` | `Aggregate Root` | Raíz del ciclo de vida de cuenta, contraseña, bloqueo (lockout) y token. | ISO 55000 gobernanza de auditorías; ISO 9000 control de auditorías |
-| `Role` | `Aggregate Root` | Raíz de la semántica de autorización y agrupación de permisos. | ISO 55000 orientación de competencias y roles |
-| `Permission` | `Value Object` | Regla de autorización atómica sin ciclo de vida independiente. | ISO 9000 flujo de trabajo controlado |
-| `AuthToken` | `Entity` | Tiene ciclo de vida de emisión, uso y caducidad, y debe permanecer rastreable hasta su propietario. | ISO 9000 trazabilidad |
-| `WorkOrderAssignment` | `Entity` | Relación auditable entre un usuario/rol y una orden de trabajo. | ISO 55000 control de competencias |
-| `AuditLog` | `Entity` | Registro de auditoría de solo adición que contiene el estado antes y después (before/after). | ISO 9000 evidencia de auditoría e inmutabilidad de registros |
+| Entidad                | Estereotipo DDD  | Justificación                                                                                                    | Estándar de Referencia                                                |
+| ---------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `FunctionalLocation`   | `Aggregate Root` | Posee la jerarquía de ubicación del activo y la definición del límite.                                           | ISO 14224 Capítulos 8.1 y 8.2                                         |
+| `EquipmentClass`       | `Aggregate Root` | Posee la taxonomía de la clase del activo y la semántica de los límites específicos de la clase.                 | ISO 14224 Anexo A                                                     |
+| `EquipmentUnit`        | `Aggregate Root` | Posee el registro de inventario y la división de estado de tres vías para un activo físico.                      | ISO 14224 Capítulo 9.1 y Tabla 5                                      |
+| `Subunit`              | `Entity`         | Depende del ciclo de vida del activo padre y del contexto de la taxonomía.                                       | ISO 14224 Taxonomía Niveles 6–9                                       |
+| `MaintainableItem`     | `Entity`         | Representa el nivel reparable más bajo utilizado para mantenimiento y análisis de fallas.                        | ISO 14224 Taxonomía Niveles 8–9                                       |
+| `WorkRequest`          | `Aggregate Root` | Inicia el flujo de admisión de mantenimiento y posee los factores de priorización RIME.                          | ISO 55000 orientación de riesgos y decisiones; ADR 002                |
+| `MaintenancePlan`      | `Aggregate Root` | Posee un cronograma de mantenimiento planificado y su cadencia.                                                  | ISO 14224 orientación de datos de mantenimiento                       |
+| `WorkOrder`            | `Aggregate Root` | Posee la ejecución, el historial, los adjuntos y los registros de trabajo descendentes.                          | ISO 14224 datos de eventos; ISO 9000 control de registros             |
+| `MediaAttachment`      | `Value Object`   | Carga útil (payload) de evidencia pura sin identidad de negocio independiente.                                   | ISO 9000 información documentada y registros                          |
+| `WorkOrderHistory`     | `Entity`         | Registro de transición del ciclo de vida de solo adición (append-only) para una orden de trabajo.                | ISO 9000 inmutabilidad de registros                                   |
+| `FailureRecord`        | Entity           | Evento de falla histórico vinculado directamente al ítem mantenible (`MaintainableItem`) que lo experimenta.     | ISO 14224 lógica de fallas                                            |
+| `BacklogItem`          | `Entity`         | Registro de priorización derivado vinculado a la admisión de mantenimiento y al contexto del activo.             | ISO 55000 orientación de clasificación de riesgos                     |
+| `SparePart`            | `Aggregate Root` | Registro maestro de inventario para una familia de partes con política de stock y datos de costos.               | ISO 14224 datos de inventario; ISO 55000 orientación de planificación |
+| `InventoryTransaction` | `Entity`         | Registro de movimiento rastreable vinculado a partes, órdenes de trabajo y almacenes.                            | ISO 14224 datos de transacciones; ISO 9000 trazabilidad               |
+| `Warehouse`            | `Aggregate Root` | Representa un límite de ubicación de stock con reglas de capacidad.                                              | ISO 55000 orientación de planificación de recursos                    |
+| `Supplier`             | `Aggregate Root` | Posee la identidad de adquisiciones, el contexto comercial y la lógica de garantías.                             | ISO 9000 información documentada                                      |
+| `MeshMapping`          | `Entity`         | Registro de mapeo persistente entre el activo físico y la visualización digital.                                 | ISO 9000 separación de datos vs. información                          |
+| `TelemetrySignal`      | `Entity`         | Registro de medición cruda con marca de tiempo utilizado para trazabilidad y analítica de seguridad.             | ISO 9000 seguimiento y medición                                       |
+| `WorkPermit`           | Aggregate Root   | Límite de autorización de seguridad que valida la ejecución de órdenes de trabajo específicas en campo.          | ISO 55000 orientación de competencias y LOTO                          |
+| `IsolationPoint`       | Entity           | Punto de bloqueo permanente perteneciente a un equipo (`EquipmentUnit`), requerido aislar en órdenes de trabajo. | ISO 55000 orientación LOTO; ISO 14224 gobernanza                      |
+| `VisualLayer`          | `Entity`         | Registro de presentación asociado con una orden de trabajo y estado visual.                                      | ISO 9000 comportamiento de registros                                  |
+| `SpatialMetadata`      | `Value Object`   | Descriptor inmutable de ubicación y geometría para un artefacto visual.                                          | ISO 9000 separación de datos vs. información                          |
+| `User`                 | `Aggregate Root` | Raíz del ciclo de vida de cuenta, contraseña, bloqueo (lockout) y token.                                         | ISO 55000 gobernanza de auditorías; ISO 9000 control de auditorías    |
+| `Role`                 | `Aggregate Root` | Raíz de la semántica de autorización y agrupación de permisos.                                                   | ISO 55000 orientación de competencias y roles                         |
+| `Permission`           | `Value Object`   | Regla de autorización atómica sin ciclo de vida independiente.                                                   | ISO 9000 flujo de trabajo controlado                                  |
+| `AuthToken`            | `Entity`         | Tiene ciclo de vida de emisión, uso y caducidad, y debe permanecer rastreable hasta su propietario.              | ISO 9000 trazabilidad                                                 |
+| `WorkOrderAssignment`  | `Entity`         | Relación auditable entre un usuario/rol y una orden de trabajo.                                                  | ISO 55000 control de competencias                                     |
+| `AuditLog`             | `Entity`         | Registro de auditoría de solo adición que contiene el estado antes y después (before/after).                     | ISO 9000 evidencia de auditoría e inmutabilidad de registros          |
+| `MaterialRequirement`  | Entity           | Representa la planificación futura y reserva de consumo de un repuesto para una orden de trabajo específica.     | ISO 55000 planificación de recursos                                   |
 
 ## 4. Vocabulario Controlado
 
@@ -459,8 +460,9 @@ Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
 | `Supplier` | `name` | `VARCHAR(120)` | NOT NULL | UNIQUE | Identidad comercial del proveedor. |
 | `Supplier` | `contactInfo` | `VARCHAR(255)` | NOT NULL |  | Teléfono, correo o dirección de contacto. |
 | `Supplier` | `warrantyTerms` | `VARCHAR(255)` | NOT NULL |  | Términos estándar de garantía comercial. |
-| `WorkOrderSparePart` | `plannedQuantity` | `DECIMAL(12,4)` | NOT NULL |  | Repuestos planificados antes de la ejecución de la OT. |
-| `WorkOrderSparePart` | `actualQuantity` | `DECIMAL(12,4)` | NULL |  | Repuestos realmente consumidos durante la ejecución de la OT. |
+| `MaterialRequirement` | `plannedQuantity` | `DECIMAL(12,4)` | NOT NULL |  | Repuestos planificados antes de la ejecución de la OT. |
+| `MaterialRequirement` | `actualQuantity` | `DECIMAL(12,4)` | NULL |  | Repuestos realmente consumidos durante la ejecución de la OT. |
+| `MaterialRequirement` | `isReserved` | `BOOLEAN` | NOT NULL | DEFAULT false | Bandera que indica si el stock ya fue apartado en almacén. |
 
 ### 5.4 Convergencia Digital y Visualización de Seguridad
 
