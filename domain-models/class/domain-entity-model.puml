@@ -30,71 +30,71 @@ skinparam package {
 }
 
 legend top right
-    |= Control Documental (ISO 9001:2015) |
-    | **Código:** DT-DM-UML-001 |
-    | **Versión:** 1.7 |
-    | **Fecha:** 2026-05-24 |
-    | **Estado:** Auditoría Normativa Completada |
-    | **Autor:** Juan David |
+|= Control Documental (ISO 9001:2015) |
+| **Código:** DT-DM-UML-001 |
+| **Versión:** 1.8 |
+| **Fecha:** 2026-05-29 |
+| **Estado:** Auditoría Normativa Completada |
+| **Autor:** Juan David Julio Serrano |
 endlegend
 
 ' --- CAPA 1: FOUNDATION LAYER (ISO 14224) ---
 package "Taxonomía de Activos (ISO 14224)" {
     together {
         class FunctionalLocation <<Aggregate Root>> {
-            - tagNumber: String
-            - name: String
-            - description: String
-            - criticality: String
-            - geographicLocation: String
-            - hierarchyLevel: int
-            + create()
-            + reorganizeTree()
+            - TagNumber: String
+            - Name: String
+            - Description: String
+            - Criticality: String
+            - GeographicLocation: String
+            - HierarchyLevel: int
+            + Create()
+            + ReorganizeTree()
         }
 
         class EquipmentClass <<Aggregate Root>> {
-            - className: String
-            - description: String
-            - manufacturerStandard: String
-            + defineServiceBOM()
-            + listValidFailureModes()
+            - ClassName: String
+            - Description: String
+            - ManufacturerStandard: String
+            + DefineServiceBOM()
+            + ListValidFailureModes()
         }
 
         class EquipmentUnit <<Aggregate Root>> {
-            - serialNumber: String
-            - manufacturer: String
-            - model: String
-            - purchaseDate: Date
-            - rejectionReason: String
-            - boundaryStart: String
-            - boundaryEnd: String
-            - acquisitionDate: Date
-            - installationDate: Date
-            - operationStartDate: Date
-            - operatingHours: long
-            - surveillanceHours: long
-            - operationalStatus: String
-            - lifecycleStatus: String
-            - maintenanceStatus: String
-            - healthStatus: String
-            - disposalDate: Date
-            - disposalReason: String
-            + activate()
-            + decommission()
+            - SerialNumber: String
+            - Manufacturer: String
+            - Model: String
+            - PurchaseDate: Date
+            - RejectionReason: String
+            - BoundaryStart: String
+            - BoundaryEnd: String
+            - AcquisitionDate: Date
+            - InstallationDate: Date
+            - OperationStartDate: Date
+            - OperatingHours: long
+            - SurveillanceHours: long
+            - OperationalStatus: String
+            - LifecycleStatus: String
+            - MaintenanceStatus: String
+            - HealthStatus: String
+            - DisposalDate: Date
+            - DisposalReason: String
+            + Activate()
+            + Decommission()
         }
 
         class Subunit <<Entity>> {
-            - subunitType: String
-            - name: String
+            - SubunitType: String
+            - Name: String
         }
 
         class MaintainableItem <<Entity>> {
-            - componentName: String
-            - subunitType: String
-            - sparePartType: String
-            - designAttributes: String
-            - status: String
-            + replace()
+            - ComponentName: String
+            - SubunitType: String
+            - SparePartType: String
+            - DesignAttributes: String
+            - Status: String
+            + Replace()
         }
     }
 
@@ -108,70 +108,70 @@ package "Taxonomía de Activos (ISO 14224)" {
 ' --- CAPA 2: TRANSACTIONAL LAYER (MTTO) ---
 package "Operaciones de Mantenimiento (MTTO)" {
     class WorkRequest <<Aggregate Root>> {
-        - description: String
-        - priority: String
-        - requestDate: DateTime
-        - requestSource: String
-        - status: String
-        - riskFactor: Enum
-        - impactFactor: Enum
-        - maintainabilityFactor: Enum
-        - economyFactor: Enum
-        + promoteToWorkOrder()
-        + reject()
+        - Description: String
+        - Priority: String
+        - RequestDate: DateTime
+        - RequestSource: String
+        - Status: String
+        - RiskFactor: Enum
+        - ImpactFactor: Enum
+        - MaintainabilityFactor: Enum
+        - EconomyFactor: Enum
+        + PromoteToWorkOrder()
+        + Reject()
     }
 
     class MaintenancePlan <<Aggregate Root>> {
-        - maintenanceMethod: String
-        - frequency: String
-        - frequencyType: Enum
-        - nextWorkOrderDate: Date
-        - status: String
-        + calculateNextWorkOrder()
+        - MaintenanceMethod: String
+        - Frequency: String
+        - FrequencyType: Enum
+        - NextWorkOrderDate: Date
+        - Status: String
+        + CalculateNextWorkOrder()
     }
 
     class WorkOrder <<Aggregate Root>> {
-        - currentStatus: String
-        - maintenanceMethod: String
-        - creationDate: DateTime
-        - scheduledDate: DateTime
-        - actualStart: DateTime
-        - actualFinish: DateTime
-        - actualLaborHours: Decimal
-        - criticality: String
-        + schedule()
-        + close()
+        - CurrentStatus: String
+        - MaintenanceMethod: String
+        - CreationDate: DateTime
+        - ScheduledDate: DateTime
+        - ActualStart: DateTime
+        - ActualFinish: DateTime
+        - ActualLaborHours: Decimal
+        - Criticality: String
+        + Schedule()
+        + Close()
     }
 
     class MediaAttachment <<Value Object>> {
-        - fileUrl: String
-        - fileType: Enum
-        - uploadedAt: DateTime
+        - FileUrl: String
+        - FileType: Enum
+        - UploadedAt: DateTime
     }
 
     class WorkOrderHistory <<Entity>> {
-        - oldStatus: String
-        - newStatus: String
-        - timestamp: DateTime
-        - durationSeconds: long
-        + recordTransition()
+        - OldStatus: String
+        - NewStatus: String
+        - Timestamp: DateTime
+        - DurationSeconds: long
+        + RecordTransition()
     }
 
     class FailureRecord <<Entity>> {
-        - failureId: UUID
-        - failureMode: String
-        - failureMechanism: String
-        - failureCause: String
-        - downtime: double
-        - status: String
-        + classifyFailure()
+        - FailureId: UUID
+        - FailureMode: String
+        - FailureMechanism: String
+        - FailureCause: String
+        - Downtime: double
+        - Status: String
+        + ClassifyFailure()
     }
 
     class BacklogItem <<Entity>> {
-        - priorityScore: int
-        - status: String
-        + calculateRIME()
-        + orderBacklog()
+        - PriorityScore: int
+        - Status: String
+        + CalculateRIME()
+        + OrderBacklog()
     }
 
     EquipmentUnit "1" -- "0..*" WorkRequest : "genera"
@@ -181,52 +181,60 @@ package "Operaciones de Mantenimiento (MTTO)" {
     WorkOrder "1" *-- "0..*" WorkOrderHistory : "registra cambios en"
     WorkOrder "1" -- "0..1" FailureRecord : "reporta"
     MaintenancePlan "1" -- "0..*" WorkOrder : "dispara"
-    EquipmentUnit "1" -- "0..*" BacklogItem : "está listado en"
-    EquipmentClass "1" -- "0..*" FailureRecord : "define opciones de"
+    WorkRequest "1" -- "0..1" BacklogItem : "prioriza"
+    MaintainableItem "1" -- "0..*" FailureRecord : "experimenta"
     WorkOrder "1" *-- "0..*" MediaAttachment : "contiene"
 }
 
 ' --- CAPA 3: RESOURCE LAYER (INV) ---
 package "Control de Recursos (INV)" {
     class SparePart <<Aggregate Root>> {
-        - sku: String
-        - description: String
-        - manufacturer: String
-        - commodityCode: String
-        - reorderPoint: int
-        - unitOfMeasure: String
-        - stockPolicy: Enum
-        - quantityOnHand: Decimal
-        - reservedQuantity: Decimal
-        - maxCapacity: Decimal
-        - unitCost: Decimal
-        - isRebuildable: Boolean
-        - status: String
-        + classifyMaterial()
+        - Sku: String
+        - Description: String
+        - Manufacturer: String
+        - CommodityCode: String
+        - ReorderPoint: int
+        - UnitOfMeasure: String
+        - StockPolicy: Enum
+        - QuantityOnHand: Decimal
+        - ReservedQuantity: Decimal
+        - MaxCapacity: Decimal
+        - UnitCost: Decimal
+        - IsRebuildable: Boolean
+        - Status: String
+        + ClassifyMaterial()
     }
 
     class InventoryTransaction <<Entity>> {
-        - quantity: double
-        - transactionType: String
-        - timestamp: DateTime
-        - reason: String
-        - totalCost: Decimal
-        + recordIssue()
-        + recordReceipt()
+        - Quantity: double
+        - TransactionType: String
+        - Timestamp: DateTime
+        - Reason: String
+        - TotalCost: Decimal
+        + RecordIssue()
+        + RecordReceipt()
+    }
+
+    class MaterialRequirement <<Entity>> {
+        - PlannedQuantity: Decimal
+        - ActualQuantity: Decimal
+        - IsReserved: Boolean
+        + AllocateStock()
+        + RegisterConsumption()
     }
 
     class Warehouse <<Aggregate Root>> {
-        - name: String
-        - location: String
-        - capacity: double
-        + updateStock()
+        - Name: String
+        - Location: String
+        - Capacity: double
+        + UpdateStock()
     }
 
     class Supplier <<Aggregate Root>> {
-        - name: String
-        - contactInfo: String
-        - warrantyTerms: String
-        + manageWarranty()
+        - Name: String
+        - ContactInfo: String
+        - WarrantyTerms: String
+        + ManageWarranty()
     }
 
     MaintainableItem "1" -- "0..*" SparePart : "requiere"
@@ -235,108 +243,111 @@ package "Control de Recursos (INV)" {
     WorkOrder "1" -- "0..*" InventoryTransaction : "genera"
     Supplier "1" -- "0..*" SparePart : "suministra"
     EquipmentClass "1" -- "0..*" SparePart : "estandariza"
+    WorkOrder "1" *-- "0..*" MaterialRequirement : "planifica"
+    MaterialRequirement "0..*" -- "1" SparePart : "requiere de"
 }
 
 ' --- CAPA 4: DIGITAL TWIN LAYER (VIS) ---
 package "Convergencia Gemelo Digital (VIS)" {
     class MeshMapping <<Entity>> {
-        - meshUuid: String
-        - mappingStatus: String
-        - lastSyncTime: DateTime
+        - MeshUuid: String
+        - MappingStatus: String
+        - LastSyncTime: DateTime
     }
 
     class TelemetrySignal <<Entity>> {
-        - signalType: String
-        - value: double
-        - unit: String
-        - threshold: double
-        - timestamp: DateTime
-        - isSafetyCritical: Boolean
+        - SignalType: String
+        - Value: double
+        - Unit: String
+        - Threshold: double
+        - Timestamp: DateTime
+        - IsSafetyCritical: Boolean
     }
 
     class WorkPermit <<Aggregate Root>> {
-        - permitIdentifier: String
-        - permitType: Enum
-        - contractorName: String
-        - status: Enum
+        - PermitIdentifier: String
+        - PermitType: Enum
+        - ContractorName: String
+        - Status: Enum
     }
 
     class IsolationPoint <<Entity>> {
-        - isolationTag: String
-        - isolationType: Enum
-        - isVerified: Boolean
+        - IsolationTag: String
+        - IsolationType: Enum
+        - IsVerified: Boolean
     }
 
     class VisualLayer <<Entity>> {
-        - layerType: String
-        - opacityLevel: double
-        - status: String
+        - LayerType: String
+        - OpacityLevel: double
+        - Status: String
     }
 
     class SpatialMetadata <<Value Object>> {
-        - position: String
-        - rotation: String
-        - scale: String
-        + updateMetadata()
+        - Position: String
+        - Rotation: String
+        - Scale: String
+        + UpdateMetadata()
     }
 
     EquipmentUnit "1" -- "0..1" MeshMapping : "representado por"
     EquipmentUnit "1" -- "0..*" TelemetrySignal : "monitoreado por"
     MeshMapping "1" -- "1" SpatialMetadata : "ubicado en"
     WorkOrder "1" -- "0..*" VisualLayer : "visualizada en"
-    EquipmentUnit "1" -- "0..*" WorkPermit : "autoriza intervención en"
-    WorkOrder "1" *-- "1..*" IsolationPoint : "requiere bloqueo de"
+    WorkPermit "1" -- "1..*" WorkOrder : "valida ejecución de"
+    EquipmentUnit "1" *-- "0..*" IsolationPoint : "contiene"
+    WorkOrder "1" -- "1..*" IsolationPoint : "requiere bloqueo de"
 }
 
 ' --- CAPA 5: GOVERNANCE LAYER (ADM) ---
 package "Seguridad y Gobernanza (ADM)" {
     class User <<Aggregate Root>> {
-        - username: String
-        - email: String
-        - status: String
-        - passwordHash: String
-        - failedLoginAttempts: int
-        - lockoutUntil: DateTime
-        - mfaEnabled: Boolean
-        - totpSecret: String
-        + assignRole()
+        - Username: String
+        - Email: String
+        - Status: String
+        - PasswordHash: String
+        - FailedLoginAttempts: int
+        - LockoutUntil: DateTime
+        - MfaEnabled: Boolean
+        - TotpSecret: String
+        + AssignRole()
     }
 
     class Role <<Aggregate Root>> {
-        - roleName: String
-        - description: String
-        - isSystemRole: Boolean
-        + validateSoD()
+        - RoleName: String
+        - Description: String
+        - IsSystemRole: Boolean
+        + ValidateSoD()
     }
 
     class Permission <<Value Object>> {
-        - module: String
-        - action: String
+        - Module: String
+        - Action: String
     }
 
     class AuthToken <<Entity>> {
-        - tokenHash: String
-        - expiresAt: DateTime
-        - isUsed: Boolean
-        - ipAddress: String
-        - userAgent: String
+        - TokenHash: String
+        - ExpiresAt: DateTime
+        - IsUsed: Boolean
+        - IpAddress: String
+        - UserAgent: String
     }
 
     class WorkOrderAssignment <<Entity>> {
-        - roleInWork: String
-        - assignedAt: DateTime
-        + assignTechnician()
+        - RoleInWork: String
+        - AssignedAt: DateTime
+        + AssignTechnician()
     }
 
     class AuditLog <<Entity>> {
-        - entityType: String
-        - actionType: String
-        - timestamp: DateTime
-        - integrityHash: String
-        - entityIdentifier: String
-        - previousState: JSON
-        - newState: JSON
-        + verifyIntegrity()
+        - EntityType: String
+        - ActionType: String
+        - Timestamp: DateTime
+        - IntegrityHash: String
+        - EntityIdentifier: String
+        - PreviousState: JSON
+        - NewState: JSON
+        + VerifyIntegrity()
     }
 
     User "1" -- "1..*" Role : "posee"
