@@ -32,9 +32,9 @@ skinparam package {
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-DM-UML-001 |
-| **Versión:** 1.8 |
-| **Fecha:** 2026-05-29 |
-| **Estado:** Auditoría Normativa Completada |
+| **Versión:** 1.9 |
+| **Fecha:** 2026-06-01 |
+| **Estado:** Enriquecimiento DDD de Métodos Completado |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -48,16 +48,15 @@ package "Taxonomía de Activos (ISO 14224)" {
             - Criticality: String
             - GeographicLocation: String
             - HierarchyLevel: int
-            + Create()
-            + ReorganizeTree()
+            + AddChild(child: FunctionalLocation): void
+            + RemoveChild(childId: UUID): void
+            + ReorganizeTree(newParentId: UUID): void
         }
 
         class EquipmentClass <<Aggregate Root>> {
             - ClassName: String
             - Description: String
             - ManufacturerStandard: String
-            + DefineServiceBOM()
-            + ListValidFailureModes()
         }
 
         class EquipmentUnit <<Aggregate Root>> {
@@ -73,19 +72,24 @@ package "Taxonomía de Activos (ISO 14224)" {
             - OperationStartDate: Date
             - OperatingHours: long
             - SurveillanceHours: long
-            - OperationalStatus: String
-            - LifecycleStatus: String
-            - MaintenanceStatus: String
-            - HealthStatus: String
+            - OperationalStatus: Enum
+            - LifecycleStatus: Enum
+            - MaintenanceStatus: Enum
+            - HealthStatus: Enum
             - DisposalDate: Date
             - DisposalReason: String
-            + Activate()
-            + Decommission()
+            + Activate(): void
+            + RejectCommissioning(reason: String): void
+            + DefineBoundaries(start: String, end: String): void
+            + UpdateOperationalStatus(status: Enum): void
+            + AddSubunit(subunit: Subunit): void
+            + Decommission(reason: String, disposalDate: Date): void
         }
 
         class Subunit <<Entity>> {
             - SubunitType: String
             - Name: String
+            + AddMaintainableItem(item: MaintainableItem): void
         }
 
         class MaintainableItem <<Entity>> {
@@ -93,8 +97,8 @@ package "Taxonomía de Activos (ISO 14224)" {
             - SubunitType: String
             - SparePartType: String
             - DesignAttributes: String
-            - Status: String
-            + Replace()
+            - Status: Enum
+            + UpdateStatus(newStatus: Enum): void
         }
     }
 
@@ -112,35 +116,46 @@ package "Operaciones de Mantenimiento (MTTO)" {
         - Priority: String
         - RequestDate: DateTime
         - RequestSource: String
-        - Status: String
+        - Status: Enum
         - RiskFactor: Enum
         - ImpactFactor: Enum
         - MaintainabilityFactor: Enum
         - EconomyFactor: Enum
-        + PromoteToWorkOrder()
-        + Reject()
+        + PromoteToWorkOrder(): void
+        + Reject(reason: String): void
+        + UpdateRimeFactors(risk: Enum, impact: Enum, maintainability: Enum, economy: Enum): void
     }
 
     class MaintenancePlan <<Aggregate Root>> {
-        - MaintenanceMethod: String
+        - MaintenanceMethod: Enum
         - Frequency: String
         - FrequencyType: Enum
         - NextWorkOrderDate: Date
-        - Status: String
-        + CalculateNextWorkOrder()
+        - Status: Enum
+        + CalculateNextDueDate(lastCompletionDate: DateTime): void
+        + GenerateWorkOrder(): WorkOrder
+        + Activate(): void
+        + Suspend(reason: String): void
+        + Archive(): void
     }
 
     class WorkOrder <<Aggregate Root>> {
-        - CurrentStatus: String
-        - MaintenanceMethod: String
+        - CurrentStatus: Enum
+        - MaintenanceMethod: Enum
         - CreationDate: DateTime
         - ScheduledDate: DateTime
         - ActualStart: DateTime
         - ActualFinish: DateTime
         - ActualLaborHours: Decimal
-        - Criticality: String
-        + Schedule()
-        + Close()
+        - Criticality: Enum
+        + Schedule(scheduledDate: DateTime): void
+        + RequireIsolation(isolationPointId: UUID): void
+        + StartExecution(): void
+        + SuspendExecution(reason: String): void
+        + CompleteExecution(actualLaborHours: Decimal): void
+        + CloseAdministratively(): void
+        + ReportFailure(itemId: UUID, mode: Enum, mechanism: Enum, cause: Enum): void
+        + AddMediaAttachment(url: String, fileType: Enum): void
     }
 
     class MediaAttachment <<Value Object>> {
@@ -150,28 +165,28 @@ package "Operaciones de Mantenimiento (MTTO)" {
     }
 
     class WorkOrderHistory <<Entity>> {
-        - OldStatus: String
-        - NewStatus: String
+        - OldStatus: Enum
+        - NewStatus: Enum
         - Timestamp: DateTime
         - DurationSeconds: long
-        + RecordTransition()
     }
-
+    ' TODO: Cambiar  mode, mechanism y cause a una clase de valor que permita una taxonomía más rica y flexible, con atributos adicionales como descripción, categoría, etc.
+    ' Por ejemplo FailureCatalog
     class FailureRecord <<Entity>> {
         - FailureId: UUID
         - FailureMode: String
         - FailureMechanism: String
         - FailureCause: String
         - Downtime: double
-        - Status: String
-        + ClassifyFailure()
+        - Status: Enum
+        + UpdateClassification(mode: String, mechanism: String, cause: String): void
     }
 
     class BacklogItem <<Entity>> {
         - PriorityScore: int
-        - Status: String
-        + CalculateRIME()
-        + OrderBacklog()
+        - Status: Enum
+        + UpdatePriorityScore(score: int): void
+        + Defer(reason: String): void
     }
 
     EquipmentUnit "1" -- "0..*" WorkRequest : "genera"
@@ -201,40 +216,40 @@ package "Control de Recursos (INV)" {
         - MaxCapacity: Decimal
         - UnitCost: Decimal
         - IsRebuildable: Boolean
-        - Status: String
-        + ClassifyMaterial()
+        - Status: Enum
+        + UpdateStockPolicy(policy: Enum, reorder: Decimal, max: Decimal): void
+        + ReserveStock(quantity: Decimal): void
+        + ReleaseReservation(quantity: Decimal): void
+        + ReceiveStock(quantity: Decimal): void
+        + IssueStock(quantity: Decimal): void
     }
 
     class InventoryTransaction <<Entity>> {
         - Quantity: double
-        - TransactionType: String
+        - TransactionType: Enum
         - Timestamp: DateTime
         - Reason: String
         - TotalCost: Decimal
-        + RecordIssue()
-        + RecordReceipt()
     }
 
     class MaterialRequirement <<Entity>> {
         - PlannedQuantity: Decimal
         - ActualQuantity: Decimal
         - IsReserved: Boolean
-        + AllocateStock()
-        + RegisterConsumption()
+        + MarkAsReserved(): void
+        + RecordConsumption(actualQty: Decimal): void
     }
 
     class Warehouse <<Aggregate Root>> {
         - Name: String
         - Location: String
         - Capacity: double
-        + UpdateStock()
     }
 
     class Supplier <<Aggregate Root>> {
         - Name: String
         - ContactInfo: String
         - WarrantyTerms: String
-        + ManageWarranty()
     }
 
     MaintainableItem "1" -- "0..*" SparePart : "requiere"
@@ -269,14 +284,18 @@ package "Convergencia Gemelo Digital (VIS)" {
         - PermitType: Enum
         - ContractorName: String
         - Status: Enum
+        + Approve(): void
+        + Revoke(reason: String): void
+        + Expire(): void
+        + Close(): void
     }
 
     class IsolationPoint <<Entity>> {
         - IsolationTag: String
         - IsolationType: Enum
         - IsVerified: Boolean
+        + MarkAsVerified(): void
     }
-
     class VisualLayer <<Entity>> {
         - LayerType: String
         - OpacityLevel: double
@@ -287,7 +306,6 @@ package "Convergencia Gemelo Digital (VIS)" {
         - Position: String
         - Rotation: String
         - Scale: String
-        + UpdateMetadata()
     }
 
     EquipmentUnit "1" -- "0..1" MeshMapping : "representado por"
@@ -304,20 +322,28 @@ package "Seguridad y Gobernanza (ADM)" {
     class User <<Aggregate Root>> {
         - Username: String
         - Email: String
-        - Status: String
+        - Status: Enum
         - PasswordHash: String
         - FailedLoginAttempts: int
         - LockoutUntil: DateTime
         - MfaEnabled: Boolean
         - TotpSecret: String
-        + AssignRole()
+        + AssignRole(roleId: UUID): void
+        + RemoveRole(roleId: UUID): void
+        + RecordFailedLogin(): void
+        + RegisterSuccessfulLogin(): void
+        + UpdatePassword(newHash: String): void
+        + Deactivate(reason: String): void
+        + Activate(): void
     }
 
     class Role <<Aggregate Root>> {
         - RoleName: String
         - Description: String
         - IsSystemRole: Boolean
-        + ValidateSoD()
+        + AddPermission(module: String, action: String): void
+        + RemovePermission(module: String, action: String): void
+        + ValidateSoD(): void
     }
 
     class Permission <<Value Object>> {
@@ -331,23 +357,24 @@ package "Seguridad y Gobernanza (ADM)" {
         - IsUsed: Boolean
         - IpAddress: String
         - UserAgent: String
+        + Revoke(): void
+        + MarkAsUsed(): void
     }
 
     class WorkOrderAssignment <<Entity>> {
-        - RoleInWork: String
+        - RoleInWork: Enum
         - AssignedAt: DateTime
-        + AssignTechnician()
     }
 
     class AuditLog <<Entity>> {
         - EntityType: String
-        - ActionType: String
+        - ActionType: Enum
         - Timestamp: DateTime
         - IntegrityHash: String
         - EntityIdentifier: String
         - PreviousState: JSON
         - NewState: JSON
-        + VerifyIntegrity()
+        + VerifyIntegrity(): Boolean
     }
 
     User "1" -- "1..*" Role : "posee"
