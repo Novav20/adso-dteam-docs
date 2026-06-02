@@ -12,7 +12,7 @@ standard:
   - ISO 27001:2022
 ---
 
-# Modelo de Entidades del Dominio
+# Especificación del Modelo de Dominio
 
 ## 1. Propósito
 
