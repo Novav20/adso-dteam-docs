@@ -1,7 +1,8 @@
 ---
-Fecha: 2026-05-14
-Estatus: Aceptado
-Relacionado con: MTTO-026 — Gestión de Backlog mediante Priorización Objetiva (RIME)
+date: 2026-05-14
+status: Aceptado
+author: Juan David Julio Serrano
+linked_to: MTTO-026 — Gestión de Backlog mediante Priorización Objetiva (RIME)
 ---
 
 # ADR 002: Implementación RIME con Factores Estáticos Configurables para MVP

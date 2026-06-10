@@ -1,6 +1,7 @@
 ---
-Fecha: 2026-03-18
-Estatus: Aceptado
+date: 2026-03-18
+status: Aceptado
+author: Juan David Julio Serrano
 ---
 
 # ADR 001: Estrategia de Visualización Híbrida (2D Primero, 3D Evolutivo)
