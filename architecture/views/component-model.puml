@@ -1,4 +1,4 @@
-@startuml ComponentModel
+@startuml "Diagrama de Componentes del Gemelo Digital EAM"
 skinparam defaultFontName "Segoe UI"
 skinparam defaultFontSize 12
 skinparam componentStyle rectangle
@@ -22,9 +22,9 @@ skinparam cloudBackgroundColor #EBF5FB
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-ARQ-CMP-001 |
-| **Versión:** 1.0 |
+| **Versión:** 1.1 |
 | **Fecha:** 2026-06-10 |
-| **Estado:** En Desarrollo |
+| **Estado:** Auditoría Hexagonal Aplicada |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -36,7 +36,8 @@ package "Frontend Application (React / React Native)" {
 package "Backend: Modular Monolith (.NET 10)" {
     
     package "Infrastructure Layer (Adapters)" {
-        component "REST API Controllers" as API
+        component "Idempotency Filter\n(Redis/Memory Cache)" as Idempotency
+        component "REST API Controllers\n(+ Optimistic Concurrency)" as API
         component "WebSocket / SignalR Hub" as WS
         component "Background Sync Worker" as Sync
         component "EF Core Postgres Adapter" as DBAdapter
@@ -46,7 +47,7 @@ package "Backend: Modular Monolith (.NET 10)" {
     package "Core Domain Layer (Ports & Use Cases)" {
         interface "Primary Ports (In)" as InPorts
         interface "Secondary Ports (Out)" as OutPorts
-        
+
         component "Taxonomy Kernel (ISO 14224)" as Tax
         component "Maintenance (MTTO)" as Mtto
         component "Inventory (INV)" as Inv
@@ -59,10 +60,11 @@ database "PostgreSQL & TimescaleDB" as DB
 cloud "Azure IoT Hub\n(Free Tier)" as IoT
 
 ' Conexiones de Entrada (Driving Adapters)
-Web .down.> API : "HTTPS/JSON"
-Mobile .down.> API : "HTTPS (Sync)"
+Web .down.> Idempotency : "HTTPS/JSON"
+Mobile .down.> Idempotency : "HTTPS (Sync)"
 Mobile .down.> WS : "WSS (Real-Time)"
 
+Idempotency -down-> API : "Filtra Reintentos"
 API -down-> InPorts : "Invoca"
 WS -down-> InPorts : "Invoca"
 Sync -down-> InPorts : "Procesa Colas"
@@ -85,12 +87,13 @@ OutPorts -down-> IoTAdapter : "Implementa"
 
 DBAdapter .down.> DB : "TCP/IP (SQL)"
 IoTAdapter .down.> IoT : "MQTT/AMQP"
-IoTAdapter .up.> WS : "Emite Eventos"
+IoTAdapter -up-> InPorts : "Ingesta Telemetría"
+OutPorts -up-> WS : "Notifica Clientes"
 
 note right of InPorts
-  **Regla de Dependencia:**
-  El Dominio ignora la existencia
-  de bases de datos o redes.
-  Todo se invoca mediante interfaces.
+  **Regla de Dependencia Estricta:**
+  El Dominio orquesta la telemetría.
+  El adaptador IoT no puede evadir el 
+  dominio para notificar al WebSocket.
 end note
 @enduml
