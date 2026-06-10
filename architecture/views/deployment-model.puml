@@ -1,0 +1,64 @@
+@startuml DeploymentModel
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam linetype polyline
+skinparam nodesep 60
+skinparam ranksep 80
+
+skinparam node {
+    BackgroundColor #F8F9F9
+    BorderColor #2E86C1
+    BorderThickness 2
+}
+skinparam database {
+    BackgroundColor #FDEDEC
+    BorderColor #E74C3C
+}
+skinparam cloud {
+    BackgroundColor #EBF5FB
+    BorderColor #3498DB
+}
+
+legend top right
+|= Control Documental (ISO 9001:2015) |
+| **Código:** DT-ARQ-DEP-001 |
+| **Versión:** 1.0 |
+| **Fecha:** 2026-06-10 |
+| **Estado:** En Desarrollo |
+| **Autor:** Juan David Julio Serrano |
+endlegend
+
+node "Dispositivo Móvil en Campo (Edge Node)\n[Android / iOS]" as MobileNode {
+    component "Frontend App\n(React Native)" as App
+    database "Local Database\n(SQLite / WatermelonDB)" as LocalDB
+    App -down-> LocalDB : "Lectura/Escritura Local\n(Offline)"
+}
+
+cloud "Azure Cloud Platform" as Azure {
+    node "Azure IoT Hub\n(Free Tier)" as IoTHub
+}
+
+node "Servidor Cloud Host\n[Ubuntu Linux VPS]" as HostNode {
+    node "Docker Engine" as Docker {
+        component "Nginx\n(Reverse Proxy / TLS)" as Proxy
+        component "Backend API Monolith\n(.NET 10)" as Backend
+        Proxy -down-> Backend : "Enrutamiento Interno"
+    }
+}
+
+node "Servidor de Base de Datos" as DBServer {
+    database "PostgreSQL 16 +\nTimescaleDB Extension" as RDBMS
+}
+
+' Conexiones de Red
+MobileNode ..> Proxy : "<<Protocolo>>\nHTTPS / WSS"
+MobileNode ..> IoTHub : "<<Protocolo>>\nMQTT (Telemetría)"
+Backend ..> RDBMS : "<<Protocolo>>\nTCP/IP (EF Core)"
+Backend ..> IoTHub : "<<Protocolo>>\nAMQP (Consumo Eventos)"
+
+note left of MobileNode
+  **Tolerancia a Particiones:**
+  Si HTTPS falla, el nodo móvil 
+  sigue operando contra SQLite.
+end note
+@enduml
