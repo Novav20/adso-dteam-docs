@@ -1,4 +1,4 @@
-@startuml "Diagrama de Componentes del Gemelo Digital EAM"
+@startuml ComponentModel
 skinparam defaultFontName "Segoe UI"
 skinparam defaultFontSize 12
 skinparam componentStyle rectangle
@@ -22,37 +22,45 @@ skinparam cloudBackgroundColor #EBF5FB
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-ARQ-CMP-001 |
-| **Versión:** 1.1 |
-| **Fecha:** 2026-06-10 |
-| **Estado:** Auditoría Hexagonal Aplicada |
+| **Versión:** 1.2 |
+| **Fecha:** 2026-06-11 |
+| **Estado:** Auditoría en Progreso |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
-package "Frontend Application (React / React Native)" {
-    component "Mobile App (Offline-First)" as Mobile
-    component "Web Admin Portal" as Web
+package "Frontend Application (HPHMI)" {
+    component "Mobile Client\n<<React Native / SQLite>>" as Mobile
+    component "Web Admin Portal\n<<React>>" as Web
 }
 
-package "Backend: Modular Monolith (.NET 10)" {
-    
+package "Backend: Modular Monolith" {
+
     package "Infrastructure Layer (Adapters)" {
-        component "Idempotency Filter\n(Redis/Memory Cache)" as Idempotency
-        component "REST API Controllers\n(+ Optimistic Concurrency)" as API
-        component "WebSocket / SignalR Hub" as WS
-        component "Background Sync Worker" as Sync
-        component "EF Core Postgres Adapter" as DBAdapter
-        component "Azure IoT Hub Adapter" as IoTAdapter
+        component "Idempotency Filter\n<<Memory Cache / Redis>>" as Idempotency
+        component "REST API Controllers\n<<ASP.NET Core / C#>>" as API
+        component "Real-Time Broadcaster\n<<SignalR / WebSockets>>" as WS
+        component "Background Sync Worker\n<<.NET Hosted Service>>" as Sync
+        component "Persistence Adapter\n<<EF Core / PostgreSQL>>" as DBAdapter
+        component "Telemetry Ingestion Adapter\n<<Azure IoT SDK>>" as IoTAdapter
+
+        Idempotency -down-> API : "Filtra Reintentos"
     }
 
-    package "Core Domain Layer (Ports & Use Cases)" {
+    package "Core Application & Domain Layer" {
         interface "Primary Ports (In)" as InPorts
         interface "Secondary Ports (Out)" as OutPorts
 
-        component "Taxonomy Kernel (ISO 14224)" as Tax
-        component "Maintenance (MTTO)" as Mtto
-        component "Inventory (INV)" as Inv
-        component "Digital Twin (VIS)" as Vis
-        component "Governance & Audit (ADM)" as Adm
+        component "Taxonomy Kernel" as Tax
+        component "Maintenance" as Mtto
+        component "Inventory" as Inv
+        component "Digital Twin" as Vis
+        component "Governance & Audit" as Adm
+
+        InPorts -down-> Tax
+        InPorts -down-> Mtto
+        InPorts -down-> Inv
+        InPorts -down-> Vis
+        InPorts -down-> Adm
     }
 }
 
@@ -60,20 +68,14 @@ database "PostgreSQL & TimescaleDB" as DB
 cloud "Azure IoT Hub\n(Free Tier)" as IoT
 
 ' Conexiones de Entrada (Driving Adapters)
-Web .down.> Idempotency : "HTTPS/JSON"
+Web .down.> Idempotency : "HTTPS / JSON"
 Mobile .down.> Idempotency : "HTTPS (Sync)"
 Mobile .down.> WS : "WSS (Real-Time)"
 
-Idempotency -down-> API : "Filtra Reintentos"
 API -down-> InPorts : "Invoca"
 WS -down-> InPorts : "Invoca"
 Sync -down-> InPorts : "Procesa Colas"
-
-InPorts -down-> Tax
-InPorts -down-> Mtto
-InPorts -down-> Inv
-InPorts -down-> Vis
-InPorts -down-> Adm
+IoTAdapter -up-> InPorts : "Ingesta Telemetría"
 
 ' Conexiones de Salida (Driven Adapters)
 Tax -down-> OutPorts
@@ -84,16 +86,15 @@ Adm -down-> OutPorts
 
 OutPorts -down-> DBAdapter : "Implementa"
 OutPorts -down-> IoTAdapter : "Implementa"
+OutPorts -up-> WS : "Implementa"
 
 DBAdapter .down.> DB : "TCP/IP (SQL)"
-IoTAdapter .down.> IoT : "MQTT/AMQP"
-IoTAdapter -up-> InPorts : "Ingesta Telemetría"
-OutPorts -up-> WS : "Notifica Clientes"
+IoTAdapter .down.> IoT : "MQTT / AMQP"
 
 note right of InPorts
-  **Regla de Dependencia Estricta:**
-  El Dominio orquesta la telemetría.
-  El adaptador IoT no puede evadir el 
-  dominio para notificar al WebSocket.
+    **Regla de Dependencia Estricta:**
+    El Núcleo (Casos de Uso) orquesta la telemetría.
+    Los adaptadores externos implementan las interfaces
+    de salida (OutPorts) para desacoplar la tecnología.
 end note
 @enduml

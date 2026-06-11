@@ -1,7 +1,7 @@
-@startuml DeploymentModel
+@startuml "Diagrama de Despliegue del Gemelo Digital EAM"
 skinparam defaultFontName "Segoe UI"
 skinparam defaultFontSize 12
-skinparam linetype polyline
+skinparam linetype ortho
 skinparam nodesep 60
 skinparam ranksep 80
 
@@ -22,27 +22,30 @@ skinparam cloud {
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-ARQ-DEP-001 |
-| **Versión:** 1.0 |
+| **Versión:** 1.1 |
 | **Fecha:** 2026-06-10 |
-| **Estado:** En Desarrollo |
+| **Estado:** Auditoría en Progreso |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
-node "Dispositivo Móvil en Campo (Edge Node)\n[Android / iOS]" as MobileNode {
+node "Dispositivo Móvil (Edge Node)\n[Android / iOS]" as MobileNode {
     component "Frontend App\n(React Native)" as App
-    database "Local Database\n(SQLite / WatermelonDB)" as LocalDB
-    App -down-> LocalDB : "Lectura/Escritura Local\n(Offline)"
+    component "LOTO Watchdog\n(Background Thread)" as Watchdog
+    database "Local DB\n(SQLite / WatermelonDB)" as LocalDB
+
+    App -down-> LocalDB : "Persiste Estado"
+    Watchdog -left-> LocalDB : "Bloqueo Preventivo\nsi falla Heartbeat"
 }
 
 cloud "Azure Cloud Platform" as Azure {
-    node "Azure IoT Hub\n(Free Tier)" as IoTHub
+    node "Azure IoT Hub" as IoTHub
 }
 
 node "Servidor Cloud Host\n[Ubuntu Linux VPS]" as HostNode {
     node "Docker Engine" as Docker {
         component "Nginx\n(Reverse Proxy / TLS)" as Proxy
         component "Backend API Monolith\n(.NET 10)" as Backend
-        Proxy -down-> Backend : "Enrutamiento Interno"
+        Proxy -down-> Backend : "Enrutamiento"
     }
 }
 
@@ -51,14 +54,18 @@ node "Servidor de Base de Datos" as DBServer {
 }
 
 ' Conexiones de Red
-MobileNode ..> Proxy : "<<Protocolo>>\nHTTPS / WSS"
-MobileNode ..> IoTHub : "<<Protocolo>>\nMQTT (Telemetría)"
-Backend ..> RDBMS : "<<Protocolo>>\nTCP/IP (EF Core)"
-Backend ..> IoTHub : "<<Protocolo>>\nAMQP (Consumo Eventos)"
+MobileNode .up.> Proxy : "HTTPS / JSON\n(Sincronización API)"
+MobileNode .right.> Proxy : "WSS (SignalR)\n[Heartbeat Bidireccional 200ms]"
+MobileNode .down.> IoTHub : "MQTT\n(Telemetría directa)"
 
-note left of MobileNode
-  **Tolerancia a Particiones:**
-  Si HTTPS falla, el nodo móvil 
-  sigue operando contra SQLite.
+Backend -down-> RDBMS : "TCP/IP (EF Core)"
+Backend -right-> IoTHub : "AMQP (Consumo)"
+
+note left of Watchdog
+    **Watchdog de Seguridad:**
+    Si fallan 3 ciclos de Heartbeat
+    (600ms), el Watchdog "dispara"
+    y bloquea localmente la App
+    (Energía Cero Incierta).
 end note
 @enduml
