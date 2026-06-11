@@ -22,9 +22,9 @@ skinparam cloud {
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-ARQ-DEP-001 |
-| **Versión:** 1.1 |
-| **Fecha:** 2026-06-10 |
-| **Estado:** Auditoría en Progreso |
+| **Versión:** 1.2 |
+| **Fecha:** 2026-06-11 |
+| **Estado:** Auditoría de Viabilidad Operativa Aplicada |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -55,17 +55,17 @@ node "Servidor de Base de Datos" as DBServer {
 
 ' Conexiones de Red
 MobileNode .up.> Proxy : "HTTPS / JSON\n(Sincronización API)"
-MobileNode .right.> Proxy : "WSS (SignalR)\n[Heartbeat Bidireccional 200ms]"
+MobileNode .right.> Proxy : "WSS (SignalR)\n[Heartbeat Bidireccional 2s]"
 MobileNode .down.> IoTHub : "MQTT\n(Telemetría directa)"
 
 Backend -down-> RDBMS : "TCP/IP (EF Core)"
 Backend -right-> IoTHub : "AMQP (Consumo)"
 
 note left of Watchdog
-    **Watchdog de Seguridad:**
+    **Capa Administrativa de Seguridad:**
+    Tolerancia a ruido EMI industrial.
     Si fallan 3 ciclos de Heartbeat
-    (600ms), el Watchdog "dispara"
-    y bloquea localmente la App
-    (Energía Cero Incierta).
+    (6 segundos), el Watchdog
+    bloquea localmente la App.
 end note
 @enduml
