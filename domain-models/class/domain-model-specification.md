@@ -501,35 +501,35 @@ El conjunto de cápsulas aprobadas proporciona una fuerte orientación para LOTO
 
 ### 5.5 Gobernanza y Seguridad
 
-| Entidad               | Campo Lógico          | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                      |
-| --------------------- | --------------------- | -------------------------- | ----------- | ---------------------- | ------------------------------------------------------------------ |
-| `User`                | `username`            | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad de la cuenta de usuario.                                 |
-| `User`                | `email`               | `VARCHAR(150)`             | NOT NULL    | UNIQUE                 | Correo electrónico institucional y de contacto.                    |
-| `User`                | `status`              | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de la cuenta (ACTIVE, INACTIVE, LOCKED).                    |
-| `User`                | `passwordHash`        | `VARCHAR(255)`             | NOT NULL    |                        | Hash de la contraseña de acceso (PBKDF2/BCrypt).                   |
-| `User`                | `failedLoginAttempts` | `INT`                      | NOT NULL    | DEFAULT 0              | Contador de intentos fallidos de autenticación.                    |
-| `User`                | `lockoutUntil`        | `TIMESTAMP`                | NULL        |                        | Fin del periodo de bloqueo temporal.                               |
-| `User`                | `mfaEnabled`          | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera que indica si la autenticación multifactor está activa.    |
-| `User`                | `totpSecret`          | `VARCHAR(255)`             | NULL        |                        | Secreto compartido para autenticación TOTP (Autenticador).         |
-| `Role`                | `roleName`            | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identificador del rol de usuario (ej. Planner, Technician).        |
-| `Role`                | `description`         | `VARCHAR(255)`             | NULL        |                        | Descripción del alcance del rol.                                   |
-| `Role`                | `isSystemRole`        | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera para roles inmutables del sistema.                         |
-| `RolePermission`      | `module`              | `VARCHAR(80)`              | NOT NULL    |                        | Módulo del sistema (ej. MTTO, INV, VIS).                           |
-| `RolePermission`      | `action`              | `VARCHAR(80)`              | NOT NULL    |                        | Acción permitida (ej. READ, CREATE, UPDATE, SIGN_OFF).             |
-| `AuthToken`           | `tokenHash`           | `VARCHAR(255)`             | NOT NULL    | UNIQUE                 | Hash del token de autenticación API / sesión.                      |
-| `AuthToken`           | `expiresAt`           | `TIMESTAMP`                | NOT NULL    |                        | Fecha y hora de expiración del token.                              |
-| `AuthToken`           | `isUsed`              | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Indica si el token ya fue consumido (uso único).                   |
-| `AuthToken`           | `ipAddress`           | `VARCHAR(45)`              | NULL        |                        | Dirección IP desde la que se emitió el token (IPv4/IPv6).          |
-| `AuthToken`           | `userAgent`           | `VARCHAR(255)`             | NULL        |                        | Identificador del cliente/navegador para fingerprinting.           |
-| `WorkOrderAssignment` | `roleInWork`          | `VARCHAR(50)`              | NOT NULL    |                        | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR).     |
-| `WorkOrderAssignment` | `assignedAt`          | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal de la asignación.                                |
-| `AuditLog`            | `entityType`          | `VARCHAR(80)`              | NOT NULL    |                        | Nombre de la tabla/entidad auditada.                               |
-| `AuditLog`            | `entityIdentifier`    | `VARCHAR(80)`              | NOT NULL    |                        | Identificador UUID de la fila modificada.                          |
-| `AuditLog`            | `actionType`          | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Tipo de operación DML (CREATE, UPDATE, DELETE).                    |
-| `AuditLog`            | `timestamp`           | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal preciso del evento de cambio.                    |
-| `AuditLog`            | `previousState`       | `JSON`                     | NULL        |                        | Representación JSON del estado de los campos antes de la acción.   |
-| `AuditLog`            | `newState`            | `JSON`                     | NULL        |                        | Representación JSON del estado de los campos después de la acción. |
-| `AuditLog`            | `integrityHash`       | `VARCHAR(255)`             | NOT NULL    |                        | Hash SHA-256 encadenado para detectar manipulación del log.        |
+| Entidad               | Campo Lógico          | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                               |
+| --------------------- | --------------------- | -------------------------- | ----------- | ---------------------- | --------------------------------------------------------------------------- |
+| `User`                | `username`            | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad de la cuenta de usuario.                                          |
+| `User`                | `email`               | `VARCHAR(150)`             | NOT NULL    | UNIQUE                 | Correo electrónico institucional y de contacto.                             |
+| `User`                | `status`              | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de la cuenta (ACTIVE, INACTIVE, LOCKED).                             |
+| `User`                | `passwordHash`        | `VARCHAR(255)`             | NOT NULL    |                        | Hash de la contraseña de acceso (PBKDF2/BCrypt).                            |
+| `User`                | `failedLoginAttempts` | `INT`                      | NOT NULL    | DEFAULT 0              | Contador de intentos fallidos de autenticación.                             |
+| `User`                | `lockoutUntil`        | `TIMESTAMP`                | NULL        |                        | Fin del periodo de bloqueo temporal.                                        |
+| `User`                | `mfaEnabled`          | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera que indica si la autenticación multifactor está activa.             |
+| `User`                | `totpSecret`          | `VARCHAR(255)`             | NULL        |                        | Secreto compartido para autenticación TOTP (Autenticador).                  |
+| `Role`                | `roleName`            | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identificador del rol de usuario (ej. Planner, Technician).                 |
+| `Role`                | `description`         | `VARCHAR(255)`             | NULL        |                        | Descripción del alcance del rol.                                            |
+| `Role`                | `isSystemRole`        | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera para roles inmutables del sistema.                                  |
+| `RolePermission`      | `module`              | `VARCHAR(80)`              | NOT NULL    |                        | Módulo del sistema (ej. MTTO, INV, VIS).                                    |
+| `RolePermission`      | `action`              | `VARCHAR(80)`              | NOT NULL    |                        | Acción permitida (ej. READ, CREATE, UPDATE, SIGN_OFF).                      |
+| `AuthToken`           | `tokenHash`           | `VARCHAR(255)`             | NOT NULL    | UNIQUE                 | Hash del token de autenticación API / sesión.                               |
+| `AuthToken`           | `expiresAt`           | `TIMESTAMP`                | NOT NULL    |                        | Fecha y hora de expiración del token.                                       |
+| `AuthToken`           | `isUsed`              | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Indica si el token ya fue consumido (uso único).                            |
+| `AuthToken`           | `ipAddress`           | `VARCHAR(45)`              | NULL        |                        | Dirección IP desde la que se emitió el token (IPv4/IPv6).                   |
+| `AuthToken`           | `userAgent`           | `VARCHAR(255)`             | NULL        |                        | Identificador del cliente/navegador para fingerprinting.                    |
+| `WorkOrderAssignment` | `roleInWork`          | `VARCHAR(50)`              | NOT NULL    |                        | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR).              |
+| `WorkOrderAssignment` | `assignedAt`          | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal de la asignación.                                         |
+| `AuditLog`            | `entityType`          | `VARCHAR(80)`              | NOT NULL    |                        | Nombre de la tabla/entidad auditada.                                        |
+| `AuditLog`            | `entityIdentifier`    | `VARCHAR(80)`              | NOT NULL    |                        | Identificador UUID de la fila modificada.                                   |
+| `AuditLog`            | `actionType`          | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Tipo de operación DML (CREATE, UPDATE, DELETE).                             |
+| `AuditLog`            | `timestamp`           | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal preciso del evento de cambio.                             |
+| `AuditLog`            | `previousState`       | `JSONB`                    | NULL        |                        | Representación JSON descompuesta binaria  de los campos antes de la acción  |
+| `AuditLog`            | `newState`            | `JSONB`                    | NULL        |                        | Representación JSON descompuesta binaria de los campos después de la acción |
+| `AuditLog`            | `integrityHash`       | `VARCHAR(255)`             | NOT NULL    |                        | Hash SHA-256 encadenado para detectar manipulación del log.                 |
 
 ## 6. Matriz de Correspondencia de Tipos de Datos (SQL Estándar vs. PostgreSQL)
 

@@ -27,8 +27,8 @@ skinparam package {
 legend top right
     |= Control Documental (ISO 9001:2015) |
     | **Código:** DT-ERD-CON-001 |
-    | **Versión:** 1.7 |
-    | **Fecha:** 2026-05-24 |
+    | **Versión:** 1.8 |
+    | **Fecha:** 2026-07-07 |
     | **Estado:** Auditoría Normativa Completada |
     | **Autor:** Juan David Julio Serrano |
 endlegend
@@ -62,6 +62,7 @@ package "Convergencia Gemelo Digital (VIS)" as visual_module {
     entity "TelemetrySignal" as telemetry_signals
     entity "WorkPermit" as work_permits
     entity "IsolationPoint" as isolation_points
+    entity "WorkOrderIsolation" as work_order_isolations
     entity "VisualLayer" as visual_layers
 }
 
@@ -99,6 +100,7 @@ equipment_classes "1" -- "0..*" failure_records : "define modos de"
 ' Inventario
 maintainable_items "1" -- "0..*" spare_parts : "requiere"
 spare_parts "1" -- "0..*" inventory_transactions : "genera"
+warehouses "0..1" -- "0..*" equipment_units : "resguarda en stock"
 warehouses "1" -- "0..*" inventory_transactions : "registra en"
 work_orders "1" -- "0..*" inventory_transactions : "consume"
 suppliers "1" -- "0..*" spare_parts : "provee"
@@ -108,7 +110,8 @@ equipment_classes "1" -- "0..*" spare_parts : "estandariza"
 equipment_units "1" -- "0..1" mesh_mappings : "vincula"
 equipment_units "1" -- "0..*" telemetry_signals : "transmite"
 equipment_units "1" -- "0..*" work_permits : "requiere para"
-work_permits "1" -- "1..*" isolation_points : "exige"
+work_orders "1" *-- "0..*" work_order_isolations : "exige"
+work_order_isolations "0..*" -- "1" isolation_points : "aplica sobre"
 work_orders "1" -- "0..*" visual_layers : "proyecta en"
 
 ' Gobernanza / Seguridad (ADM)

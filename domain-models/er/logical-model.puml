@@ -28,8 +28,8 @@ skinparam package {
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-ERD-LOG-001 |
-| **Versión:** 1.8 |
-| **Fecha:** 2026-05-29 |
+| **Versión:** 1.9 |
+| **Fecha:** 2026-07-07 |
 | **Estado:** Auditoría Normativa Completada |
 | **Autor:** Juan David Julio Serrano |
 endlegend
@@ -78,6 +78,7 @@ package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
         health_status : VARCHAR(30)
         functional_location_id : UUID <<FK, unique>>
         * equipment_class_id : UUID <<FK>>
+        warehouse_id : UUID <<FK>>
     }
 
     entity "subunits" as subunits {
@@ -110,10 +111,7 @@ package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
         * request_date : TIMESTAMP
         * request_source : VARCHAR(80)
         * status : VARCHAR(20)
-        * risk_factor : VARCHAR(20)
-        * impact_factor : VARCHAR(20)
-        * maintainability_factor : VARCHAR(20)
-        * economy_factor : VARCHAR(20)
+        * work_class_code : SMALLINT
     }
 
     entity "maintenance_plans" as maintenance_plans {
@@ -123,7 +121,9 @@ package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
         * maintenance_method : VARCHAR(80)
         * frequency : VARCHAR(50)
         * frequency_type : VARCHAR(20)
-        * next_work_order_date : DATE
+        next_work_order_date : DATE
+        interval_value : DECIMAL(12,2)
+        next_trigger_limit : DECIMAL(12,2)
         * status : VARCHAR(20)
     }
 
@@ -382,8 +382,8 @@ package "Seguridad y Gobernanza (ADM)" as adm_module {
         * entity_identifier : VARCHAR(80)
         * action_type : VARCHAR(20)
         * timestamp : TIMESTAMP
-        previous_state : JSON
-        new_state : JSON
+        previous_state : JSONB
+        new_state : JSONB
         * integrity_hash : VARCHAR(255)
     }
 }
@@ -415,6 +415,7 @@ suppliers ||--o{ spare_parts : "suministra"
 equipment_classes ||--o{ spare_parts : "estandariza"
 spare_parts ||--o{ inventory_transactions : "involucrado en"
 warehouses ||--o{ inventory_transactions : "almacena"
+warehouses ||--o{ equipment_units : "resguarda en stock (ON DELETE SET NULL)"
 work_orders ||--o{ inventory_transactions : "genera"
 
 work_orders ||--|{ material_requirements : "planifica (ON DELETE CASCADE)"
