@@ -22,8 +22,8 @@ skinparam cloud {
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-ARQ-DEP-001 |
-| **Versión:** 1.2 |
-| **Fecha:** 2026-06-11 |
+| **Versión:** 1.3 |
+| **Fecha:** 2026-07-07 |
 | **Estado:** Auditoría de Viabilidad Operativa Aplicada |
 | **Autor:** Juan David Julio Serrano |
 endlegend
@@ -37,11 +37,19 @@ node "Dispositivo Móvil (Edge Node)\n[Android / iOS]" as MobileNode {
     Watchdog -left-> LocalDB : "Bloqueo Preventivo\nsi falla Heartbeat"
 }
 
+node "Estación de Control Local (Edge)\n[SCADA]" as ScadaNode {
+    component "SCADA Engine\n(Instrument/Sensor Emulator)" as ScadaApp
+}
+
 cloud "Azure Cloud Platform" as Azure {
     node "Azure IoT Hub" as IoTHub
 }
 
-node "Servidor Cloud Host\n[Ubuntu Linux VPS]" as HostNode {
+node "Servidor Cloud Host\n[Nube / VPS Estudiante]" as HostNode {
+    note top of HostNode
+        Hospedado con créditos de estudiante
+        (GitHub Student Pack / Heroku / Azure VM)
+    end note
     node "Docker Engine" as Docker {
         component "Nginx\n(Reverse Proxy / TLS)" as Proxy
         component "Backend API Monolith\n(.NET 10)" as Backend
@@ -50,13 +58,17 @@ node "Servidor Cloud Host\n[Ubuntu Linux VPS]" as HostNode {
 }
 
 node "Servidor de Base de Datos" as DBServer {
+    note top of DBServer
+        Postgres administrado o contenedor
+        vía créditos GitHub Student Pack
+    end note
     database "PostgreSQL 16 +\nTimescaleDB Extension" as RDBMS
 }
 
 ' Conexiones de Red
 MobileNode .up.> Proxy : "HTTPS / JSON\n(Sincronización API)"
 MobileNode .right.> Proxy : "WSS (SignalR)\n[Heartbeat Bidireccional 2s]"
-MobileNode .down.> IoTHub : "MQTT\n(Telemetría directa)"
+ScadaNode .right.> IoTHub : "MQTT\n(Telemetría de proceso real)"
 
 Backend -down-> RDBMS : "TCP/IP (EF Core)"
 Backend -right-> IoTHub : "AMQP (Consumo)"
