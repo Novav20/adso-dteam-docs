@@ -1,6 +1,7 @@
 ---
-date: 2026-05-14
-status: Aceptado
+date: 2026-07-07
+status: DEPRECATED
+notes:  La simplificación metodológica adoptada en la revisión de arquitectura del 7 de julio de 2026 reemplazó la necesidad de aplicar el patrón Strategy para aislar variables del inventario.
 author: Juan David Julio Serrano
 linked_to: MTTO-026 — Gestión de Backlog mediante Priorización Objetiva (RIME)
 ---

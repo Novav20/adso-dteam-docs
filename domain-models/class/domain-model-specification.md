@@ -1,8 +1,8 @@
 ---
 code: DT-DM-DOC-001
-version: 1.8
-date: 2026-05-29
-status: Auditoría Normativa Completada
+version: 1.9
+date: 2026-07-07
+status: Adición de propiedades para el mantenimiento por condición y la tabla WorkOrdeIsolation en la sección de estereotipos; Simplificación de RIME
 author: Juan David Julio Serrano
 standard:
   - ISO 9001:2015
@@ -33,11 +33,11 @@ El campo `status` se descompone en cuatro dimensiones independientes y especiali
 
 Esta división reduce el acoplamiento, evita sobrecargar la lógica de negocio y previene almacenar significados no relacionados en un solo campo. También facilita la validación transaccional porque cada dimensión puede restringirse de forma independiente.
 
-### 2.2 Factores Cualitativos RIME
+### 2.2 Priorización RIME Estandarizada
 
-Los factores RIME en `WorkRequest` son tratados como selectores cualitativos en lugar de fórmulas monetarias fijas. Esto es importante para el MVP porque el backlog de mantenimiento debe funcionar en diferentes plantas con distintas escalas financieras, diferentes costos por tiempo de inactividad y diferentes niveles de madurez operativa.
+Para cumplir con la gestión de riesgos exigida por la norma ISO 55001 y las mejores prácticas de la ingeniería de mantenimiento, el sistema adopta el estándar RIME (Ranking Index for Maintenance Expenditure). 
 
-Usar `CRITICAL`, `MAJOR` y `MINOR` como los niveles base mantiene el modelo auditable y comparable mientras permite que el motor de cálculo permanezca estable. Por lo tanto, el `economyFactor` no es un rango de moneda fijo (hard-coded) en el modelo de dominio; es un nivel de priorización relativo que puede ser mapeado a bandas de costos locales en la configuración.
+Se descartan las aproximaciones heurísticas complejas de múltiples factores cualitativos, reduciendo la fórmula del backlog a un cálculo matemático directo de dos dimensiones controladas: la **Criticidad del Activo** (un valor intrínseco de la ficha técnica del equipo, escala 1-10) y la **Clase de Trabajo** (el tipo de actividad declarada en la orden, escala 1-10). Esto garantiza objetividad absoluta, velocidad de procesamiento transaccional en el MVP, simplicidad en el desarrollo frontend/backend y eliminación de acoplamientos con módulos financieros externos.
 
 ### 2.3 Aislamiento Multi-Fuente y Extensibilidad de Seguridad
 
@@ -78,6 +78,7 @@ El conjunto de cápsulas aprobadas proporciona una fuerte orientación para LOTO
 | `VisualLayer`          | `Entity`         | Registro de presentación asociado con una orden de trabajo y estado visual.                                      | ISO 9000 comportamiento de registros                                  |
 | `SpatialMetadata`      | `Value Object`   | Descriptor inmutable de ubicación y geometría para un artefacto visual.                                          | ISO 9000 separación de datos vs. información                          |
 | `User`                 | `Aggregate Root` | Raíz del ciclo de vida de cuenta, contraseña, bloqueo (lockout) y token.                                         | ISO 55000 gobernanza de auditorías; ISO 9000 control de auditorías    |
+| `WorkOrderIsolation`   | `Entity`         | Representa el estado y registro temporal del bloqueo de seguridad de un punto de aislamiento para una OT.        | ISO 55000 orientación LOTO; ISO 14224                                 |
 | `Role`                 | `Aggregate Root` | Raíz de la semántica de autorización y agrupación de permisos.                                                   | ISO 55000 orientación de competencias y roles                         |
 | `Permission`           | `Value Object`   | Regla de autorización atómica sin ciclo de vida independiente.                                                   | ISO 9000 flujo de trabajo controlado                                  |
 | `AuthToken`            | `Entity`         | Tiene ciclo de vida de emisión, uso y caducidad, y debe permanecer rastreable hasta su propietario.              | ISO 9000 trazabilidad                                                 |
@@ -89,458 +90,463 @@ El conjunto de cápsulas aprobadas proporciona una fuerte orientación para LOTO
 
 ### 4.1 `EquipmentUnit.operationalStatus`
 
-| Valor | Significado |
-|---|---|
-| `UP` | El activo está en funcionamiento o listo en un sentido operativo. |
-| `DOWN` | El activo no está disponible debido a una falla o interrupción. |
-| `STANDBY` | El activo está listo pero no está produciendo activamente. |
+| Valor     | Significado                                                       |
+| --------- | ----------------------------------------------------------------- |
+| `UP`      | El activo está en funcionamiento o listo en un sentido operativo. |
+| `DOWN`    | El activo no está disponible debido a una falla o interrupción.   |
+| `STANDBY` | El activo está listo pero no está produciendo activamente.        |
 
 ### 4.2 `EquipmentUnit.lifecycleStatus`
 
-| Valor | Significado |
-|---|---|
-| `IN_STORAGE` | El activo existe como inventario pero no está instalado. |
-| `INSTALLED` | El activo está instalado físicamente en su ubicación funcional. |
-| `COMMISSIONING` | El activo está siendo puesto en servicio. |
-| `DECOMMISSIONED` | El activo ha sido retirado permanentemente del servicio. |
+| Valor            | Significado                                                     |
+| ---------------- | --------------------------------------------------------------- |
+| `IN_STORAGE`     | El activo existe como inventario pero no está instalado.        |
+| `INSTALLED`      | El activo está instalado físicamente en su ubicación funcional. |
+| `COMMISSIONING`  | El activo está siendo puesto en servicio.                       |
+| `DECOMMISSIONED` | El activo ha sido retirado permanentemente del servicio.        |
 
 ### 4.3 `EquipmentUnit.maintenanceStatus`
 
-| Valor | Significado |
-|---|---|
-| `OPERATIONAL` | El activo no se encuentra actualmente bajo intervención de mantenimiento. |
-| `UNDER_MAINTENANCE` | El activo está siendo reparado o atendido activamente. |
-| `UNDER_TEST` | El activo está bajo verificación o prueba funcional. |
+| Valor               | Significado                                                               |
+| ------------------- | ------------------------------------------------------------------------- |
+| `OPERATIONAL`       | El activo no se encuentra actualmente bajo intervención de mantenimiento. |
+| `UNDER_MAINTENANCE` | El activo está siendo reparado o atendido activamente.                    |
+| `UNDER_TEST`        | El activo está bajo verificación o prueba funcional.                      |
 
-### 4.4 Vocabularios de factores RIME
+### 4.4 Vocabulario Controlado de Clase de Trabajo (Work Class RIME)
 
-Los cuatro factores de `WorkRequest` utilizan los mismos niveles controlados.
-
-| Valor | Peso | Significado |
-|---|---|---|
-| `CRITICAL` | 3 | Prioridad más alta / exposición máxima. |
-| `MAJOR` | 2 | Prioridad media / exposición material. |
-| `MINOR` | 1 | Prioridad más baja / exposición limitada. |
+| Código (Peso) | Clase de Trabajo                           | Ejemplo Industrial                                                 |
+| ------------- | ------------------------------------------ | ------------------------------------------------------------------ |
+| 10            | Emergencia de Seguridad o Ambiental        | Fuga de hidrocarburos, falla de aislamiento de seguridad crítica.  |
+| 9             | Parada de Producción (Downtime Directo)    | Falla funcional catastrófica en un activo crítico (Bomba Nivel 6). |
+| 8             | Trabajo de Alta Prioridad de Proceso       | Degradación de rendimiento con riesgo inminente de detención.      |
+| 7             | Mantenimiento Preventivo (PM) Regulado     | Calibraciones de seguridad instrumentada exigidas por ley.         |
+| 6             | Mantenimiento Preventivo Sistemático       | Planes cíclicos calendario o por telemetría.                       |
+| 5             | Mantenimiento Predictivo (Análisis / Ruta) | Inspección de vibraciones, termografía planificada.                |
+| 4             | Trabajo Correctivo No Crítico              | Reparación de fallas con redundancia activa en el sistema.         |
+| 3             | Modificaciones de Ingeniería (Mejoras)     | Proyectos de optimización CAPEX (No urgentes).                     |
+| 2             | Trabajos Estéticos / Orden y Aseo          | Pintura de estructuras, barandas, limpieza general.                |
+| 1             | Trabajo por Conveniencia Operativa         | Ajustes menores de confort o soporte administrativo.               |
 
 ### 4.5 `MaintenancePlan.frequencyType`
 
-| Valor | Significado |
-|---|---|
-| `CALENDAR_TIME` | El plan es impulsado por el tiempo calendario transcurrido. |
+| Valor             | Significado                                                      |
+| ----------------- | ---------------------------------------------------------------- |
+| `CALENDAR_TIME`   | El plan es impulsado por el tiempo calendario transcurrido.      |
 | `OPERATING_HOURS` | El plan es impulsado por las horas de funcionamiento acumuladas. |
-| `CYCLES` | El plan es impulsado por ciclos o arranques. |
+| `CYCLES`          | El plan es impulsado por ciclos o arranques.                     |
 
 ### 4.6 `TelemetrySignal.signalType`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `TEMPERATURE` | Medición térmica. | Sensor de Temperatura |
-| `PRESSURE` | Medición de presión de fluidos/gases. | Sensor de Presión |
-| `VIBRATION` | Medición de oscilaciones mecánicas. | Análisis de Vibraciones |
-| `FLOW_RATE` | Medición de caudal o flujo. | Caudalímetro |
-| `VOLTAGE` | Medición de tensión eléctrica. | Sensor de Tensión |
-| `RPM` | Medición de velocidad angular. | Tacómetro |
+| Valor         | Significado                           | Norma / Concepto        |
+| ------------- | ------------------------------------- | ----------------------- |
+| `TEMPERATURE` | Medición térmica.                     | Sensor de Temperatura   |
+| `PRESSURE`    | Medición de presión de fluidos/gases. | Sensor de Presión       |
+| `VIBRATION`   | Medición de oscilaciones mecánicas.   | Análisis de Vibraciones |
+| `FLOW_RATE`   | Medición de caudal o flujo.           | Caudalímetro            |
+| `VOLTAGE`     | Medición de tensión eléctrica.        | Sensor de Tensión       |
+| `RPM`         | Medición de velocidad angular.        | Tacómetro               |
 
 ### 4.7 `VisualLayer.status`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `VISIBLE` | Capa visualizada activamente en el visor 3D. | Estado Renderizado |
-| `HIDDEN` | Capa oculta temporalmente. | Estado Renderizado |
+| Valor     | Significado                                             | Norma / Concepto   |
+| --------- | ------------------------------------------------------- | ------------------ |
+| `VISIBLE` | Capa visualizada activamente en el visor 3D.            | Estado Renderizado |
+| `HIDDEN`  | Capa oculta temporalmente.                              | Estado Renderizado |
 | `GHOSTED` | Capa visible con transparencia para revelar interiores. | Estado Renderizado |
 
 ### 4.8 `RolePermission.module`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `ASSETS` | Gestión de taxonomía, equipos y planes. | Dominio de Activos |
-| `MAINTENANCE` | Gestión de solicitudes, backlog e historial. | Dominio de Mantenimiento |
-| `INVENTORY` | Gestión de repuestos, almacenes y movimientos. | Dominio de Inventario |
-| `SAFETY` | Gestión de telemetría, permisos LOTO y aislamientos. | Dominio de Seguridad |
-| `SYSTEM` | Gobernanza, usuarios, roles y logs de auditoría. | Dominio IAM |
+| Valor         | Significado                                          | Norma / Concepto         |
+| ------------- | ---------------------------------------------------- | ------------------------ |
+| `ASSETS`      | Gestión de taxonomía, equipos y planes.              | Dominio de Activos       |
+| `MAINTENANCE` | Gestión de solicitudes, backlog e historial.         | Dominio de Mantenimiento |
+| `INVENTORY`   | Gestión de repuestos, almacenes y movimientos.       | Dominio de Inventario    |
+| `SAFETY`      | Gestión de telemetría, permisos LOTO y aislamientos. | Dominio de Seguridad     |
+| `SYSTEM`      | Gobernanza, usuarios, roles y logs de auditoría.     | Dominio IAM              |
 
 ### 4.9 `SparePart.stockPolicy`
 
-| Valor | Significado |
-|---|---|
+| Valor           | Significado                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
 | `REORDER_POINT` | Reabastecer cuando el inventario alcance un umbral de activación (trigger). |
-| `MIN_MAX` | Mantener el stock entre niveles mínimo y máximo. |
-| `JUST_IN_TIME` | Reabastecer solo cuando se espere demanda. |
+| `MIN_MAX`       | Mantener el stock entre niveles mínimo y máximo.                            |
+| `JUST_IN_TIME`  | Reabastecer solo cuando se espere demanda.                                  |
 
 ### 4.10 `MediaAttachment.fileType`
 
-| Valor | Significado |
-|---|---|
+| Valor | Significado                                               |
+| ----- | --------------------------------------------------------- |
 | `PDF` | Portable Document Format (Formato de Documento Portátil). |
-| `JPG` | Archivo de imagen JPEG. |
-| `PNG` | Archivo de imagen Portable Network Graphics. |
+| `JPG` | Archivo de imagen JPEG.                                   |
+| `PNG` | Archivo de imagen Portable Network Graphics.              |
 
 ### 4.11 `MaintainableItem.status`
 
-| Valor | Significado | Norma de Referencia |
-|---|---|---|
-| `OPERATIONAL` | Saludable y operando dentro de los parámetros de diseño. | ISO 13374 (Normal) |
-| `DEGRADED` | Falla parcial o advertencia de condición; requiere monitoreo o intervención planificada. | ISO 14224 (Partial Failure) / ISO 13374 (Alert) |
-| `FAILED` | Falla funcional completa; el ítem ya no puede realizar su función requerida. | ISO 14224 (Complete Failure) |
-| `UNDER_REPAIR` | El componente está siendo mantenido, reparado o reemplazado activamente. | Estado transaccional EAM |
-| `REPLACED` | Fin del ciclo de vida del componente en esa ubicación; conservado para historial de MTBF. | Historial de Confiabilidad |
+| Valor          | Significado                                                                               | Norma de Referencia                             |
+| -------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `OPERATIONAL`  | Saludable y operando dentro de los parámetros de diseño.                                  | ISO 13374 (Normal)                              |
+| `DEGRADED`     | Falla parcial o advertencia de condición; requiere monitoreo o intervención planificada.  | ISO 14224 (Partial Failure) / ISO 13374 (Alert) |
+| `FAILED`       | Falla funcional completa; el ítem ya no puede realizar su función requerida.              | ISO 14224 (Complete Failure)                    |
+| `UNDER_REPAIR` | El componente está siendo mantenido, reparado o reemplazado activamente.                  | Estado transaccional EAM                        |
+| `REPLACED`     | Fin del ciclo de vida del componente en esa ubicación; conservado para historial de MTBF. | Historial de Confiabilidad                      |
 
 ### 4.12 `WorkRequest.status`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `NEW` | Solicitud recién creada y pendiente de evaluación. | Admisión básica de CMMS |
-| `APPROVED` | Aprobada y promovida a Orden de Trabajo (`WorkOrder`). | Transición a planificación |
-| `REJECTED` | Rechazada por ser inválida, duplicada o falsa alarma. | Trazabilidad de falsos positivos |
+| Valor      | Significado                                            | Norma / Concepto                 |
+| ---------- | ------------------------------------------------------ | -------------------------------- |
+| `NEW`      | Solicitud recién creada y pendiente de evaluación.     | Admisión básica de CMMS          |
+| `APPROVED` | Aprobada y promovida a Orden de Trabajo (`WorkOrder`). | Transición a planificación       |
+| `REJECTED` | Rechazada por ser inválida, duplicada o falsa alarma.  | Trazabilidad de falsos positivos |
 
 ### 4.13 `MaintenancePlan.status`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `DRAFT` | Plan en fase de diseño o revisión técnica, inactivo. | Control documental |
-| `ACTIVE` | Activo y disparando órdenes de trabajo según su ciclo. | Operativo |
-| `INACTIVE` | Desactivado temporalmente por parada o cambio operativo. | Suspensión de ciclos |
+| Valor      | Significado                                                     | Norma / Concepto        |
+| ---------- | --------------------------------------------------------------- | ----------------------- |
+| `DRAFT`    | Plan en fase de diseño o revisión técnica, inactivo.            | Control documental      |
+| `ACTIVE`   | Activo y disparando órdenes de trabajo según su ciclo.          | Operativo               |
+| `INACTIVE` | Desactivado temporalmente por parada o cambio operativo.        | Suspensión de ciclos    |
 | `ARCHIVED` | Obsoleto o reemplazado; conservado para historial de auditoría. | ISO 55001 Ciclo de Vida |
 
 ### 4.14 `MaintenancePlan.maintenanceMethod`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `PREVENTIVE` | Mantenimiento preventivo sistemático (basado en tiempo/uso). | ISO 14224 (Preventative) |
-| `PREDICTIVE` | Monitoreo predictivo (análisis de vibraciones, termografía, etc.). | ISO 14224 (Condition-based) |
-| `CONDITION_BASED` | Acciones directas disparadas por límites de sensores en telemetría. | ISO 13374 / CBM |
+| Valor             | Significado                                                         | Norma / Concepto            |
+| ----------------- | ------------------------------------------------------------------- | --------------------------- |
+| `PREVENTIVE`      | Mantenimiento preventivo sistemático (basado en tiempo/uso).        | ISO 14224 (Preventative)    |
+| `PREDICTIVE`      | Monitoreo predictivo (análisis de vibraciones, termografía, etc.).  | ISO 14224 (Condition-based) |
+| `CONDITION_BASED` | Acciones directas disparadas por límites de sensores en telemetría. | ISO 13374 / CBM             |
 
 ### 4.15 `WorkOrder.currentStatus`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `PLANNING` | Definición de repuestos, permisos LOTO y recursos. | FSM - Planificación |
-| `WAITING_PARTS` | Espera activa de repuestos en almacén/compras. | FSM - Cuello de botella logístico |
-| `SCHEDULED` | Asignado con técnico y fecha de ejecución programada. | FSM - Programación |
-| `IN_PROGRESS` | El técnico está ejecutando la labor (clock-in activo). | FSM - Ejecución ("Wrench Time") |
-| `COMPLETE` | Trabajo técnico finalizado, en espera de revisión. | FSM - Pre-cierre técnico |
-| `CLOSED` | Cerrada administrativamente e ingresados los códigos de falla. | FSM - QA / Auditoría ISO 14224 |
+| Valor           | Significado                                                    | Norma / Concepto                  |
+| --------------- | -------------------------------------------------------------- | --------------------------------- |
+| `PLANNING`      | Definición de repuestos, permisos LOTO y recursos.             | FSM - Planificación               |
+| `WAITING_PARTS` | Espera activa de repuestos en almacén/compras.                 | FSM - Cuello de botella logístico |
+| `SCHEDULED`     | Asignado con técnico y fecha de ejecución programada.          | FSM - Programación                |
+| `IN_PROGRESS`   | El técnico está ejecutando la labor (clock-in activo).         | FSM - Ejecución ("Wrench Time")   |
+| `COMPLETE`      | Trabajo técnico finalizado, en espera de revisión.             | FSM - Pre-cierre técnico          |
+| `CLOSED`        | Cerrada administrativamente e ingresados los códigos de falla. | FSM - QA / Auditoría ISO 14224    |
 
 **Restricciones de Transición FSM (Seguridad Industrial & LOTO):**
-*   Para transicionar de cualquier estado previo (`PLANNING`, `SCHEDULED`, `WAITING_PARTS`) a **`IN_PROGRESS`**, el sistema debe verificar programáticamente las siguientes precondiciones:
-    1.  **Permiso de Trabajo (`WorkPermit`):** Debe existir un permiso de trabajo asociado y su estado (`status`) debe ser estrictamente `APPROVED`.
-    2.  **Bloqueo y Etiquetado (`LOTO`):** Todos los puntos de aislamiento declarados para la orden de trabajo en la tabla intermedia `work_order_isolations` deben tener su estado de bloqueo verificado (`is_isolated = TRUE` e `isolated_at` no nulo).
+
+- Para transicionar de cualquier estado previo (`PLANNING`, `SCHEDULED`, `WAITING_PARTS`) a **`IN_PROGRESS`**, el sistema debe verificar programáticamente las siguientes precondiciones:
+  1.  **Permiso de Trabajo (`WorkPermit`):** Debe existir un permiso de trabajo asociado y su estado (`status`) debe ser estrictamente `APPROVED`.
+  2.  **Bloqueo y Etiquetado (`LOTO`):** Todos los puntos de aislamiento declarados para la orden de trabajo en la tabla intermedia `work_order_isolations` deben tener su estado de bloqueo verificado (`is_isolated = TRUE` e `isolated_at` no nulo).
 
 ### 4.16 `WorkOrder.maintenanceMethod`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `CORRECTIVE` | Mantenimiento correctivo reactivo (reparación tras falla). | ISO 14224 (Corrective) |
-| `PREVENTIVE` | Preventivo sistemático programado (derivado de plan). | ISO 14224 (Preventative) |
-| `PREDICTIVE` | Monitoreo o inspección predictiva programada. | ISO 14224 (Condition-based) |
-| `IMPROVEMENT` | Modificación, rediseño o mejora técnica (CAPEX/OPEX). | Gestión de Cambios / Ingeniería |
+| Valor         | Significado                                                | Norma / Concepto                |
+| ------------- | ---------------------------------------------------------- | ------------------------------- |
+| `CORRECTIVE`  | Mantenimiento correctivo reactivo (reparación tras falla). | ISO 14224 (Corrective)          |
+| `PREVENTIVE`  | Preventivo sistemático programado (derivado de plan).      | ISO 14224 (Preventative)        |
+| `PREDICTIVE`  | Monitoreo o inspección predictiva programada.              | ISO 14224 (Condition-based)     |
+| `IMPROVEMENT` | Modificación, rediseño o mejora técnica (CAPEX/OPEX).      | Gestión de Cambios / Ingeniería |
 
 ### 4.17 `WorkOrder.criticality`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
+| Valor       | Significado                                                           | Norma / Concepto  |
+| ----------- | --------------------------------------------------------------------- | ----------------- |
 | `EMERGENCY` | Detención total de planta, riesgo de seguridad o ambiental inminente. | Criticidad Máxima |
-| `URGENT` | Falla con impacto operativo inmediato; reparar en menos de 24-48h. | Prioridad Alta |
-| `NORMAL` | Planificable dentro de los ciclos y ventanas semanales. | Prioridad Media |
-| `LOW` | Tareas estéticas o menores de conveniencia operativa. | Prioridad Baja |
+| `URGENT`    | Falla con impacto operativo inmediato; reparar en menos de 24-48h.    | Prioridad Alta    |
+| `NORMAL`    | Planificable dentro de los ciclos y ventanas semanales.               | Prioridad Media   |
+| `LOW`       | Tareas estéticas o menores de conveniencia operativa.                 | Prioridad Baja    |
 
 ### 4.18 `BacklogItem.status`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `PENDING` | En espera de análisis técnico o definición de materiales. | Cola de planificación |
-| `READY` | Planificado completamente y listo para ser calendarizado. | Listo para programar |
-| `DEFERRED` | Aplazado intencionalmente (falta de presupuesto o parada general). | Suspensión en cola |
+| Valor      | Significado                                                        | Norma / Concepto      |
+| ---------- | ------------------------------------------------------------------ | --------------------- |
+| `PENDING`  | En espera de análisis técnico o definición de materiales.          | Cola de planificación |
+| `READY`    | Planificado completamente y listo para ser calendarizado.          | Listo para programar  |
+| `DEFERRED` | Aplazado intencionalmente (falta de presupuesto o parada general). | Suspensión en cola    |
 
 ### 4.19 `SparePart.status`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `ACTIVE` | Activo y disponible para consumo y compras. | Gestión de Stock |
-| `OBSOLETE` | Obsoleto, no se permite nueva compra (se mantiene para historial). | ISO 55001 Ciclo de Vida |
-| `SUSPENDED` | Temporalmente bloqueado por control de calidad o problemas del proveedor. | Control de Calidad |
+| Valor       | Significado                                                               | Norma / Concepto        |
+| ----------- | ------------------------------------------------------------------------- | ----------------------- |
+| `ACTIVE`    | Activo y disponible para consumo y compras.                               | Gestión de Stock        |
+| `OBSOLETE`  | Obsoleto, no se permite nueva compra (se mantiene para historial).        | ISO 55001 Ciclo de Vida |
+| `SUSPENDED` | Temporalmente bloqueado por control de calidad o problemas del proveedor. | Control de Calidad      |
 
 ### 4.20 `InventoryTransaction.transactionType`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `RECEIPT` | Entrada de inventario (compra, devolución, transferencia). | Ingesta de Stock |
-| `ISSUE` | Salida de inventario (consumo en Orden de Trabajo). | Carga a Costos de OT |
+| Valor        | Significado                                                 | Norma / Concepto           |
+| ------------ | ----------------------------------------------------------- | -------------------------- |
+| `RECEIPT`    | Entrada de inventario (compra, devolución, transferencia).  | Ingesta de Stock           |
+| `ISSUE`      | Salida de inventario (consumo en Orden de Trabajo).         | Carga a Costos de OT       |
 | `ADJUSTMENT` | Ajuste manual/automático por discrepancia en conteo físico. | Conciliación de Inventario |
 
 ### 4.21 `MeshMapping.mappingStatus`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `MAPPED` | El activo está correctamente vinculado a su representación 3D en el gemelo. | Vinculación Digital |
-| `UNMAPPED` | Falta cargar o posicionar la malla 3D del activo. | Gemelo Incompleto |
-| `SYNC_ERROR` | Error de consistencia o carga entre el motor gráfico y la DB. | Error de Sincronización |
+| Valor        | Significado                                                                 | Norma / Concepto        |
+| ------------ | --------------------------------------------------------------------------- | ----------------------- |
+| `MAPPED`     | El activo está correctamente vinculado a su representación 3D en el gemelo. | Vinculación Digital     |
+| `UNMAPPED`   | Falta cargar o posicionar la malla 3D del activo.                           | Gemelo Incompleto       |
+| `SYNC_ERROR` | Error de consistencia o carga entre el motor gráfico y la DB.               | Error de Sincronización |
 
 ### 4.22 `WorkPermit.permitType`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `HOT_WORK` | Trabajo con fuentes de ignición o llama abierta (requiere extintor). | Seguridad Industrial (OSHA) |
-| `COLD_WORK` | Trabajo estándar sin peligro de chispa (mecánico, limpieza). | Seguridad Industrial (OSHA) |
-| `CONFINED_SPACE` | Entrada a tanques, ductos o áreas con ventilación limitada. | Espacio Confinado (Alto Riesgo) |
-| `ELECTRICAL` | Intervención en líneas de alta o media tensión (requiere LOTO). | Riesgo Eléctrico |
-| `WORK_AT_HEIGHT` | Trabajo a más de 1.5m de altura con riesgo de caída. | Alturas (OSHA / Res. 4272) |
-| `EXCAVATION` | Excavaciones, zanjas o movimientos de tierra profundos. | Excavación (OSHA) |
-| `CHEMICAL` | Manejo o exposición a químicos peligrosos o gases nocivos. | Riesgo Químico |
+| Valor            | Significado                                                          | Norma / Concepto                |
+| ---------------- | -------------------------------------------------------------------- | ------------------------------- |
+| `HOT_WORK`       | Trabajo con fuentes de ignición o llama abierta (requiere extintor). | Seguridad Industrial (OSHA)     |
+| `COLD_WORK`      | Trabajo estándar sin peligro de chispa (mecánico, limpieza).         | Seguridad Industrial (OSHA)     |
+| `CONFINED_SPACE` | Entrada a tanques, ductos o áreas con ventilación limitada.          | Espacio Confinado (Alto Riesgo) |
+| `ELECTRICAL`     | Intervención en líneas de alta o media tensión (requiere LOTO).      | Riesgo Eléctrico                |
+| `WORK_AT_HEIGHT` | Trabajo a más de 1.5m de altura con riesgo de caída.                 | Alturas (OSHA / Res. 4272)      |
+| `EXCAVATION`     | Excavaciones, zanjas o movimientos de tierra profundos.              | Excavación (OSHA)               |
+| `CHEMICAL`       | Manejo o exposición a químicos peligrosos o gases nocivos.           | Riesgo Químico                  |
 
 ### 4.23 `WorkPermit.status`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `DRAFT` | Permiso preparado por el ejecutor pero aún no radicado. | Ciclo de Autorización |
-| `PENDING` | Radicado y en proceso de evaluación y firma por el supervisor. | Ciclo de Autorización |
-| `APPROVED` | Autorizado formalmente (habilita la orden de trabajo). | Permiso Activo / FSM Trigger |
-| `EXPIRED` | Vencido automáticamente (se superó la ventana horaria de vigencia). | Control de Riesgos |
-| `REVOKED` | Cancelado inmediatamente por condiciones inseguras en campo. | Intervención de Emergencia |
-| `CLOSED` | Finalizado formalmente tras concluir la intervención y retirar LOTO. | Cierre de Operación |
+| Valor      | Significado                                                          | Norma / Concepto             |
+| ---------- | -------------------------------------------------------------------- | ---------------------------- |
+| `DRAFT`    | Permiso preparado por el ejecutor pero aún no radicado.              | Ciclo de Autorización        |
+| `PENDING`  | Radicado y en proceso de evaluación y firma por el supervisor.       | Ciclo de Autorización        |
+| `APPROVED` | Autorizado formalmente (habilita la orden de trabajo).               | Permiso Activo / FSM Trigger |
+| `EXPIRED`  | Vencido automáticamente (se superó la ventana horaria de vigencia).  | Control de Riesgos           |
+| `REVOKED`  | Cancelado inmediatamente por condiciones inseguras en campo.         | Intervención de Emergencia   |
+| `CLOSED`   | Finalizado formalmente tras concluir la intervención y retirar LOTO. | Cierre de Operación          |
 
 ### 4.24 `IsolationPoint.isolationType`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `ELECTRICAL` | Apertura de disyuntores, breakers o desconexión física. | LOTO Eléctrico (OSHA) |
-| `MECHANICAL` | Bloqueos mecánicos, pasadores o trabas físicas. | LOTO Mecánico |
-| `PNEUMATIC` | Purga y bloqueo de líneas de aire o gases comprimidos. | LOTO Neumático |
-| `HYDRAULIC` | Cierre de válvulas de fluido y purga de acumuladores. | LOTO Hidráulico |
-| `CHEMICAL` | Cierre de doble válvula y purga (Double Block and Bleed). | LOTO Químico / Proceso |
-| `THERMAL` | Aislamiento térmico de superficies calientes o criogénicas. | LOTO Térmico |
-| `GRAVITATIONAL` | Bloques físicos para prevenir caída de masas suspendidas. | LOTO de Gravedad |
+| Valor           | Significado                                                 | Norma / Concepto       |
+| --------------- | ----------------------------------------------------------- | ---------------------- |
+| `ELECTRICAL`    | Apertura de disyuntores, breakers o desconexión física.     | LOTO Eléctrico (OSHA)  |
+| `MECHANICAL`    | Bloqueos mecánicos, pasadores o trabas físicas.             | LOTO Mecánico          |
+| `PNEUMATIC`     | Purga y bloqueo de líneas de aire o gases comprimidos.      | LOTO Neumático         |
+| `HYDRAULIC`     | Cierre de válvulas de fluido y purga de acumuladores.       | LOTO Hidráulico        |
+| `CHEMICAL`      | Cierre de doble válvula y purga (Double Block and Bleed).   | LOTO Químico / Proceso |
+| `THERMAL`       | Aislamiento térmico de superficies calientes o criogénicas. | LOTO Térmico           |
+| `GRAVITATIONAL` | Bloques físicos para prevenir caída de masas suspendidas.   | LOTO de Gravedad       |
 
 ### 4.25 `User.status`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `ACTIVE` | Cuenta activa y autorizada para interactuar con la plataforma. | Ciclo de Vida de Cuenta |
-| `INACTIVE` | Cuenta desactivada temporal o permanentemente (historial preservado). | Ciclo de Vida de Cuenta |
-| `LOCKED` | Bloqueada automáticamente tras exceder intentos fallidos de login. | Mitigación de Fuerza Bruta |
+| Valor      | Significado                                                           | Norma / Concepto           |
+| ---------- | --------------------------------------------------------------------- | -------------------------- |
+| `ACTIVE`   | Cuenta activa y autorizada para interactuar con la plataforma.        | Ciclo de Vida de Cuenta    |
+| `INACTIVE` | Cuenta desactivada temporal o permanentemente (historial preservado). | Ciclo de Vida de Cuenta    |
+| `LOCKED`   | Bloqueada automáticamente tras exceder intentos fallidos de login.    | Mitigación de Fuerza Bruta |
 
 ### 4.26 `WorkOrderAssignment.roleInWork`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `TECHNICIAN` | Técnico ejecutor que realiza la labor y registra wrench time. | Ejecución Técnica |
-| `SUPERVISOR` | Supervisor que firma el cierre técnico y aprueba LOTO. | Responsable de Línea |
-| `PLANNER` | Planificador que diseña la orden, asigna repuestos y tiempos. | Ingeniería de Mantenimiento |
+| Valor        | Significado                                                   | Norma / Concepto            |
+| ------------ | ------------------------------------------------------------- | --------------------------- |
+| `TECHNICIAN` | Técnico ejecutor que realiza la labor y registra wrench time. | Ejecución Técnica           |
+| `SUPERVISOR` | Supervisor que firma el cierre técnico y aprueba LOTO.        | Responsable de Línea        |
+| `PLANNER`    | Planificador que diseña la orden, asigna repuestos y tiempos. | Ingeniería de Mantenimiento |
 
 ### 4.27 `AuditLog.actionType`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `CREATE` | Registro inicial de un nuevo objeto en el sistema. | Auditoría ISO 9001 |
+| Valor    | Significado                                                | Norma / Concepto   |
+| -------- | ---------------------------------------------------------- | ------------------ |
+| `CREATE` | Registro inicial de un nuevo objeto en el sistema.         | Auditoría ISO 9001 |
 | `UPDATE` | Modificación de campos existentes (rastrea estado previo). | Auditoría ISO 9001 |
-| `DELETE` | Eliminación lógica o física de una entidad crítica. | Auditoría ISO 9001 |
+| `DELETE` | Eliminación lógica o física de una entidad crítica.        | Auditoría ISO 9001 |
 
 ### 4.28 `EquipmentUnit.healthStatus`
 
-| Valor | Significado | Norma / Concepto |
-|---|---|---|
-| `UNDETERMINED` | Estado de salud desconocido. | ISO 13374-4 Health Assessment |
-| `GOOD` | Todos los indicadores dentro de límites normales. | ISO 13374-4 Health Assessment |
-| `FAIR` | Algunas anomalías leves detectadas, sin riesgo inmediato. | ISO 13374-4 Health Assessment |
-| `SERIOUS_BUT_STABLE` | Anomalías serias pero sin empeoramiento progresivo. | ISO 13374-4 Health Assessment |
-| `SERIOUS` | Anomalías serias en deterioro. | ISO 13374-4 Health Assessment |
-| `CRITICAL_BUT_STABLE` | Condición crítica que no empeora a corto plazo. | ISO 13374-4 Health Assessment |
-| `CRITICAL` | Falla inminente, intervención inmediata requerida. | ISO 13374-4 Health Assessment |
+| Valor                 | Significado                                               | Norma / Concepto              |
+| --------------------- | --------------------------------------------------------- | ----------------------------- |
+| `UNDETERMINED`        | Estado de salud desconocido.                              | ISO 13374-4 Health Assessment |
+| `GOOD`                | Todos los indicadores dentro de límites normales.         | ISO 13374-4 Health Assessment |
+| `FAIR`                | Algunas anomalías leves detectadas, sin riesgo inmediato. | ISO 13374-4 Health Assessment |
+| `SERIOUS_BUT_STABLE`  | Anomalías serias pero sin empeoramiento progresivo.       | ISO 13374-4 Health Assessment |
+| `SERIOUS`             | Anomalías serias en deterioro.                            | ISO 13374-4 Health Assessment |
+| `CRITICAL_BUT_STABLE` | Condición crítica que no empeora a corto plazo.           | ISO 13374-4 Health Assessment |
+| `CRITICAL`            | Falla inminente, intervención inmediata requerida.        | ISO 13374-4 Health Assessment |
 
 ## 5. Tabla de Trazabilidad de Columnas Físicas
 
-**Nota:** Las llaves foráneas (Foreign Keys) derivadas de las asociaciones se omiten en la lista de campos a continuación para mayor legibilidad, pero deben agregarse en el ERD físico. El siguiente mapeo se centra en los campos lógicos que ya están presentes en el modelo de PlantUML.
+**Nota:** Las llaves foráneas (Foreign Keys) derivadas de las asociaciones se omiten en la lista de campos a continuación para mayor legibilidad, pero se agregan en el ERD físico. El siguiente mapeo se centra en los campos lógicos que ya están presentes en el modelo de PlantUML.
 
 ### 5.1 Capa de Taxonomía
 
-| Entidad | Campo Lógico | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación |
-|---|---|---|---|---|---|
-| `FunctionalLocation` | `tagNumber` | `VARCHAR(50)` | NOT NULL | UNIQUE | Identidad del tag de la ISO 14224 y trazabilidad de la ubicación. |
-| `FunctionalLocation` | `name` | `VARCHAR(150)` | NOT NULL |  | Nombre de la ubicación legible por humanos. |
-| `FunctionalLocation` | `description` | `VARCHAR(255)` | NULL |  | Texto explicativo opcional. |
-| `FunctionalLocation` | `criticality` | `VARCHAR(30)` | NOT NULL | CHECK o lookup | Vocabulario de prioridad controlado. |
-| `FunctionalLocation` | `geographicLocation` | `VARCHAR(150)` | NULL |  | Contexto físico de la ubicación. |
-| `FunctionalLocation` | `hierarchyLevel` | `SMALLINT` | NOT NULL | CHECK (1..9) | Nivel de taxonomía ISO 14224. |
-| `EquipmentClass` | `className` | `VARCHAR(120)` | NOT NULL | UNIQUE | Datos maestros a nivel de clase. |
-| `EquipmentClass` | `description` | `VARCHAR(255)` | NULL |  | Descripción de la clase. |
-| `EquipmentClass` | `manufacturerStandard` | `VARCHAR(120)` | NULL |  | Referencia de estandarización. |
-| `EquipmentUnit` | `serialNumber` | `VARCHAR(100)` | NOT NULL | UNIQUE | Integridad de la identificación del activo. |
-| `EquipmentUnit` | `manufacturer` | `VARCHAR(120)` | NOT NULL |  | Procedencia del activo. |
-| `EquipmentUnit` | `model` | `VARCHAR(120)` | NOT NULL |  | Identificación del tipo de activo. |
-| `EquipmentUnit` | `purchaseDate` | `DATE` | NOT NULL |  | Cronología de adquisiciones. |
-| `EquipmentUnit` | `rejectionReason` | `VARCHAR(255)` | NULL |  | Solo está presente cuando se rechaza la adquisición. |
-| `EquipmentUnit` | `boundaryStart` | `VARCHAR(150)` | NOT NULL |  | Punto de inicio de la definición del límite. |
-| `EquipmentUnit` | `boundaryEnd` | `VARCHAR(150)` | NOT NULL |  | Punto final de la definición del límite. |
-| `EquipmentUnit` | `acquisitionDate` | `DATE` | NOT NULL |  | Trazabilidad de la adquisición del activo. |
-| `EquipmentUnit` | `installationDate` | `DATE` | NULL |  | La instalación puede estar pendiente. |
-| `EquipmentUnit` | `operationStartDate` | `DATE` | NULL |  | El inicio operativo puede estar pendiente. |
-| `EquipmentUnit` | `operatingHours` | `BIGINT` | NOT NULL | DEFAULT 0 | Seguimiento de confiabilidad y uso. |
-| `EquipmentUnit` | `surveillanceHours` | `BIGINT` | NOT NULL | DEFAULT 0 | Tiempo de vigilancia/standby para cálculo preciso de fallas (ISO 14224). |
-| `EquipmentUnit` | `disposalDate` | `DATE` | NULL |  | Registro de fin de vida para trazabilidad de pasivos (ISO 55000). |
-| `EquipmentUnit` | `disposalReason` | `VARCHAR(255)` | NULL |  | Razón del retiro o desmantelamiento del activo. |
-| `EquipmentUnit` | `operationalStatus` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario de estado operativo controlado. |
-| `EquipmentUnit` | `lifecycleStatus` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario de ciclo de vida controlado. |
-| `EquipmentUnit` | `maintenanceStatus` | `VARCHAR(30)` | NOT NULL | CHECK o lookup | Vocabulario de estado de mantenimiento controlado. |
-| `EquipmentUnit` | `healthStatus` | `VARCHAR(30)` | NULL | CHECK o lookup | Vocabulario de estado de salud general (ISO 13374-4). |
-| `Subunit` | `subunitType` | `VARCHAR(80)` | NOT NULL |  | Taxonomía del subcomponente. |
-| `Subunit` | `name` | `VARCHAR(120)` | NOT NULL |  | Etiqueta del subcomponente. |
-| `MaintainableItem` | `componentName` | `VARCHAR(120)` | NOT NULL |  | Identidad del ítem mantenible. |
-| `MaintainableItem` | `subunitType` | `VARCHAR(80)` | NOT NULL |  | Clasificación taxonómica. |
-| `MaintainableItem` | `sparePartType` | `VARCHAR(80)` | NULL |  | Correspondencia opcional de partes de repuesto. |
-| `MaintainableItem` | `designAttributes` | `JSONB` | NULL |  | Propiedades estáticas de diseño estructuradas (ISO 14224 Anexo A). |
-| `MaintainableItem` | `status` | `VARCHAR(30)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida del ítem. |
+| Entidad              | Campo Lógico           | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                            |
+| -------------------- | ---------------------- | -------------------------- | ----------- | ---------------------- | ------------------------------------------------------------------------ |
+| `FunctionalLocation` | `tagNumber`            | `VARCHAR(50)`              | NOT NULL    | UNIQUE                 | Identidad del tag de la ISO 14224 y trazabilidad de la ubicación.        |
+| `FunctionalLocation` | `name`                 | `VARCHAR(150)`             | NOT NULL    |                        | Nombre de la ubicación legible por humanos.                              |
+| `FunctionalLocation` | `description`          | `VARCHAR(255)`             | NULL        |                        | Texto explicativo opcional.                                              |
+| `FunctionalLocation` | `criticality`          | `VARCHAR(30)`              | NOT NULL    | CHECK o lookup         | Vocabulario de prioridad controlado.                                     |
+| `FunctionalLocation` | `geographicLocation`   | `VARCHAR(150)`             | NULL        |                        | Contexto físico de la ubicación.                                         |
+| `FunctionalLocation` | `hierarchyLevel`       | `SMALLINT`                 | NOT NULL    | CHECK (1..9)           | Nivel de taxonomía ISO 14224.                                            |
+| `EquipmentClass`     | `className`            | `VARCHAR(120)`             | NOT NULL    | UNIQUE                 | Datos maestros a nivel de clase.                                         |
+| `EquipmentClass`     | `description`          | `VARCHAR(255)`             | NULL        |                        | Descripción de la clase.                                                 |
+| `EquipmentClass`     | `manufacturerStandard` | `VARCHAR(120)`             | NULL        |                        | Referencia de estandarización.                                           |
+| `EquipmentUnit`      | `serialNumber`         | `VARCHAR(100)`             | NOT NULL    | UNIQUE                 | Integridad de la identificación del activo.                              |
+| `EquipmentUnit`      | `manufacturer`         | `VARCHAR(120)`             | NOT NULL    |                        | Procedencia del activo.                                                  |
+| `EquipmentUnit`      | `model`                | `VARCHAR(120)`             | NOT NULL    |                        | Identificación del tipo de activo.                                       |
+| `EquipmentUnit`      | `purchaseDate`         | `DATE`                     | NOT NULL    |                        | Cronología de adquisiciones.                                             |
+| `EquipmentUnit`      | `rejectionReason`      | `VARCHAR(255)`             | NULL        |                        | Solo está presente cuando se rechaza la adquisición.                     |
+| `EquipmentUnit`      | `boundaryStart`        | `VARCHAR(150)`             | NOT NULL    |                        | Punto de inicio de la definición del límite.                             |
+| `EquipmentUnit`      | `boundaryEnd`          | `VARCHAR(150)`             | NOT NULL    |                        | Punto final de la definición del límite.                                 |
+| `EquipmentUnit`      | `acquisitionDate`      | `DATE`                     | NOT NULL    |                        | Trazabilidad de la adquisición del activo.                               |
+| `EquipmentUnit`      | `installationDate`     | `DATE`                     | NULL        |                        | La instalación puede estar pendiente.                                    |
+| `EquipmentUnit`      | `operationStartDate`   | `DATE`                     | NULL        |                        | El inicio operativo puede estar pendiente.                               |
+| `EquipmentUnit`      | `operatingHours`       | `BIGINT`                   | NOT NULL    | DEFAULT 0              | Seguimiento de confiabilidad y uso.                                      |
+| `EquipmentUnit`      | `surveillanceHours`    | `BIGINT`                   | NOT NULL    | DEFAULT 0              | Tiempo de vigilancia/standby para cálculo preciso de fallas (ISO 14224). |
+| `EquipmentUnit`      | `disposalDate`         | `DATE`                     | NULL        |                        | Registro de fin de vida para trazabilidad de pasivos (ISO 55000).        |
+| `EquipmentUnit`      | `disposalReason`       | `VARCHAR(255)`             | NULL        |                        | Razón del retiro o desmantelamiento del activo.                          |
+| `EquipmentUnit`      | `operationalStatus`    | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Vocabulario de estado operativo controlado.                              |
+| `EquipmentUnit`      | `lifecycleStatus`      | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Vocabulario de ciclo de vida controlado.                                 |
+| `EquipmentUnit`      | `maintenanceStatus`    | `VARCHAR(30)`              | NOT NULL    | CHECK o lookup         | Vocabulario de estado de mantenimiento controlado.                       |
+| `EquipmentUnit`      | `healthStatus`         | `VARCHAR(30)`              | NULL        | CHECK o lookup         | Vocabulario de estado de salud general (ISO 13374-4).                    |
+| `Subunit`            | `subunitType`          | `VARCHAR(80)`              | NOT NULL    |                        | Taxonomía del subcomponente.                                             |
+| `Subunit`            | `name`                 | `VARCHAR(120)`             | NOT NULL    |                        | Etiqueta del subcomponente.                                              |
+| `MaintainableItem`   | `componentName`        | `VARCHAR(120)`             | NOT NULL    |                        | Identidad del ítem mantenible.                                           |
+| `MaintainableItem`   | `subunitType`          | `VARCHAR(80)`              | NOT NULL    |                        | Clasificación taxonómica.                                                |
+| `MaintainableItem`   | `sparePartType`        | `VARCHAR(80)`              | NULL        |                        | Correspondencia opcional de partes de repuesto.                          |
+| `MaintainableItem`   | `designAttributes`     | `JSONB`                    | NULL        |                        | Propiedades estáticas de diseño estructuradas (ISO 14224 Anexo A).       |
+| `MaintainableItem`   | `status`               | `VARCHAR(30)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida del ítem.                                       |
 
 ### 5.2 Mantenimiento y Gestión de Trabajo
 
-| Entidad | Campo Lógico | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación |
-|---|---|---|---|---|---|
-| `WorkRequest` | `description` | `VARCHAR(255)` | NOT NULL |  | Narrativa de la solicitud. |
-| `WorkRequest` | `priority` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Etiqueta de prioridad de la solicitud. |
-| `WorkRequest` | `requestDate` | `TIMESTAMP` | NOT NULL |  | Línea de tiempo para auditoría. |
-| `WorkRequest` | `requestSource` | `VARCHAR(80)` | NOT NULL |  | Origen de la solicitud. |
-| `WorkRequest` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida de la solicitud. |
-| `WorkRequest` | `riskFactor` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario controlado RIME. |
-| `WorkRequest` | `impactFactor` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario controlado RIME. |
-| `WorkRequest` | `maintainabilityFactor` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario controlado RIME. |
-| `WorkRequest` | `economyFactor` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario controlado RIME. |
-| `MaintenancePlan` | `maintenanceMethod` | `VARCHAR(80)` | NOT NULL | CHECK o lookup | Estrategia de mantenimiento (PM, PdM, CBM). |
-| `MaintenancePlan` | `frequency` | `VARCHAR(80)` | NOT NULL |  | Descripción de la frecuencia legible por humanos. |
-| `MaintenancePlan` | `frequencyType` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Cadencia controlada del plan. |
-| `MaintenancePlan` | `nextWorkOrderDate` | `DATE` | NULL |  | Fecha de ejecución programada (Calculada). |
-| `MaintenancePlan` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida del plan (documento). |
-| `WorkOrder` | `currentStatus` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida de ejecución (FSM). |
-| `WorkOrder` | `maintenanceMethod` | `VARCHAR(80)` | NOT NULL | CHECK o lookup | Método de mantenimiento (Correctivo, Preventivo, etc.). |
-| `WorkOrder` | `creationDate` | `TIMESTAMP` | NOT NULL |  | Marca de tiempo (timestamp) de creación de la orden. |
-| `WorkOrder` | `scheduledDate` | `TIMESTAMP` | NULL |  | Inicio planeado. |
-| `WorkOrder` | `actualStart` | `TIMESTAMP` | NULL |  | Inicio real de la ejecución. |
-| `WorkOrder` | `actualFinish` | `TIMESTAMP` | NULL |  | Finalización real de la ejecución. |
-| `WorkOrder` | `actualLaborHours` | `DECIMAL(10,2)` | NULL |  | Duración laboral real (Calculada). |
-| `WorkOrder` | `criticality` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Etiqueta de criticidad / prioridad de la OT. |
-| `MediaAttachment` | `fileUrl` | `VARCHAR(255)` | NOT NULL |  | Ubicación de la evidencia. |
-| `MediaAttachment` | `fileType` | `VARCHAR(10)` | NOT NULL | CHECK o lookup | Formato de archivo adjunto controlado. |
-| `MediaAttachment` | `uploadedAt` | `TIMESTAMP` | NOT NULL |  | Tiempo de subida/ingesta de la evidencia. |
-| `WorkOrderHistory` | `oldStatus` | `VARCHAR(20)` | NULL |  | Estado anterior del ciclo de vida (NULL si es primer estado). |
-| `WorkOrderHistory` | `newStatus` | `VARCHAR(20)` | NOT NULL |  | Nuevo estado del ciclo de vida. |
-| `WorkOrderHistory` | `timestamp` | `TIMESTAMP` | NOT NULL |  | Tiempo de transición. |
-| `WorkOrderHistory` | `durationSeconds` | `BIGINT` | NULL |  | Tiempo empleado en el estado (Calculado al transicionar). |
-| `FailureRecord` | `failureId` | `UUID` | NOT NULL | PK | Identidad del evento de falla. |
-| `FailureRecord` | `failureMode` | `VARCHAR(120)` | NOT NULL | CHECK o lookup | Codificación de fallas de la ISO 14224. |
-| `FailureRecord` | `failureMechanism` | `VARCHAR(120)` | NOT NULL | CHECK o lookup | Codificación de fallas de la ISO 14224. |
-| `FailureRecord` | `failureCause` | `VARCHAR(120)` | NOT NULL | CHECK o lookup | Codificación de fallas de la ISO 14224. |
-| `FailureRecord` | `downtime` | `DECIMAL(10,2)` | NOT NULL |  | Métrica de análisis de confiabilidad (Calculada). |
-| `FailureRecord` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del registro de fallas. |
-| `BacklogItem` | `priorityScore` | `INT` | NOT NULL |  | Puntaje del backlog derivado de RIME (Calculado). |
-| `BacklogItem` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida del backlog (priorización). |
+| Entidad            | Campo Lógico            | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                   |
+| ------------------ | ----------------------- | -------------------------- | ----------- | ---------------------- | --------------------------------------------------------------- |
+| `WorkRequest`      | `description`           | `VARCHAR(255)`             | NOT NULL    |                        | Narrativa de la solicitud.                                      |
+| `WorkRequest`      | `priority`              | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Etiqueta de prioridad de la solicitud.                          |
+| `WorkRequest`      | `requestDate`           | `TIMESTAMP`                | NOT NULL    |                        | Línea de tiempo para auditoría.                                 |
+| `WorkRequest`      | `requestSource`         | `VARCHAR(80)`              | NOT NULL    |                        | Origen de la solicitud.                                         |
+| `WorkRequest`      | `status`                | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida de la solicitud.                       |
+| `WorkRequest`      | `workClass`             | `INT`                      | NOT NULL    | CHECK (1..10) o lookup | Peso numérico de la clase de trabajo seleccionada para el RIME. |
+| `MaintenancePlan`  | `maintenanceMethod`     | `VARCHAR(80)`              | NOT NULL    | CHECK o lookup         | Estrategia de mantenimiento (PM, PdM, CBM).                     |
+| `MaintenancePlan`  | `frequency`             | `VARCHAR(80)`              | NOT NULL    |                        | Descripción de la frecuencia legible por humanos.               |
+| `MaintenancePlan`  | `frequencyType`         | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Cadencia controlada del plan.                                   |
+| `MaintenancePlan`  | `nextWorkOrderDate`     | `DATE`                     | NULL        |                        | Fecha de ejecución programada (Calculada).                      |
+| `MaintenancePlan`  | `intervalValue`         | `DECIMAL(12,2)`            | NULL        |                        | Valor numérico del intervalo para telemetría (ej. 500 horas).   |
+| `MaintenancePlan`  | `nextTriggerLimit`      | `DECIMAL(12,2)`            | NULL        |                        | Límite acumulado calculado para el próximo disparo.             |
+| `MaintenancePlan`  | `status`                | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida del plan (documento).                  |
+| `WorkOrder`        | `currentStatus`         | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida de ejecución (FSM).                    |
+| `WorkOrder`        | `maintenanceMethod`     | `VARCHAR(80)`              | NOT NULL    | CHECK o lookup         | Método de mantenimiento (Correctivo, Preventivo, etc.).         |
+| `WorkOrder`        | `creationDate`          | `TIMESTAMP`                | NOT NULL    |                        | Marca de tiempo (timestamp) de creación de la orden.            |
+| `WorkOrder`        | `scheduledDate`         | `TIMESTAMP`                | NULL        |                        | Inicio planeado.                                                |
+| `WorkOrder`        | `actualStart`           | `TIMESTAMP`                | NULL        |                        | Inicio real de la ejecución.                                    |
+| `WorkOrder`        | `actualFinish`          | `TIMESTAMP`                | NULL        |                        | Finalización real de la ejecución.                              |
+| `WorkOrder`        | `actualLaborHours`      | `DECIMAL(10,2)`            | NULL        |                        | Duración laboral real (Calculada).                              |
+| `WorkOrder`        | `criticality`           | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Etiqueta de criticidad / prioridad de la OT.                    |
+| `MediaAttachment`  | `fileUrl`               | `VARCHAR(255)`             | NOT NULL    |                        | Ubicación de la evidencia.                                      |
+| `MediaAttachment`  | `fileType`              | `VARCHAR(10)`              | NOT NULL    | CHECK o lookup         | Formato de archivo adjunto controlado.                          |
+| `MediaAttachment`  | `uploadedAt`            | `TIMESTAMP`                | NOT NULL    |                        | Tiempo de subida/ingesta de la evidencia.                       |
+| `WorkOrderHistory` | `oldStatus`             | `VARCHAR(20)`              | NULL        |                        | Estado anterior del ciclo de vida (NULL si es primer estado).   |
+| `WorkOrderHistory` | `newStatus`             | `VARCHAR(20)`              | NOT NULL    |                        | Nuevo estado del ciclo de vida.                                 |
+| `WorkOrderHistory` | `timestamp`             | `TIMESTAMP`                | NOT NULL    |                        | Tiempo de transición.                                           |
+| `WorkOrderHistory` | `durationSeconds`       | `BIGINT`                   | NULL        |                        | Tiempo empleado en el estado (Calculado al transicionar).       |
+| `FailureRecord`    | `failureId`             | `UUID`                     | NOT NULL    | PK                     | Identidad del evento de falla.                                  |
+| `FailureRecord`    | `failureMode`           | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Codificación de fallas de la ISO 14224.                         |
+| `FailureRecord`    | `failureMechanism`      | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Codificación de fallas de la ISO 14224.                         |
+| `FailureRecord`    | `failureCause`          | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Codificación de fallas de la ISO 14224.                         |
+| `FailureRecord`    | `downtime`              | `DECIMAL(10,2)`            | NOT NULL    |                        | Métrica de análisis de confiabilidad (Calculada).               |
+| `FailureRecord`    | `status`                | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del registro de fallas.                                  |
+| `BacklogItem`      | `priorityScore`         | `INT`                      | NOT NULL    |                        | Puntaje del backlog derivado de RIME (Calculado).               |
+| `BacklogItem`      | `status`                | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida del backlog (priorización).            |
 
 ### 5.3 Inventario y Suministro
 
-| Entidad | Campo Lógico | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación |
-|---|---|---|---|---|---|
-| `SparePart` | `sku` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identidad de la parte. |
-| `SparePart` | `description` | `VARCHAR(255)` | NOT NULL |  | Descripción de la parte legible por humanos. |
-| `SparePart` | `manufacturer` | `VARCHAR(120)` | NOT NULL |  | Identidad del proveedor/fabricante. |
-| `SparePart` | `commodityCode` | `VARCHAR(80)` | NULL |  | Código de clasificación. |
-| `SparePart` | `reorderPoint` | `DECIMAL(12,4)` | NOT NULL |  | Umbral mínimo de activación de compra. |
-| `SparePart` | `unitOfMeasure` | `VARCHAR(20)` | NOT NULL |  | Unidad de medida estándar (UoM). |
-| `SparePart` | `stockPolicy` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Política de reabastecimiento (Min/Max, Reorder Point, JIT). |
-| `SparePart` | `isRebuildable` | `BOOLEAN` | NOT NULL | DEFAULT false | Indica si la parte se desecha o se envía a taller para reparación. |
-| `SparePart` | `quantityOnHand` | `DECIMAL(12,4)` | NOT NULL |  | Cantidad actualmente en inventario físico. |
-| `SparePart` | `reservedQuantity` | `DECIMAL(12,4)` | NOT NULL | DEFAULT 0 | Stock comprometido para órdenes planificadas. |
-| `SparePart` | `maxCapacity` | `DECIMAL(12,4)` | NULL |  | Límite físico del almacén para la parte. |
-| `SparePart` | `unitCost` | `DECIMAL(12,2)` | NOT NULL |  | Costo unitario estándar de adquisición. |
-| `SparePart` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado de disponibilidad del repuesto. |
-| `InventoryTransaction` | `quantity` | `DECIMAL(12,4)` | NOT NULL |  | Cantidad transada (positiva para entradas, negativa para salidas). |
-| `InventoryTransaction` | `transactionType` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Tipo de movimiento (RECEIPT, ISSUE, ADJUSTMENT). |
-| `InventoryTransaction` | `timestamp` | `TIMESTAMP` | NOT NULL |  | Registro temporal preciso del movimiento. |
-| `InventoryTransaction` | `reason` | `VARCHAR(255)` | NOT NULL |  | Razón del movimiento o referencia a documentos externos. |
-| `InventoryTransaction` | `totalCost` | `DECIMAL(12,2)` | NOT NULL |  | Costo total de la transacción (Cantidad * Costo). |
-| `Warehouse` | `name` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identidad del almacén. |
-| `Warehouse` | `location` | `VARCHAR(255)` | NOT NULL |  | Dirección o ubicación física del almacén. |
-| `Warehouse` | `capacity` | `DECIMAL(12,4)` | NOT NULL |  | Capacidad máxima volumétrica o de carga del almacén. |
-| `Supplier` | `name` | `VARCHAR(120)` | NOT NULL | UNIQUE | Identidad comercial del proveedor. |
-| `Supplier` | `contactInfo` | `VARCHAR(255)` | NOT NULL |  | Teléfono, correo o dirección de contacto. |
-| `Supplier` | `warrantyTerms` | `VARCHAR(255)` | NOT NULL |  | Términos estándar de garantía comercial. |
-| `MaterialRequirement` | `plannedQuantity` | `DECIMAL(12,4)` | NOT NULL |  | Repuestos planificados antes de la ejecución de la OT. |
-| `MaterialRequirement` | `actualQuantity` | `DECIMAL(12,4)` | NULL |  | Repuestos realmente consumidos durante la ejecución de la OT. |
-| `MaterialRequirement` | `isReserved` | `BOOLEAN` | NOT NULL | DEFAULT false | Bandera que indica si el stock ya fue apartado en almacén. |
+| Entidad                | Campo Lógico       | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                      |
+| ---------------------- | ------------------ | -------------------------- | ----------- | ---------------------- | ------------------------------------------------------------------ |
+| `SparePart`            | `sku`              | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad de la parte.                                             |
+| `SparePart`            | `description`      | `VARCHAR(255)`             | NOT NULL    |                        | Descripción de la parte legible por humanos.                       |
+| `SparePart`            | `manufacturer`     | `VARCHAR(120)`             | NOT NULL    |                        | Identidad del proveedor/fabricante.                                |
+| `SparePart`            | `commodityCode`    | `VARCHAR(80)`              | NULL        |                        | Código de clasificación.                                           |
+| `SparePart`            | `reorderPoint`     | `DECIMAL(12,4)`            | NOT NULL    |                        | Umbral mínimo de activación de compra.                             |
+| `SparePart`            | `unitOfMeasure`    | `VARCHAR(20)`              | NOT NULL    |                        | Unidad de medida estándar (UoM).                                   |
+| `SparePart`            | `stockPolicy`      | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Política de reabastecimiento (Min/Max, Reorder Point, JIT).        |
+| `SparePart`            | `isRebuildable`    | `BOOLEAN`                  | NOT NULL    | DEFAULT false          | Indica si la parte se desecha o se envía a taller para reparación. |
+| `SparePart`            | `quantityOnHand`   | `DECIMAL(12,4)`            | NOT NULL    |                        | Cantidad actualmente en inventario físico.                         |
+| `SparePart`            | `reservedQuantity` | `DECIMAL(12,4)`            | NOT NULL    | DEFAULT 0              | Stock comprometido para órdenes planificadas.                      |
+| `SparePart`            | `maxCapacity`      | `DECIMAL(12,4)`            | NULL        |                        | Límite físico del almacén para la parte.                           |
+| `SparePart`            | `unitCost`         | `DECIMAL(12,2)`            | NOT NULL    |                        | Costo unitario estándar de adquisición.                            |
+| `SparePart`            | `status`           | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de disponibilidad del repuesto.                             |
+| `InventoryTransaction` | `quantity`         | `DECIMAL(12,4)`            | NOT NULL    |                        | Cantidad transada (positiva para entradas, negativa para salidas). |
+| `InventoryTransaction` | `transactionType`  | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Tipo de movimiento (RECEIPT, ISSUE, ADJUSTMENT).                   |
+| `InventoryTransaction` | `timestamp`        | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal preciso del movimiento.                          |
+| `InventoryTransaction` | `reason`           | `VARCHAR(255)`             | NOT NULL    |                        | Razón del movimiento o referencia a documentos externos.           |
+| `InventoryTransaction` | `totalCost`        | `DECIMAL(12,2)`            | NOT NULL    |                        | Costo total de la transacción (Cantidad \* Costo).                 |
+| `Warehouse`            | `name`             | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad del almacén.                                             |
+| `Warehouse`            | `location`         | `VARCHAR(255)`             | NOT NULL    |                        | Dirección o ubicación física del almacén.                          |
+| `Warehouse`            | `capacity`         | `DECIMAL(12,4)`            | NOT NULL    |                        | Capacidad máxima volumétrica o de carga del almacén.               |
+| `Supplier`             | `name`             | `VARCHAR(120)`             | NOT NULL    | UNIQUE                 | Identidad comercial del proveedor.                                 |
+| `Supplier`             | `contactInfo`      | `VARCHAR(255)`             | NOT NULL    |                        | Teléfono, correo o dirección de contacto.                          |
+| `Supplier`             | `warrantyTerms`    | `VARCHAR(255)`             | NOT NULL    |                        | Términos estándar de garantía comercial.                           |
+| `MaterialRequirement`  | `plannedQuantity`  | `DECIMAL(12,4)`            | NOT NULL    |                        | Repuestos planificados antes de la ejecución de la OT.             |
+| `MaterialRequirement`  | `actualQuantity`   | `DECIMAL(12,4)`            | NULL        |                        | Repuestos realmente consumidos durante la ejecución de la OT.      |
+| `MaterialRequirement`  | `isReserved`       | `BOOLEAN`                  | NOT NULL    | DEFAULT false          | Bandera que indica si el stock ya fue apartado en almacén.         |
 
 ### 5.4 Convergencia Digital y Visualización de Seguridad
 
-| Entidad | Campo Lógico | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación |
-|---|---|---|---|---|---|
-| `MeshMapping` | `meshUuid` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identidad o ruta del modelo 3D del activo. |
-| `MeshMapping` | `mappingStatus` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado de vinculación del gemelo digital. |
-| `MeshMapping` | `lastSyncTime` | `TIMESTAMP` | NULL |  | Tiempo de la última sincronización. |
-| `TelemetrySignal` | `signalType` | `VARCHAR(80)` | NOT NULL |  | Etiqueta de la señal del sensor. |
-| `TelemetrySignal` | `value` | `DECIMAL(18,6)` | NOT NULL |  | Valor de la medición cruda. |
-| `TelemetrySignal` | `unit` | `VARCHAR(20)` | NOT NULL |  | Unidad de medición. |
-| `TelemetrySignal` | `threshold` | `DECIMAL(18,6)` | NULL |  | Umbral de alerta. |
-| `TelemetrySignal` | `timestamp` | `TIMESTAMP` | NOT NULL |  | Tiempo de medición. |
-| `TelemetrySignal` | `isSafetyCritical` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Bandera de clasificación de seguridad. |
-| `WorkPermit` | `permitIdentifier` | `VARCHAR(80)` | NOT NULL | UNIQUE | Trazabilidad del permiso. |
-| `WorkPermit` | `permitType` | `VARCHAR(30)` | NOT NULL | CHECK o lookup | Vocabulario de permisos. |
-| `WorkPermit` | `contractorName` | `VARCHAR(150)` | NOT NULL |  | Identificación del contratista. |
-| `WorkPermit` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado del ciclo de vida del permiso. |
-| `IsolationPoint` | `isolationTag` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identidad del punto de aislamiento. |
-| `IsolationPoint` | `isolationType` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Vocabulario de aislamiento. |
-| `IsolationPoint` | `isVerified` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Estado de verificación. |
-| `WorkOrderIsolation` | `isIsolated` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Estado de bloqueo verificado para el trabajo específico. |
-| `WorkOrderIsolation` | `isolatedAt` | `TIMESTAMP` | NULL |  | Marca de tiempo en que se ejecutó el bloqueo. |
-| `VisualLayer` | `layerType` | `VARCHAR(80)` | NOT NULL |  | Tipo de representación visual. |
-| `VisualLayer` | `opacityLevel` | `DECIMAL(5,2)` | NOT NULL | CHECK (0..1) | Control de renderizado. |
-| `VisualLayer` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado de la capa visual. |
-| `SpatialMetadata` | `position` | `JSON` | NOT NULL |  | Coordenada espacial vectorial (ej. x,y,z). |
-| `SpatialMetadata` | `rotation` | `JSON` | NULL |  | Descriptor de orientación (ej. cuaternión). |
-| `SpatialMetadata` | `scale` | `JSON` | NULL |  | Descriptor de escala. |
+| Entidad              | Campo Lógico       | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                            |
+| -------------------- | ------------------ | -------------------------- | ----------- | ---------------------- | -------------------------------------------------------- |
+| `MeshMapping`        | `meshUuid`         | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad o ruta del modelo 3D del activo.               |
+| `MeshMapping`        | `mappingStatus`    | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de vinculación del gemelo digital.                |
+| `MeshMapping`        | `lastSyncTime`     | `TIMESTAMP`                | NULL        |                        | Tiempo de la última sincronización.                      |
+| `TelemetrySignal`    | `signalType`       | `VARCHAR(80)`              | NOT NULL    |                        | Etiqueta de la señal del sensor.                         |
+| `TelemetrySignal`    | `value`            | `DECIMAL(18,6)`            | NOT NULL    |                        | Valor de la medición cruda.                              |
+| `TelemetrySignal`    | `unit`             | `VARCHAR(20)`              | NOT NULL    |                        | Unidad de medición.                                      |
+| `TelemetrySignal`    | `threshold`        | `DECIMAL(18,6)`            | NULL        |                        | Umbral de alerta.                                        |
+| `TelemetrySignal`    | `timestamp`        | `TIMESTAMP`                | NOT NULL    |                        | Tiempo de medición.                                      |
+| `TelemetrySignal`    | `isSafetyCritical` | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera de clasificación de seguridad.                   |
+| `WorkPermit`         | `permitIdentifier` | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Trazabilidad del permiso.                                |
+| `WorkPermit`         | `permitType`       | `VARCHAR(30)`              | NOT NULL    | CHECK o lookup         | Vocabulario de permisos.                                 |
+| `WorkPermit`         | `contractorName`   | `VARCHAR(150)`             | NOT NULL    |                        | Identificación del contratista.                          |
+| `WorkPermit`         | `status`           | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida del permiso.                    |
+| `IsolationPoint`     | `isolationTag`     | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad del punto de aislamiento.                      |
+| `IsolationPoint`     | `isolationType`    | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Vocabulario de aislamiento.                              |
+| `IsolationPoint`     | `isVerified`       | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Estado de verificación.                                  |
+| `WorkOrderIsolation` | `isIsolated`       | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Estado de bloqueo verificado para el trabajo específico. |
+| `WorkOrderIsolation` | `isolatedAt`       | `TIMESTAMP`                | NULL        |                        | Marca de tiempo en que se ejecutó el bloqueo.            |
+| `VisualLayer`        | `layerType`        | `VARCHAR(80)`              | NOT NULL    |                        | Tipo de representación visual.                           |
+| `VisualLayer`        | `opacityLevel`     | `DECIMAL(5,2)`             | NOT NULL    | CHECK (0..1)           | Control de renderizado.                                  |
+| `VisualLayer`        | `status`           | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de la capa visual.                                |
+| `SpatialMetadata`    | `position`         | `JSON`                     | NOT NULL    |                        | Coordenada espacial vectorial (ej. x,y,z).               |
+| `SpatialMetadata`    | `rotation`         | `JSON`                     | NULL        |                        | Descriptor de orientación (ej. cuaternión).              |
+| `SpatialMetadata`    | `scale`            | `JSON`                     | NULL        |                        | Descriptor de escala.                                    |
 
 ### 5.5 Gobernanza y Seguridad
 
-| Entidad | Campo Lógico | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación |
-|---|---|---|---|---|---|
-| `User` | `username` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identidad de la cuenta de usuario. |
-| `User` | `email` | `VARCHAR(150)` | NOT NULL | UNIQUE | Correo electrónico institucional y de contacto. |
-| `User` | `status` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Estado de la cuenta (ACTIVE, INACTIVE, LOCKED). |
-| `User` | `passwordHash` | `VARCHAR(255)` | NOT NULL |  | Hash de la contraseña de acceso (PBKDF2/BCrypt). |
-| `User` | `failedLoginAttempts` | `INT` | NOT NULL | DEFAULT 0 | Contador de intentos fallidos de autenticación. |
-| `User` | `lockoutUntil` | `TIMESTAMP` | NULL |  | Fin del periodo de bloqueo temporal. |
-| `User` | `mfaEnabled` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Bandera que indica si la autenticación multifactor está activa. |
-| `User` | `totpSecret` | `VARCHAR(255)` | NULL |  | Secreto compartido para autenticación TOTP (Autenticador). |
-| `Role` | `roleName` | `VARCHAR(80)` | NOT NULL | UNIQUE | Identificador del rol de usuario (ej. Planner, Technician). |
-| `Role` | `description` | `VARCHAR(255)` | NULL |  | Descripción del alcance del rol. |
-| `Role` | `isSystemRole` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Bandera para roles inmutables del sistema. |
-| `RolePermission` | `module` | `VARCHAR(80)` | NOT NULL |  | Módulo del sistema (ej. MTTO, INV, VIS). |
-| `RolePermission` | `action` | `VARCHAR(80)` | NOT NULL |  | Acción permitida (ej. READ, CREATE, UPDATE, SIGN_OFF). |
-| `AuthToken` | `tokenHash` | `VARCHAR(255)` | NOT NULL | UNIQUE | Hash del token de autenticación API / sesión. |
-| `AuthToken` | `expiresAt` | `TIMESTAMP` | NOT NULL |  | Fecha y hora de expiración del token. |
-| `AuthToken` | `isUsed` | `BOOLEAN` | NOT NULL | DEFAULT FALSE | Indica si el token ya fue consumido (uso único). |
-| `AuthToken` | `ipAddress` | `VARCHAR(45)` | NULL |  | Dirección IP desde la que se emitió el token (IPv4/IPv6). |
-| `AuthToken` | `userAgent` | `VARCHAR(255)` | NULL |  | Identificador del cliente/navegador para fingerprinting. |
-| `WorkOrderAssignment` | `roleInWork` | `VARCHAR(50)` | NOT NULL |  | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR). |
-| `WorkOrderAssignment` | `assignedAt` | `TIMESTAMP` | NOT NULL |  | Registro temporal de la asignación. |
-| `AuditLog` | `entityType` | `VARCHAR(80)` | NOT NULL |  | Nombre de la tabla/entidad auditada. |
-| `AuditLog` | `entityIdentifier` | `VARCHAR(80)` | NOT NULL |  | Identificador UUID de la fila modificada. |
-| `AuditLog` | `actionType` | `VARCHAR(20)` | NOT NULL | CHECK o lookup | Tipo de operación DML (CREATE, UPDATE, DELETE). |
-| `AuditLog` | `timestamp` | `TIMESTAMP` | NOT NULL |  | Registro temporal preciso del evento de cambio. |
-| `AuditLog` | `previousState` | `JSON` | NULL |  | Representación JSON del estado de los campos antes de la acción. |
-| `AuditLog` | `newState` | `JSON` | NULL |  | Representación JSON del estado de los campos después de la acción. |
-| `AuditLog` | `integrityHash` | `VARCHAR(255)` | NOT NULL |  | Hash SHA-256 encadenado para detectar manipulación del log. |
+| Entidad               | Campo Lógico          | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                      |
+| --------------------- | --------------------- | -------------------------- | ----------- | ---------------------- | ------------------------------------------------------------------ |
+| `User`                | `username`            | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad de la cuenta de usuario.                                 |
+| `User`                | `email`               | `VARCHAR(150)`             | NOT NULL    | UNIQUE                 | Correo electrónico institucional y de contacto.                    |
+| `User`                | `status`              | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de la cuenta (ACTIVE, INACTIVE, LOCKED).                    |
+| `User`                | `passwordHash`        | `VARCHAR(255)`             | NOT NULL    |                        | Hash de la contraseña de acceso (PBKDF2/BCrypt).                   |
+| `User`                | `failedLoginAttempts` | `INT`                      | NOT NULL    | DEFAULT 0              | Contador de intentos fallidos de autenticación.                    |
+| `User`                | `lockoutUntil`        | `TIMESTAMP`                | NULL        |                        | Fin del periodo de bloqueo temporal.                               |
+| `User`                | `mfaEnabled`          | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera que indica si la autenticación multifactor está activa.    |
+| `User`                | `totpSecret`          | `VARCHAR(255)`             | NULL        |                        | Secreto compartido para autenticación TOTP (Autenticador).         |
+| `Role`                | `roleName`            | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identificador del rol de usuario (ej. Planner, Technician).        |
+| `Role`                | `description`         | `VARCHAR(255)`             | NULL        |                        | Descripción del alcance del rol.                                   |
+| `Role`                | `isSystemRole`        | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera para roles inmutables del sistema.                         |
+| `RolePermission`      | `module`              | `VARCHAR(80)`              | NOT NULL    |                        | Módulo del sistema (ej. MTTO, INV, VIS).                           |
+| `RolePermission`      | `action`              | `VARCHAR(80)`              | NOT NULL    |                        | Acción permitida (ej. READ, CREATE, UPDATE, SIGN_OFF).             |
+| `AuthToken`           | `tokenHash`           | `VARCHAR(255)`             | NOT NULL    | UNIQUE                 | Hash del token de autenticación API / sesión.                      |
+| `AuthToken`           | `expiresAt`           | `TIMESTAMP`                | NOT NULL    |                        | Fecha y hora de expiración del token.                              |
+| `AuthToken`           | `isUsed`              | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Indica si el token ya fue consumido (uso único).                   |
+| `AuthToken`           | `ipAddress`           | `VARCHAR(45)`              | NULL        |                        | Dirección IP desde la que se emitió el token (IPv4/IPv6).          |
+| `AuthToken`           | `userAgent`           | `VARCHAR(255)`             | NULL        |                        | Identificador del cliente/navegador para fingerprinting.           |
+| `WorkOrderAssignment` | `roleInWork`          | `VARCHAR(50)`              | NOT NULL    |                        | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR).     |
+| `WorkOrderAssignment` | `assignedAt`          | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal de la asignación.                                |
+| `AuditLog`            | `entityType`          | `VARCHAR(80)`              | NOT NULL    |                        | Nombre de la tabla/entidad auditada.                               |
+| `AuditLog`            | `entityIdentifier`    | `VARCHAR(80)`              | NOT NULL    |                        | Identificador UUID de la fila modificada.                          |
+| `AuditLog`            | `actionType`          | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Tipo de operación DML (CREATE, UPDATE, DELETE).                    |
+| `AuditLog`            | `timestamp`           | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal preciso del evento de cambio.                    |
+| `AuditLog`            | `previousState`       | `JSON`                     | NULL        |                        | Representación JSON del estado de los campos antes de la acción.   |
+| `AuditLog`            | `newState`            | `JSON`                     | NULL        |                        | Representación JSON del estado de los campos después de la acción. |
+| `AuditLog`            | `integrityHash`       | `VARCHAR(255)`             | NOT NULL    |                        | Hash SHA-256 encadenado para detectar manipulación del log.        |
 
 ## 6. Matriz de Correspondencia de Tipos de Datos (SQL Estándar vs. PostgreSQL)
 
 Para garantizar la viabilidad física del modelo lógico y su correcta implementación en el motor de base de datos seleccionado (**PostgreSQL**), se ha validado y mapeado formalmente cada tipo de datos físico propuesto:
 
-| Tipo Físico (Estándar SQL) | Tipo Nativo en PostgreSQL | Equivalente Técnico Alternativo | Impacto Técnico / Justificación en PostgreSQL |
-| :--- | :--- | :--- | :--- |
-| `VARCHAR(N)` | `VARCHAR(N)` o `CHARACTER VARYING(N)` | `TEXT` | PostgreSQL maneja cadenas de longitud variable eficientemente. `TEXT` no tiene penalización de rendimiento y se prefiere cuando no se requiere un límite estricto de longitud de caracteres. |
-| `SMALLINT` | `SMALLINT` o `INT2` | Ninguno | Entero con signo de 2 bytes (rango -32,768 a 32,767). Óptimo para cardinalidades y niveles taxonómicos (como `hierarchyLevel`). |
-| `INT` | `INTEGER` o `INT4` | Ninguno | Entero con signo de 4 bytes (rango -2,147,483,648 a 2,147,483,647). Estándar para contadores simples (como `failedLoginAttempts`). |
-| `BIGINT` | `BIGINT` o `INT8` | Ninguno | Entero con signo de 8 bytes. Usado para métricas acumuladas grandes como horas operativas (`operatingHours`) y duraciones de transición. |
-| `DATE` | `DATE` | Ninguno | Tipo de datos de 4 bytes para almacenar fechas de calendario sin zona horaria (año, mes, día). |
-| `TIMESTAMP` | `TIMESTAMP` | `TIMESTAMPTZ` (Recomendado) | `TIMESTAMP` almacena fecha y hora sin zona horaria. Se recomienda `TIMESTAMPTZ` (Timestamp con zona horaria) para logs de auditoría, marcas de creación e inicio de órdenes de trabajo para evitar discrepancias por husos horarios. |
-| `DECIMAL(P,S)` | `DECIMAL(P,S)` o `NUMERIC(P,S)` | Ninguno | Tipo de precisión exacta con escala de usuario. Esencial para valores monetarios (`unitCost`), dimensiones de sensores (`value`, `threshold`) y porcentajes exactos (`opacityLevel`). |
-| `UUID` | `UUID` | Ninguno | Tipo de datos nativo de 128 bits para Identificadores Únicos Universales (UUID). Mucho más eficiente que almacenar UUID como `VARCHAR(36)`. Requiere cargar la extensión `uuid-ossp` o usar la función nativa `gen_random_uuid()` para generación de llaves en la base de datos. |
-| `BOOLEAN` | `BOOLEAN` o `BOOL` | Ninguno | Tipo lógico que almacena `TRUE` o `FALSE`. |
-| `JSON` | `JSON` | `JSONB` (Recomendado) | `JSON` almacena el texto literal, lo cual requiere parseo en cada consulta. Se recomienda usar `JSONB` (JSON Binario Descompuesto) porque almacena el contenido en formato binario, soporta indexación rápida (índices GIN) y es mucho más eficiente para consultas de auditoría (`previousState` y `newState`). |
+| Tipo Físico (Estándar SQL) | Tipo Nativo en PostgreSQL             | Equivalente Técnico Alternativo | Impacto Técnico / Justificación en PostgreSQL                                                                                                                                                                                                                                                                    |
+| :------------------------- | :------------------------------------ | :------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VARCHAR(N)`               | `VARCHAR(N)` o `CHARACTER VARYING(N)` | `TEXT`                          | PostgreSQL maneja cadenas de longitud variable eficientemente. `TEXT` no tiene penalización de rendimiento y se prefiere cuando no se requiere un límite estricto de longitud de caracteres.                                                                                                                     |
+| `SMALLINT`                 | `SMALLINT` o `INT2`                   | Ninguno                         | Entero con signo de 2 bytes (rango -32,768 a 32,767). Óptimo para cardinalidades y niveles taxonómicos (como `hierarchyLevel`).                                                                                                                                                                                  |
+| `INT`                      | `INTEGER` o `INT4`                    | Ninguno                         | Entero con signo de 4 bytes (rango -2,147,483,648 a 2,147,483,647). Estándar para contadores simples (como `failedLoginAttempts`).                                                                                                                                                                               |
+| `BIGINT`                   | `BIGINT` o `INT8`                     | Ninguno                         | Entero con signo de 8 bytes. Usado para métricas acumuladas grandes como horas operativas (`operatingHours`) y duraciones de transición.                                                                                                                                                                         |
+| `DATE`                     | `DATE`                                | Ninguno                         | Tipo de datos de 4 bytes para almacenar fechas de calendario sin zona horaria (año, mes, día).                                                                                                                                                                                                                   |
+| `TIMESTAMP`                | `TIMESTAMP`                           | `TIMESTAMPTZ` (Recomendado)     | `TIMESTAMP` almacena fecha y hora sin zona horaria. Se recomienda `TIMESTAMPTZ` (Timestamp con zona horaria) para logs de auditoría, marcas de creación e inicio de órdenes de trabajo para evitar discrepancias por husos horarios.                                                                             |
+| `DECIMAL(P,S)`             | `DECIMAL(P,S)` o `NUMERIC(P,S)`       | Ninguno                         | Tipo de precisión exacta con escala de usuario. Esencial para valores monetarios (`unitCost`), dimensiones de sensores (`value`, `threshold`) y porcentajes exactos (`opacityLevel`).                                                                                                                            |
+| `UUID`                     | `UUID`                                | Ninguno                         | Tipo de datos nativo de 128 bits para Identificadores Únicos Universales (UUID). Mucho más eficiente que almacenar UUID como `VARCHAR(36)`. Requiere cargar la extensión `uuid-ossp` o usar la función nativa `gen_random_uuid()` para generación de llaves en la base de datos.                                 |
+| `BOOLEAN`                  | `BOOLEAN` o `BOOL`                    | Ninguno                         | Tipo lógico que almacena `TRUE` o `FALSE`.                                                                                                                                                                                                                                                                       |
+| `JSON`                     | `JSON`                                | `JSONB` (Recomendado)           | `JSON` almacena el texto literal, lo cual requiere parseo en cada consulta. Se recomienda usar `JSONB` (JSON Binario Descompuesto) porque almacena el contenido en formato binario, soporta indexación rápida (índices GIN) y es mucho más eficiente para consultas de auditoría (`previousState` y `newState`). |
 
 ## 7. Notas Finales
 

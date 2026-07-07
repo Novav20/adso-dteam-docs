@@ -32,9 +32,9 @@ skinparam package {
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-DM-UML-001 |
-| **Versión:** 1.9 |
-| **Fecha:** 2026-06-01 |
-| **Estado:** Enriquecimiento DDD de Métodos Completado |
+| **Versión:** 1.10 |
+| **Fecha:** 2026-07-07 |
+| **Estado:** Correción de inconsistencia respecto al modelo lógico; Simplificación de RIME |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -51,6 +51,8 @@ package "Taxonomía de Activos (ISO 14224)" {
             + AddChild(child: FunctionalLocation): void
             + RemoveChild(childId: UUID): void
             + ReorganizeTree(newParentId: UUID): void
+            + InstallEquipment(equipment: EquipmentUnit): void
+            + UninstallEquipment(): EquipmentUnit
         }
 
         class EquipmentClass <<Aggregate Root>> {
@@ -84,6 +86,8 @@ package "Taxonomía de Activos (ISO 14224)" {
             + UpdateOperationalStatus(status: Enum): void
             + AddSubunit(subunit: Subunit): void
             + Decommission(reason: String, disposalDate: Date): void
+            + TransitionToStorage(warehouseId: UUID): void
+            + TransitionToRepair(): void
         }
 
         class Subunit <<Entity>> {
@@ -117,13 +121,10 @@ package "Operaciones de Mantenimiento (MTTO)" {
         - RequestDate: DateTime
         - RequestSource: String
         - Status: Enum
-        - RiskFactor: Enum
-        - ImpactFactor: Enum
-        - MaintainabilityFactor: Enum
-        - EconomyFactor: Enum
+        - WorkClass: int
         + PromoteToWorkOrder(): void
         + Reject(reason: String): void
-        + UpdateRimeFactors(risk: Enum, impact: Enum, maintainability: Enum, economy: Enum): void
+        + UpdateWorkClass(workClass: int): void
     }
 
     class MaintenancePlan <<Aggregate Root>> {
@@ -131,8 +132,11 @@ package "Operaciones de Mantenimiento (MTTO)" {
         - Frequency: String
         - FrequencyType: Enum
         - NextWorkOrderDate: Date
+        - IntervalValue: Decimal
+        - NextTriggerLimit: Decimal
         - Status: Enum
         + CalculateNextDueDate(lastCompletionDate: DateTime): void
+        + CalculateNextTriggerLimit(currentUsage: Decimal): void
         + GenerateWorkOrder(): WorkOrder
         + Activate(): void
         + Suspend(reason: String): void
@@ -260,6 +264,7 @@ package "Control de Recursos (INV)" {
     EquipmentClass "1" -- "0..*" SparePart : "estandariza"
     WorkOrder "1" *-- "0..*" MaterialRequirement : "planifica"
     MaterialRequirement "0..*" -- "1" SparePart : "requiere de"
+    Warehouse "0..1" -- "0..*" EquipmentUnit : "almacena en stock"
 }
 
 ' --- CAPA 4: DIGITAL TWIN LAYER (VIS) ---
@@ -296,6 +301,12 @@ package "Convergencia Gemelo Digital (VIS)" {
         - IsVerified: Boolean
         + MarkAsVerified(): void
     }
+
+    class WorkOrderIsolation <<Entity>> {
+        - IsIsolated: Boolean
+        - IsolatedAt: DateTime
+    }
+
     class VisualLayer <<Entity>> {
         - LayerType: String
         - OpacityLevel: double
@@ -314,7 +325,8 @@ package "Convergencia Gemelo Digital (VIS)" {
     WorkOrder "1" -- "0..*" VisualLayer : "visualizada en"
     WorkPermit "1" -- "1..*" WorkOrder : "valida ejecución de"
     EquipmentUnit "1" *-- "0..*" IsolationPoint : "contiene"
-    WorkOrder "1" -- "1..*" IsolationPoint : "requiere bloqueo de"
+    WorkOrder "1" *-- "0..*" WorkOrderIsolation : "exige"
+    WorkOrderIsolation "0..*" -- "1" IsolationPoint : "aplica sobre"
 }
 
 ' --- CAPA 5: GOVERNANCE LAYER (ADM) ---
