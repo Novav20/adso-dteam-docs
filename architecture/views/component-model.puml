@@ -22,9 +22,9 @@ skinparam cloudBackgroundColor #EBF5FB
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-ARQ-CMP-001 |
-| **Versión:** 1.1 |
-| **Fecha:** 2026-06-10 |
-| **Estado:** Auditoría Hexagonal Aplicada |
+| **Versión:** 1.2 |
+| **Fecha:** 2026-07-09 |
+| **Estado:** Puertos Funcionales y Segregación de Interfaces |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -34,66 +34,100 @@ package "Frontend Application (React / React Native)" {
 }
 
 package "Backend: Modular Monolith (.NET 10)" {
-    
-    package "Infrastructure Layer (Adapters)" {
+
+    package "Driving Adapters (Inbound)" {
         component "Idempotency Filter\n(Redis/Memory Cache)" as Idempotency
         component "REST API Controllers\n(+ Optimistic Concurrency)" as API
-        component "WebSocket / SignalR Hub" as WS
         component "Background Sync Worker" as Sync
-        component "EF Core Postgres Adapter" as DBAdapter
-        component "Azure IoT Hub Adapter" as IoTAdapter
+        component "Azure IoT Hub Adapter\n(Telemetry Listener)" as IoTAdapter
     }
 
-    package "Core Domain Layer (Ports & Use Cases)" {
-        interface "Primary Ports (In)" as InPorts
-        interface "Secondary Ports (Out)" as OutPorts
+    package "Primary Ports (In)" {
+        interface "Taxonomy Port" as PTax
+        interface "Maintenance Port" as PMtto
+        interface "Inventory Port" as PInv
+        interface "Safety & LOTO Port" as PLoto
+        interface "Security Port" as PSec
+    }
 
-        component "Taxonomy Kernel (ISO 14224)" as Tax
-        component "Maintenance (MTTO)" as Mtto
+    package "Core Domain Layer (Use Cases & Entities)" {
+        component "Taxonomy Kernel" as Tax
+        component "Maintenance (MTTO)\n+ RIME Calculator" as Mtto
         component "Inventory (INV)" as Inv
         component "Digital Twin (VIS)" as Vis
-        component "Governance & Audit (ADM)" as Adm
+        component "Governance (ADM)" as Adm
+    }
+
+    package "Secondary Ports (Out)" {
+        interface "Asset Repo Port" as RAsset
+        interface "Mtto Repo Port" as RMtto
+        interface "Inventory Repo Port" as RInv
+        interface "Audit Repo Port" as RSec
+        interface "Notification Port" as PNotify
+        interface "Event Bus Port" as PEventBus
+    }
+
+    package "Driven Adapters (Outbound)" {
+        component "EF Core PostgreSQL Adapter\n(RLS Append-Only)" as DBAdapter
+        component "SignalR Broadcaster" as WS
     }
 }
 
 database "PostgreSQL & TimescaleDB" as DB
 cloud "Azure IoT Hub\n(Free Tier)" as IoT
+node "SCADA (Edge Node)" as Scada
 
-' Conexiones de Entrada (Driving Adapters)
+' Flujos Externos hacia Entrada (Driving)
 Web .down.> Idempotency : "HTTPS/JSON"
 Mobile .down.> Idempotency : "HTTPS (Sync)"
-Mobile .down.> WS : "WSS (Real-Time)"
+Scada .down.> IoT : "MQTT (Telemetría real)"
+IoT .down.> IoTAdapter : "AMQP (Consumo asíncrono)"
 
+' Driving Adapters -> Primary Ports
 Idempotency -down-> API : "Filtra Reintentos"
-API -down-> InPorts : "Invoca"
-WS -down-> InPorts : "Invoca"
-Sync -down-> InPorts : "Procesa Colas"
+API -down-> PTax
+API -down-> PMtto
+API -down-> PInv
+API -down-> PSec
+API -down-> PLoto
+Sync -down-> PMtto : "Procesa colas offline"
+Sync -down-> PInv
+IoTAdapter -down-> PLoto : "Evalúa Energía Cero"
+IoTAdapter -down-> PMtto : "Límites de disparo (CBM)"
 
-InPorts -down-> Tax
-InPorts -down-> Mtto
-InPorts -down-> Inv
-InPorts -down-> Vis
-InPorts -down-> Adm
+' Primary Ports -> Domain
+PTax -down-> Tax
+PMtto -down-> Mtto
+PInv -down-> Inv
+PLoto -down-> Vis
+PSec -down-> Adm
 
-' Conexiones de Salida (Driven Adapters)
-Tax -down-> OutPorts
-Mtto -down-> OutPorts
-Inv -down-> OutPorts
-Vis -down-> OutPorts
-Adm -down-> OutPorts
+' Domain -> Secondary Ports
+Tax -down-> RAsset
+Mtto -down-> RMtto
+Inv -down-> RInv
+Adm -down-> RSec
+Vis -down-> PNotify
+Mtto -down-> PEventBus
+Vis -down-> PEventBus
 
-OutPorts -down-> DBAdapter : "Implementa"
-OutPorts -down-> IoTAdapter : "Implementa"
+' Secondary Ports -> Driven Adapters
+RAsset -down-> DBAdapter : "Implementa"
+RMtto -down-> DBAdapter : "Implementa"
+RInv -down-> DBAdapter : "Implementa"
+RSec -down-> DBAdapter : "Implementa"
+PNotify -down-> WS : "Implementa"
+PEventBus -right-> PNotify : "Dispara notificaciones"
 
-DBAdapter .down.> DB : "TCP/IP (SQL)"
-IoTAdapter .down.> IoT : "MQTT/AMQP"
-IoTAdapter -up-> InPorts : "Ingesta Telemetría"
-OutPorts -up-> WS : "Notifica Clientes"
+' Driven Adapters -> Infraestructura
+DBAdapter .down.> DB : "TCP/IP (EF Core)"
+WS .up.> Mobile : "WSS (LOTO Heartbeat / Alertas)"
+WS .up.> Web : "WSS (Dashboard KPIs)"
 
-note right of InPorts
-  **Regla de Dependencia Estricta:**
-  El Dominio orquesta la telemetría.
-  El adaptador IoT no puede evadir el 
-  dominio para notificar al WebSocket.
+note right of IoTAdapter
+    **Regla de Dependencia Estricta (ASR-2):**
+    El adaptador IoT escucha la telemetría del SCADA
+    y entra obligatoriamente por el Puerto LOTO o Mantenimiento.
+    El Dominio valida el Fail-Safe y decide si notifica al WebSocket.
 end note
 @enduml
