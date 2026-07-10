@@ -172,7 +172,7 @@ Adicionalmente, el documento justifica la existencia de cada método bajo los pr
 | Método  | Propósito / Regla de Negocio | Origen (Historia / FR) | Justificación Arquitectónica (DDD) |
 | :--- | :--- | :--- | :--- |
 | `Revoke(): void` | Invalida el token forzosamente antes de su expiración natural. | [[ADM-014]]<br>FR-262 | **Control de Acceso:** Fundamental para matar sesiones activas instantáneamente cuando una cuenta es suspendida por riesgo de seguridad. |
-| `MarkAsUsed(): void` | Quema el token marcándolo como utilizado. | [[ADM-014]]<br>FR-261 | **Regla de Uso Único:** Evita ataques de replay en tokens sensibles como los enlaces de restablecimiento de contraseña. |
+| `MarkAsUsed(): void` | Invalida el token marcándolo como utilizado. | [[ADM-014]]<br>FR-261 | **Regla de Uso Único:** Evita ataques de replay en tokens sensibles como los enlaces de restablecimiento de contraseña. |
 
 
 
