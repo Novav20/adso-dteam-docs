@@ -22,9 +22,9 @@ skinparam cloud {
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-ARQ-DEP-001 |
-| **Versión:** 1.3 |
-| **Fecha:** 2026-07-07 |
-| **Estado:** Auditoría de Viabilidad Operativa Aplicada |
+| **Versión:** 1.4 |
+| **Fecha:** 2026-07-14 |
+| **Estado:** Vigente |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -41,6 +41,10 @@ node "Estación de Control Local (Edge)\n[SCADA]" as ScadaNode {
     component "SCADA Engine\n(Instrument/Sensor Emulator)" as ScadaApp
 }
 
+node "Estación de Trabajo / Oficina HSEQ\n[PC de Escritorio]" as WebNode {
+    component "Web Admin Portal\n(React SPA)" as WebApp
+}
+
 cloud "Azure Cloud Platform" as Azure {
     node "Azure IoT Hub" as IoTHub
 }
@@ -51,7 +55,7 @@ node "Servidor Cloud Host\n[Nube / VPS Estudiante]" as HostNode {
         (GitHub Student Pack / Heroku / Azure VM)
     end note
     node "Docker Engine" as Docker {
-        component "Nginx\n(Reverse Proxy / TLS)" as Proxy
+        component "Nginx\n(Reverse Proxy & Statics Server)" as Proxy
         component "Backend API Monolith\n(.NET 10)" as Backend
         Proxy -down-> Backend : "Enrutamiento"
     }
@@ -68,6 +72,9 @@ node "Servidor de Base de Datos" as DBServer {
 ' Conexiones de Red
 MobileNode .up.> Proxy : "HTTPS / JSON\n(Sincronización API)"
 MobileNode .right.> Proxy : "WSS (SignalR)\n[Heartbeat Bidireccional 2s]"
+WebNode .down.> Proxy : "HTTP/GET (Descarga de estáticos React)"
+WebNode .down.> Proxy : "HTTPS / JSON (Peticiones API)"
+WebNode .down.> Proxy : "WSS (SignalR) [Dashboard KPIs]"
 ScadaNode .right.> IoTHub : "MQTT\n(Telemetría de proceso real)"
 
 Backend -down-> RDBMS : "TCP/IP (EF Core)"
