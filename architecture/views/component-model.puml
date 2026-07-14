@@ -22,8 +22,8 @@ skinparam cloudBackgroundColor #EBF5FB
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-ARQ-CMP-001 |
-| **Versión:** 1.2 |
-| **Fecha:** 2026-07-09 |
+| **Versión:** 1.3 |
+| **Fecha:** 2026-07-14 |
 | **Estado:** Puertos Funcionales y Segregación de Interfaces |
 | **Autor:** Juan David Julio Serrano |
 endlegend
@@ -59,17 +59,19 @@ package "Backend: Modular Monolith (.NET 10)" {
     }
 
     package "Secondary Ports (Out)" {
-        interface "Asset Repo Port" as RAsset
-        interface "Mtto Repo Port" as RMtto
-        interface "Inventory Repo Port" as RInv
-        interface "Audit Repo Port" as RSec
+        interface "Asset Repository Port" as RAsset
+        interface "Mtto Repository Port" as RMtto
+        interface "Inventory Repository Port" as RInv
+        interface "Audit Repository Port" as RSec
         interface "Notification Port" as PNotify
         interface "Event Bus Port" as PEventBus
+        interface "Telemetry Port" as PTelemetry
     }
 
     package "Driven Adapters (Outbound)" {
         component "EF Core PostgreSQL Adapter\n(RLS Append-Only)" as DBAdapter
         component "SignalR Broadcaster" as WS
+        component "Native Event Dispatcher\n(In-Memory Dispatcher)" as NativeBus
     }
 }
 
@@ -108,6 +110,7 @@ Mtto -down-> RMtto
 Inv -down-> RInv
 Adm -down-> RSec
 Vis -down-> PNotify
+Vis -down-> PTelemetry
 Mtto -down-> PEventBus
 Vis -down-> PEventBus
 
@@ -117,7 +120,8 @@ RMtto -down-> DBAdapter : "Implementa"
 RInv -down-> DBAdapter : "Implementa"
 RSec -down-> DBAdapter : "Implementa"
 PNotify -down-> WS : "Implementa"
-PEventBus -right-> PNotify : "Dispara notificaciones"
+PEventBus -down-> NativeBus : "Implementa"
+PEventBus .right.> PNotify : "Dispara asíncronamente (Event Handlers)"
 
 ' Driven Adapters -> Infraestructura
 DBAdapter .down.> DB : "TCP/IP (EF Core)"
