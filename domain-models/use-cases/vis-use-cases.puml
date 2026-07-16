@@ -2,7 +2,7 @@
 skinparam packageStyle rectangle
 left to right direction
 
-' Configuración de colores profesionales
+' --- CONFIGURACIÓN VISUAL ---
 skinparam usecase {
   BackgroundColor #EBF5FB
   BorderColor #2E86C1
@@ -10,14 +10,12 @@ skinparam usecase {
   FontName Segoe UI
   FontSize 12
 }
-
 skinparam actor {
   BackgroundColor #1B4F72
   BorderColor #154360
   FontName Segoe UI
   FontSize 11
 }
-
 skinparam package {
   BackgroundColor #FDFEFE
   BorderColor #AED6F1
@@ -25,36 +23,44 @@ skinparam package {
   FontSize 13
   FontStyle bold
 }
-
 skinparam defaultFontName "Segoe UI"
 skinparam defaultFontSize 12
 
-' Actores
+legend top right
+|= Control Documental (ISO 9001:2015) |
+| **Código:** DT-UCD-VIS-001 |
+| **Versión:** 1.1 |
+| **Fecha:** 2026-07-16 |
+| **Estado:** Sincronización con LOTO Watchdog Completada |
+| **Autor:** Juan David Julio Serrano |
+endlegend
+
+' --- ACTORES ---
 actor "Inspector\nHSEQ" as HSEQ #1B4F72
 actor "Técnico de\nMantenimiento" as Tecnico #1B4F72
 actor "Supervisor de\nMantenimiento" as Supervisor #1B4F72
 actor "Ingeniero de\nProyectos" as Ingeniero #1B4F72
 
-' Paquete principal
-package "Módulo de Visualización" {
+' --- PAQUETE PRINCIPAL ---
+package "Módulo de Convergencia Gemelo Digital (VIS)" {
 
-  usecase "UC-VIS-001\nVisualizar\nPermisos de\nTrabajo" as UCVIS001 #EBF5FB
-  usecase "UC-VIS-002\nZoom Semántico\ny Navegación" as UCVIS002 #EBF5FB
-  usecase "UC-VIS-003\nVista Explosionada\n(Despiece)" as UCVIS003 #EBF5FB
-  usecase "UC-VIS-004\nRuta LOTO y\nBloqueo Activo" as UCVIS004 #EBF5FB
-  usecase "UC-VIS-005\nJerarquía de\nComponentes 3D" as UCVIS005 #EBF5FB
+  usecase "UC-VIS-008\nVisualizar Capa de\nPermisos de Trabajo" as UCVIS008 #EBF5FB
+  usecase "UC-VIS-009\nNavegación Jerárquica\ny Zoom Semántico" as UCVIS009 #EBF5FB
+  usecase "UC-VIS-010\nVisualización de Despiece\n(Vista Explosionada 3D)" as UCVIS010 #EBF5FB
+  usecase "UC-VIS-011\nRutas de Aislamiento (LOTO)\ny Bloqueo Activo" as UCVIS011 #EBF5FB
+  usecase "UC-VIS-012\nConfiguración de Jerarquía\nde Componentes 3D" as UCVIS012 #EBF5FB
 }
 
-' Relaciones Actor-Caso de Uso
-HSEQ --> UCVIS001
-Supervisor --> UCVIS002
-Tecnico --> UCVIS003
-Tecnico --> UCVIS004
-Ingeniero --> UCVIS005
+' --- RELACIONES ACTOR - CASO DE USO ---
+HSEQ --> UCVIS008
+Supervisor --> UCVIS009
+Tecnico --> UCVIS010
+Tecnico --> UCVIS011
+Ingeniero --> UCVIS012
 
-' Relaciones entre Casos de Uso
-UCVIS004 ..> UCVIS002 : <<extend>>
-UCVIS003 ..> UCVIS005 : <<include>>
-UCVIS001 ..> UCVIS002 : <<include>>
+' --- RELACIONES INTER-CASOS DE USO (Include/Extend) ---
+UCVIS011 ..> UCVIS009 : <<extend>>
+UCVIS010 ..> UCVIS012 : <<include>>
+UCVIS008 ..> UCVIS009 : <<include>>
 
 @enduml

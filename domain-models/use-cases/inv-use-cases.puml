@@ -2,7 +2,7 @@
 skinparam packageStyle rectangle
 left to right direction
 
-' Configuración de colores profesionales
+' --- CONFIGURACIÓN VISUAL ---
 skinparam usecase {
   BackgroundColor #EBF5FB
   BorderColor #2E86C1
@@ -10,14 +10,12 @@ skinparam usecase {
   FontName Segoe UI
   FontSize 12
 }
-
 skinparam actor {
   BackgroundColor #1B4F72
   BorderColor #154360
   FontName Segoe UI
   FontSize 11
 }
-
 skinparam package {
   BackgroundColor #FDFEFE
   BorderColor #AED6F1
@@ -25,39 +23,51 @@ skinparam package {
   FontSize 13
   FontStyle bold
 }
-
 skinparam defaultFontName "Segoe UI"
 skinparam defaultFontSize 12
 
-' Actores
+legend top right
+|= Control Documental (ISO 9001:2015) |
+| **Código:** DT-UCD-INV-001 |
+| **Versión:** 1.1 |
+| **Fecha:** 2026-07-16 |
+| **Estado:** Integración de Rotación de Activos Completada |
+| **Autor:** Juan David Julio Serrano |
+endlegend
+
+' --- ACTORES ---
 actor "Jefe de\nAlmacén" as JefeAlmacen #1B4F72
 actor "Ingeniero de\nProyectos" as IngenieroProyectos #1B4F72
 actor "Ingeniero de\nConfiabilidad" as IngenieroConfiabilidad #1B4F72
 actor "Técnico de\nMantenimiento" as Tecnico #1B4F72
 
-' Paquete principal
-package "Módulo de Inventario" {
+' --- PAQUETE PRINCIPAL ---
+package "Módulo de Control de Recursos (INV)" {
 
-  usecase "UC-INV-001\nCrear Ficha\nTécnica de\nActivo" as UCINV001 #EBF5FB
-  usecase "UC-INV-002\nGestionar\nMovimientos de\nInventario" as UCINV002 #EBF5FB
-  usecase "UC-INV-003\nValidar y\nActivar Activos" as UCINV003 #EBF5FB
-  usecase "UC-INV-004\nMonitor de\nReabastecimiento" as UCINV004 #EBF5FB
-  usecase "UC-INV-005\nCrear Ubicaciones\nFuncionales" as UCINV005 #EBF5FB
-  usecase "UC-INV-006\nGestionar Catálogo\nde Repuestos\nMaestro" as UCINV006 #EBF5FB
+  usecase "UC-INV-005\nCrear Ficha Técnica\nde Activo (Equipment Unit)" as UCINV005 #EBF5FB
+  usecase "UC-INV-006\nGestionar Movimientos\nde Inventario" as UCINV006 #EBF5FB
+  usecase "UC-INV-007\nValidar y Activar\nActivos Nuevos" as UCINV007 #EBF5FB
+  usecase "UC-INV-021\nMonitor de\nReabastecimiento" as UCINV021 #EBF5FB
+  usecase "UC-INV-025\nRotación de Activos\n(Asset Swap)" as UCINV025 #EBF5FB
+  usecase "UC-INV-027\nCrear Ubicaciones\nFuncionales" as UCINV027 #EBF5FB
+  usecase "UC-INV-031\nGestionar Catálogo de\nRepuestos Maestro" as UCINV031 #EBF5FB
 }
 
-' Relaciones Actor-Caso de Uso
-IngenieroProyectos --> UCINV001
-JefeAlmacen --> UCINV002
-IngenieroConfiabilidad --> UCINV003
-JefeAlmacen --> UCINV004
+' --- RELACIONES ACTOR - CASO DE USO ---
 IngenieroProyectos --> UCINV005
-JefeAlmacen --> UCINV006
+IngenieroProyectos --> UCINV027
+IngenieroProyectos --> UCINV025
+
+JefeAlmacen --> UCINV002
+JefeAlmacen --> UCINV021
+JefeAlmacen --> UCINV031
+
+IngenieroConfiabilidad --> UCINV007
 Tecnico --> UCINV002
 
-' Relaciones entre Casos de Uso
-UCINV001 ..> UCINV005 : <<include>>
-UCINV002 ..> UCINV006 : <<precondition>>
-UCINV004 ..> UCINV006 : <<include>>
+' --- RELACIONES INTER-CASOS DE USO (Include/Extend) ---
+UCINV005 ..> UCINV027 : <<include>>
+UCINV006 ..> UCINV031 : <<include>>
+UCINV021 ..> UCINV031 : <<include>>
 
 @enduml

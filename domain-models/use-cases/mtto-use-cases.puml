@@ -2,7 +2,7 @@
 skinparam packageStyle rectangle
 left to right direction
 
-' Configuración de colores profesionales
+' --- CONFIGURACIÓN VISUAL ---
 skinparam usecase {
   BackgroundColor #EBF5FB
   BorderColor #2E86C1
@@ -10,14 +10,12 @@ skinparam usecase {
   FontName Segoe UI
   FontSize 12
 }
-
 skinparam actor {
   BackgroundColor #1B4F72
   BorderColor #154360
   FontName Segoe UI
   FontSize 11
 }
-
 skinparam package {
   BackgroundColor #FDFEFE
   BorderColor #AED6F1
@@ -25,53 +23,64 @@ skinparam package {
   FontSize 13
   FontStyle bold
 }
-
 skinparam defaultFontName "Segoe UI"
 skinparam defaultFontSize 12
 
-' Actores
+legend top right
+|= Control Documental (ISO 9001:2015) |
+| **Código:** DT-UCD-MTTO-001 |
+| **Versión:** 1.1 |
+| **Fecha:** 2026-07-16 |
+| **Estado:** Alineación RIME & Telemetría Completada |
+| **Autor:** Juan David Julio Serrano |
+endlegend
+
+' --- ACTORES ---
 actor "Técnico de\nMantenimiento" as Tecnico #1B4F72
 actor "Planificador de\nMantenimiento" as Planificador #1B4F72
 actor "Ingeniero de\nConfiabilidad" as Ingeniero #1B4F72
 actor "Supervisor de\nMantenimiento" as Supervisor #1B4F72
 actor "Contratista" as Contratista #1B4F72
 
-' Paquete principal
-package "Módulo de Mantenimiento" {
+' --- PAQUETE PRINCIPAL ---
+package "Módulo de Operaciones de Mantenimiento (MTTO)" {
 
-  ' Casos de Uso - Planificación
-  usecase "UC-MTTO-001\nProgramar\nMantenimiento\nPreventivo" as UC001 #EBF5FB
-  usecase "UC-MTTO-002\nPriorizar Backlog\nmediante RIME" as UC002 #EBF5FB
+  ' Casos de Uso - Planificación y Priorización
+  usecase "UC-MTTO-001\nProgramar Mantenimiento\nPreventivo (Tiempo)" as UCMTTO001 #EBF5FB
+  usecase "UC-MTTO-023\nProgramar Mantenimiento\npor Telemetría" as UCMTTO023 #EBF5FB
+  usecase "UC-MTTO-026\nPriorizar Backlog\nmediante RIME" as UCMTTO026 #EBF5FB
 
-  ' Casos de Uso - Ejecución
-  usecase "UC-MTTO-003\nCerrar OT con\nTaxonomía ISO 14224" as UC003 #EBF5FB
-  usecase "UC-MTTO-004\nCargar Evidencia\nMultimedia (PDF)" as UC004 #EBF5FB
-  usecase "UC-MTTO-005\nExtraer Datos con IA\n(LLM)" as UC005 #EBF5FB
+  ' Casos de Uso - Ejecución en Campo
+  usecase "UC-MTTO-002\nCerrar OT con\nTaxonomía ISO 14224" as UCMTTO002 #EBF5FB
+  usecase "UC-MTTO-003\nCargar Informe de\nContratista (PDF)" as UCMTTO003 #EBF5FB
+  usecase "UC-MTTO-004\nExtraer Datos\nde Informe con IA" as UCMTTO004 #EBF5FB
 
   ' Casos de Uso - Consulta y Soporte
-  usecase "UC-MTTO-006\nConsultar Chatbot\nRAG Técnico" as UC006 #EBF5FB
-  usecase "UC-MTTO-007\nVisualizar\nDocumentación Móvil" as UC007 #EBF5FB
+  usecase "UC-MTTO-020\nVisualizar\nDocumentación Móvil" as UCMTTO020 #EBF5FB
+  usecase "UC-MTTO-028\nConsultar Chatbot\nRAG Técnico" as UCMTTO028 #EBF5FB
 
-  ' Casos de Uso - Gestión de Activos
-  usecase "UC-MTTO-008\nDefinir Límites\nde Activos (Boundaries)" as UC008 #EBF5FB
-  usecase "UC-MTTO-009\nGestionar\nGarantías de Activos" as UC009 #EBF5FB
+  ' Casos de Uso - Ingeniería y Confiabilidad
+  usecase "UC-MTTO-029\nDefinir Límites\nde Activos (Boundaries)" as UCMTTO029 #EBF5FB
+  usecase "UC-MTTO-030\nGestionar\nGarantías de Activos" as UCMTTO030 #EBF5FB
 }
 
-' Relaciones Actor-Caso de Uso
-Planificador --> UC001
-Planificador --> UC002
-Tecnico --> UC003
-Contratista --> UC004
-Supervisor --> UC005
-Tecnico --> UC006
-Tecnico --> UC007
-Ingeniero --> UC008
-Planificador --> UC009
+' --- RELACIONES ACTOR - CASO DE USO ---
+Planificador --> UCMTTO001
+Planificador --> UCMTTO023
+Planificador --> UCMTTO026
+Planificador --> UCMTTO030
 
-' Relaciones entre Casos de Uso (Include/Extend)
-UC003 ..> UC004 : <<include>>
-UC004 ..> UC005 : <<include>>
-UC001 ..> UC008 : <<precondition>>
-UC006 ..> UC007 : <<extend>>
+Tecnico --> UCMTTO002
+Tecnico --> UCMTTO020
+Tecnico --> UCMTTO028
+
+Contratista --> UCMTTO003
+Supervisor --> UCMTTO004
+Ingeniero --> UCMTTO029
+
+' --- RELACIONES INTER-CASOS DE USO (Include/Extend) ---
+UCMTTO002 ..> UCMTTO003 : <<include>>
+UCMTTO004 ..> UCMTTO003 : <<extend>>
+UCMTTO028 ..> UCMTTO020 : <<extend>>
 
 @enduml
