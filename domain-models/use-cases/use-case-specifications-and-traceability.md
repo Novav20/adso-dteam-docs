@@ -11,9 +11,7 @@ standard:
   - ISO 55001:2014
 ---
 
-## Módulo de Mantenimiento (`MTTO`)
-
-### Tabla de Trazabilidad ISO 
+## Módulo de Operaciones de Mantenimiento (MTTO)
 
 | Caso de Uso (ID) | Nombre del Caso de Uso                      | Historia de Usuario (ID) | Actor Principal            | Sustento Normativo / Invariante de Negocio                                                                                                 |
 | :--------------- | :------------------------------------------ | :----------------------- | :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -30,9 +28,7 @@ standard:
 
 ---
 
-## Módulo de Inventario (`INV`)
-
-### Tabla de Trazabilidad ISO
+## Módulo de Control de Recursos (`INV`)
 
 | Caso de Uso (ID) | Nombre del Caso de Uso                  | Historia de Usuario (ID) | Actor Principal            | Sustento Normativo / Invariante de Negocio                                                                                                                    |
 | :--------------- | :-------------------------------------- | :----------------------- | :------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -46,9 +42,7 @@ standard:
 
 ---
 
-## Módulo de Visualización (`VIS`)
-
-### Tabla de Trazabilidad ISO
+## Módulo de Convergencia Gemelo Digital (`VIS`)
 
 | Caso de Uso (ID) | Nombre del Caso de Uso                         | Historia de Usuario (ID) | Actor Principal        | Sustento Normativo / Invariante de Negocio                                                                                                     |
 | :--------------- | :--------------------------------------------- | :----------------------- | :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -60,9 +54,7 @@ standard:
 
 ---
 
-## Módulo de Administración (`ADM`)
-
-### Tabla de Trazabilidad ISO
+## Módulo de Seguridad y Gobernanza (`ADM`)
 
 | Caso de Uso (ID) | Nombre del Caso de Uso                | Historia de Usuario (ID) | Actor Principal       | Sustento Normativo / Invariante de Negocio                                                                                               |
 | :--------------- | :------------------------------------ | :----------------------- | :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
