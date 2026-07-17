@@ -60,3 +60,5 @@ def build_epic(epic_name, output_filename):
 if __name__ == "__main__":
     build_epic("mtto", "Casos-Uso-MTTO.md")
     build_epic("inv", "Casos-Uso-INV.md")
+    build_epic("vis", "Casos-Uso-VIS.md")
+    build_epic("adm", "Casos-Uso-ADM.md")
