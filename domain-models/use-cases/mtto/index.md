@@ -1,11 +1,11 @@
 ---
-id: EV02-Use-Cases-MTTO
-titulo: "Casos de Uso del Módulo de Mantenimiento (MTTO)"
+id: DT-UC-MOD-MTTO
+titulo: Casos de Uso del Módulo de Operaciones de Mantenimiento (MTTO)
 fecha: 2026-07-16
 version: 1.3
-tipo: "Use Cases Specification"
-alcance: "Epic MTTO - Sistema ADSO Gemelo Digital"
-estado: "APROBADO"
+tipo: Use Cases Specification
+alcance: Epic MTTO - Sistema Gemelo Digital EAM
+estado: APROBADO
 ---
 
 ## Historial de Cambios
