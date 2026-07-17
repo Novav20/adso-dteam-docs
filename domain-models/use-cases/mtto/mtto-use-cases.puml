@@ -79,7 +79,7 @@ Supervisor --> UCMTTO004
 Ingeniero --> UCMTTO029
 
 ' --- RELACIONES INTER-CASOS DE USO (Include/Extend) ---
-UCMTTO002 ..> UCMTTO003 : <<include>>
+UCMTTO003 ..> UCMTTO002 : <<extend>>
 UCMTTO004 ..> UCMTTO003 : <<extend>>
 UCMTTO028 ..> UCMTTO020 : <<extend>>
 

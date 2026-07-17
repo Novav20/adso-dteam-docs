@@ -60,7 +60,6 @@ Ingeniero --> UCVIS012
 
 ' --- RELACIONES INTER-CASOS DE USO (Include/Extend) ---
 UCVIS011 ..> UCVIS009 : <<extend>>
-UCVIS010 ..> UCVIS012 : <<include>>
 UCVIS008 ..> UCVIS009 : <<include>>
 
 @enduml
