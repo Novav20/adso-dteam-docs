@@ -58,12 +58,12 @@ IngenieroProyectos --> UCINV005
 IngenieroProyectos --> UCINV027
 IngenieroProyectos --> UCINV025
 
-JefeAlmacen --> UCINV002
+JefeAlmacen --> UCINV006
 JefeAlmacen --> UCINV021
 JefeAlmacen --> UCINV031
 
 IngenieroConfiabilidad --> UCINV007
-Tecnico --> UCINV002
+Tecnico --> UCINV006
 
 ' --- RELACIONES INTER-CASOS DE USO (Include/Extend) ---
 UCINV005 ..> UCINV027 : <<include>>
