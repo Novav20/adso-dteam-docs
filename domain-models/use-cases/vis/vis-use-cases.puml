@@ -29,9 +29,9 @@ skinparam defaultFontSize 12
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-UCD-VIS-001 |
-| **Versión:** 1.1 |
-| **Fecha:** 2026-07-16 |
-| **Estado:** Sincronización con LOTO Watchdog Completada |
+| **Versión:** 1.2 |
+| **Fecha:** 2026-08-03 |
+| **Estado:** Adición de Caso de Uso base UC-VIS-033 |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -49,17 +49,23 @@ package "Módulo de Convergencia Gemelo Digital (VIS)" {
   usecase "UC-VIS-010\nVisualización de Despiece\n(Vista Explosionada 3D)" as UCVIS010 #EBF5FB
   usecase "UC-VIS-011\nRutas de Aislamiento (LOTO)\ny Bloqueo Activo" as UCVIS011 #EBF5FB
   usecase "UC-VIS-012\nConfiguración de Jerarquía\nde Componentes 3D" as UCVIS012 #EBF5FB
+  usecase "UC-VIS-033\nVisualización Base e\nInspección de Activos en 2D" as UCVIS033 #EBF5FB
+
 }
 
 ' --- RELACIONES ACTOR - CASO DE USO ---
 HSEQ --> UCVIS008
+Supervisor --> UCVIS033
 Supervisor --> UCVIS009
 Tecnico --> UCVIS010
 Tecnico --> UCVIS011
+Tecnico --> UCVIS033
 Ingeniero --> UCVIS012
 
 ' --- RELACIONES INTER-CASOS DE USO (Include/Extend) ---
 UCVIS011 ..> UCVIS009 : <<extend>>
 UCVIS008 ..> UCVIS009 : <<include>>
+UCVIS008 ..> UCVIS033 : <<include>>
+UCVIS011 ..> UCVIS033 : <<include>>
 
 @enduml
