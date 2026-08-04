@@ -1,4 +1,4 @@
-# UC-VIS-033: Visualización Base e Inspección de Activos en 2D
+# UC-VIS-033: Inspeccionar Activos sobre el Plano Base 2D
 
 ## Plantilla de Caso de Uso
 

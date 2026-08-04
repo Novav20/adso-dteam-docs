@@ -29,9 +29,9 @@ skinparam defaultFontSize 12
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-UCD-VIS-001 |
-| **Versión:** 1.2 |
+| **Versión:** 1.3 |
 | **Fecha:** 2026-08-03 |
-| **Estado:** Adición de Caso de Uso base UC-VIS-033 |
+| **Estado:** Completado |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -45,11 +45,11 @@ actor "Ingeniero de\nProyectos" as Ingeniero #1B4F72
 package "Módulo de Convergencia Gemelo Digital (VIS)" {
 
   usecase "UC-VIS-008\nVisualizar Capa de\nPermisos de Trabajo" as UCVIS008 #EBF5FB
-  usecase "UC-VIS-009\nNavegación Jerárquica\ny Zoom Semántico" as UCVIS009 #EBF5FB
-  usecase "UC-VIS-010\nVisualización de Despiece\n(Vista Explosionada 3D)" as UCVIS010 #EBF5FB
-  usecase "UC-VIS-011\nRutas de Aislamiento (LOTO)\ny Bloqueo Activo" as UCVIS011 #EBF5FB
-  usecase "UC-VIS-012\nConfiguración de Jerarquía\nde Componentes 3D" as UCVIS012 #EBF5FB
-  usecase "UC-VIS-033\nVisualización Base e\nInspección de Activos en 2D" as UCVIS033 #EBF5FB
+  usecase "UC-VIS-009\nNavegar Jerárquicamente\ncon Zoom Semántico" as UCVIS009 #EBF5FB
+  usecase "UC-VIS-010\nVisualizar Despiece\n en 3D(Vista Explosionada)" as UCVIS010 #EBF5FB
+  usecase "UC-VIS-011\nVerificar Rutas de Aislamiento (LOTO)\ny Bloqueo Activo" as UCVIS011 #EBF5FB
+  usecase "UC-VIS-012\nConfigurar Jerarquía\nde Componentes 3D" as UCVIS012 #EBF5FB
+  usecase "UC-VIS-033\Inspeccionar Activos sobre el\nPlano Base 2D" as UCVIS033 #EBF5FB
 
 }
 

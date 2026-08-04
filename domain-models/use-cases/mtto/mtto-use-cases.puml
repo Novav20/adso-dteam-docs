@@ -29,9 +29,9 @@ skinparam defaultFontSize 12
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-UCD-MTTO-001 |
-| **Versión:** 1.1 |
-| **Fecha:** 2026-07-16 |
-| **Estado:** Alineación RIME & Telemetría Completada |
+| **Versión:** 1.2 |
+| **Fecha:** 2026-08-03 |
+| **Estado:** Completado |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -51,7 +51,7 @@ package "Módulo de Operaciones de Mantenimiento (MTTO)" {
   usecase "UC-MTTO-026\nPriorizar Backlog\nmediante RIME" as UCMTTO026 #EBF5FB
 
   ' Casos de Uso - Ejecución en Campo
-  usecase "UC-MTTO-002\nCerrar OT con\nTaxonomía ISO 14224" as UCMTTO002 #EBF5FB
+  usecase "UC-MTTO-002\nCerrar Orden de Trabajo con\nTaxonomía ISO 14224" as UCMTTO002 #EBF5FB
   usecase "UC-MTTO-003\nCargar Informe de\nContratista (PDF)" as UCMTTO003 #EBF5FB
   usecase "UC-MTTO-004\nExtraer Datos\nde Informe con IA" as UCMTTO004 #EBF5FB
 
@@ -60,7 +60,7 @@ package "Módulo de Operaciones de Mantenimiento (MTTO)" {
   usecase "UC-MTTO-028\nConsultar Chatbot\nRAG Técnico" as UCMTTO028 #EBF5FB
 
   ' Casos de Uso - Ingeniería y Confiabilidad
-  usecase "UC-MTTO-029\nDefinir Límites\nde Activos (Boundaries)" as UCMTTO029 #EBF5FB
+  usecase "UC-MTTO-029\nDefinir Límites\nde Activos" as UCMTTO029 #EBF5FB
   usecase "UC-MTTO-030\nGestionar\nGarantías de Activos" as UCMTTO030 #EBF5FB
 }
 

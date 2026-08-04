@@ -29,9 +29,9 @@ skinparam defaultFontSize 12
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-UCD-INV-001 |
-| **Versión:** 1.1 |
-| **Fecha:** 2026-07-16 |
-| **Estado:** Integración de Rotación de Activos Completada |
+| **Versión:** 1.2 |
+| **Fecha:** 2026-08-03 |
+| **Estado:** Completado |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -44,11 +44,11 @@ actor "Técnico de\nMantenimiento" as Tecnico #1B4F72
 ' --- PAQUETE PRINCIPAL ---
 package "Módulo de Control de Recursos (INV)" {
 
-  usecase "UC-INV-005\nCrear Ficha Técnica\nde Activo (Equipment Unit)" as UCINV005 #EBF5FB
+  usecase "UC-INV-005\nCrear Ficha Técnica\nde Activo" as UCINV005 #EBF5FB
   usecase "UC-INV-006\nGestionar Movimientos\nde Inventario" as UCINV006 #EBF5FB
   usecase "UC-INV-007\nValidar y Activar\nActivos Nuevos" as UCINV007 #EBF5FB
-  usecase "UC-INV-021\nMonitor de\nReabastecimiento" as UCINV021 #EBF5FB
-  usecase "UC-INV-025\nRotación de Activos\n(Asset Swap)" as UCINV025 #EBF5FB
+  usecase "UC-INV-021\nMonitorear de\nReabastecimiento de Stock" as UCINV021 #EBF5FB
+  usecase "UC-INV-025\nEjecutar Rotación de Activo" as UCINV025 #EBF5FB
   usecase "UC-INV-027\nCrear Ubicaciones\nFuncionales" as UCINV027 #EBF5FB
   usecase "UC-INV-031\nGestionar Catálogo de\nRepuestos Maestro" as UCINV031 #EBF5FB
 }
