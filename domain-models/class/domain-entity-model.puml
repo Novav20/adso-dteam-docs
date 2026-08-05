@@ -32,9 +32,9 @@ skinparam package {
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-DM-UML-001 |
-| **Versión:** 1.10 |
-| **Fecha:** 2026-07-07 |
-| **Estado:** Correción de inconsistencia respecto al modelo lógico; Simplificación de RIME |
+| **Versión:** 1.11 |
+| **Fecha:** 2026-08-05 |
+| **Estado:** Sincronización Final de Atributos y Métodos tras Auditoría |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -47,6 +47,7 @@ package "Taxonomía de Activos (ISO 14224)" {
             - Description: String
             - Criticality: String
             - GeographicLocation: String
+            - EnvironmentalExposure: String
             - HierarchyLevel: int
             + AddChild(child: FunctionalLocation): void
             + RemoveChild(childId: UUID): void
@@ -78,9 +79,11 @@ package "Taxonomía de Activos (ISO 14224)" {
             - LifecycleStatus: Enum
             - MaintenanceStatus: Enum
             - HealthStatus: Enum
+            - IsSce: Boolean
             - DisposalDate: Date
             - DisposalReason: String
             + Activate(): void
+            + ValidateChronology(): void
             + RejectCommissioning(reason: String): void
             + DefineBoundaries(start: String, end: String): void
             + UpdateOperationalStatus(status: Enum): void
@@ -134,6 +137,9 @@ package "Operaciones de Mantenimiento (MTTO)" {
         - NextWorkOrderDate: Date
         - IntervalValue: Decimal
         - NextTriggerLimit: Decimal
+        - EstimatedLaborHours: Decimal
+        - RequiredSpecialty: Enum
+        - TechnicalDescription: String
         - Status: Enum
         + CalculateNextDueDate(lastCompletionDate: DateTime): void
         + CalculateNextTriggerLimit(currentUsage: Decimal): void
@@ -158,7 +164,7 @@ package "Operaciones de Mantenimiento (MTTO)" {
         + SuspendExecution(reason: String): void
         + CompleteExecution(actualLaborHours: Decimal): void
         + CloseAdministratively(): void
-        + ReportFailure(itemId: UUID, mode: Enum, mechanism: Enum, cause: Enum): void
+        + ReportFailure(itemId: UUID, mode: Enum, mechanism: Enum, cause: Enum, detectionMethod: Enum, operationalCondition: Enum, operationalImpact: Enum): void
         + AddMediaAttachment(url: String, fileType: Enum): void
     }
 
@@ -181,9 +187,12 @@ package "Operaciones de Mantenimiento (MTTO)" {
         - FailureMode: String
         - FailureMechanism: String
         - FailureCause: String
+        - DetectionMethod: Enum
+        - OperationalCondition: Enum
+        - OperationalImpact: Enum
         - Downtime: double
         - Status: Enum
-        + UpdateClassification(mode: String, mechanism: String, cause: String): void
+        + UpdateClassification(mode: String, mechanism: String, cause: String, detectionMethod: Enum, operationalCondition: Enum, operationalImpact: Enum): void
     }
 
     class BacklogItem <<Entity>> {
@@ -234,6 +243,8 @@ package "Control de Recursos (INV)" {
         - Timestamp: DateTime
         - Reason: String
         - TotalCost: Decimal
+        - AisleShelfLocation: String
+        - SerialNumber: String
     }
 
     class MaterialRequirement <<Entity>> {
@@ -305,6 +316,7 @@ package "Convergencia Gemelo Digital (VIS)" {
     class WorkOrderIsolation <<Entity>> {
         - IsIsolated: Boolean
         - IsolatedAt: DateTime
+        - PadlockTagId: String
     }
 
     class VisualLayer <<Entity>> {
@@ -333,6 +345,7 @@ package "Convergencia Gemelo Digital (VIS)" {
 package "Seguridad y Gobernanza (ADM)" {
     class User <<Aggregate Root>> {
         - Username: String
+        - FullName: String
         - Email: String
         - Status: Enum
         - PasswordHash: String
@@ -340,6 +353,7 @@ package "Seguridad y Gobernanza (ADM)" {
         - LockoutUntil: DateTime
         - MfaEnabled: Boolean
         - TotpSecret: String
+        - DeactivationReason: String
         + AssignRole(roleId: UUID): void
         + RemoveRole(roleId: UUID): void
         + RecordFailedLogin(): void

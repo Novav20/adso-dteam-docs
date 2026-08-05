@@ -1,8 +1,8 @@
 ---
 code: DT-DM-DOC-001
-version: 1.9
-date: 2026-07-07
-status: Adición de propiedades para el mantenimiento por condición y la tabla WorkOrdeIsolation en la sección de estereotipos; Simplificación de RIME
+version: 1.10
+date: 2026-08-05
+status: Brechas de auditoría estructural resueltas (ISO 14224 e ISO 27001)
 author: Juan David Julio Serrano
 standard:
   - ISO 9001:2015
@@ -35,7 +35,7 @@ Esta división reduce el acoplamiento, evita sobrecargar la lógica de negocio y
 
 ### 2.2 Priorización RIME Estandarizada
 
-Para cumplir con la gestión de riesgos exigida por la norma ISO 55001 y las mejores prácticas de la ingeniería de mantenimiento, el sistema adopta el estándar RIME (Ranking Index for Maintenance Expenditure). 
+Para cumplir con la gestión de riesgos exigida por la norma ISO 55001 y las mejores prácticas de la ingeniería de mantenimiento, el sistema adopta el estándar RIME (Ranking Index for Maintenance Expenditure).
 
 Se descartan las aproximaciones heurísticas complejas de múltiples factores cualitativos, reduciendo la fórmula del backlog a un cálculo matemático directo de dos dimensiones controladas: la **Criticidad del Activo** (un valor intrínseco de la ficha técnica del equipo, escala 1-10) y la **Clase de Trabajo** (el tipo de actividad declarada en la orden, escala 1-10). Esto garantiza objetividad absoluta, velocidad de procesamiento transaccional en el MVP, simplicidad en el desarrollo frontend/backend y eliminación de acoplamientos con módulos financieros externos.
 
@@ -354,121 +354,190 @@ El conjunto de cápsulas aprobadas proporciona una fuerte orientación para LOTO
 | `CRITICAL_BUT_STABLE` | Condición crítica que no empeora a corto plazo.           | ISO 13374-4 Health Assessment |
 | `CRITICAL`            | Falla inminente, intervención inmediata requerida.        | ISO 13374-4 Health Assessment |
 
+### 4.29 `FunctionalLocation.environmentalExposure`
+
+| Valor      | Significado                                                                                 | Norma de Referencia       |
+| ---------- | ------------------------------------------------------------------------------------------- | ------------------------- |
+| `SEVERE`   | Instalaciones no cerradas o a la intemperie; expuestas a vibración, calor, polvo o salitre. | ISO 14224:2016 Tabla A.70 |
+| `MODERATE` | Instalaciones parcialmente cerradas o moderadamente expuestas; ventilación natural.         | ISO 14224:2016 Tabla A.70 |
+| `LOW`      | Instalaciones cerradas o en interiores (indoor); exposición mínima; ventilación mecánica.   | ISO 14224:2016 Tabla A.70 |
+| `UNKNOWN`  | No se dispone de información sobre la exposición ambiental.                                 | ISO 14224:2016 Tabla A.70 |
+
+### 4.30 `FailureRecord.detectionMethod`
+
+| Valor                     | Significado                                                                             | Norma de Referencia      |
+| ------------------------- | --------------------------------------------------------------------------------------- | ------------------------ |
+| `PERIODIC_MAINTENANCE`    | Descubierto durante actividades programadas del plan preventivo.                        | ISO 14224:2016 Tabla B.4 |
+| `FUNCTIONAL_TESTING`      | Descubierto al activar una función y comparar contra estándar.                          | ISO 14224:2016 Tabla B.4 |
+| `INSPECTION`              | Descubierto durante inspección visual planificada o ensayos NDT.                        | ISO 14224:2016 Tabla B.4 |
+| `PERIODIC_CBM`            | Revelado durante rondas de medición programadas (vibración, termografía offline).       | ISO 14224:2016 Tabla B.4 |
+| `PRESSURE_TESTING`        | Observado específicamente durante ensayo de presión.                                    | ISO 14224:2016 Tabla B.4 |
+| `CONTINUOUS_CBM`          | Revelado por alarmas o lecturas de instrumentos en línea (SCADA).                       | ISO 14224:2016 Tabla B.4 |
+| `PRODUCTION_INTERFERENCE` | Descubierto por interrupción o reducción inesperada de producción.                      | ISO 14224:2016 Tabla B.4 |
+| `CASUAL_OBSERVATION`      | Descubierto por los sentidos (ruido, olor, fuga) en rutinas normales.                   | ISO 14224:2016 Tabla B.4 |
+| `CORRECTIVE_MAINTENANCE`  | Observado mientras se reparaba otra falla distinta.                                     | ISO 14224:2016 Tabla B.4 |
+| `ON_DEMAND`               | Descubierto durante un intento real de activación (ej. falla de cierre de válvula ESD). | ISO 14224:2016 Tabla B.4 |
+| `OTHER`                   | Otro método de detección no clasificado.                                                | ISO 14224:2016 Tabla B.4 |
+
+### 4.31 `FailureRecord.operationalCondition`
+
+| Valor          | Significado                                                | Norma de Referencia    |
+| -------------- | ---------------------------------------------------------- | ---------------------- |
+| `RUNNING`      | En operación normal de proceso al momento del evento.      | ISO 14224:2016 Tabla 6 |
+| `START_UP`     | Ocurrido durante el proceso de puesta en marcha.           | ISO 14224:2016 Tabla 6 |
+| `RUN_DOWN`     | Ocurrido durante el proceso de parada/salida de servicio.  | ISO 14224:2016 Tabla 6 |
+| `HOT_STANDBY`  | En reserva activa (listo para operar de inmediato).        | ISO 14224:2016 Tabla 6 |
+| `COLD_STANDBY` | En reserva pasiva (requiere acciones previas para operar). | ISO 14224:2016 Tabla 6 |
+| `IDLE`         | Disponible pero no requerido por el proceso.               | ISO 14224:2016 Tabla 6 |
+| `TESTING`      | Ocurrido durante la ejecución de una prueba funcional.     | ISO 14224:2016 Tabla 6 |
+
+### 4.32 `FailureRecord.operationalImpact`
+
+| Valor                   | Significado                                                     | Norma de Referencia      |
+| ----------------------- | --------------------------------------------------------------- | ------------------------ |
+| `EXTENSIVE_STOP`        | Parada extensa catastrófica de la producción o instalación.     | ISO 14224:2016 Tabla C.2 |
+| `STOP_ABOVE_ACCEPTABLE` | Parada de producción por encima del límite aceptable de planta. | ISO 14224:2016 Tabla C.2 |
+| `STOP_BELOW_ACCEPTABLE` | Parada de producción por debajo del límite aceptable.           | ISO 14224:2016 Tabla C.2 |
+| `STOP_MINOR`            | Impacto de producción menor o despreciable.                     | ISO 14224:2016 Tabla C.2 |
+
+### 4.33 `MaintenancePlan.requiredSpecialty`
+
+| Valor                         | Significado                                                              | Referencia / Marco                       |
+| ----------------------------- | ------------------------------------------------------------------------ | ---------------------------------------- |
+| `MECHANICAL`                  | Intervenciones mecánicas, ajuste de transmisión, alineación y bombas.    | Vocabulario Interno (Prácticas SMRP)     |
+| `ELECTRICAL`                  | Sistemas de potencia, motores eléctricos, tableros y subestaciones.      | Vocabulario Interno (Prácticas SMRP)     |
+| `INSTRUMENTATION_AND_CONTROL` | Calibración de instrumentos, lazos de control y automatización/PLCs.     | Vocabulario Interno (Prácticas SMRP)     |
+| `LUBRICATION`                 | Rutas de lubricación, cambio de aceites y engrase especializado.         | Vocabulario Interno (ISO 18436-4 / SMRP) |
+| `CONDITION_MONITORING`        | Rutas de monitoreo predictivo (vibraciones, termografía, ultrasonido).   | Vocabulario Interno (ISO 18436-2 / SMRP) |
+| `ELECTRONICS`                 | Tarjetas electrónicas, variadores de frecuencia y componentes digitales. | Vocabulario Interno (Prácticas SMRP)     |
+| `WELDING_FABRICATION`         | Soldadura, pailería, calderería y reparaciones estructurales.            | Vocabulario Interno (Prácticas SMRP)     |
+| `FACILITIES`                  | Infraestructura civil, estructuras, iluminación y servicios generales.   | Vocabulario Interno (Prácticas EAM)      |
+
 ## 5. Tabla de Trazabilidad de Columnas Físicas
 
 **Nota:** Las llaves foráneas (Foreign Keys) derivadas de las asociaciones se omiten en la lista de campos a continuación para mayor legibilidad, pero se agregan en el ERD físico. El siguiente mapeo se centra en los campos lógicos que ya están presentes en el modelo de PlantUML.
 
 ### 5.1 Capa de Taxonomía
 
-| Entidad              | Campo Lógico           | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                            |
-| -------------------- | ---------------------- | -------------------------- | ----------- | ---------------------- | ------------------------------------------------------------------------ |
-| `FunctionalLocation` | `tagNumber`            | `VARCHAR(50)`              | NOT NULL    | UNIQUE                 | Identidad del tag de la ISO 14224 y trazabilidad de la ubicación.        |
-| `FunctionalLocation` | `name`                 | `VARCHAR(150)`             | NOT NULL    |                        | Nombre de la ubicación legible por humanos.                              |
-| `FunctionalLocation` | `description`          | `VARCHAR(255)`             | NULL        |                        | Texto explicativo opcional.                                              |
-| `FunctionalLocation` | `criticality`          | `VARCHAR(30)`              | NOT NULL    | CHECK o lookup         | Vocabulario de prioridad controlado.                                     |
-| `FunctionalLocation` | `geographicLocation`   | `VARCHAR(150)`             | NULL        |                        | Contexto físico de la ubicación.                                         |
-| `FunctionalLocation` | `hierarchyLevel`       | `SMALLINT`                 | NOT NULL    | CHECK (1..9)           | Nivel de taxonomía ISO 14224.                                            |
-| `EquipmentClass`     | `className`            | `VARCHAR(120)`             | NOT NULL    | UNIQUE                 | Datos maestros a nivel de clase.                                         |
-| `EquipmentClass`     | `description`          | `VARCHAR(255)`             | NULL        |                        | Descripción de la clase.                                                 |
-| `EquipmentClass`     | `manufacturerStandard` | `VARCHAR(120)`             | NULL        |                        | Referencia de estandarización.                                           |
-| `EquipmentUnit`      | `serialNumber`         | `VARCHAR(100)`             | NOT NULL    | UNIQUE                 | Integridad de la identificación del activo.                              |
-| `EquipmentUnit`      | `manufacturer`         | `VARCHAR(120)`             | NOT NULL    |                        | Procedencia del activo.                                                  |
-| `EquipmentUnit`      | `model`                | `VARCHAR(120)`             | NOT NULL    |                        | Identificación del tipo de activo.                                       |
-| `EquipmentUnit`      | `purchaseDate`         | `DATE`                     | NOT NULL    |                        | Cronología de adquisiciones.                                             |
-| `EquipmentUnit`      | `rejectionReason`      | `VARCHAR(255)`             | NULL        |                        | Solo está presente cuando se rechaza la adquisición.                     |
-| `EquipmentUnit`      | `boundaryStart`        | `VARCHAR(150)`             | NOT NULL    |                        | Punto de inicio de la definición del límite.                             |
-| `EquipmentUnit`      | `boundaryEnd`          | `VARCHAR(150)`             | NOT NULL    |                        | Punto final de la definición del límite.                                 |
-| `EquipmentUnit`      | `acquisitionDate`      | `DATE`                     | NOT NULL    |                        | Trazabilidad de la adquisición del activo.                               |
-| `EquipmentUnit`      | `installationDate`     | `DATE`                     | NULL        |                        | La instalación puede estar pendiente.                                    |
-| `EquipmentUnit`      | `operationStartDate`   | `DATE`                     | NULL        |                        | El inicio operativo puede estar pendiente.                               |
-| `EquipmentUnit`      | `operatingHours`       | `BIGINT`                   | NOT NULL    | DEFAULT 0              | Seguimiento de confiabilidad y uso.                                      |
-| `EquipmentUnit`      | `surveillanceHours`    | `BIGINT`                   | NOT NULL    | DEFAULT 0              | Tiempo de vigilancia/standby para cálculo preciso de fallas (ISO 14224). |
-| `EquipmentUnit`      | `disposalDate`         | `DATE`                     | NULL        |                        | Registro de fin de vida para trazabilidad de pasivos (ISO 55000).        |
-| `EquipmentUnit`      | `disposalReason`       | `VARCHAR(255)`             | NULL        |                        | Razón del retiro o desmantelamiento del activo.                          |
-| `EquipmentUnit`      | `operationalStatus`    | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Vocabulario de estado operativo controlado.                              |
-| `EquipmentUnit`      | `lifecycleStatus`      | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Vocabulario de ciclo de vida controlado.                                 |
-| `EquipmentUnit`      | `maintenanceStatus`    | `VARCHAR(30)`              | NOT NULL    | CHECK o lookup         | Vocabulario de estado de mantenimiento controlado.                       |
-| `EquipmentUnit`      | `healthStatus`         | `VARCHAR(30)`              | NULL        | CHECK o lookup         | Vocabulario de estado de salud general (ISO 13374-4).                    |
-| `Subunit`            | `subunitType`          | `VARCHAR(80)`              | NOT NULL    |                        | Taxonomía del subcomponente.                                             |
-| `Subunit`            | `name`                 | `VARCHAR(120)`             | NOT NULL    |                        | Etiqueta del subcomponente.                                              |
-| `MaintainableItem`   | `componentName`        | `VARCHAR(120)`             | NOT NULL    |                        | Identidad del ítem mantenible.                                           |
-| `MaintainableItem`   | `subunitType`          | `VARCHAR(80)`              | NOT NULL    |                        | Clasificación taxonómica.                                                |
-| `MaintainableItem`   | `sparePartType`        | `VARCHAR(80)`              | NULL        |                        | Correspondencia opcional de partes de repuesto.                          |
-| `MaintainableItem`   | `designAttributes`     | `JSONB`                    | NULL        |                        | Propiedades estáticas de diseño estructuradas (ISO 14224 Anexo A).       |
-| `MaintainableItem`   | `status`               | `VARCHAR(30)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida del ítem.                                       |
+| Entidad              | Campo Lógico            | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                            |
+| -------------------- | ----------------------- | -------------------------- | ----------- | ---------------------- | ------------------------------------------------------------------------ |
+| `FunctionalLocation` | `tagNumber`             | `VARCHAR(50)`              | NOT NULL    | UNIQUE                 | Identidad del tag de la ISO 14224 y trazabilidad de la ubicación.        |
+| `FunctionalLocation` | `name`                  | `VARCHAR(150)`             | NOT NULL    |                        | Nombre de la ubicación legible por humanos.                              |
+| `FunctionalLocation` | `description`           | `VARCHAR(255)`             | NULL        |                        | Texto explicativo opcional.                                              |
+| `FunctionalLocation` | `criticality`           | `VARCHAR(30)`              | NOT NULL    | CHECK o lookup         | Vocabulario de prioridad controlado.                                     |
+| `FunctionalLocation` | `geographicLocation`    | `VARCHAR(150)`             | NULL        |                        | Contexto físico de la ubicación.                                         |
+| `FunctionalLocation` | `environmentalExposure` | `VARCHAR(150)`             | NULL        | CHECK o lookup         | Condiciones ambientales para cálculos de confiabilidad (ISO 14224).      |
+| `FunctionalLocation` | `hierarchyLevel`        | `SMALLINT`                 | NOT NULL    | CHECK (1..9)           | Nivel de taxonomía ISO 14224.                                            |
+| `EquipmentClass`     | `className`             | `VARCHAR(120)`             | NOT NULL    | UNIQUE                 | Datos maestros a nivel de clase.                                         |
+| `EquipmentClass`     | `description`           | `VARCHAR(255)`             | NULL        |                        | Descripción de la clase.                                                 |
+| `EquipmentClass`     | `manufacturerStandard`  | `VARCHAR(120)`             | NULL        |                        | Referencia de estandarización.                                           |
+| `EquipmentUnit`      | `serialNumber`          | `VARCHAR(100)`             | NOT NULL    | UNIQUE                 | Integridad de la identificación del activo.                              |
+| `EquipmentUnit`      | `manufacturer`          | `VARCHAR(120)`             | NOT NULL    |                        | Procedencia del activo.                                                  |
+| `EquipmentUnit`      | `model`                 | `VARCHAR(120)`             | NOT NULL    |                        | Identificación del tipo de activo.                                       |
+| `EquipmentUnit`      | `purchaseDate`          | `DATE`                     | NOT NULL    |                        | Cronología de adquisiciones.                                             |
+| `EquipmentUnit`      | `rejectionReason`       | `VARCHAR(255)`             | NULL        |                        | Solo está presente cuando se rechaza la adquisición.                     |
+| `EquipmentUnit`      | `boundaryStart`         | `VARCHAR(150)`             | NOT NULL    |                        | Punto de inicio de la definición del límite.                             |
+| `EquipmentUnit`      | `boundaryEnd`           | `VARCHAR(150)`             | NOT NULL    |                        | Punto final de la definición del límite.                                 |
+| `EquipmentUnit`      | `acquisitionDate`       | `DATE`                     | NOT NULL    |                        | Trazabilidad de la adquisición del activo.                               |
+| `EquipmentUnit`      | `installationDate`      | `DATE`                     | NULL        |                        | La instalación puede estar pendiente.                                    |
+| `EquipmentUnit`      | `operationStartDate`    | `DATE`                     | NULL        |                        | El inicio operativo puede estar pendiente.                               |
+| `EquipmentUnit`      | `operatingHours`        | `BIGINT`                   | NOT NULL    | DEFAULT 0              | Seguimiento de confiabilidad y uso.                                      |
+| `EquipmentUnit`      | `surveillanceHours`     | `BIGINT`                   | NOT NULL    | DEFAULT 0              | Tiempo de vigilancia/standby para cálculo preciso de fallas (ISO 14224). |
+| `EquipmentUnit`      | `disposalDate`          | `DATE`                     | NULL        |                        | Registro de fin de vida para trazabilidad de pasivos (ISO 55000).        |
+| `EquipmentUnit`      | `disposalReason`        | `VARCHAR(255)`             | NULL        |                        | Razón del retiro o desmantelamiento del activo.                          |
+| `EquipmentUnit`      | `operationalStatus`     | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Vocabulario de estado operativo controlado.                              |
+| `EquipmentUnit`      | `lifecycleStatus`       | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Vocabulario de ciclo de vida controlado.                                 |
+| `EquipmentUnit`      | `maintenanceStatus`     | `VARCHAR(30)`              | NOT NULL    | CHECK o lookup         | Vocabulario de estado de mantenimiento controlado.                       |
+| `EquipmentUnit`      | `healthStatus`          | `VARCHAR(30)`              | NULL        | CHECK o lookup         | Vocabulario de estado de salud general (ISO 13374-4).                    |
+| `EquipmentUnit`      | `isSce`                 | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Indicador de Equipo Crítico de Seguridad (Safety Critical Element).      |
+| `Subunit`            | `subunitType`           | `VARCHAR(80)`              | NOT NULL    |                        | Taxonomía del subcomponente.                                             |
+| `Subunit`            | `name`                  | `VARCHAR(120)`             | NOT NULL    |                        | Etiqueta del subcomponente.                                              |
+| `MaintainableItem`   | `componentName`         | `VARCHAR(120)`             | NOT NULL    |                        | Identidad del ítem mantenible.                                           |
+| `MaintainableItem`   | `subunitType`           | `VARCHAR(80)`              | NOT NULL    |                        | Clasificación taxonómica.                                                |
+| `MaintainableItem`   | `sparePartType`         | `VARCHAR(80)`              | NULL        |                        | Correspondencia opcional de partes de repuesto.                          |
+| `MaintainableItem`   | `designAttributes`      | `JSONB`                    | NULL        |                        | Propiedades estáticas de diseño estructuradas (ISO 14224 Anexo A).       |
+| `MaintainableItem`   | `status`                | `VARCHAR(30)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida del ítem.                                       |
 
 ### 5.2 Mantenimiento y Gestión de Trabajo
 
-| Entidad            | Campo Lógico            | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                   |
-| ------------------ | ----------------------- | -------------------------- | ----------- | ---------------------- | --------------------------------------------------------------- |
-| `WorkRequest`      | `description`           | `VARCHAR(255)`             | NOT NULL    |                        | Narrativa de la solicitud.                                      |
-| `WorkRequest`      | `priority`              | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Etiqueta de prioridad de la solicitud.                          |
-| `WorkRequest`      | `requestDate`           | `TIMESTAMP`                | NOT NULL    |                        | Línea de tiempo para auditoría.                                 |
-| `WorkRequest`      | `requestSource`         | `VARCHAR(80)`              | NOT NULL    |                        | Origen de la solicitud.                                         |
-| `WorkRequest`      | `status`                | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida de la solicitud.                       |
-| `WorkRequest`      | `workClass`             | `INT`                      | NOT NULL    | CHECK (1..10) o lookup | Peso numérico de la clase de trabajo seleccionada para el RIME. |
-| `MaintenancePlan`  | `maintenanceMethod`     | `VARCHAR(80)`              | NOT NULL    | CHECK o lookup         | Estrategia de mantenimiento (PM, PdM, CBM).                     |
-| `MaintenancePlan`  | `frequency`             | `VARCHAR(80)`              | NOT NULL    |                        | Descripción de la frecuencia legible por humanos.               |
-| `MaintenancePlan`  | `frequencyType`         | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Cadencia controlada del plan.                                   |
-| `MaintenancePlan`  | `nextWorkOrderDate`     | `DATE`                     | NULL        |                        | Fecha de ejecución programada (Calculada).                      |
-| `MaintenancePlan`  | `intervalValue`         | `DECIMAL(12,2)`            | NULL        |                        | Valor numérico del intervalo para telemetría (ej. 500 horas).   |
-| `MaintenancePlan`  | `nextTriggerLimit`      | `DECIMAL(12,2)`            | NULL        |                        | Límite acumulado calculado para el próximo disparo.             |
-| `MaintenancePlan`  | `status`                | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida del plan (documento).                  |
-| `WorkOrder`        | `currentStatus`         | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida de ejecución (FSM).                    |
-| `WorkOrder`        | `maintenanceMethod`     | `VARCHAR(80)`              | NOT NULL    | CHECK o lookup         | Método de mantenimiento (Correctivo, Preventivo, etc.).         |
-| `WorkOrder`        | `creationDate`          | `TIMESTAMP`                | NOT NULL    |                        | Marca de tiempo (timestamp) de creación de la orden.            |
-| `WorkOrder`        | `scheduledDate`         | `TIMESTAMP`                | NULL        |                        | Inicio planeado.                                                |
-| `WorkOrder`        | `actualStart`           | `TIMESTAMP`                | NULL        |                        | Inicio real de la ejecución.                                    |
-| `WorkOrder`        | `actualFinish`          | `TIMESTAMP`                | NULL        |                        | Finalización real de la ejecución.                              |
-| `WorkOrder`        | `actualLaborHours`      | `DECIMAL(10,2)`            | NULL        |                        | Duración laboral real (Calculada).                              |
-| `WorkOrder`        | `criticality`           | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Etiqueta de criticidad / prioridad de la OT.                    |
-| `MediaAttachment`  | `fileUrl`               | `VARCHAR(255)`             | NOT NULL    |                        | Ubicación de la evidencia.                                      |
-| `MediaAttachment`  | `fileType`              | `VARCHAR(10)`              | NOT NULL    | CHECK o lookup         | Formato de archivo adjunto controlado.                          |
-| `MediaAttachment`  | `uploadedAt`            | `TIMESTAMP`                | NOT NULL    |                        | Tiempo de subida/ingesta de la evidencia.                       |
-| `WorkOrderHistory` | `oldStatus`             | `VARCHAR(20)`              | NULL        |                        | Estado anterior del ciclo de vida (NULL si es primer estado).   |
-| `WorkOrderHistory` | `newStatus`             | `VARCHAR(20)`              | NOT NULL    |                        | Nuevo estado del ciclo de vida.                                 |
-| `WorkOrderHistory` | `timestamp`             | `TIMESTAMP`                | NOT NULL    |                        | Tiempo de transición.                                           |
-| `WorkOrderHistory` | `durationSeconds`       | `BIGINT`                   | NULL        |                        | Tiempo empleado en el estado (Calculado al transicionar).       |
-| `FailureRecord`    | `failureId`             | `UUID`                     | NOT NULL    | PK                     | Identidad del evento de falla.                                  |
-| `FailureRecord`    | `failureMode`           | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Codificación de fallas de la ISO 14224.                         |
-| `FailureRecord`    | `failureMechanism`      | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Codificación de fallas de la ISO 14224.                         |
-| `FailureRecord`    | `failureCause`          | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Codificación de fallas de la ISO 14224.                         |
-| `FailureRecord`    | `downtime`              | `DECIMAL(10,2)`            | NOT NULL    |                        | Métrica de análisis de confiabilidad (Calculada).               |
-| `FailureRecord`    | `status`                | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del registro de fallas.                                  |
-| `BacklogItem`      | `priorityScore`         | `INT`                      | NOT NULL    |                        | Puntaje del backlog derivado de RIME (Calculado).               |
-| `BacklogItem`      | `status`                | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida del backlog (priorización).            |
+| Entidad            | Campo Lógico           | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                   |
+| ------------------ | ---------------------- | -------------------------- | ----------- | ---------------------- | --------------------------------------------------------------- |
+| `WorkRequest`      | `description`          | `VARCHAR(255)`             | NOT NULL    |                        | Narrativa de la solicitud.                                      |
+| `WorkRequest`      | `priority`             | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Etiqueta de prioridad de la solicitud.                          |
+| `WorkRequest`      | `requestDate`          | `TIMESTAMP`                | NOT NULL    |                        | Línea de tiempo para auditoría.                                 |
+| `WorkRequest`      | `requestSource`        | `VARCHAR(80)`              | NOT NULL    |                        | Origen de la solicitud.                                         |
+| `WorkRequest`      | `status`               | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida de la solicitud.                       |
+| `WorkRequest`      | `workClass`            | `INT`                      | NOT NULL    | CHECK (1..10) o lookup | Peso numérico de la clase de trabajo seleccionada para el RIME. |
+| `MaintenancePlan`  | `maintenanceMethod`    | `VARCHAR(80)`              | NOT NULL    | CHECK o lookup         | Estrategia de mantenimiento (PM, PdM, CBM).                     |
+| `MaintenancePlan`  | `frequency`            | `VARCHAR(80)`              | NOT NULL    |                        | Descripción de la frecuencia legible por humanos.               |
+| `MaintenancePlan`  | `frequencyType`        | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Cadencia controlada del plan.                                   |
+| `MaintenancePlan`  | `nextWorkOrderDate`    | `DATE`                     | NULL        |                        | Fecha de ejecución programada (Calculada).                      |
+| `MaintenancePlan`  | `intervalValue`        | `DECIMAL(12,2)`            | NULL        |                        | Valor numérico del intervalo para telemetría (ej. 500 horas).   |
+| `MaintenancePlan`  | `nextTriggerLimit`     | `DECIMAL(12,2)`            | NULL        |                        | Límite acumulado calculado para el próximo disparo.             |
+| `MaintenancePlan`  | `estimatedLaborHours`  | `DECIMAL(10,2)`            | NOT NULL    |                        | Horas-Hombre estimadas (Wrench Time) para planificación.        |
+| `MaintenancePlan`  | `requiredSpecialty`    | `VARCHAR(80)`              | NOT NULL    | CHECK o lookup         | Especialidad técnica requerida (ej. Mecánica, Eléctrica).       |
+| `MaintenancePlan`  | `technicalDescription` | `VARCHAR(255)`             | NOT NULL    |                        | Descripción técnica del alcance de las tareas.                  |
+| `MaintenancePlan`  | `status`               | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida del plan (documento).                  |
+| `WorkOrder`        | `currentStatus`        | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida de ejecución (FSM).                    |
+| `WorkOrder`        | `maintenanceMethod`    | `VARCHAR(80)`              | NOT NULL    | CHECK o lookup         | Método de mantenimiento (Correctivo, Preventivo, etc.).         |
+| `WorkOrder`        | `creationDate`         | `TIMESTAMP`                | NOT NULL    |                        | Marca de tiempo (timestamp) de creación de la orden.            |
+| `WorkOrder`        | `scheduledDate`        | `TIMESTAMP`                | NULL        |                        | Inicio planeado.                                                |
+| `WorkOrder`        | `actualStart`          | `TIMESTAMP`                | NULL        |                        | Inicio real de la ejecución.                                    |
+| `WorkOrder`        | `actualFinish`         | `TIMESTAMP`                | NULL        |                        | Finalización real de la ejecución.                              |
+| `WorkOrder`        | `actualLaborHours`     | `DECIMAL(10,2)`            | NULL        |                        | Duración laboral real (Calculada).                              |
+| `WorkOrder`        | `criticality`          | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Etiqueta de criticidad / prioridad de la OT.                    |
+| `MediaAttachment`  | `fileUrl`              | `VARCHAR(255)`             | NOT NULL    |                        | Ubicación de la evidencia.                                      |
+| `MediaAttachment`  | `fileType`             | `VARCHAR(10)`              | NOT NULL    | CHECK o lookup         | Formato de archivo adjunto controlado.                          |
+| `MediaAttachment`  | `uploadedAt`           | `TIMESTAMP`                | NOT NULL    |                        | Tiempo de subida/ingesta de la evidencia.                       |
+| `WorkOrderHistory` | `oldStatus`            | `VARCHAR(20)`              | NULL        |                        | Estado anterior del ciclo de vida (NULL si es primer estado).   |
+| `WorkOrderHistory` | `newStatus`            | `VARCHAR(20)`              | NOT NULL    |                        | Nuevo estado del ciclo de vida.                                 |
+| `WorkOrderHistory` | `timestamp`            | `TIMESTAMP`                | NOT NULL    |                        | Tiempo de transición.                                           |
+| `WorkOrderHistory` | `durationSeconds`      | `BIGINT`                   | NULL        |                        | Tiempo empleado en el estado (Calculado al transicionar).       |
+| `FailureRecord`    | `failureId`            | `UUID`                     | NOT NULL    | PK                     | Identidad del evento de falla.                                  |
+| `FailureRecord`    | `failureMode`          | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Codificación de fallas de la ISO 14224.                         |
+| `FailureRecord`    | `failureMechanism`     | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Codificación de fallas de la ISO 14224.                         |
+| `FailureRecord`    | `failureCause`         | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Codificación de fallas de la ISO 14224.                         |
+| `FailureRecord`    | `detectionMethod`      | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Método de detección de la falla (ISO 14224).                    |
+| `FailureRecord`    | `operationalCondition` | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Condición operativa al momento de la falla (ISO 14224).         |
+| `FailureRecord`    | `operationalImpact`    | `VARCHAR(120)`             | NOT NULL    | CHECK o lookup         | Impacto operacional de la falla (ISO 14224).                    |
+| `FailureRecord`    | `downtime`             | `DECIMAL(10,2)`            | NOT NULL    |                        | Métrica de análisis de confiabilidad (Calculada).               |
+| `FailureRecord`    | `status`               | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del registro de fallas.                                  |
+| `BacklogItem`      | `priorityScore`        | `INT`                      | NOT NULL    |                        | Puntaje del backlog derivado de RIME (Calculado).               |
+| `BacklogItem`      | `status`               | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado del ciclo de vida del backlog (priorización).            |
 
 ### 5.3 Inventario y Suministro
 
-| Entidad                | Campo Lógico       | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                      |
-| ---------------------- | ------------------ | -------------------------- | ----------- | ---------------------- | ------------------------------------------------------------------ |
-| `SparePart`            | `sku`              | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad de la parte.                                             |
-| `SparePart`            | `description`      | `VARCHAR(255)`             | NOT NULL    |                        | Descripción de la parte legible por humanos.                       |
-| `SparePart`            | `manufacturer`     | `VARCHAR(120)`             | NOT NULL    |                        | Identidad del proveedor/fabricante.                                |
-| `SparePart`            | `commodityCode`    | `VARCHAR(80)`              | NULL        |                        | Código de clasificación.                                           |
-| `SparePart`            | `reorderPoint`     | `DECIMAL(12,4)`            | NOT NULL    |                        | Umbral mínimo de activación de compra.                             |
-| `SparePart`            | `unitOfMeasure`    | `VARCHAR(20)`              | NOT NULL    |                        | Unidad de medida estándar (UoM).                                   |
-| `SparePart`            | `stockPolicy`      | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Política de reabastecimiento (Min/Max, Reorder Point, JIT).        |
-| `SparePart`            | `isRebuildable`    | `BOOLEAN`                  | NOT NULL    | DEFAULT false          | Indica si la parte se desecha o se envía a taller para reparación. |
-| `SparePart`            | `quantityOnHand`   | `DECIMAL(12,4)`            | NOT NULL    |                        | Cantidad actualmente en inventario físico.                         |
-| `SparePart`            | `reservedQuantity` | `DECIMAL(12,4)`            | NOT NULL    | DEFAULT 0              | Stock comprometido para órdenes planificadas.                      |
-| `SparePart`            | `maxCapacity`      | `DECIMAL(12,4)`            | NULL        |                        | Límite físico del almacén para la parte.                           |
-| `SparePart`            | `unitCost`         | `DECIMAL(12,2)`            | NOT NULL    |                        | Costo unitario estándar de adquisición.                            |
-| `SparePart`            | `status`           | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de disponibilidad del repuesto.                             |
-| `InventoryTransaction` | `quantity`         | `DECIMAL(12,4)`            | NOT NULL    |                        | Cantidad transada (positiva para entradas, negativa para salidas). |
-| `InventoryTransaction` | `transactionType`  | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Tipo de movimiento (RECEIPT, ISSUE, ADJUSTMENT).                   |
-| `InventoryTransaction` | `timestamp`        | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal preciso del movimiento.                          |
-| `InventoryTransaction` | `reason`           | `VARCHAR(255)`             | NOT NULL    |                        | Razón del movimiento o referencia a documentos externos.           |
-| `InventoryTransaction` | `totalCost`        | `DECIMAL(12,2)`            | NOT NULL    |                        | Costo total de la transacción (Cantidad \* Costo).                 |
-| `Warehouse`            | `name`             | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad del almacén.                                             |
-| `Warehouse`            | `location`         | `VARCHAR(255)`             | NOT NULL    |                        | Dirección o ubicación física del almacén.                          |
-| `Warehouse`            | `capacity`         | `DECIMAL(12,4)`            | NOT NULL    |                        | Capacidad máxima volumétrica o de carga del almacén.               |
-| `Supplier`             | `name`             | `VARCHAR(120)`             | NOT NULL    | UNIQUE                 | Identidad comercial del proveedor.                                 |
-| `Supplier`             | `contactInfo`      | `VARCHAR(255)`             | NOT NULL    |                        | Teléfono, correo o dirección de contacto.                          |
-| `Supplier`             | `warrantyTerms`    | `VARCHAR(255)`             | NOT NULL    |                        | Términos estándar de garantía comercial.                           |
-| `MaterialRequirement`  | `plannedQuantity`  | `DECIMAL(12,4)`            | NOT NULL    |                        | Repuestos planificados antes de la ejecución de la OT.             |
-| `MaterialRequirement`  | `actualQuantity`   | `DECIMAL(12,4)`            | NULL        |                        | Repuestos realmente consumidos durante la ejecución de la OT.      |
-| `MaterialRequirement`  | `isReserved`       | `BOOLEAN`                  | NOT NULL    | DEFAULT false          | Bandera que indica si el stock ya fue apartado en almacén.         |
+| Entidad                | Campo Lógico         | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                      |
+| ---------------------- | -------------------- | -------------------------- | ----------- | ---------------------- | ------------------------------------------------------------------ |
+| `SparePart`            | `sku`                | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad de la parte.                                             |
+| `SparePart`            | `description`        | `VARCHAR(255)`             | NOT NULL    |                        | Descripción de la parte legible por humanos.                       |
+| `SparePart`            | `manufacturer`       | `VARCHAR(120)`             | NOT NULL    |                        | Identidad del proveedor/fabricante.                                |
+| `SparePart`            | `commodityCode`      | `VARCHAR(80)`              | NULL        |                        | Código de clasificación.                                           |
+| `SparePart`            | `reorderPoint`       | `DECIMAL(12,4)`            | NOT NULL    |                        | Umbral mínimo de activación de compra.                             |
+| `SparePart`            | `unitOfMeasure`      | `VARCHAR(20)`              | NOT NULL    |                        | Unidad de medida estándar (UoM).                                   |
+| `SparePart`            | `stockPolicy`        | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Política de reabastecimiento (Min/Max, Reorder Point, JIT).        |
+| `SparePart`            | `isRebuildable`      | `BOOLEAN`                  | NOT NULL    | DEFAULT false          | Indica si la parte se desecha o se envía a taller para reparación. |
+| `SparePart`            | `quantityOnHand`     | `DECIMAL(12,4)`            | NOT NULL    |                        | Cantidad actualmente en inventario físico.                         |
+| `SparePart`            | `reservedQuantity`   | `DECIMAL(12,4)`            | NOT NULL    | DEFAULT 0              | Stock comprometido para órdenes planificadas.                      |
+| `SparePart`            | `maxCapacity`        | `DECIMAL(12,4)`            | NULL        |                        | Límite físico del almacén para la parte.                           |
+| `SparePart`            | `unitCost`           | `DECIMAL(12,2)`            | NOT NULL    |                        | Costo unitario estándar de adquisición.                            |
+| `SparePart`            | `status`             | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de disponibilidad del repuesto.                             |
+| `InventoryTransaction` | `quantity`           | `DECIMAL(12,4)`            | NOT NULL    |                        | Cantidad transada (positiva para entradas, negativa para salidas). |
+| `InventoryTransaction` | `transactionType`    | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Tipo de movimiento (RECEIPT, ISSUE, ADJUSTMENT).                   |
+| `InventoryTransaction` | `timestamp`          | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal preciso del movimiento.                          |
+| `InventoryTransaction` | `reason`             | `VARCHAR(255)`             | NOT NULL    |                        | Razón del movimiento o referencia a documentos externos.           |
+| `InventoryTransaction` | `totalCost`          | `DECIMAL(12,2)`            | NOT NULL    |                        | Costo total de la transacción (Cantidad \* Costo).                 |
+| `InventoryTransaction` | `aisleShelfLocation` | `VARCHAR(150)`             | NULL        |                        | Ubicación física específica de la transacción (pasillo/estante).   |
+| `InventoryTransaction` | `serialNumber`       | `VARCHAR(100)`             | NULL        |                        | Número de serie o Tag del equipo rotativo (Asset Swap).            |
+| `Warehouse`            | `name`               | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad del almacén.                                             |
+| `Warehouse`            | `location`           | `VARCHAR(255)`             | NOT NULL    |                        | Dirección o ubicación física del almacén.                          |
+| `Warehouse`            | `capacity`           | `DECIMAL(12,4)`            | NOT NULL    |                        | Capacidad máxima volumétrica o de carga del almacén.               |
+| `Supplier`             | `name`               | `VARCHAR(120)`             | NOT NULL    | UNIQUE                 | Identidad comercial del proveedor.                                 |
+| `Supplier`             | `contactInfo`        | `VARCHAR(255)`             | NOT NULL    |                        | Teléfono, correo o dirección de contacto.                          |
+| `Supplier`             | `warrantyTerms`      | `VARCHAR(255)`             | NOT NULL    |                        | Términos estándar de garantía comercial.                           |
+| `MaterialRequirement`  | `plannedQuantity`    | `DECIMAL(12,4)`            | NOT NULL    |                        | Repuestos planificados antes de la ejecución de la OT.             |
+| `MaterialRequirement`  | `actualQuantity`     | `DECIMAL(12,4)`            | NULL        |                        | Repuestos realmente consumidos durante la ejecución de la OT.      |
+| `MaterialRequirement`  | `isReserved`         | `BOOLEAN`                  | NOT NULL    | DEFAULT false          | Bandera que indica si el stock ya fue apartado en almacén.         |
 
 ### 5.4 Convergencia Digital y Visualización de Seguridad
 
@@ -492,6 +561,7 @@ El conjunto de cápsulas aprobadas proporciona una fuerte orientación para LOTO
 | `IsolationPoint`     | `isVerified`       | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Estado de verificación.                                  |
 | `WorkOrderIsolation` | `isIsolated`       | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Estado de bloqueo verificado para el trabajo específico. |
 | `WorkOrderIsolation` | `isolatedAt`       | `TIMESTAMP`                | NULL        |                        | Marca de tiempo en que se ejecutó el bloqueo.            |
+| `WorkOrderIsolation` | `padlockTagId`     | `VARCHAR(80)`              | NULL        |                        | Identificador del candado o etiqueta física (Try-Out).   |
 | `VisualLayer`        | `layerType`        | `VARCHAR(80)`              | NOT NULL    |                        | Tipo de representación visual.                           |
 | `VisualLayer`        | `opacityLevel`     | `DECIMAL(5,2)`             | NOT NULL    | CHECK (0..1)           | Control de renderizado.                                  |
 | `VisualLayer`        | `status`           | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de la capa visual.                                |
@@ -501,35 +571,37 @@ El conjunto de cápsulas aprobadas proporciona una fuerte orientación para LOTO
 
 ### 5.5 Gobernanza y Seguridad
 
-| Entidad               | Campo Lógico          | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                               |
-| --------------------- | --------------------- | -------------------------- | ----------- | ---------------------- | --------------------------------------------------------------------------- |
-| `User`                | `username`            | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad de la cuenta de usuario.                                          |
-| `User`                | `email`               | `VARCHAR(150)`             | NOT NULL    | UNIQUE                 | Correo electrónico institucional y de contacto.                             |
-| `User`                | `status`              | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de la cuenta (ACTIVE, INACTIVE, LOCKED).                             |
-| `User`                | `passwordHash`        | `VARCHAR(255)`             | NOT NULL    |                        | Hash de la contraseña de acceso (PBKDF2/BCrypt).                            |
-| `User`                | `failedLoginAttempts` | `INT`                      | NOT NULL    | DEFAULT 0              | Contador de intentos fallidos de autenticación.                             |
-| `User`                | `lockoutUntil`        | `TIMESTAMP`                | NULL        |                        | Fin del periodo de bloqueo temporal.                                        |
-| `User`                | `mfaEnabled`          | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera que indica si la autenticación multifactor está activa.             |
-| `User`                | `totpSecret`          | `VARCHAR(255)`             | NULL        |                        | Secreto compartido para autenticación TOTP (Autenticador).                  |
-| `Role`                | `roleName`            | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identificador del rol de usuario (ej. Planner, Technician).                 |
-| `Role`                | `description`         | `VARCHAR(255)`             | NULL        |                        | Descripción del alcance del rol.                                            |
-| `Role`                | `isSystemRole`        | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera para roles inmutables del sistema.                                  |
-| `RolePermission`      | `module`              | `VARCHAR(80)`              | NOT NULL    |                        | Módulo del sistema (ej. MTTO, INV, VIS).                                    |
-| `RolePermission`      | `action`              | `VARCHAR(80)`              | NOT NULL    |                        | Acción permitida (ej. READ, CREATE, UPDATE, SIGN_OFF).                      |
-| `AuthToken`           | `tokenHash`           | `VARCHAR(255)`             | NOT NULL    | UNIQUE                 | Hash del token de autenticación API / sesión.                               |
-| `AuthToken`           | `expiresAt`           | `TIMESTAMP`                | NOT NULL    |                        | Fecha y hora de expiración del token.                                       |
-| `AuthToken`           | `isUsed`              | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Indica si el token ya fue consumido (uso único).                            |
-| `AuthToken`           | `ipAddress`           | `VARCHAR(45)`              | NULL        |                        | Dirección IP desde la que se emitió el token (IPv4/IPv6).                   |
-| `AuthToken`           | `userAgent`           | `VARCHAR(255)`             | NULL        |                        | Identificador del cliente/navegador para fingerprinting.                    |
-| `WorkOrderAssignment` | `roleInWork`          | `VARCHAR(50)`              | NOT NULL    |                        | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR).              |
-| `WorkOrderAssignment` | `assignedAt`          | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal de la asignación.                                         |
-| `AuditLog`            | `entityType`          | `VARCHAR(80)`              | NOT NULL    |                        | Nombre de la tabla/entidad auditada.                                        |
-| `AuditLog`            | `entityIdentifier`    | `VARCHAR(80)`              | NOT NULL    |                        | Identificador UUID de la fila modificada.                                   |
-| `AuditLog`            | `actionType`          | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Tipo de operación DML (CREATE, UPDATE, DELETE).                             |
-| `AuditLog`            | `timestamp`           | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal preciso del evento de cambio.                             |
-| `AuditLog`            | `previousState`       | `JSONB`                    | NULL        |                        | Representación JSON descompuesta binaria  de los campos antes de la acción  |
-| `AuditLog`            | `newState`            | `JSONB`                    | NULL        |                        | Representación JSON descompuesta binaria de los campos después de la acción |
-| `AuditLog`            | `integrityHash`       | `VARCHAR(255)`             | NOT NULL    |                        | Hash SHA-256 encadenado para detectar manipulación del log.                 |
+| Entidad               | Campo Lógico          | Tipo Físico (Estándar SQL) | Nulabilidad | Restricciones / Llaves | Justificación                                                    |
+| --------------------- | --------------------- | -------------------------- | ----------- | ---------------------- | ---------------------------------------------------------------- |
+| `User`                | `username`            | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identidad de la cuenta de usuario.                               |
+| `User`                | `fullName`            | `VARCHAR(150)`             | NOT NULL    |                        | Nombre completo o institucional del usuario.                     |
+| `User`                | `email`               | `VARCHAR(150)`             | NOT NULL    | UNIQUE                 | Correo electrónico institucional y de contacto.                  |
+| `User`                | `status`              | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Estado de la cuenta (ACTIVE, INACTIVE, LOCKED).                  |
+| `User`                | `passwordHash`        | `VARCHAR(255)`             | NOT NULL    |                        | Hash de la contraseña de acceso (PBKDF2/BCrypt).                 |
+| `User`                | `failedLoginAttempts` | `INT`                      | NOT NULL    | DEFAULT 0              | Contador de intentos fallidos de autenticación.                  |
+| `User`                | `lockoutUntil`        | `TIMESTAMP`                | NULL        |                        | Fin del periodo de bloqueo temporal.                             |
+| `User`                | `mfaEnabled`          | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera que indica si la autenticación multifactor está activa.  |
+| `User`                | `totpSecret`          | `VARCHAR(255)`             | NULL        |                        | Secreto compartido para autenticación TOTP (Autenticador).       |
+| `User`                | `deactivationReason`  | `VARCHAR(255)`             | NULL        |                        | Justificación administrativa para el borrado lógico (ISO 27001). |
+| `Role`                | `roleName`            | `VARCHAR(80)`              | NOT NULL    | UNIQUE                 | Identificador del rol de usuario (ej. Planner, Technician).      |
+| `Role`                | `description`         | `VARCHAR(255)`             | NULL        |                        | Descripción del alcance del rol.                                 |
+| `Role`                | `isSystemRole`        | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Bandera para roles inmutables del sistema.                       |
+| `RolePermission`      | `module`              | `VARCHAR(80)`              | NOT NULL    |                        | Módulo del sistema (ej. MTTO, INV, VIS).                         |
+| `RolePermission`      | `action`              | `VARCHAR(80)`              | NOT NULL    |                        | Acción permitida (ej. READ, CREATE, UPDATE, SIGN_OFF).           |
+| `AuthToken`           | `tokenHash`           | `VARCHAR(255)`             | NOT NULL    | UNIQUE                 | Hash del token de autenticación API / sesión.                    |
+| `AuthToken`           | `expiresAt`           | `TIMESTAMP`                | NOT NULL    |                        | Fecha y hora de expiración del token.                            |
+| `AuthToken`           | `isUsed`              | `BOOLEAN`                  | NOT NULL    | DEFAULT FALSE          | Indica si el token ya fue consumido (uso único).                 |
+| `AuthToken`           | `ipAddress`           | `VARCHAR(45)`              | NULL        |                        | Dirección IP desde la que se emitió el token (IPv4/IPv6).        |
+| `AuthToken`           | `userAgent`           | `VARCHAR(255)`             | NULL        |                        | Identificador del cliente/navegador para fingerprinting.         |
+| `WorkOrderAssignment` | `roleInWork`          | `VARCHAR(50)`              | NOT NULL    |                        | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR).   |
+| `WorkOrderAssignment` | `assignedAt`          | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal de la asignación.                              |
+| `AuditLog`            | `entityType`          | `VARCHAR(80)`              | NOT NULL    |                        | Nombre de la tabla/entidad auditada.                             |
+| `AuditLog`            | `entityIdentifier`    | `VARCHAR(80)`              | NOT NULL    |                        | Identificador UUID de la fila modificada.                        |
+| `AuditLog`            | `actionType`          | `VARCHAR(20)`              | NOT NULL    | CHECK o lookup         | Tipo de operación DML (CREATE, UPDATE, DELETE).                  |
+| `AuditLog`            | `timestamp`           | `TIMESTAMP`                | NOT NULL    |                        | Registro temporal preciso del evento de cambio.                  |
+| `AuditLog`            | `previousState`       | `JSONB`                    | NULL        |                        | Representación JSON descompuesta binaria antes de la acción.     |
+| `AuditLog`            | `newState`            | `JSONB`                    | NULL        |                        | Representación JSON descompuesta binaria después de la acción.   |
+| `AuditLog`            | `integrityHash`       | `VARCHAR(255)`             | NOT NULL    |                        | Hash SHA-256 encadenado para detectar manipulación del log.      |
 
 ## 6. Matriz de Correspondencia de Tipos de Datos (SQL Estándar vs. PostgreSQL)
 

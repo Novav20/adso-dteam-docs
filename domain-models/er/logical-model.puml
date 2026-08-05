@@ -28,9 +28,9 @@ skinparam package {
 legend top right
 |= Control Documental (ISO 9001:2015) |
 | **Código:** DT-ERD-LOG-001 |
-| **Versión:** 1.9 |
-| **Fecha:** 2026-07-07 |
-| **Estado:** Auditoría Normativa Completada |
+| **Versión:** 1.10 |
+| **Fecha:** 2026-08-05 |
+| **Estado:** Brechas de Auditoría Resueltas (ISO 14224/27001) |
 | **Autor:** Juan David Julio Serrano |
 endlegend
 
@@ -43,6 +43,7 @@ package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
         description : VARCHAR(255)
         * criticality : VARCHAR(30)
         geographic_location : VARCHAR(150)
+        environmental_exposure : VARCHAR(150)
         * hierarchy_level : SMALLINT
         parent_id : UUID <<FK>>
     }
@@ -76,6 +77,7 @@ package "Taxonomía de Activos (ISO 14224)" as taxonomy_module {
         * lifecycle_status : VARCHAR(20)
         * maintenance_status : VARCHAR(30)
         health_status : VARCHAR(30)
+        * is_sce : BOOLEAN
         functional_location_id : UUID <<FK, unique>>
         * equipment_class_id : UUID <<FK>>
         warehouse_id : UUID <<FK>>
@@ -124,6 +126,9 @@ package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
         next_work_order_date : DATE
         interval_value : DECIMAL(12,2)
         next_trigger_limit : DECIMAL(12,2)
+        * estimated_labor_hours : DECIMAL(10,2)
+        * required_specialty : VARCHAR(80)
+        * technical_description : VARCHAR(255)
         * status : VARCHAR(20)
     }
 
@@ -162,6 +167,9 @@ package "Operaciones de Mantenimiento (MTTO)" as mtto_module {
         * failure_mode : VARCHAR(120)
         * failure_mechanism : VARCHAR(120)
         * failure_cause : VARCHAR(120)
+        * detection_method : VARCHAR(120)
+        * operational_condition : VARCHAR(120)
+        * operational_impact : VARCHAR(120)
         * downtime : DECIMAL(10,2)
         * status : VARCHAR(20)
     }
@@ -233,6 +241,8 @@ package "Control de Recursos (INV)" as inv_module {
         * timestamp : TIMESTAMP
         * reason : VARCHAR(255)
         * total_cost : DECIMAL(12,2)
+        aisle_shelf_location : VARCHAR(150)
+        serial_number : VARCHAR(100)
     }
 
     entity "material_requirements" as material_requirements {
@@ -306,6 +316,7 @@ package "Convergencia Gemelo Digital (VIS)" as vis_module {
         --
         * is_isolated : BOOLEAN
         isolated_at : TIMESTAMP
+        padlock_tag_id : VARCHAR(80)
     }
 
     entity "visual_layers" as visual_layers {
@@ -323,6 +334,7 @@ package "Seguridad y Gobernanza (ADM)" as adm_module {
         * id : UUID <<PK>>
         --
         * username : VARCHAR(80) <<unique>>
+        * full_name : VARCHAR(150)
         * email : VARCHAR(150) <<unique>>
         * status : VARCHAR(20)
         * password_hash : VARCHAR(255)
@@ -330,6 +342,7 @@ package "Seguridad y Gobernanza (ADM)" as adm_module {
         lockout_until : TIMESTAMP
         * mfa_enabled : BOOLEAN
         totp_secret : VARCHAR(255)
+        deactivation_reason : VARCHAR(255)
     }
 
     entity "roles" as roles {
