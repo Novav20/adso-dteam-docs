@@ -1,5 +1,5 @@
 ---
-code: DT-UCD-DOC-001
+code: DT-UC-TRC-001
 version: 1.2
 date: 2026-08-03
 status: Nombres de Casos de Uso Estandarizados con Verbos Activos
