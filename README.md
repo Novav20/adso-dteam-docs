@@ -10,8 +10,8 @@ Este repositorio es la "Fuente de Verdad" para el diseño, la arquitectura y el 
 ## Stack Tecnológico del Sistema (Objetivo)
 Los artefactos documentados aquí están diseñados para una implementación basada en:
 - **Backend:** .NET 10 (C#).
-- **Frontend:** React + React Native (HPHMI).
-- **Base de Datos:** PostgreSQL.
+- **Frontend:** .NET MAUI Blazor Hybrid.
+- **Base de Datos:** PostgreSQL + TimescaleDB  & SQLite.
 - **Infraestructura:** Azure IoT Hub & Cloud Services.
 - **Visualización:** Modelos 3D (Patrón Sidecar).
 

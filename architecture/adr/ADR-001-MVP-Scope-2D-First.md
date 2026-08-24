@@ -13,7 +13,7 @@ El proyecto del Gemelo Digital EAM tiene como objetivo final la visualización 3
 Se decide implementar una **Estrategia de Visualización Híbrida**:
 1.  **Fase Inicial:** El sistema utilizará representaciones **2D basadas en planos técnicos (SVG)** y mapas de calor dinámicos. Esto garantiza compatibilidad multiplataforma inmediata y menor latencia de desarrollo.
 2.  **Historias de Usuario (VIS-008, VIS-011):** Se mantienen como "MUST" con visión 3D en la documentación, pero su implementación técnica para la versión inicial se realizará mediante una "Capa de Abstracción 2D" que emule la lógica de seguridad (LOTO y Permisos) sobre planos.
-3.  **Arquitectura:** El código debe ser diseñado para permitir el reemplazo del visor 2D por un visor 3D ( p.ej., Three.js/WebGL) en el futuro sin reescribir la lógica de negocio.
+3.  **Arquitectura:** El código debe ser diseñado para permitir el reemplazo del visor 2D por un visor 3D en el futuro sin reescribir la lógica de negocio.
 
 **Consecuencias:**
 *   **Positivas:** Entrega del MVP en tiempos competitivos, menor carga computacional para dispositivos móviles (tablets de técnicos).

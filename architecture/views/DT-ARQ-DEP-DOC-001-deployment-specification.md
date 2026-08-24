@@ -23,9 +23,9 @@ Este documento constituye la especificación técnica de la vista de despliegue 
 
 | Nodo / Entorno             | Tipo de Nodo             | Componentes Hospedados                                | Responsabilidad Técnica                                                                                                          |
 | :------------------------- | :----------------------- | :---------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
-| **Dispositivo Móvil**      | Edge Node (Android/iOS)  | React Native App, LOTO Watchdog, SQLite/WatermelonDB  | Ejecución táctil en campo, almacenamiento cifrado offline (`TR-002`, `TR-007`) y monitoreo de _heartbeat_ de seguridad.          |
+| **Dispositivo Móvil**      | Edge Node (Android/iOS)  | .NET MAUI Blazor Hybrid, LOTO Watchdog, SQLite  | Ejecución táctil en campo, almacenamiento cifrado offline (`TR-002`, `TR-007`) y monitoreo de _heartbeat_ de seguridad.          |
 | **Estación Control Local** | Edge Node (SCADA)        | SCADA Engine (Instrument Emulator)                    | Gateway de instrumentación de planta; emula y transmite variables físicas (vibración, temperatura, presión).                     |
-| **Estación de Trabajo**    | Client Node (Web SPA)    | Web Admin Portal (React)                              | Interfaz administrativa para supervisión HSEQ, planificación de backlog y dashboards ejecutivos de KPIs.                         |
+| **Estación de Trabajo**    | Client Node (Web SPA)    | Web Admin Portal (Blazor Web App)                              | Interfaz administrativa para supervisión HSEQ, planificación de backlog y dashboards ejecutivos de KPIs.                         |
 | **Azure Cloud Platform**   | Managed Cloud Ingestion  | Azure IoT Hub                                         | Bróker de mensajería IoT para ingesta asíncrona de telemetría industrial de alta frecuencia.                                     |
 | **Servidor Cloud Host**    | Host Container Engine    | Nginx (Reverse Proxy), Backend API Monolith (.NET 10) | Hospedaje del contenedor monolítico .NET 10 y servidor Nginx para enrutamiento, terminación SSL y entrega de archivos estáticos. |
 | **Servidor Base Datos**    | Managed/Containerized DB | PostgreSQL 16 + TimescaleDB Extension                 | Almacenamiento relacional de activos, inventario, auditoría inmutable (`ADR-003`) y series de tiempo para telemetría.            |
@@ -50,5 +50,5 @@ Para mitigar el ruido electromagnético (EMI) de las plantas industriales que oc
 
 1. **Monitoreo de Heartbeat:** El hilo nativo `LOTO Watchdog` en el dispositivo móvil valida la conexión contra el servidor central enviando un _ping_ cada 2 segundos sobre WebSockets (`WSS`).
 2. **Umbral de Tolerancia:** Si se registran 3 fallos consecutivos de respuesta (ventana de 6 segundos), el Watchdog interrumpe el flujo normal.
-3. **Acción Fail-Safe Local:** El Watchdog escribe de forma directa un estado de **Bloqueo Preventivo de Seguridad** en la base de datos SQLite/WatermelonDB local del teléfono.
-4. **Interrupción de Interfaz:** La aplicación React Native detecta la bandera local y bloquea la pantalla de trabajo del técnico, impidiendo la transición al estado `IN_PROGRESS` hasta que la conexión se restablezca y el servidor re-confirme la Energía Cero.
+3. **Acción Fail-Safe Local:** El Watchdog escribe de forma directa un estado de **Bloqueo Preventivo de Seguridad** en la base de datos local del teléfono.
+4. **Interrupción de Interfaz:** La aplicación .NET MAUI Blazor Hybrid detecta la bandera local y bloquea la pantalla de trabajo del técnico, impidiendo la transición al estado `IN_PROGRESS` hasta que la conexión se restablezca y el servidor re-confirme la Energía Cero.
