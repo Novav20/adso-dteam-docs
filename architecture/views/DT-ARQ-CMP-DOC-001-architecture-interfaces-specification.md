@@ -1,8 +1,8 @@
 ---
 code: DT-ARQ-CMP-DOC-001
-version: 1
-date: 2026-07-08
-status: Especificación Técnica de Componentes — MVP
+version: 1.1
+date: 2026-08-25
+status: Especificación Técnica de Componentes e Interfaces — MVP
 author: Juan David Julio Serrano
 standard:
   - ISO/IEC 42010:2011 (Arquitectura — Vistas C4 Nivel 3)
@@ -46,6 +46,7 @@ La especificación se acota estrictamente al alcance del **Producto Mínimo Viab
 | **Telemetry Port (PTelemetry)**         | Secondary Port (Out)        | `ITelemetryPort`                               | Interfaz para que el dominio se suscriba a flujos y canales de telemetría física de seguridad de forma asíncrona.                                                                           |
 | **EF Core PostgreSQL Adapter**          | Driven Adapter              | `PostgresDbContext` + `SaveChangesInterceptor` | Implementa los puertos secundarios de persistencia mediante Unit of Work; persiste el `AuditLog` a una tabla append-only controlada por Row-Level Security.                                 |
 | **SignalR Broadcaster**                 | Driven Adapter              | `IHubContext<T>`                               | Implementa el puerto de notificación; realiza el broadcast de datos hacia los canales SignalR filtrando los destinatarios por rol autorizado.                                               |
+| **Background Sync Worker**             | Driving Adapter             | `IHostedService` / Background Queue            | Procesa de forma asíncrona e idempotente las colas de transacciones offline (cierre de OTs, consumos) transmitidas desde clientes móviles tras recuperar conexión ([[TR-007]]). |
 
 ---
 
@@ -54,9 +55,9 @@ La especificación se acota estrictamente al alcance del **Producto Mínimo Viab
 | Módulo / Puerto                   | Firma de Método en C# y Parámetros                                                                        | Requisito / US                           | Invariante de Seguridad / Regla de Negocio a Validar                                                                                                                                            |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **ITelemetry / ITelemetryPort**   | `IDisposable SubscribeToSafetyChannel(Guid equipmentUnitId, Action<TelemetryReading> onReading);`         | [[VIS-011]]<br>TR-010-FR-431             | **Sincronización en Tiempo Real:** Propaga revocaciones de permisos y picos de energía en sub-segundos; si la conexión de red industrial cae, el sistema asume estado de peligro.               |
-| **PTax / ITaxonomyService**       | `Task InstallEquipment(Guid locationId, Guid equipmentId);`                                               | [[INV-025]]<br>FR-184, FR-185            | Valida que la ubicación funcional no tenga un activo instalado (máximo 1 slot - 1 activo) y que el equipo de reemplazo esté en estado `IN_STORAGE` (INV-025).                                   |
+| **PTax / ITaxonomyService**       | `Task InstallEquipment(Guid locationId, Guid equipmentId);`                                               | [[INV-025]]<br>FR-593, FR-594            | Valida que la ubicación funcional no tenga un activo instalado (cardinalidad 1 slot = 1 activo L6) y que el equipo de reemplazo esté en estado `IN_STORAGE` (INV-025). |
 | **PTax / ITaxonomyService**       | `Task<EquipmentUnit> UninstallEquipment(Guid locationId, string reason);`                                 | [[INV-025]]<br>FR-591, FR-592            | Desvincula el equipo de su posición operativa; actualiza su estado físico a "En Reparación" o "Stock" en una transacción de base de datos de único commit (NFR-596).                            |
-| **PTax / ITaxonomyService**       | `Task ReorganizeTree(Guid locationId, Guid newParentId);`                                                 | [[INV-027]]<br>FR-162, NFR-167           | Valida que el movimiento no genere ciclos infinitos (un nodo no puede ser ancestro de sí mismo, TR-008-FR-417) ni rompa la restricción de 9 niveles taxonómicos.                                |
+| **PTax / ITaxonomyService**       | `Task ReorganizeTree(Guid locationId, Guid newParentId);`                                                 | [[INV-027]]<br>FR-162, NFR-167           | Valida que el movimiento no genere ciclos infinitos (un nodo no puede ser ancestro de sí mismo, TR-008-FR-417) y que se mantenga dentro de los límites de Ubicaciones Funcionales (L1 a L5 de la taxonomía ISO 14224). |
 | **PMtto / IWorkOrderService**     | `Task<Guid> CreateWorkRequest(CreateWorkRequestDto request);`                                             | [[MTTO-026]]<br>FR-059                   | Exige de forma obligatoria el ingreso de la Clase de Trabajo (`workClassCode`) y el identificador del activo para poder admitir la solicitud en el backlog.                                     |
 | **PMtto / IWorkOrderService**     | `Task UpdatePriorityScore(Guid workRequestId);`                                                           | [[MTTO-026]]<br>FR-060, NFR-074          | Invoca `IRimeCalculator.Calculate(asset.Criticality, request.WorkClass)`; el cálculo es determinístico e inmutable ante factores de inventario externos.                                        |
 | **PMtto / IWorkOrderService**     | `Task CalculateNextTriggerLimit(Guid planId, decimal currentUsage);`                                      | [[MTTO-023]]<br>FR-583, FR-584           | Rechaza lecturas de telemetría inferiores al acumulado histórico (contadores); mantiene el último valor válido y genera alerta por posible alteración de sensor.                                |
@@ -78,4 +79,3 @@ La especificación se acota estrictamente al alcance del **Producto Mínimo Viab
 | **RSec / ISecurityRepository**    | `Task<IReadOnlyList<AuthToken>> GetActiveSessionsAsync(Guid userId);`                                     | TR-006-NFR-402                           | **Revocación de Accesos:** Permite consultar e invalidar de forma inmediata las sesiones activas (quema de tokens JWT) cuando el estado del usuario cambia a inactivo por riesgo.               |
 | **RMtto / IWorkOrderRepository**  | `Task SaveWithHistoryAsync(WorkOrder workOrder, string oldStatus);`                                       | Soporte Transversal (`WorkOrderHistory`) | **Trazabilidad:** Cada transición de estado debe generar de forma atómica una fila en la tabla de historial `work_order_histories` en una transacción de único commit de base de datos.         |
 | **RInv / IInventoryRepository**   | `Task<StockSnapshot> GetAvailabilityAsync(Guid sparePartId);`                                             | TR-008 (consistencia estructural conexa) | **Integridad de Almacén:** Retorna el inventario físico (`QuantityOnHand`) y el comprometido (`ReservedQuantity`) sin lecturas sucias, asegurando consistencia transaccional.                   |
-

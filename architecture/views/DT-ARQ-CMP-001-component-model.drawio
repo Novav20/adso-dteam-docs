@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="3Y10WfrNWWyL3JdB6nZT" name="Ver 1.x">
-        <mxGraphModel dx="434" dy="610" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="2000" math="0" shadow="0">
+        <mxGraphModel dx="541" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="2000" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -326,14 +326,14 @@
         </mxGraphModel>
     </diagram>
     <diagram name="Ver 2.x" id="LcGrLI6o1hTgVovmhaoy">
-        <mxGraphModel dx="434" dy="610" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="2000" math="0" shadow="0">
+        <mxGraphModel dx="985" dy="448" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="2000" math="0" shadow="0">
             <root>
                 <mxCell id="P_bIsK9i1BXaCRifPFas-0"/>
                 <mxCell id="P_bIsK9i1BXaCRifPFas-1" parent="P_bIsK9i1BXaCRifPFas-0"/>
-                <mxCell id="CwngeSQQfKKYiiyapeoR-0" value="Frontend Application (.NET MAUI Blazor Hybrid Client)" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=200;tabHeight=20;tabPosition=left;html=1;whiteSpace=wrap;fillColor=#F5F5F5;strokeColor=#AED6F1;strokeWidth=2;fontSize=12;fontFamily=Segoe UI;align=left;verticalAlign=top;" parent="P_bIsK9i1BXaCRifPFas-1" vertex="1">
+                <mxCell id="CwngeSQQfKKYiiyapeoR-0" value="Frontend Applications (.NET Blazor Ecosystem)" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=200;tabHeight=20;tabPosition=left;html=1;whiteSpace=wrap;fillColor=#F5F5F5;strokeColor=#AED6F1;strokeWidth=2;fontSize=12;fontFamily=Segoe UI;align=left;verticalAlign=top;" parent="P_bIsK9i1BXaCRifPFas-1" vertex="1">
                     <mxGeometry x="285" y="160" width="680" height="160" as="geometry"/>
                 </mxCell>
-                <mxCell id="CwngeSQQfKKYiiyapeoR-1" value="&lt;b&gt;Mobile App&lt;/b&gt;&lt;br/&gt;(Offline-First)" style="html=1;dropTarget=0;whiteSpace=wrap;fillColor=#EBF5FB;strokeColor=#2E86C1;strokeWidth=2;fontSize=12;fontFamily=Segoe UI;" parent="P_bIsK9i1BXaCRifPFas-1" vertex="1">
+                <mxCell id="CwngeSQQfKKYiiyapeoR-1" value="&lt;b&gt;Mobile App&lt;/b&gt;&lt;br&gt;(.NET MAUI Blazor Hybrid)" style="html=1;dropTarget=0;whiteSpace=wrap;fillColor=#EBF5FB;strokeColor=#2E86C1;strokeWidth=2;fontSize=12;fontFamily=Segoe UI;" parent="P_bIsK9i1BXaCRifPFas-1" vertex="1">
                     <mxGeometry x="335" y="230" width="220" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="CwngeSQQfKKYiiyapeoR-2" value="" style="shape=module;jettyWidth=8;jettyHeight=4;" parent="CwngeSQQfKKYiiyapeoR-1" vertex="1">
@@ -341,7 +341,7 @@
                         <mxPoint x="-27" y="7" as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="CwngeSQQfKKYiiyapeoR-3" value="&lt;b&gt;Web Admin Portal&lt;/b&gt;" style="html=1;dropTarget=0;whiteSpace=wrap;fillColor=#EBF5FB;strokeColor=#2E86C1;strokeWidth=2;fontSize=12;fontFamily=Segoe UI;" parent="P_bIsK9i1BXaCRifPFas-1" vertex="1">
+                <mxCell id="CwngeSQQfKKYiiyapeoR-3" value="&lt;b&gt;Web Admin Portal&lt;/b&gt;&lt;br&gt;(Blazor Web App)" style="html=1;dropTarget=0;whiteSpace=wrap;fillColor=#EBF5FB;strokeColor=#2E86C1;strokeWidth=2;fontSize=12;fontFamily=Segoe UI;" parent="P_bIsK9i1BXaCRifPFas-1" vertex="1">
                     <mxGeometry x="655" y="230" width="260" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="CwngeSQQfKKYiiyapeoR-4" value="" style="shape=module;jettyWidth=8;jettyHeight=4;" parent="CwngeSQQfKKYiiyapeoR-3" vertex="1">
@@ -596,7 +596,7 @@
                         <mxRectangle width="210" height="44" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="CwngeSQQfKKYiiyapeoR-109" value="Cambio de Cliente Frontend" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=default;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;align=left;" parent="CwngeSQQfKKYiiyapeoR-107" vertex="1">
+                <mxCell id="CwngeSQQfKKYiiyapeoR-109" value="Aprobado / Vigente" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=default;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;align=left;" parent="CwngeSQQfKKYiiyapeoR-107" vertex="1">
                     <mxGeometry x="210" width="350" height="44" as="geometry">
                         <mxRectangle width="350" height="44" as="alternateBounds"/>
                     </mxGeometry>
@@ -609,7 +609,7 @@
                         <mxRectangle width="210" height="58" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="CwngeSQQfKKYiiyapeoR-112" value="Se intercambia React/React Native por .NET MAUI Blazor Hybrid" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=default;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;align=left;" parent="CwngeSQQfKKYiiyapeoR-110" vertex="1">
+                <mxCell id="CwngeSQQfKKYiiyapeoR-112" value="Sustitución de stack frontend por .NET MAUI Blazor Hybrid y Blazor Web App" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=default;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;align=left;" parent="CwngeSQQfKKYiiyapeoR-110" vertex="1">
                     <mxGeometry x="210" width="350" height="58" as="geometry">
                         <mxRectangle width="350" height="58" as="alternateBounds"/>
                     </mxGeometry>

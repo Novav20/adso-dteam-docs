@@ -1,21 +1,39 @@
 ---
+id: ADR-001
+title: "Estrategia de Visualización Híbrida (2D Primero, 3D Evolutivo)"
 date: 2026-03-18
-status: Aceptado
+status: Accepted
 author: Juan David Julio Serrano
+deciders: Arquitecto de Software
+linked_to: 
+  - "[[VIS-008]]"
+  - "[[VIS-011]]"
+  - "[[UC-VIS-033]]"
 ---
 
-# ADR 001: Estrategia de Visualización Híbrida (2D Primero, 3D Evolutivo)
+# ADR-001: Estrategia de Visualización Híbrida (2D Primero, 3D Evolutivo)
 
-**Contexto:**
-El proyecto del Gemelo Digital EAM tiene como objetivo final la visualización 3D avanzada. Sin embargo, las restricciones de tiempo y recursos para la versión inicial (MVP) requieren una implementación rápida y funcional.
+## Contexto
+El Gemelo Digital EAM requiere representar de forma espacial la planta industrial para visualizar telemetría y aplicar la filosofía de seguridad ISA-101 y rutas LOTO. La implementación de un motor 3D exige modelos CAD o STEP procesados, lo cual retrasa la validación de la lógica de seguridad funcional y consume un alto nivel de memoria en dispositivos móviles de campo, afectando el requisito de rendimiento ASR-1.
 
-**Decisión:**
-Se decide implementar una **Estrategia de Visualización Híbrida**:
-1.  **Fase Inicial:** El sistema utilizará representaciones **2D basadas en planos técnicos (SVG)** y mapas de calor dinámicos. Esto garantiza compatibilidad multiplataforma inmediata y menor latencia de desarrollo.
-2.  **Historias de Usuario (VIS-008, VIS-011):** Se mantienen como "MUST" con visión 3D en la documentación, pero su implementación técnica para la versión inicial se realizará mediante una "Capa de Abstracción 2D" que emule la lógica de seguridad (LOTO y Permisos) sobre planos.
-3.  **Arquitectura:** El código debe ser diseñado para permitir el reemplazo del visor 2D por un visor 3D en el futuro sin reescribir la lógica de negocio.
+## Decisión
+Se adopta una **Estrategia de Visualización Híbrida**:
+1. **MVP (Canvas 2D):** El sistema utilizará representaciones 2D basadas en planos vectoriales escalables embebidos nativamente en componentes Razor. Esto elimina la necesidad de motores gráficos de terceros para la versión inicial, permitiendo la manipulación directa del DOM para las alertas.
+2. **Abstracción Arquitectónica:** Las capas de seguridad operarán sobre metadatos espaciales agnósticos. 
+3. **Evolución 3D:** El sistema transicionará hacia un motor 3D en fases posteriores, consumiendo la misma lógica de negocio y metadatos sin requerir reescritura del backend.
 
-**Consecuencias:**
-*   **Positivas:** Entrega del MVP en tiempos competitivos, menor carga computacional para dispositivos móviles (tablets de técnicos).
-*   **Negativas:** Necesidad de mantener dos versiones de diagramas de actividad (una conceptual 3D y una operativa 2D) durante la fase de transición.
-*   **Riesgos:** Asegurar que la lógica de "Energía Cero" sea igual de rigurosa en el plano 2D que en el 3D.
+## Alternativas Consideradas
+* **Uso de SkiaSharp para 2D:** Rechazado. Genera cuellos de botella por comunicación entre procesos en Blazor Hybrid y errores de compatibilidad de plataforma al no compilar a WebAssembly en el cliente móvil.
+* **Integración temprana de WebGL o Three.js:** Rechazado. Alta probabilidad de fallos por agotamiento de memoria en el visor web móvil al cargar mallas complejas.
+
+## Consecuencias
+
+### Positivas
+* Latencia de renderizado reducida y menor consumo de batería en dispositivos móviles.
+* Interacción nativa entre el estado de los componentes Blazor y los vectores gráficos.
+
+### Negativas
+* Los mapas 2D requieren diseño manual y no se generan automáticamente desde la ingeniería de planta.
+
+### Riesgos y Deuda Técnica
+* Obliga a refactorizar el componente visual del cliente cuando se habilite el módulo 3D, manteniendo la compatibilidad con las coordenadas 2D mapeadas previamente.

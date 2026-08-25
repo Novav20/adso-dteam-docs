@@ -7,7 +7,7 @@ El Gemelo Digital EAM es una plataforma diseñada bajo los estándares de ingeni
 
 Este repositorio es la "Fuente de Verdad" para el diseño, la arquitectura y el cumplimiento normativo antes y durante la fase de implementación.
 
-## Stack Tecnológico del Sistema (Objetivo)
+## Stack Tecnológico del Sistema
 Los artefactos documentados aquí están diseñados para una implementación basada en:
 - **Backend:** .NET 10 (C#).
 - **Frontend:** .NET MAUI Blazor Hybrid.

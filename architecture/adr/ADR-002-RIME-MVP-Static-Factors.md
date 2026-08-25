@@ -1,114 +1,38 @@
 ---
-date: 2026-07-07
-status: DEPRECATED
-notes:  La simplificación metodológica adoptada en la revisión de arquitectura del 7 de julio de 2026 reemplazó la necesidad de aplicar el patrón Strategy para aislar variables del inventario.
+id: ADR-002
+title: "Patrón de Estrategia para Motor de Priorización RIME"
+date: 2026-08-25
+status: Accepted
 author: Juan David Julio Serrano
-linked_to: MTTO-026 — Gestión de Backlog mediante Priorización Objetiva (RIME)
+deciders: Arquitecto de Software
+linked_to: 
+  - "[[MTTO-026]]"
+  - "[[UC-MTTO-026]]"
 ---
 
-# ADR 002: Implementación RIME con Factores Estáticos Configurables para MVP
+# ADR-002: Patrón de Estrategia para Motor de Priorización RIME
 
 ## Contexto
-
-La historia MTTO-026 define un motor de priorización objetiva RIME (Riesgo, Impacto, Mantenibilidad, Economía) que asigna automáticamente un puntaje a cada solicitud de trabajo del backlog. La implementación completa del motor requiere cruzar datos en tiempo real con otros módulos del sistema:
-
-- **Factor R (Riesgo):** Depende del historial de fallos ISO 14224 y la criticidad configurada del activo (INV-005).
-- **Factor I (Impacto):** Requiere cruzar con costos de tiempo de inactividad definidos por la planta (INV-006, datos financieros).
-- **Factor M (Mantenibilidad):** Necesita consultar el stock disponible de repuestos en tiempo real (INV-031 — Catálogo de Repuestos).
-- **Factor E (Economía):** Requiere la lista de materiales de la OT cruzada con precios de inventario y tasas de mano de obra.
-
-Estas dependencias crean un riesgo de bloqueo secuencial en la AP6: si se optara por la implementación automática desde el inicio, el motor RIME no sería funcional hasta que el módulo de Inventario (INV) esté totalmente terminado y poblado con datos, impidiendo pruebas tempranas de la gestión de backlog.
-
----
+La gestión del backlog exige una priorización objetiva de acuerdo con la norma ISO 55001. El estándar del MVP definió un modelo matemático de dos factores, calculando el puntaje mediante la multiplicación de la criticidad por la clase de trabajo. Sin embargo, en operaciones industriales complejas, el departamento de mantenimiento podría adaptar el modelo RIME incorporando factores económicos, impacto de inventario y mantenibilidad. Programar estáticamente la fórmula de dos factores acopla el dominio y dificulta la personalización comercial del sistema.
 
 ## Decisión
+Se adopta el **Patrón de Estrategia** para aislar el algoritmo de cálculo RIME de las entidades de solicitud de trabajo y elementos del backlog. 
 
-Para el MVP, los factores RIME serán implementados mediante **selectores configurables** que el planificador define al crear o revisar una solicitud de trabajo. Los pesos de cada nivel serán parametrizados por la administración del sistema.
+Se define la interfaz de dominio `IRimeCalculator`. Para el MVP, se inyectará la estrategia estándar basada en una fórmula de 2 factores con un rango de 1 a 100. La arquitectura quedará abierta para registrar dinámicamente estrategias personalizadas a través del contenedor de inyección de dependencias sin modificar los controladores ni las entidades.
 
-### Modelo de datos MVP
-
-| Factor | Opciones del selector | Peso (configurable) |
-|---|---|---|
-| **Riesgo (R)** | Crítico / Mayor / Menor | 3 / 2 / 1 |
-| **Impacto (I)** | Alto / Medio / Bajo | 3 / 2 / 1 |
-| **Mantenibilidad (M)** | Compleja / Moderada / Simple | 3 / 2 / 1 |
-| **Economía (E)** | > $5M / $1M–$5M / < $1M | 3 / 2 / 1 |
-
-**Fórmula:** `Score_RIME = R × I × M × E` → Rango: 1–81
-
-El puntaje resultante es objetivo, reproducible y auditable. Solo difiere de la versión final en que el dato de entrada es ingresado por el planificador en lugar de ser calculado automáticamente desde inventario.
-
----
-
-## Patrón Arquitectónico: Strategy Pattern
-
-Para garantizar que la transición de MVP → Versión 2.0 sea un **intercambio quirúrgico sin reescribir lógica de negocio**, se adoptará el **Strategy Pattern** en la capa de servicios del backend.
-
-### Estructura
-
-```
-IRimeCalculator (Interfaz / Contrato)
-    └── calculate(requestId: string): RimeScore
-    └── getFactorBreakdown(requestId: string): RimeFactors
-
-ManualRimeCalculator (Implementación MVP)
-    └── Lee los 4 selectores del formulario de la OT
-    └── Multiplica los pesos configurados en la tabla system_config
-
-AutomaticRimeCalculator (Implementación v2.0 — Deuda Técnica)
-    └── Consulta INV para stock de repuestos (Factor M)
-    └── Consulta historial ISO 14224 del activo (Factor R)
-    └── Cruza con tabla de costos de downtime (Factor I)
-    └── Calcula costo de materiales y mano de obra (Factor E)
-```
-
-### Por qué funciona el intercambio
-
-La historia MTTO-026 solo interactúa con `IRimeCalculator`. El tablero de backlog, el criterio de aceptación *"el sistema calcula y presenta el puntaje"* y los reportes de auditoría nunca saben cuál implementación está activa. Para pasar de MVP a v2.0 basta con:
-
-1. Implementar `AutomaticRimeCalculator`.
-2. Cambiar el registro en el contenedor de inyección de dependencias.
-3. No tocar ninguna vista, ningún controlador, ningún test de negocio.
-
-### Diagrama de dependencias
-
-```
-WorkOrderController
-        │
-        ▼
-  RimeService (usa IRimeCalculator)
-        │
-        ├─── [MVP]  ManualRimeCalculator
-        │               └── Lee OT.riskLevel, OT.impactLevel, etc.
-        │
-        └─── [v2.0] AutomaticRimeCalculator
-                        ├── InventoryRepository
-                        ├── FailureHistoryRepository
-                        └── CostMatrixRepository
-```
-
----
+## Alternativas Consideradas
+* **Cálculo embebido en la entidad `WorkRequest`:** Rechazado. Viola el Principio de Abierto/Cerrado y obliga a modificar la raíz de agregado cada vez que un cliente industrial solicite cambiar los pesos de la matriz RIME.
+* **Cálculo en base de datos mediante procedimientos almacenados:** Rechazado. Provoca fuga de la lógica de dominio a la capa de persistencia.
 
 ## Consecuencias
 
 ### Positivas
-- El MVP se puede entregar aunque los módulos INV no estén finalizados.
-- El puntaje sigue siendo objetivo y reproducible (misma entrada → mismo score).
-- El contrato `IRimeCalculator` fuerza coherencia entre ambas implementaciones.
-- El intercambio a la versión automática no requiere refactoring de negocio.
+* Permite al MVP operar de forma determinística e independiente del estado de completitud del módulo de inventario.
+* Satisface el requerimiento de extensibilidad comercial al permitir matrices de riesgo personalizadas.
 
 ### Negativas
-- La precisión del score depende del criterio del planificador, no de datos duros de inventario.
-- Existe riesgo de sesgo humano en la selección de los factores.
+* Añade una capa de abstracción al flujo de admisión del backlog.
+* Los reportes de indicadores clave deben diseñarse tolerantes a diferentes escalas de prioridad según la estrategia activa.
 
-### Deuda técnica registrada
-- `AutomaticRimeCalculator` queda pendiente hasta que `INV-031` (Catálogo de Repuestos) e `INV-006` (Movimientos de Inventario) estén operativos.
-- Se recomienda una validación de campo (comparar scores manuales vs. automáticos en un lote de OTs reales) antes de activar `AutomaticRimeCalculator` en producción.
-
----
-
-## Referencias
-
-- ISO 55001:2014, Cláusula 6.2.2.1 — *"A risk ranking process can determine which assets have a significant potential to impact on the achievement of the asset management objectives"* (fuente: Cápsula ISO-55000, Risk Planning and Decision Making).
-- Wireman, T. (Vol 4) — Cap. 3: *Work Order Priority Rating* como campo esencial del motor CMMS (fuente: Cápsula Wireman Vol4, The Core CMMS Engine).
-- Gang of Four — *Design Patterns: Elements of Reusable Object-Oriented Software* (1994), Strategy Pattern, pp. 315–323.
+### Riesgos y Deuda Técnica
+* La implementación de una estrategia extendida dependerá del rendimiento de las consultas cruzadas con el módulo de inventario en tiempo real.
