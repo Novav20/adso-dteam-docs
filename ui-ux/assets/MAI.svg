@@ -1,0 +1,259 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="760"
+     height="620"
+     viewBox="0 0 760 620"
+     role="img"
+     aria-labelledby="title desc">
+
+  <title id="title">Esquema del Componente MAI</title>
+
+  <desc id="desc">
+    Indicador vertical MAI con escala de 0 a 150 PSI,
+    rango normal entre 40 y 120 PSI y valor actual de 85.3 PSI.
+  </desc>
+
+  <style>
+    :root {
+      --dt-color-surface-card: #2A2F3D;
+      --dt-color-border-focus: #5C667A;
+      --dt-color-text-primary: #FDFEFE;
+      --dt-color-state-info: #457B9D;
+      --dt-color-alarm-critical: #E63946;
+      --dt-color-text-secondary: #AEB6C4;
+      --dt-color-background: #1E222B;
+    }
+
+    .background {
+      fill: var(--dt-color-background);
+    }
+
+    .title {
+      fill: var(--dt-color-text-primary);
+      font-family: Arial, sans-serif;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .label {
+      fill: var(--dt-color-text-primary);
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+    }
+
+    .secondary {
+      fill: var(--dt-color-text-secondary);
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+
+    .value {
+      fill: var(--dt-color-text-primary);
+      font-family: Arial, sans-serif;
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    .track {
+      fill: var(--dt-color-surface-card);
+    }
+
+    .safe-range {
+      fill: var(--dt-color-border-focus);
+      opacity: 0.95;
+    }
+
+    .scale-mark {
+      stroke: var(--dt-color-text-secondary);
+      stroke-width: 2;
+    }
+
+    .pointer-info {
+      fill: var(--dt-color-state-info);
+      stroke: var(--dt-color-text-primary);
+      stroke-width: 2;
+    }
+
+    .pointer-line {
+      stroke: var(--dt-color-state-info);
+      stroke-width: 2;
+    }
+  </style>
+
+  <!-- Fondo opcional -->
+  <rect class="background"
+        x="0"
+        y="0"
+        width="760"
+        height="620"/>
+
+  <!-- Título -->
+  <text x="380"
+        y="38"
+        text-anchor="middle"
+        class="title">
+    Esquema del Componente MAI
+  </text>
+
+  <!--
+    Geometría de la escala:
+
+    Barra:
+      x = 350
+      y = 90
+      alto = 450 px
+
+    Escala:
+      mínimo = 0.0 PSI
+      máximo = 150.0 PSI
+
+    Rango normal:
+      límite bajo = 40.0 PSI
+      límite alto = 120.0 PSI
+
+    Valor actual:
+      85.3 PSI
+
+    Conversión vertical:
+      y = 90 + ((150 - valor) / 150) * 450
+      y = 90 + ((150 - 85.3) / 150) * 450
+      y = 284.1
+  -->
+
+  <!-- Pista de fondo:
+       ancho total: 8 px
+       radio: 4 px
+  -->
+  <rect class="track"
+        x="346"
+        y="90"
+        width="8"
+        height="450"
+        rx="4"
+        ry="4"/>
+
+  <!-- Zona de operación normal:
+       desde 40 PSI hasta 120 PSI
+       alto = ((120 - 40) / 150) * 450 = 240 px
+  -->
+  <rect class="safe-range"
+        x="346"
+        y="180"
+        width="8"
+        height="240"
+        rx="4"
+        ry="4"/>
+
+  <!-- Marcas de escala -->
+  <line class="scale-mark"
+        x1="330" y1="90"
+        x2="346" y2="90"/>
+
+  <line class="scale-mark"
+        x1="330" y1="180"
+        x2="346" y2="180"/>
+
+  <line class="scale-mark"
+        x1="330" y1="420"
+        x2="346" y2="420"/>
+
+  <line class="scale-mark"
+        x1="330" y1="540"
+        x2="346" y2="540"/>
+
+  <!-- Valores de escala -->
+  <text x="315"
+        y="96"
+        text-anchor="end"
+        class="label">
+    150.0
+  </text>
+
+  <text x="315"
+        y="186"
+        text-anchor="end"
+        class="label">
+    120.0
+  </text>
+
+  <text x="315"
+        y="426"
+        text-anchor="end"
+        class="label">
+    40.0
+  </text>
+
+  <text x="315"
+        y="546"
+        text-anchor="end"
+        class="label">
+    0.0
+  </text>
+
+  <!-- Rango normal al lado izquierdo de la columna -->
+  <text x="235"
+        y="285"
+        text-anchor="middle"
+        class="label">
+    Rango
+  </text>
+
+  <text x="235"
+        y="307"
+        text-anchor="middle"
+        class="label">
+    Normal
+  </text>
+
+  <text x="235"
+        y="330"
+        text-anchor="middle"
+        class="secondary">
+    40.0–120.0 PSI
+  </text>
+
+  <!-- Línea visual hacia la zona normal -->
+  <line x1="285"
+        y1="300"
+        x2="340"
+        y2="300"
+        stroke="#5C667A"
+        stroke-width="1.5"
+        stroke-dasharray="4 4"/>
+
+  <!-- Puntero actual:
+       círculo de 14 x 14 px, por eso r = 7
+  -->
+  <circle class="pointer-info"
+          cx="350"
+          cy="284.1"
+          r="7"/>
+
+  <!-- Línea desde el puntero hacia su información -->
+  <line class="pointer-line"
+        x1="360"
+        y1="284.1"
+        x2="430"
+        y2="284.1"/>
+
+  <!-- Información del puntero, al lado derecho -->
+  <text x="445"
+        y="278"
+        class="value">
+    Puntero actual
+  </text>
+
+  <text x="445"
+        y="301"
+        class="value">
+    85.3 PSI
+  </text>
+
+  <!-- Etiqueta inferior -->
+  <text x="350"
+        y="585"
+        text-anchor="middle"
+        class="secondary">
+    Escala MAI: 0.0–150.0 PSI
+  </text>
+
+</svg>
