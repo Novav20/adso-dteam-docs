@@ -1,8 +1,8 @@
 ---
 code: DT-UI-DS-DOC-001
-version: 1.1
+version: 1.2
 date: 2026-08-27
-status: Aprobado tras Auditoría Normativa (AUD-DT-UI-DS-2026-001)
+status: Aprobado tras Auditorías Normativas (AUD-DT-UI-DS-2026-001-REV1 & AUD-WCAG-ISO-2026-002)
 author: Juan David Julio Serrano
 standard:
   - ISA-101.01-2015 (Human Machine Interfaces for Process Automation Systems)
@@ -86,13 +86,16 @@ La paleta se estructura en dos capas: **Tokens Primitivos** (valores absolutos d
 | `--dt-primitive-gray-50`  | `#F4F5F7` | Superficie clara de tarjeta |
 | `--dt-primitive-white`    | `#FFFFFF` | Blanco puro |
 | `--dt-primitive-red-600`  | `#E63946` | Rojo industrial de alarma |
-| `--dt-primitive-amber-500`| `#D97706` | Ámbar / Advertencia en fondo claro |
+| `--dt-primitive-amber-600`| `#AC5E04` | Ámbar / Advertencia en fondo claro (Ajustado WCAG AA 3.47:1) |
+| `--dt-primitive-amber-500`| `#D97706` | Ámbar / Advertencia base |
 | `--dt-primitive-amber-400`| `#F4A261` | Ámbar / Advertencia en fondo oscuro |
 | `--dt-primitive-blue-600` | `#2563EB` | Azul informativo en fondo claro |
-| `--dt-primitive-blue-400` | `#457B9D` | Azul informativo en fondo oscuro |
-| `--dt-primitive-blue-200` | `#BAE6FD` | Zona de operación normal MAI en fondo claro  |
-| `--dt-primitive-blue-700` | `#0369A1` | Zona de operación normal MAI en fondo oscuro  |
-| `--dt-primitive-teal-600` | `#0D9488` | Confirmación documental en fondo claro |
+| `--dt-primitive-blue-450` | `#4881A4` | Azul informativo en fondo oscuro (Ajustado WCAG AA 3.15:1) |
+| `--dt-primitive-blue-400` | `#457B9D` | Azul informativo base |
+| `--dt-primitive-blue-200` | `#BAE6FD` | Zona de operación normal MAI en fondo claro |
+| `--dt-primitive-blue-700` | `#0369A1` | Zona de operación normal MAI en fondo oscuro |
+| `--dt-primitive-teal-700` | `#0B857A` | Confirmación documental en fondo claro (Ajustado WCAG AA 3.25:1) |
+| `--dt-primitive-teal-600` | `#0D9488` | Confirmación documental base |
 | `--dt-primitive-teal-400` | `#2A9D8F` | Confirmación documental en fondo oscuro |
 
 ---
@@ -107,13 +110,13 @@ La paleta se estructura en dos capas: **Tokens Primitivos** (valores absolutos d
 | `--dt-color-surface-card` | `#2A2F3D` | `#F4F5F7` | Tarjetas de activos / Filas de tabla |
 | `--dt-color-surface-raised` | `#353B4D` | `#FFFFFF` | Modales / Paneles flotantes |
 | `--dt-color-border-subtle` | `#3A4154` | `#B8C0CC` | Líneas divisorias / Separadores |
-| `--dt-color-border-focus` | `#5C667A` | `#6B7280` | Borde de input en foco |
-| `--dt-color-text-muted` | `#7E8B9B` | `#4B5563` | Unidades de medida / Timestamps |
+| `--dt-color-border-focus` | `#6E7A92` | `#6B7280` | Borde de input en foco (Tema Oscuro ajustado a 3.09:1 WCAG AA) |
+| `--dt-color-text-muted` | `#8A98AA` | `#4B5563` | Unidades de medida / Timestamps (Tema Oscuro ajustado a 4.55:1 WCAG AA) |
 | `--dt-color-text-body` | `#C2CBD6` | `#1F2937` | Texto principal / Valores de tabla |
 | `--dt-color-text-primary` | `#FDFEFE` | `#111827` | Títulos / Valores críticos |
 | `--dt-color-mai-track` | `#2A2F3D` | `#E5E8EC` | Fondo de pista del indicador analógico MAI |
 | `--dt-color-mai-normal-zone` | `#0369A1` | `#BAE6FD` | Franja de rango de operación normal en MAI |
-| `--dt-color-mai-pointer` | `#FDFEFE` | `#111827` | Puntero de valor actual MAI  |
+| `--dt-color-mai-pointer` | `#FDFEFE` | `#111827` | Puntero de valor actual MAI |
 | `--dt-color-mai-interlock` | `#FDFEFE` | `#111827` | Marcador de límite de disparo de interbloqueo en MAI |
 
 ---
@@ -123,9 +126,9 @@ La paleta se estructura en dos capas: **Tokens Primitivos** (valores absolutos d
 | Estado / Severidad | Token de Color | Valor (Tema Oscuro) | Valor (Tema Claro) | Símbolo Obligatorio |
 | :--- | :--- | :---: | :---: | :---: |
 | **Alarma Crítica / Peligro LOTO** | `--dt-color-alarm-critical` | `#E63946` | `#E63946` | Cuadrado / Octágono |
-| **Advertencia / Límite Próximo** | `--dt-color-alarm-warning` | `#F4A261` | `#D97706` | Triángulo |
-| **Informativo / Selección** | `--dt-color-state-info` | `#457B9D` | `#2563EB` | Círculo / Rombo |
-| **Confirmación Documental** | `--dt-color-state-success` | `#2A9D8F` | `#0D9488` | Checkmark ($\checkmark$) |
+| **Advertencia / Límite Próximo** | `--dt-color-alarm-warning` | `#F4A261` | `#AC5E04` | Triángulo (Ajustado WCAG AA 3.47:1 en fondo claro) |
+| **Informativo / Selección** | `--dt-color-state-info` | `#4881A4` | `#2563EB` | Círculo / Rombo (Ajustado WCAG AA 3.15:1 en fondo oscuro) |
+| **Confirmación Documental** | `--dt-color-state-success` | `#2A9D8F` | `#0B857A` | Checkmark ($\checkmark$) (Ajustado WCAG AA 3.25:1 en fondo claro) |
 | **Elemento Deshabilitado** | `--dt-color-state-disabled` | `#4A5263` | `#9CA3AF` | Borde punteado |
 
 ---
@@ -203,8 +206,8 @@ Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la co
 | **Borde del Puntero** | `--dt-color-mai-pointer-border` | `#FFFFFF` | `#1E222B` | Contorno de alto contraste para visibilidad sobre la zona normal. |
 | **Indicador de Alarma Alta (P1)** | `--dt-color-alarm-critical` | `#E63946` | `#E63946` | **Elemento separado (Método 3):** Cuadrado rojo + '1' que aparece junto al límite. |
 | **Texto sobre Alarma Crítica** | `--dt-color-alarm-text-critical` | `#FFFFFF` | `#FFFFFF` | Texto de alto contraste sobre cuadrado rojo ($4.6:1$ WCAG AA). |
-| **Indicador de Alarma Baja / Advertencia (P2)** | `--dt-color-alarm-warning` | `#D97706` | `#F4A261` | **Elemento separado (Método 3):** Triángulo ámbar + '2' que aparece junto al límite. |
-| **Texto sobre Advertencia Ámbar** | `--dt-color-alarm-text-warning` | `#111827` | `#16191F` | **Texto oscuro obligatorio sobre Ámbar** ($9.2:1$ WCAG AAA). |
+| **Indicador de Alarma Baja / Advertencia (P2)** | `--dt-color-alarm-warning` | `#AC5E04` | `#F4A261` | **Elemento separado (Método 3):** Triángulo ámbar + '2' (Ajustado WCAG AA $3.47:1$). |
+| **Texto sobre Advertencia Ámbar** | `--dt-color-alarm-text-warning` | `#FFFFFF` | `#16191F` | Texto de alto contraste sobre Ámbar ($5.36:1$ en claro, $8.5:1$ en oscuro). |
 | **Límite de Interbloqueo (`Interlock`)** | `--dt-color-mai-interlock` | `#111827` | `#FDFEFE` | Bloque sólido en el extremo que señala disparo automático de seguridad. |
 
 #### 6.1.2. Reglas de Comportamiento Dinámico y Alarmas
@@ -287,11 +290,11 @@ Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la co
   --dt-color-text-primary: #111827;
 
   --dt-color-alarm-critical: #E63946;
-  --dt-color-alarm-warning: #D97706;
+  --dt-color-alarm-warning: #AC5E04; /* Ajustado WCAG AA 3.47:1 sobre Canvas #D8DBE0 */
   --dt-color-alarm-text-critical: #FFFFFF;
-  --dt-color-alarm-text-warning: #111827; /* Contraste 9.2:1 WCAG AAA sobre #D97706 */
+  --dt-color-alarm-text-warning: #FFFFFF; /* Contraste 5.36:1 WCAG AA sobre #AC5E04 */
   --dt-color-state-info: #2563EB;
-  --dt-color-state-success: #0D9488;
+  --dt-color-state-success: #0B857A; /* Ajustado WCAG AA 3.25:1 sobre Canvas #D8DBE0 */
   --dt-color-state-disabled: #9CA3AF;
 
   /* Indicador Analógico Móvil (MAI) - Tema Claro */
@@ -309,9 +312,9 @@ Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la co
   --dt-color-surface-card: #2A2F3D;
   --dt-color-surface-raised: #353B4D;
   --dt-color-border-subtle: #3A4154;
-  --dt-color-border-focus: #5C667A;
+  --dt-color-border-focus: #6E7A92; /* Ajustado WCAG AA 3.09:1 sobre Card #2A2F3D */
 
-  --dt-color-text-muted: #7E8B9B;
+  --dt-color-text-muted: #8A98AA; /* Ajustado WCAG AA 4.55:1 sobre Card #2A2F3D */
   --dt-color-text-body: #C2CBD6;
   --dt-color-text-primary: #FDFEFE;
 
@@ -319,7 +322,7 @@ Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la co
   --dt-color-alarm-warning: #F4A261;
   --dt-color-alarm-text-critical: #FFFFFF;
   --dt-color-alarm-text-warning: #16191F; /* Contraste 8.5:1 WCAG AAA sobre #F4A261 */
-  --dt-color-state-info: #457B9D;
+  --dt-color-state-info: #4881A4; /* Ajustado WCAG AA 3.15:1 sobre Card #2A2F3D */
   --dt-color-state-success: #2A9D8F;
   --dt-color-state-disabled: #4A5263;
 

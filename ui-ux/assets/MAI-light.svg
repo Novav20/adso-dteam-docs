@@ -96,19 +96,19 @@
   <text x="585" y="161" class="label-bold" fill="#E63946">Alarma Crítica Alta (P1)</text>
   <text x="585" y="178" class="caption">Método 3: Elemento [1] separado</text>
 
-  <!-- ADVERTENCIA BAJA (Método 3: Triángulo Ámbar '2' en 30 PSI - Texto Oscuro sobre Ámbar, Contraste 9.2:1 WCAG AAA) -->
+  <!-- ADVERTENCIA BAJA (Método 3: Triángulo Ámbar '2' en 30 PSI - Ajustado #AC5E04 para Contraste 3.47:1 WCAG AA) -->
   <line class="guide-line" x1="450" y1="480" x2="570" y2="480" />
-  <polygon points="473,465 487,491 459,491" fill="#D97706" stroke="#111827" stroke-width="1" />
-  <text x="473" y="487" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="13px" font-weight="900" fill="#111827">2</text>
+  <polygon points="473,465 487,491 459,491" fill="#AC5E04" stroke="#111827" stroke-width="1" />
+  <text x="473" y="487" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="13px" font-weight="900" fill="#FFFFFF">2</text>
 
-  <rect x="570" y="455" width="230" height="50" rx="6" fill="#F4F5F7" stroke="#D97706" stroke-width="1.5" />
-  <text x="585" y="476" class="label-bold" fill="#D97706">Advertencia Baja (P2)</text>
+  <rect x="570" y="455" width="230" height="50" rx="6" fill="#F4F5F7" stroke="#AC5E04" stroke-width="1.5" />
+  <text x="585" y="476" class="label-bold" fill="#AC5E04">Advertencia Baja (P2)</text>
   <text x="585" y="493" class="caption">Método 3: Elemento ▲2 separado</text>
 
   <!-- FOOTER PRINCIPLES & SUMMARY (Text Spacing Fixed) -->
   <rect x="50" y="605" width="780" height="32" rx="4" fill="#F4F5F7" />
   <text x="65" y="625" class="caption">✓ <tspan font-weight="700">ISA-101.01:</tspan> Rango normal azul claro (#BAE6FD)</text>
-  <text x="365" y="625" class="caption">✓ <tspan font-weight="700">WCAG 2.1 AA:</tspan> Texto '2' oscuro en Ámbar (9.2:1)</text>
+  <text x="365" y="625" class="caption">✓ <tspan font-weight="700">WCAG 2.1 AA:</tspan> Ámbar #AC5E04 (3.47:1)</text>
   <text x="655" y="625" class="caption">✓ <tspan font-weight="700">500 Lux:</tspan> Sala Control</text>
 
 </svg>
