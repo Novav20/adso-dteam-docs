@@ -1,8 +1,8 @@
 ---
 code: DT-UI-DS-DOC-001
-version: 1
-date: 2026-08-26
-status: Borrador (Por auditar)
+version: 1.1
+date: 2026-08-27
+status: Aprobado tras Auditoría Normativa (AUD-DT-UI-DS-2026-001)
 author: Juan David Julio Serrano
 standard:
   - ISA-101.01-2015 (Human Machine Interfaces for Process Automation Systems)
@@ -20,7 +20,7 @@ Este documento establece la **Fuente Única de Verdad** para todos los tokens de
 
 ### Principios Obligatorios:
 1. **Regla HPHMI del 90/10:** El 90% de la interfaz opera en escala de grises neutra de bajo contraste para minimizar la fatiga visual. El 10% del color saturado se reserva exclusivamente para anomalías, alarmas y condiciones de peligro.
-2. **Eliminación del Verde como Estado "Normal":** No se utiliza verde para indicar que un motor está encendido o en operación normal. El estado normal se representa mediante grises y texto ("RUNNING" / "UP"). El verde se limita a confirmaciones documentales o estado de conexión.
+2. **Eliminación del Verde como Estado "Normal":** No se utiliza verde para indicar que un motor está encendido o en operación normal. El estado normal se representa mediante grises y texto ("RUNNING" / "UP"). El uso del color en confirmaciones documentales o estado de conexión se restringe a tonalidades **Teal / Pino** (`--dt-primitive-teal-600` / `#0D9488` o `#2A9D8F`), evitando cualquier confusión con el verde industrial de estado.
 3. **Codificación Redundante (WCAG 2.1 AA):** Ningún estado crítico de seguridad o alarma debe comunicarse únicamente por color. Todo indicador debe combinar **Forma + Icono + Color + Texto**.
 4. **Ergonomía Industrial Táctil:** Los elementos interactivos en dispositivos móviles y tabletas de campo deben respetar un área de contacto mínima de **$48 \times 48\text{ px}$** para permitir la operación con guantes de seguridad.
 
@@ -90,6 +90,8 @@ La paleta se estructura en dos capas: **Tokens Primitivos** (valores absolutos d
 | `--dt-primitive-amber-400`| `#F4A261` | Ámbar / Advertencia en fondo oscuro |
 | `--dt-primitive-blue-600` | `#2563EB` | Azul informativo en fondo claro |
 | `--dt-primitive-blue-400` | `#457B9D` | Azul informativo en fondo oscuro |
+| `--dt-primitive-blue-200` | `#BAE6FD` | Zona de operación normal MAI en fondo claro  |
+| `--dt-primitive-blue-700` | `#0369A1` | Zona de operación normal MAI en fondo oscuro  |
 | `--dt-primitive-teal-600` | `#0D9488` | Confirmación documental en fondo claro |
 | `--dt-primitive-teal-400` | `#2A9D8F` | Confirmación documental en fondo oscuro |
 
@@ -109,6 +111,10 @@ La paleta se estructura en dos capas: **Tokens Primitivos** (valores absolutos d
 | `--dt-color-text-muted` | `#7E8B9B` | `#4B5563` | Unidades de medida / Timestamps |
 | `--dt-color-text-body` | `#C2CBD6` | `#1F2937` | Texto principal / Valores de tabla |
 | `--dt-color-text-primary` | `#FDFEFE` | `#111827` | Títulos / Valores críticos |
+| `--dt-color-mai-track` | `#2A2F3D` | `#E5E8EC` | Fondo de pista del indicador analógico MAI |
+| `--dt-color-mai-normal-zone` | `#0369A1` | `#BAE6FD` | Franja de rango de operación normal en MAI |
+| `--dt-color-mai-pointer` | `#FDFEFE` | `#111827` | Puntero de valor actual MAI  |
+| `--dt-color-mai-interlock` | `#FDFEFE` | `#111827` | Marcador de límite de disparo de interbloqueo en MAI |
 
 ---
 
@@ -178,13 +184,36 @@ Para cumplir con la filosofía HPHMI en interfaces oscuras, la profundidad no se
 ## 6. Patrones Visuales Industriales y Codificación Redundante
 
 ### 6.1. Especificación del Indicador Analógico Móvil (MAI)
-En cumplimiento de ISA-101, las variables continuas de proceso (presión, temperatura, vibración) no se presentan únicamente como dígitos numéricos. Deben utilizar el patrón MAI:
-![[MAI.svg]]
+En cumplimiento de ISA-101.01 y *The High Performance HMI Handbook* (Hollifield et al., Cap. 7), las variables continuas de proceso (presión, temperatura, flujo, vibración) no deben presentarse únicamente como dígitos numéricos. Deben utilizar el patrón de Indicador Analógico Móvil (MAI) para permitir la evaluación rápida de la condición en menos de 2 segundos.
 
-* **Pista de Fondo (`Track`):** Ancho total $100\%$, Alto $8\text{ px}$, Color `--dt-color-surface-card` (`#2A2F3D`), Radio $4\text{ px}$.
-* **Zona de Operación Normal:** Sombreado interno en `--dt-color-border-focus` (`#5C667A`) indicando el rango seguro.
-* **Puntero de Valor Actual:** Círculo indicador de $14 \times 14\text{ px}$ con borde `--dt-color-text-primary` (`#FDFEFE`) y relleno `--dt-color-state-info` (`#457B9D`).
-* **Estado de Alarma:** Si el valor cruza el umbral alto, el puntero cambia a forma cuadrada y color `--dt-color-alarm-critical` (`#E63946`).
+##### Tema Claro (Sala de Control / Escritorio - 500 Lux)
+![[assets/MAI-light.svg]]
+
+##### Tema Oscuro (Operación de Campo / Tablet / Noche)
+![[assets/MAI-dark.svg]]
+
+#### 6.1.1. Tabla de Tokens Semánticos Dual-Theme para MAI
+Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la compatibilidad entre la Sala de Control (Tema Claro) y la Operación de Campo (Tema Oscuro), los componentes Razor deben consumir estrictamente la siguiente matriz de tokens:
+
+| Elemento Gráfico del MAI | Token Semántico CSS / C# | Tema Claro (Desktop / Día) | Tema Oscuro (Móvil / Noche) | Función Ergonomía HPHMI / ISA-101 |
+| :--- | :--- | :---: | :---: | :--- |
+| **Pista Base (`Track`)** | `--dt-color-mai-track` | `#E5E8EC` | `#2A2F3D` | Fondo perimetral del indicador (Alto $8\text{px}$, Radio $4\text{px}$). |
+| **Zona Normal de Operación** | `--dt-color-mai-normal-zone` | `#BAE6FD` | `#0369A1` | **Franja azul clara** para reconocimiento pre-atentivo del rango seguro. |
+| **Puntero de Valor Actual** | `--dt-color-mai-pointer` | `#111827` | `#FDFEFE` | Puntero circular/triangular móvil. **Mantiene forma y color neutro.** |
+| **Borde del Puntero** | `--dt-color-mai-pointer-border` | `#FFFFFF` | `#1E222B` | Contorno de alto contraste para visibilidad sobre la zona normal. |
+| **Indicador de Alarma Alta (P1)** | `--dt-color-alarm-critical` | `#E63946` | `#E63946` | **Elemento separado (Método 3):** Cuadrado rojo + '1' que aparece junto al límite. |
+| **Texto sobre Alarma Crítica** | `--dt-color-alarm-text-critical` | `#FFFFFF` | `#FFFFFF` | Texto de alto contraste sobre cuadrado rojo ($4.6:1$ WCAG AA). |
+| **Indicador de Alarma Baja / Advertencia (P2)** | `--dt-color-alarm-warning` | `#D97706` | `#F4A261` | **Elemento separado (Método 3):** Triángulo ámbar + '2' que aparece junto al límite. |
+| **Texto sobre Advertencia Ámbar** | `--dt-color-alarm-text-warning` | `#111827` | `#16191F` | **Texto oscuro obligatorio sobre Ámbar** ($9.2:1$ WCAG AAA). |
+| **Límite de Interbloqueo (`Interlock`)** | `--dt-color-mai-interlock` | `#111827` | `#FDFEFE` | Bloque sólido en el extremo que señala disparo automático de seguridad. |
+
+#### 6.1.2. Reglas de Comportamiento Dinámico y Alarmas
+1. **Pista de Fondo y Zona Normal:** La pista abarca el $100\%$ de la escala calibrada del instrumento. La Zona de Operación Normal se renderiza como un segmento interno destacado en azul claro (`--dt-color-mai-normal-zone`).
+2. **Invarianza del Puntero:** El puntero de valor actual no altera su forma ni su color neutro al cruzar los umbrales de alarma. Esto conserva el punto de referencia espacial y evita distorsiones cognitivas.
+3. **Presentación de Alarmas (Método 3 de Hollifield):**
+   * **Desviación Alta (High / High-High):** Al cruzar el umbral superior, aparece un **elemento de alarma separado** adyacente a la escala en el punto de infracción. Se presenta un cuadrado rojo (`--dt-color-alarm-critical`) con el número de prioridad `1` para Alarma Crítica.
+   * **Desviación Baja (Low / Low-Low):** Al cruzar el umbral inferior, aparece un **triángulo ámbar** (`--dt-color-alarm-warning`) adyacente con el número de prioridad `2` para Advertencia.
+4. **Límites de Seguridad e Interbloqueo (`Safety Interlock`):** Los extremos de la escala que activan paradas automáticas (ESD) se marcan con un rectángulo sólido (`--dt-color-mai-interlock`) en el extremo correspondiente.
 
 ---
 
@@ -259,9 +288,18 @@ En cumplimiento de ISA-101, las variables continuas de proceso (presión, temper
 
   --dt-color-alarm-critical: #E63946;
   --dt-color-alarm-warning: #D97706;
+  --dt-color-alarm-text-critical: #FFFFFF;
+  --dt-color-alarm-text-warning: #111827; /* Contraste 9.2:1 WCAG AAA sobre #D97706 */
   --dt-color-state-info: #2563EB;
   --dt-color-state-success: #0D9488;
   --dt-color-state-disabled: #9CA3AF;
+
+  /* Indicador Analógico Móvil (MAI) - Tema Claro */
+  --dt-color-mai-track: #E5E8EC;
+  --dt-color-mai-normal-zone: #BAE6FD;
+  --dt-color-mai-pointer: #111827;
+  --dt-color-mai-pointer-border: #FFFFFF;
+  --dt-color-mai-interlock: #111827;
 }
 
 /* Tema Oscuro (Móvil / Campo / Noche) */
@@ -279,7 +317,17 @@ En cumplimiento de ISA-101, las variables continuas de proceso (presión, temper
 
   --dt-color-alarm-critical: #E63946;
   --dt-color-alarm-warning: #F4A261;
+  --dt-color-alarm-text-critical: #FFFFFF;
+  --dt-color-alarm-text-warning: #16191F; /* Contraste 8.5:1 WCAG AAA sobre #F4A261 */
   --dt-color-state-info: #457B9D;
   --dt-color-state-success: #2A9D8F;
   --dt-color-state-disabled: #4A5263;
+
+  /* Indicador Analógico Móvil (MAI) - Tema Oscuro */
+  --dt-color-mai-track: #2A2F3D;
+  --dt-color-mai-normal-zone: #0369A1;
+  --dt-color-mai-pointer: #FDFEFE;
+  --dt-color-mai-pointer-border: #1E222B;
+  --dt-color-mai-interlock: #FDFEFE;
 }
+```
