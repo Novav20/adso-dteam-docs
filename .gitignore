@@ -14,3 +14,7 @@
 *.fls
 *.fdb_latexmk
 *.pdf
+
+# Documentación generada automáticamente desde requirements/data/ (CSVs)
+requirements/common/
+requirements/user-stories/
