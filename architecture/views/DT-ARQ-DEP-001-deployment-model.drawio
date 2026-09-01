@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="3Y10WfrNWWyL3JdB6nZT" name="Ver 1.x">
-        <mxGraphModel dx="781" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="1700" math="0" shadow="0">
+        <mxGraphModel dx="599" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="1700" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -208,7 +208,7 @@
         </mxGraphModel>
     </diagram>
     <diagram name="Ver 2.x" id="1_XMvMDZxPEpUrK9UoPO">
-        <mxGraphModel dx="1034" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="1700" math="0" shadow="0">
+        <mxGraphModel dx="599" dy="470" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="1700" math="0" shadow="0">
             <root>
                 <mxCell id="Ue2G_1WUGABHcHJdMeIQ-0"/>
                 <mxCell id="Ue2G_1WUGABHcHJdMeIQ-1" parent="Ue2G_1WUGABHcHJdMeIQ-0"/>
@@ -265,7 +265,7 @@
                 <mxCell id="Ue2G_1WUGABHcHJdMeIQ-16" value="&lt;span style=&quot;color: rgb(0, 0, 0); text-align: center;&quot;&gt;Database Server&lt;/span&gt;&lt;br style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: center; font-weight: normal;&quot;&gt;«Database Node»&lt;br style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251);&quot;&gt;[Managed Postgres / Linux container]&lt;/span&gt;" style="verticalAlign=top;align=left;shape=cube;size=10;direction=south;fontStyle=1;html=1;boundedLbl=1;spacingLeft=14;whiteSpace=wrap;fillColor=#F8F9F9;strokeColor=#2E86C1;strokeWidth=2;fontSize=12;fontFamily=Segoe UI;" parent="Ue2G_1WUGABHcHJdMeIQ-1" vertex="1">
                     <mxGeometry x="980" y="640" width="310" height="170" as="geometry"/>
                 </mxCell>
-                <mxCell id="Ue2G_1WUGABHcHJdMeIQ-17" value="&lt;b&gt;PostgreSQL 16 +&lt;/b&gt;&lt;br/&gt;&lt;b&gt;TimescaleDB Extension&lt;/b&gt;" style="shape=datastore;whiteSpace=wrap;html=1;fillColor=#FDEDEC;strokeColor=#E74C3C;strokeWidth=2;fontSize=12;fontFamily=Segoe UI;" parent="Ue2G_1WUGABHcHJdMeIQ-1" vertex="1">
+                <mxCell id="Ue2G_1WUGABHcHJdMeIQ-17" value="&lt;b&gt;PostgreSQL 18 +&lt;/b&gt;&lt;br&gt;&lt;b&gt;TimescaleDB Extension&lt;/b&gt;" style="shape=datastore;whiteSpace=wrap;html=1;fillColor=#FDEDEC;strokeColor=#E74C3C;strokeWidth=2;fontSize=12;fontFamily=Segoe UI;" parent="Ue2G_1WUGABHcHJdMeIQ-1" vertex="1">
                     <mxGeometry x="1020" y="710" width="220" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="Ue2G_1WUGABHcHJdMeIQ-18" value="&lt;b&gt;Capa Administrativa de Seguridad:&lt;/b&gt;&lt;br/&gt;Tolerancia a ruido EMI industrial.&lt;br/&gt;Si fallan 3 ciclos de Heartbeat&lt;br/&gt;(6 segundos), el Watchdog&lt;br/&gt;bloquea localmente la App." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFFDE7;strokeColor=#F9A825;strokeWidth=2;fontSize=11;fontFamily=Segoe UI;align=left;spacingLeft=8;" parent="Ue2G_1WUGABHcHJdMeIQ-1" vertex="1">
@@ -337,7 +337,7 @@
                         <mxRectangle width="210" height="31" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="Ue2G_1WUGABHcHJdMeIQ-34" value="2.1" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=default;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;align=left;" parent="Ue2G_1WUGABHcHJdMeIQ-32" vertex="1">
+                <mxCell id="Ue2G_1WUGABHcHJdMeIQ-34" value="2.2" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=default;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;align=left;" parent="Ue2G_1WUGABHcHJdMeIQ-32" vertex="1">
                     <mxGeometry x="210" width="350" height="31" as="geometry">
                         <mxRectangle width="350" height="31" as="alternateBounds"/>
                     </mxGeometry>
@@ -389,7 +389,7 @@
                         <mxRectangle width="210" height="45" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="Ue2G_1WUGABHcHJdMeIQ-46" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Cambio de cliente Frontend&lt;/span&gt;" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=default;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;align=left;" parent="Ue2G_1WUGABHcHJdMeIQ-44" vertex="1">
+                <mxCell id="Ue2G_1WUGABHcHJdMeIQ-46" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Actualización de a PostgreSQL 18 para uso de UUIDv7 y otras características.&lt;/span&gt;" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=default;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;align=left;" parent="Ue2G_1WUGABHcHJdMeIQ-44" vertex="1">
                     <mxGeometry x="210" width="350" height="45" as="geometry">
                         <mxRectangle width="350" height="45" as="alternateBounds"/>
                     </mxGeometry>

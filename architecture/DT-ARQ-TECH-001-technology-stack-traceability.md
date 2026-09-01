@@ -24,7 +24,7 @@ Este documento es la fuente consolidada para identificar el stack tecnológico o
 | Tiempo real | SignalR sobre WSS | Heartbeat LOTO (2s), KPIs y notificaciones autorizadas | `TR-010`, DT-ARQ-DEP-001 |
 | API | HTTPS/JSON | Sincronización y operaciones cliente-servidor | `TR-005`, `TR-007`, DT-ARQ-DEP-001 |
 | Persistencia móvil | `sqlite-net-pcl` + SQLCipher | Estado local, cola offline (`TR-007`) y bloqueo preventivo | `TR-002`, `TR-007`, ADR-004 |
-| Base de datos central | PostgreSQL 16 + TimescaleDB | Activos, inventario, auditoría inmutable y series temporales | ADR-003, DT-ARQ-DEP-001 |
+| Base de datos central | PostgreSQL 18 + TimescaleDB | Activos, inventario, auditoría inmutable y series temporales | ADR-003, DT-ARQ-DEP-001 |
 | Ingesta IoT | Azure IoT Hub | Telemetría industrial (MQTT desde SCADA / AMQP a Backend) | DT-ARQ-DEP-001 |
 | Infraestructura | Docker, Nginx y Azure Cloud Services | Contenedores, proxy inverso, TLS 1.3 y despliegue | DT-ARQ-DEP-001 |
 | Visualización | Modelo 2D primero (SVG), 3D evolutivo | Gemelo digital y contexto operacional | ADR-001 |
