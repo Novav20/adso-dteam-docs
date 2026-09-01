@@ -1,7 +1,7 @@
 ---
 code: DT-ARQ-TECH-001
-version: 1.0
-date: 2026-08-24
+version: 1.1
+date: 2026-08-31
 status: Vigente
 author: Juan David Julio Serrano
 ---

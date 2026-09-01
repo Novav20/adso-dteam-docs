@@ -1,7 +1,7 @@
 ---
 code: DT-ARQ-DEP-DOC-001
-version: 1.1
-date: 2026-08-25
+version: 1.2
+date: 2026-08-31
 status: Especificación Técnica de Despliegue y Topología Física — MVP
 author: Juan David Julio Serrano
 standard:
