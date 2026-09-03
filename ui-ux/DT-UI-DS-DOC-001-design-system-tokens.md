@@ -42,13 +42,13 @@ El espaciado y dimensionamiento se rige bajo un sistema de cuadrícula base de *
 | --dt-space-10 | 64px       | 4.0rem      | Márgenes estructurales en monitores de alta resolución (1920x1080).                        |
 
 ### 2.2. Dimensiones de Controles y Áreas Táctiles
-| Token de Control | Altura Mínima (px) | Ancho Mínimo (px) | Plataforma Objetivo / Justificación |
-| ------ | ------ | ------ | ------ |
-| --dt-touch-target-mobile | 48px | 48px | **Mínimo obligatorio en Tablet/Mobile:** Botones de acción, checkboxes LOTO y selectores en campo. |
-| --dt-control-height-sm | 32px | auto | Desktop Web: Botones compactos en tablas de datos densos y filtros secundarios. |
-| --dt-control-height-md | 40px | auto | Desktop Web: Entradas de texto estándar, selectores y botones de formulario. |
-| --dt-control-height-lg | 48px | auto | Mobile/Tablet: Altura estándar para todos los campos de entrada (InputText, InputSelect). |
-| --dt-control-height-xl | 56px | 100% | Mobile: Botón de acción primaria de pie de pantalla (ej. "Completar Orden de Trabajo"). |
+| Token de Control         | Altura Mínima (px) | Ancho Mínimo (px) | Plataforma Objetivo / Justificación                                                                |
+| ------------------------ | ------------------ | ----------------- | -------------------------------------------------------------------------------------------------- |
+| --dt-touch-target-mobile | 48px               | 48px              | **Mínimo obligatorio en Tablet/Mobile:** Botones de acción, checkboxes LOTO y selectores en campo. |
+| --dt-control-height-sm   | 32px               | auto              | Desktop Web: Botones compactos en tablas de datos densos y filtros secundarios.                    |
+| --dt-control-height-md   | 40px               | auto              | Desktop Web: Entradas de texto estándar, selectores y botones de formulario.                       |
+| --dt-control-height-lg   | 48px               | auto              | Mobile/Tablet: Altura estándar para todos los campos de entrada (InputText, InputSelect).          |
+| --dt-control-height-xl   | 56px               | 100%              | Mobile: Botón de acción primaria de pie de pantalla (ej. "Completar Orden de Trabajo").            |
 
 ### 2.3. Puntos de Quiebre Responsivos
 | Token de Breakpoint | Ancho (px) | Dispositivo de Referencia | Disposición de Layout |
@@ -213,7 +213,6 @@ Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la co
 4. **Límites de Seguridad e Interbloqueo (Safety Interlock):** Los extremos de la escala que activan paradas automáticas (ESD) se marcan con un rectángulo sólido (`--dt-color-mai-interlock`) en el extremo correspondiente.
 
 ### 6.2. Matriz de Codificación Redundante para Permisos y LOTO
-*Mapeo libre de acoplamientos rígidos de color. Utiliza exclusivamente variables semánticas o primitivas establecidas en las secciones normativas.*
 
 | Concepto de Seguridad                 | Color Principal / Token   | Forma Geométrica                      | Icono Asociado             | Texto Obligatorio   |
 | ------------------------------------- | ------------------------- | ------------------------------------- | -------------------------- | ------------------- |
@@ -226,150 +225,6 @@ Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la co
 
 ---
 
-## 7. Archivo de Variables CSS para Librería de Clases de Razor (tokens.css)
-```css
-:root {
-  /* ==========================================================================
-     CAPA 1: TOKENS PRIMITIVOS DE PALETA 
-     ========================================================================== */
-  --dt-primitive-gray-980: #111827;
-  --dt-primitive-gray-950: #11141A;
-  --dt-primitive-gray-900: #16191F;
-  --dt-primitive-gray-850: #1F2937;
-  --dt-primitive-gray-800: #1E222B;
-  --dt-primitive-gray-700: #2A2F3D;
-  --dt-primitive-gray-650: #3A4154;
-  --dt-primitive-gray-620: #4B5563;
-  --dt-primitive-gray-600: #353B4D;
-  --dt-primitive-gray-580: #4A5263;
-  --dt-primitive-gray-550: #6B7280;
-  --dt-primitive-gray-500: #5C667A;
-  --dt-primitive-gray-450: #6E7A92;
-  --dt-primitive-gray-420: #8A98AA;
-  --dt-primitive-gray-400: #7E8B9B;
-  --dt-primitive-gray-380: #9CA3AF;
-  --dt-primitive-gray-300: #B8C0CC;
-  --dt-primitive-gray-280: #C2CBD6;
-  --dt-primitive-gray-200: #D8DBE0;
-  --dt-primitive-gray-100: #E5E8EC;
-  --dt-primitive-gray-50: #F4F5F7;
-  --dt-primitive-gray-10: #FDFEFE;
-  --dt-primitive-white: #FFFFFF;
+## 7. Archivo de Variables CSS para Librería de Clases de Razor
 
-  --dt-primitive-red-600: #E63946;
-  --dt-primitive-amber-600: #AC5E04;
-  --dt-primitive-amber-500: #D97706;
-  --dt-primitive-amber-400: #F4A261;
-  --dt-primitive-blue-700: #0369A1;
-  --dt-primitive-blue-600: #2563EB;
-  --dt-primitive-blue-450: #4881A4;
-  --dt-primitive-blue-400: #457B9D;
-  --dt-primitive-blue-200: #BAE6FD;
-  --dt-primitive-teal-700: #0B857A;
-  --dt-primitive-teal-600: #0D9488;
-  --dt-primitive-teal-400: #2A9D8F;
-
-  /* ==========================================================================
-     CAPA 2: TOKENS GEOMÉTRICOS, DE ESPACIADO Y NAVEGACIÓN
-     ========================================================================== */
-  /* Tokens Espaciales (Rejilla 8px) */
-  --dt-space-0: 0px;
-  --dt-space-1: 4px;
-  --dt-space-2: 8px;
-  --dt-space-3: 12px;
-  --dt-space-4: 16px;
-  --dt-space-5: 24px;
-  --dt-space-6: 32px;
-  --dt-space-8: 48px;
-  --dt-space-10: 64px;
-
-  /* Controles y Áreas Táctiles */
-  --dt-touch-target-mobile: 48px;
-  --dt-control-height-sm: 32px;
-  --dt-control-height-md: 40px;
-  --dt-control-height-lg: 48px;
-  --dt-control-height-xl: 56px;
-
-  /* Tipografía - Fuentes */
-  --dt-font-family-base: Segoe UI, Inter, Roboto, -apple-system, sans-serif;
-  --dt-font-family-mono: Cascadia Code, SF Mono, Consolas, monospace;
-
-  /* Radios de Borde */
-  --dt-radius-none: 0px;
-  --dt-radius-sm: 4px;
-  --dt-radius-md: 6px;
-  --dt-radius-lg: 8px;
-  --dt-radius-xl: 12px;
-
-  /* Z-Index */
-  --dt-z-canvas: 0;
-  --dt-z-layer-ptw: 10;
-  --dt-z-layer-loto: 20;
-  --dt-z-overlay-card: 100;
-  --dt-z-header-sticky: 500;
-  --dt-z-drawer-sidebar: 800;
-  --dt-z-modal: 1000;
-  --dt-z-modal-fail-safe: 1500;
-  --dt-z-toast-alert: 2000;
-
-  /* ==========================================================================
-     CAPA 3: TOKENS SEMÁNTICOS (TEMA CLARO - DEFAULT / DESKTOP)
-     ========================================================================== */
-  --dt-color-bg-canvas: var(--dt-primitive-gray-200);
-  --dt-color-surface-base: var(--dt-primitive-gray-100);
-  --dt-color-surface-card: var(--dt-primitive-gray-50);
-  --dt-color-surface-raised: var(--dt-primitive-white);
-  --dt-color-border-subtle: var(--dt-primitive-gray-300);
-  --dt-color-border-focus: var(--dt-primitive-gray-550);
-
-  --dt-color-text-muted: var(--dt-primitive-gray-620);
-  --dt-color-text-body: var(--dt-primitive-gray-850);
-  --dt-color-text-primary: var(--dt-primitive-gray-980);
-
-  --dt-color-alarm-critical: var(--dt-primitive-red-600);
-  --dt-color-alarm-warning: var(--dt-primitive-amber-600); /* Ajustado WCAG AA 3.47:1 sobre Canvas #D8DBE0 */
-  --dt-color-alarm-text-critical: var(--dt-primitive-white);
-  --dt-color-alarm-text-warning: var(--dt-primitive-white); /* Contraste 5.36:1 WCAG AA sobre #AC5E04 */
-  --dt-color-state-info: var(--dt-primitive-blue-600);
-  --dt-color-state-success: var(--dt-primitive-teal-700); /* Ajustado WCAG AA 3.25:1 sobre Canvas #D8DBE0 */
-  --dt-color-state-disabled: var(--dt-primitive-gray-380);
-
-  /* Indicador Analógico Móvil (MAI) - Tema Claro */
-  --dt-color-mai-track: var(--dt-primitive-gray-100);
-  --dt-color-mai-normal-zone: var(--dt-primitive-blue-200);
-  --dt-color-mai-pointer: var(--dt-primitive-gray-980);
-  --dt-color-mai-pointer-border: var(--dt-primitive-white);
-  --dt-color-mai-interlock: var(--dt-primitive-gray-980);
-}
-
-/* ==========================================================================
-   CAPA 3 (TEMA OSCURO): OPERACIÓN DE CAMPO / MÓVIL / NOCHE
-   ========================================================================== */
-[data-theme="dark"] {
-  --dt-color-bg-canvas: var(--dt-primitive-gray-900);
-  --dt-color-surface-base: var(--dt-primitive-gray-800);
-  --dt-color-surface-card: var(--dt-primitive-gray-700);
-  --dt-color-surface-raised: var(--dt-primitive-gray-600);
-  --dt-color-border-subtle: var(--dt-primitive-gray-650);
-  --dt-color-border-focus: var(--dt-primitive-gray-450); /* Ajustado WCAG AA 3.09:1 sobre Card #2A2F3D */
-
-  --dt-color-text-muted: var(--dt-primitive-gray-420); /* Ajustado WCAG AA 4.55:1 sobre Card #2A2F3D */
-  --dt-color-text-body: var(--dt-primitive-gray-280);
-  --dt-color-text-primary: var(--dt-primitive-gray-10);
-
-  --dt-color-alarm-critical: var(--dt-primitive-red-600);
-  --dt-color-alarm-warning: var(--dt-primitive-amber-400);
-  --dt-color-alarm-text-critical: var(--dt-primitive-white);
-  --dt-color-alarm-text-warning: var(--dt-primitive-gray-900); /* Contraste 8.5:1 WCAG AAA sobre #F4A261 */
-  --dt-color-state-info: var(--dt-primitive-blue-450); /* Ajustado WCAG AA 3.15:1 sobre Card #2A2F3D */
-  --dt-color-state-success: var(--dt-primitive-teal-400);
-  --dt-color-state-disabled: var(--dt-primitive-gray-580);
-
-  /* Indicador Analógico Móvil (MAI) - Tema Oscuro */
-  --dt-color-mai-track: var(--dt-primitive-gray-700);
-  --dt-color-mai-normal-zone: var(--dt-primitive-blue-700);
-  --dt-color-mai-pointer: var(--dt-primitive-gray-10);
-  --dt-color-mai-pointer-border: var(--dt-primitive-gray-800);
-  --dt-color-mai-interlock: var(--dt-primitive-gray-10);
-}
-```
+Vease `adso-gemelo-digital-docs/ui-ux/assets/tokens.css`
