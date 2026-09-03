@@ -61,7 +61,7 @@ graph TD
 ### 3.1. Nivel 1: Visión General de Planta (L1 - Area / Overview)
 Pantallas macro que brindan una visión holística e ininterrumpida de la planta industrial. Aplican la regla HPHMI del 90% de grises neutros para resaltar únicamente condiciones de alarma.
 
-* **`SCR-VIS-001` — Mapa de Planta 2D:** Lienzo gráfico vectorial escalable (SVG) que representa la distribución espacial de la planta, activos principales, estados de operación y capas de permisos de trabajo activos. Trazable con **[[UC-VIS-033]]**.
+* **`SCR-VIS-001` — Mapa de Planta 2D:** Lienzo gráfico vectorial escalable (SVG) que adopta el formato de *Simplified Plot Plan / Process Overview* en escala neutra y representa la distribución espacial de la planta, activos principales, estados de operación y capas de permisos de trabajo activos. Trazable con **[[UC-VIS-033]]**.
 
 ### 3.2. Nivel 2: Supervisión de Proceso y Planificación (L2 - Unit / Process)
 Pantallas de control intermedio para supervisores, planificadores y auditores. Consolidan información agregada, árboles de jerarquía y métricas de desempeño.
@@ -154,6 +154,7 @@ La siguiente tabla define las reglas de transición entre pantallas, los eventos
 | :--- | :--- | :--- | :---: | :--- |
 | `SCR-VIS-001` | Selección de Activo en Lienzo 2D | `SCR-VIS-002` | L1 $\to$ L3 | Todos los Roles |
 | `SCR-VIS-001` | Selección de Capa LOTO en Lienzo 2D | `SCR-VIS-003` | L1 $\to$ L4 | Técnico, Supervisor, HSEQ, Ing. Confiabilidad |
+| `Cualquiera (Global Web)` | Pulsar Ctrl + K o `/` | `Modal de Búsqueda Difusa (Fuzzy Search Omnibox)` | L2 | Todos los Roles |
 | `SCR-VIS-002` | Clic en "Verificar Aislamiento LOTO" | `SCR-VIS-003` | L3 $\to$ L4 | Técnico, Supervisor, HSEQ |
 | `SCR-VIS-002` | Clic en "Ver Ficha Técnica" | `SCR-INV-001` | L3 $\to$ L3 | Todos los Roles |
 | `SCR-VIS-002` | Clic en "Iniciar Ejecución OT" | `SCR-MTTO-002` | L3 $\to$ L4 | Técnico, Supervisor |

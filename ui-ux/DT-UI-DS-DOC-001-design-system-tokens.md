@@ -170,17 +170,17 @@ Para cumplir con la filosofía HPHMI en interfaces oscuras, la profundidad no se
 
 ### 5.2. Capas y Niveles de Apilamiento (Z-Index Hierarchy)
 
-| Token Z-Index | Valor | Elementos Asignados |
-| :--- | :---: | :--- |
-| `--dt-z-canvas` | `0` | Capa base vectorial SVG (Plano de planta). |
-| `--dt-z-layer-ptw` | `10` | Capa gráfica superpuesta de Permisos de Trabajo (VIS-008). |
-| `--dt-z-layer-loto` | `20` | Capa gráfica de Trazabilidad LOTO (VIS-011). |
-| `--dt-z-overlay-card` | `100` | Tarjeta emergente de activo (Asset Quick-Card L3 / VIS-033). |
-| `--dt-z-header-sticky` | `500` | Barra de navegación superior fija y estado de red. |
-| `--dt-z-drawer-sidebar` | `800` | Panel lateral de navegación desplegable. |
-| `--dt-z-modal` | `1000` | Ventanas modales estándar (Creación OT, Asset Swap). |
-| `--dt-z-modal-fail-safe`| `1500` | **Modal crítico de Peligro LOTO / Bloqueo activo (No descartable).** |
-| `--dt-z-toast-alert` | `2000` | Alertas de desconexión y notificaciones toast de SignalR. |
+| Token Z-Index            | Valor  | Elementos Asignados                                                  |
+| :----------------------- | :----: | :------------------------------------------------------------------- |
+| `--dt-z-canvas`          |  `0`   | Capa base vectorial SVG (Plano de planta).                           |
+| `--dt-z-layer-ptw`       |  `10`  | Capa gráfica superpuesta de Permisos de Trabajo [[VIS-008]].         |
+| `--dt-z-layer-loto`      |  `20`  | Capa gráfica de Trazabilidad LOTO [[VIS-011]].                       |
+| `--dt-z-overlay-card`    | `100`  | Tarjeta emergente de activo (Asset Quick-Card L3 / VIS-033).         |
+| `--dt-z-header-sticky`   | `500`  | Barra de navegación superior fija y estado de red.                   |
+| `--dt-z-drawer-sidebar`  | `800`  | Panel lateral de navegación desplegable.                             |
+| `--dt-z-modal`           | `1000` | Ventanas modales estándar (Creación OT, Asset Swap).                 |
+| `--dt-z-modal-fail-safe` | `1500` | **Modal crítico de Peligro LOTO / Bloqueo activo (No descartable).** |
+| `--dt-z-toast-alert`     | `2000` | Alertas de desconexión y notificaciones toast de SignalR.            |
 
 ---
 
