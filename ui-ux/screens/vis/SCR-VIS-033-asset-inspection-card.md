@@ -58,7 +58,7 @@ status: Draft
 | `CMP-06` | Asset Header Block | Tag + Estado + Criticidad | `--dt-font-mono-data` | Muestra el Tag técnico en tipografía monoespaciada, estado operativo (`UP`, `DOWN`, `STANDBY`) mediante badge neutro, y nivel de criticidad (1-10) para el motor RIME. |
 | `CMP-07` | Live Telemetry Block | Indicadores analógicos MAI | `--dt-color-mai-*` | Renderiza barras MAI para variables continuas críticas (presión, temperatura, vibración) con zona de operación normal y puntero neutro. Se actualiza vía SignalR en $<1\text{s}$ (`FR-601`, `NFR-604`). |
 | `CMP-08` | Safety & Work Badges | Resumen de OTs y Seguridad | `--dt-color-state-info` | Indicadores compactos: número de OTs activas sobre el equipo, distintivo de Permiso de Trabajo vigente (`VIS-008`) y estado de aislamiento LOTO (`VIS-011`). |
-| `CMP-09` | Quick Action Buttons | Botonera de acciones clave | `--dt-touch-target-mobile` | Accesos directos de ejecución: `[Ver Ruta LOTO]` (hacia `SCR-VIS-003`), `[Ver / Gestionar OTs]` (hacia `SCR-MTTO-004`) y `[Ficha Maestra]` (hacia `SCR-INV-001`). |
+| `CMP-09` | Quick Action Buttons | Botonera de acciones clave | `--dt-touch-target-mobile` | Accesos directos de ejecución: `[Ver Ruta LOTO]` (hacia `SCR-VIS-011`), `[Ver / Gestionar OTs]` (hacia `SCR-MTTO-026`) y `[Ficha Maestra]` (hacia `SCR-INV-005`). |
 
 ---
 
@@ -97,9 +97,9 @@ status: Draft
 
 ### 5.4. Lanzamiento de Operaciones
 1. Desde el panel contextual, el usuario puede pulsar:
-   * **`[Ver Ruta LOTO]`:** Abre la superposición gráfica de aislamiento de energía en el plano (`SCR-VIS-003` / `VIS-011`).
-   * **`[Ver / Gestionar OTs]`:** Navega al backlog operativo filtrando las órdenes asociadas al activo (`SCR-MTTO-004`).
-   * **`[Ficha Maestra]`:** Abre la vista completa de ingeniería y ciclo de vida del equipo (`SCR-INV-001`).
+   * **`[Ver Ruta LOTO]`:** Abre la superposición gráfica de aislamiento de energía en el plano (`SCR-VIS-011` / `VIS-011`).
+   * **`[Ver / Gestionar OTs]`:** Navega al backlog operativo filtrando las órdenes asociadas al activo (`SCR-MTTO-026`).
+   * **`[Ficha Maestra]`:** Abre la vista completa de ingeniería y ciclo de vida del equipo (`SCR-INV-005`).
 
 ---
 

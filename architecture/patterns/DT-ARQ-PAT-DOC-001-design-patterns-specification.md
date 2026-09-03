@@ -35,8 +35,8 @@ standard:
 ## 3. Patrones de Comportamiento
 
 ### Strategy (Estrategia)
-* **Ubicación:** Contrato `IRimeCalculator` e implementación `RimeCalculatorService`.
-* **Propósito:** Encapsula el algoritmo de priorización RIME ($Score = \text{Criticidad} \times \text{Clase de Trabajo}$). Permite reemplazar en el futuro el cálculo por uno basado en riesgo financiero sin modificar la entidad `WorkRequest`.
+* **Ubicación:** Contrato `IRimeCalculator` e implementación `RimeCalculatorService` ([[ADR-002-RIME-MVP-Static-Factors|ADR-002]]).
+* **Propósito:** Encapsula el algoritmo de priorización RIME. Permite reemplazar o extender en el futuro el cálculo por uno basado en riesgo financiero o disponibilidad de inventario sin modificar la entidad `WorkRequest` ni las reglas del agregador.
 
 ### State (Estado)
 * **Ubicación:** Flujo de ejecución de la orden de trabajo (`WorkOrder.currentStatus`).

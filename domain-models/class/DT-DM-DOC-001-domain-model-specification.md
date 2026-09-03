@@ -33,11 +33,11 @@ El campo `status` se descompone en cuatro dimensiones independientes y especiali
 
 Esta división reduce el acoplamiento, evita sobrecargar la lógica de negocio y previene almacenar significados no relacionados en un solo campo. También facilita la validación transaccional porque cada dimensión puede restringirse de forma independiente.
 
-### 2.2 Priorización RIME Estandarizada
+### 2.2 Priorización RIME Configurable
 
 Para cumplir con la gestión de riesgos exigida por la norma ISO 55001 y las mejores prácticas de la ingeniería de mantenimiento, el sistema adopta el estándar RIME (Ranking Index for Maintenance Expenditure).
 
-Se descartan las aproximaciones heurísticas complejas de múltiples factores cualitativos, reduciendo la fórmula del backlog a un cálculo matemático directo de dos dimensiones controladas: la **Criticidad del Activo** (un valor intrínseco de la ficha técnica del equipo, escala 1-10) y la **Clase de Trabajo** (el tipo de actividad declarada en la orden, escala 1-10). Esto garantiza objetividad absoluta, velocidad de procesamiento transaccional en el MVP, simplicidad en el desarrollo frontend/backend y eliminación de acoplamientos con módulos financieros externos.
+De acuerdo con [[ADR-002-RIME-MVP-Static-Factors|ADR-002]], el cálculo del puntaje de prioridad se encapsula bajo el patrón *Strategy* a través de un servicio de dominio. La arquitectura desacopla este algoritmo del la orden de trabajo, permitiendo incorporar a futuro estrategias adaptadas a factores económicos o de inventario sin alterar las entidades del núcleo.
 
 ### 2.3 Aislamiento Multi-Fuente y Extensibilidad de Seguridad
 
