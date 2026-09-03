@@ -85,25 +85,14 @@ status: In Review
 3. El plano se inicializa centrado en su vista macro.
 
 ### 5.2. Navegación Espacial y Ergonomía Móvil
-1. **Desplazamiento y Zoom:** El usuario navega mediante arrastre del lienzo y zoom mediante rueda de ratón o gestos táctiles.
-2. **Zoom Semántico:** Al superar el umbral de escala definido, la interfaz conmuta la densidad de datos revelando u ocultando etiquetas y puertos de conexión ([[UC-VIS-033]]).
-3. **Controlabilidad Táctil (*Bottom Sheet*):** En móvil, el contenedor `CMP-05` no depende exclusivamente de gestos de deslizamiento (*swipe*). Incluye un disparador gráfico superior con área mínima de $48 \times 48\text{ px}$ para conmutar sus estados (Colapsado / Medio / Expandido) mediante *tap* simple.
-4. **Adaptación a Rotación de Pantalla:** Si la tableta cambia de orientación vertical (`--dt-breakpoint-md`) a horizontal (`--dt-breakpoint-lg`), el contenedor `CMP-05` transiciona automáticamente de *Bottom Sheet* a panel lateral derecho, evitando solapar el plano interactivo.
-
+1. **Desplazamiento y Zoom:** Navegación dual (Geométrica y Semántica) según [[UC-VIS-033]].
+2. **Controlabilidad Táctil:** El contenedor `CMP-05` conmuta sus estados mediante un disparador gráfico superior que hereda el tamaño táctil de `--dt-touch-target-mobile`.
+3. **Responsive Layout:** La transformación del contenedor `CMP-05` (Bottom Sheet $\leftrightarrow$ Lateral Panel) se delega a las reglas de orientación de dispositivo definidas en [[DT-UI-NAV-DOC-001-navigation-specification|DT-UI-NAV-DOC-001]].
+  
 ### 5.3. Inspección y Telemetría
-1. La selección de un activo centra la visualización sobre el equipo y abre el panel contextual `CMP-05`.
-2. **Gestión de Suscripción SignalR ([[TR-010]]):** 
-   * **Control de Concurrencia (*Debounce*):** Para evitar cruce de datos por selección rápida de múltiples equipos, la suscripción al nuevo `TagNumber` se retrasa $300\text{ ms}$. Las respuestas asíncronas de etiquetas previas se descartan.
-3. **Validación de Telemetría y Latido (*Heartbeat*):**
-   * El panel consume lecturas en tiempo real y refresca los indicadores `CMP-07` con latencia $<1\text{s}$.
-   * Si transcurren $>2.0\text{ s}$ sin latido del servidor, o si la trama entrante reporta calidad de señal "Bad", el sistema transiciona inmediatamente al estado de **Pérdida de Telemetría**, congelando el valor para evitar interpretaciones erróneas de "0.0".
-
-### 5.4. Disparadores de Navegación
-* Al accionar `CMP-09`, el sistema evalúa la ruta solicitada y transiciona preservando el identificador del activo en el contexto:
-  * `[Ver Ruta LOTO]` $\longrightarrow$ Navega a [[SCR-VIS-011-loto-isolation-viewer|SCR-VIS-011]].
-  * `[Ver OTs]` $\longrightarrow$ Navega a [[SCR-MTTO-026-rime-backlog-board|SCR-MTTO-026]].
-  * `[Ficha Maestra]` $\longrightarrow$ Navega a [[SCR-INV-005-equipment-master|SCR-INV-005]].
-
+1. La selección de un activo en el plano invoca la apertura de `CMP-05` y la suscripción en tiempo real al canal de telemetría del equipo.
+2. **Gestión de Suscripción SignalR:** Sujeta a políticas globales de *debouncing* para prevenir colisiones de red por selección rápida múltiple ([[DT-ARQ-CMP-DOC-001-architecture-interfaces-specification|DT-ARQ-CMP-DOC-001]]).
+3. **Resiliencia de Conexión:** Si el componente detecta violación del umbral del *Heartbeat* o recibe un paquete con calidad "Bad" ([[DT-ARQ-DEP-DOC-001-deployment-specification|DT-ARQ-DEP-DOC-001]]), transiciona inmediatamente a la visualización de "Pérdida de Telemetría".
 ---
 
 ## 6. Consideraciones Industriales y de Seguridad

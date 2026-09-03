@@ -1,6 +1,6 @@
 ---
 code: DT-UI-DS-DOC-001
-version: 1.3
+version: 1.4
 date: 2026-09-03
 status: Aprobado
 author: Juan David Julio Serrano
@@ -223,6 +223,12 @@ Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la co
 | **Punto LOTO Energizado (Peligro)**   | --dt-color-alarm-critical | Candado abierto con halo              | Rayo / Alerta              | DANGER - ENERGIZED  |
 | **Pérdida de Telemetría (Fail-Safe)** | --dt-color-alarm-warning  | Rombo con signo '?'                   | Desconexión ( `wifi-off` ) | SIGNAL LOST - STALE |
 
+### 6.3. Patrón de Contenedores Deslizantes (*Bottom Sheets* y *Drawers*)
+En cumplimiento del principio de **Controlabilidad** (ISO 9241-110:2020, Cláusula 5.5) y para mitigar la baja precisión de sensores capacitivos al operar con guantes industriales o en condiciones húmedas, los contenedores móviles deslizantes deben regirse por las siguientes directrices:
+
+1. **Prohibición de Gesto Exclusivo:** Queda prohibido condicionar el despliegue, colapso o cierre de un contenedor exclusivamente a gestos continuos de arrastre o deslizamiento (*swipe/drag*).
+2. **Disparador Físico Dedicado:** Todo contenedor debe integrar un elemento interactivo explícito (manija o cabecera táctil) cuyas dimensiones de área de contacto hereden el token `--dt-touch-target-mobile`.
+3. **Conmutación Discreta:** La pulsación simple (*tap*) sobre dicho elemento debe alternar secuencialmente entre los estados definidos para el componente (Colapsado, Vista Parcial, Expandido), garantizando la operación sin requerir motricidad fina.
 ---
 
 ## 7. Archivo de Variables CSS para Librería de Clases de Razor
