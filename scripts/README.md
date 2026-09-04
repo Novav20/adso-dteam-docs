@@ -2,6 +2,24 @@
 
 Este directorio contiene los scripts de soporte para la sincronización y generación automatizada de documentos Markdown a partir de los datos maestros tabulares (`requirements/data/`).
 
+## `generate_design_tokens.py`
+
+Genera `ui-ux/assets/tokens.css` a partir de las tablas y definiciones de
+`ui-ux/DT-UI-DS-DOC-001.md`. El CSS es un artefacto generado; los cambios deben
+hacerse en el documento Markdown y después regenerarse:
+
+```bash
+python3 scripts/generate_design_tokens.py
+```
+
+También admite rutas explícitas para validaciones o fuentes alternativas:
+
+```bash
+python3 scripts/generate_design_tokens.py \
+	--source ui-ux/DT-UI-DS-DOC-001.md \
+	--target ui-ux/assets/tokens.css
+```
+
 ---
 
 ## 📌 `generate_requirements_docs.py`

@@ -15,6 +15,7 @@
 *.fdb_latexmk
 *.pdf
 
-# Documentación generada automáticamente desde requirements/data/ (CSVs)
+# Archivos generados de manera automatica
 requirements/common/
 requirements/user-stories/
+ui-ux/assets/tokens.css
