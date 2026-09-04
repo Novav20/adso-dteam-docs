@@ -49,7 +49,7 @@ graph TD
 ### 2.1. Cliente Móvil de Campo
 * **Objetivo Operacional:** Ejecución de órdenes de trabajo, inspección física de activos en planta, rotación de componentes y validación de rutas de aislamiento de seguridad LOTO.
 * **Patrón de Navegación:** Estructura plana optimizada para dispositivos portátiles industriales (tabletas y colectores de datos). Utiliza barra de navegación inferior de 4 accesos principales, panel lateral desplegable para herramientas secundarias y flujos de diálogo modales de pantalla completa para tareas de alto riesgo.
-* **Adaptación a Orientación de Dispositivo:** Al detectar un cambio de orientación física de vertical (`--dt-breakpoint-md`) a horizontal (`--dt-breakpoint-lg`), los contenedores contextuales inferiores (*Bottom Sheets*) transicionan de forma automática a paneles laterales derechos fijados al 30% del ancho del viewport, evitando el solapamiento vertical sobre diagramas espaciales y formularios densos.
+* **Adaptación a Orientación de Dispositivo:** Al detectar un cambio de orientación física de vertical (`--dt-breakpoint-md`) a horizontal (`--dt-breakpoint-lg`), los contenedores contextuales inferiores (*Bottom Sheets*) transicionan automáticamente a paneles laterales derechos fijados según el token dimensional `--dt-layout-drawer-width`, evitando el solapamiento vertical sobre diagramas espaciales y formularios densos.
 
 ### 2.2. Cliente Portal Web 
 * **Objetivo Operacional:** Supervisión ejecutiva HSEQ, administración del catálogo taxonómico ISO 14224, priorización del backlog de mantenimiento mediante metodología RIME, gestión de inventario e inspección de auditoría inmutable.
@@ -111,53 +111,65 @@ Interfaces especializadas de ejecución atómica, verificación de seguridad en 
 
 ### 4.1. Estructura de Navegación — Cliente Móvil
 
-```text
-├── [Barra de Navegación Inferior]
-│   ├── 1.0 Planta (L1)
-│   │   └── SCR-VIS-008: Mapa de Planta 2D
-│   │       ├── Acceso a SCR-VIS-033: Tarjeta de Inspección del Activo (L3)
-│   │       └── Acceso a SCR-VIS-011: Visor de Rutas de Aislamiento LOTO (L4)
-│   ├── 2.0 Mis Órdenes (L2)
-│   │   └── Lista de Órdenes de Trabajo Asignadas
-│   │       ├── SCR-MTTO-002: Cierre Móvil de Orden de Trabajo (L4)
-│   │       └── SCR-VIS-011: Visor de Rutas de Aislamiento LOTO (L4)
-│   ├── 3.0 Activos (L2)
-│   │   └── Búsqueda por Tag / Escaneo de Código QR
-│   │       ├── SCR-INV-005: Ficha Técnica Maestro de Equipos (L3)
-│   │       └── SCR-INV-025: Modal de Rotación de Activo [Asset Swap] (L4)
-│   └── 4.0 Sincronización (L2)
-│       └── Estado de Cola Transaccional Sin Conexión
-└── [Menú Lateral Desplegable - Drawer]
-    ├── 5.1 SCR-MTTO-029: Ficha de Límites del Activo (L3)
-    ├── 5.2 SCR-INV-006: Movimientos e Historial Kardex (L3)
-    └── 5.3 Perfil de Usuario y Estado de Licencia Criptográfica
+```plantuml
+@startmindmap
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam nodesep 20
+skinparam ranksep 30
+
+* **Cliente Móvil (MAUI)**
+** 1.0 Planta (L1)\n[[SCR-VIS-008]]
+*** Ficha Contextual Activo (L3)\n[[SCR-VIS-033]]
+*** Rutas Aislamiento LOTO (L4)\n[[SCR-VIS-011]]
+** 2.0 Mis Órdenes (L2)
+*** Cierre Móvil de OT (L4)\n[[SCR-MTTO-002]]
+*** Rutas Aislamiento LOTO (L4)\n[[SCR-VIS-011]]
+** 3.0 Activos (L2)
+*** Ficha Maestro Equipos (L3)\n[[SCR-INV-005]]
+*** Modal Asset Swap (L4)\n[[SCR-INV-025]]
+** 4.0 Sincronización (L2)
+*** Cola Transaccional Offline
+** 5.0 Drawer Lateral
+*** Ficha de Límites (L3)\n[[SCR-MTTO-029]]
+*** Historial Kardex (L3)\n[[SCR-INV-006]]
+*** Perfil y Licencia
+@endmindmap
 ```
 
 ### 4.2. Estructura de Navegación — Cliente Portal Web
 
-```text
-└── [Barra Lateral Principal - Sidebar]
-    ├── 1.0 Gemelo Digital & Operaciones
-    │   ├── 1.1 SCR-VIS-008: Mapa de Planta 2D (L1)
-    │   ├── 1.2 SCR-VIS-033: Tarjeta de Inspección del Activo (L3)
-    │   └── 1.3 SCR-VIS-011: Visor de Rutas de Aislamiento LOTO (L4)
-    ├── 2.0 Mantenimiento & Confiabilidad
-    │   ├── 2.1 SCR-MTTO-026: Tablero de Backlog RIME (L2)
-    │   ├── 2.2 SCR-MTTO-001: Formulario de Programación Preventiva (L3)
-    │   ├── 2.3 SCR-MTTO-023: Formulario de Programación por Telemetría (L3)
-    │   ├── 2.4 SCR-MTTO-029: Ficha de Límites del Activo (L3)
-    │   └── 2.5 SCR-MTTO-002: Cierre Móvil de Orden de Trabajo [Vista Registro] (L4)
-    ├── 3.0 Inventario & Taxonomía
-    │   ├── 3.1 SCR-INV-027: Árbol de Ubicaciones Funcionales (L2)
-    │   ├── 3.2 SCR-INV-005: Ficha Técnica Maestro de Equipos (L3)
-    │   ├── 3.3 SCR-INV-031: Catálogo Maestro de Repuestos (L3)
-    │   ├── 3.4 SCR-INV-006: Movimientos e Historial Kardex (L3)
-    │   └── 3.5 SCR-INV-025: Modal de Rotación de Activo [Asset Swap] (L4)
-    └── 4.0 Gobernanza & Administración
-        ├── 4.1 SCR-ADM-013: Matriz de Roles y Permisos RBAC (L2)
-        ├── 4.2 SCR-ADM-014: Gestión de Usuarios (L2)
-        └── 4.3 SCR-ADM-032: Visor de Registro de Auditoría Inmutable (L2)
+```plantuml
+@startmindmap
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam nodesep 20
+skinparam ranksep 30
+
+* **Portal Web (Blazor)**
+** 1.0 Gemelo Digital
+*** Mapa de Planta 2D (L1)\n[[SCR-VIS-008]]
+*** Ficha Contextual Activo (L3)\n[[SCR-VIS-033]]
+*** Rutas Aislamiento LOTO (L4)\n[[SCR-VIS-011]]
+** 2.0 Mantenimiento
+*** Tablero Backlog RIME (L2)\n[[SCR-MTTO-026]]
+*** Programación Preventiva (L3)\n[[SCR-MTTO-001]]
+*** Programación Telemetría (L3)\n[[SCR-MTTO-023]]
+*** Ficha de Límites (L3)\n[[SCR-MTTO-029]]
+*** Registro Histórico OT (L4)\n[[SCR-MTTO-002]]
+** 3.0 Inventario
+*** Árbol Ubicaciones Funcionales (L2)\n[[SCR-INV-027]]
+*** Ficha Maestro Equipos (L3)\n[[SCR-INV-005]]
+*** Catálogo de Repuestos (L3)\n[[SCR-INV-031]]
+*** Historial Kardex (L3)\n[[SCR-INV-006]]
+*** Modal Asset Swap (L4)\n[[SCR-INV-025]]
+** 4.0 Gobernanza
+*** Matriz RBAC (L2)\n[[SCR-ADM-013]]
+*** Gestión de Usuarios (L2)\n[[SCR-ADM-014]]
+*** Auditoría Inmutable SHA-256 (L2)\n[[SCR-ADM-032]]
+@endmindmap
 ```
+
 
 ---
 

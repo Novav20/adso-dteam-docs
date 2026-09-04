@@ -233,4 +233,4 @@ En cumplimiento del principio de **Controlabilidad** (ISO 9241-110:2020, Cláusu
 ## 7. Archivo de Variables CSS del Sistema de Diseño
 
 Para la implementación física en hojas de estilo web o componentes desacoplados, consúltese el archivo canónico:
-`adso-gemelo-digital-docs/ui-ux/assets/tokens.css`
+`ui-ux/assets/tokens.css`
