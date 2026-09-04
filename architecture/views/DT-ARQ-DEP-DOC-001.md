@@ -1,8 +1,8 @@
 ---
 code: DT-ARQ-DEP-DOC-001
-version: 1.2
-date: 2026-08-31
-status: Especificación Técnica de Despliegue y Topología Física — MVP
+version: 1.3
+date: 2026-09-04
+status: Vigente
 author: Juan David Julio Serrano
 standard:
   - ISO/IEC 42010:2011 (Arquitectura de Software)
@@ -54,6 +54,6 @@ Este documento constituye la especificación técnica de la vista de despliegue 
 Para mitigar el ruido electromagnético (EMI) de las plantas industriales que ocasiona caídas en la red móvil:
 
 1. **Monitoreo de Heartbeat:** El hilo nativo `LOTO Watchdog` en el dispositivo móvil valida la conexión contra el servidor central enviando un _ping_ cada 2 segundos sobre WebSockets (`WSS`).
-2. **Umbral de Tolerancia:** Si se registran 3 fallos consecutivos de respuesta (ventana de 6 segundos), el Watchdog interrumpe el flujo normal.
+2. **Umbral de Tolerancia y Calidad de Señal:** Si se registran 3 fallos consecutivos de respuesta (ventana de $>6.0\text{ segundos}$), o si la trama de telemetría entrante reporta explícitamente una calidad de señal *"Bad/Failure"* desde el instrumento, el Watchdog interrumpe inmediatamente el flujo normal, asumiendo un estado de peligro preventivo.
 3. **Acción Fail-Safe Local:** El Watchdog escribe de forma directa un estado de **Bloqueo Preventivo de Seguridad** en la base de datos local SQLite del dispositivo, garantizando inmutabilidad local de la interrupción.
 4. **Interrupción de Interfaz:** La aplicación .NET MAUI Blazor Hybrid detecta la bandera local y bloquea la pantalla de trabajo del técnico, impidiendo la transición al estado `IN_PROGRESS` hasta que la conexión se restablezca y el servidor re-confirme la Energía Cero.
