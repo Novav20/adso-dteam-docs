@@ -4,20 +4,25 @@ Este directorio contiene los scripts de soporte para la sincronización y genera
 
 ## `generate_design_tokens.py`
 
-Genera `ui-ux/assets/tokens.css` a partir de las tablas y definiciones de
-`ui-ux/DT-UI-DS-DOC-001.md`. El CSS es un artefacto generado; los cambios deben
-hacerse en el documento Markdown y después regenerarse:
+Genera `ui-ux/assets/tokens.css` y `ui-ux/assets/tokens_penpot.json` a partir de
+las tablas y definiciones de `ui-ux/DT-UI-DS-DOC-001.md`. Ambos son artefactos
+generados; los cambios deben hacerse en el documento Markdown y después
+regenerarse:
 
 ```bash
 python3 scripts/generate_design_tokens.py
 ```
+
+El archivo JSON usa el formato DTCG/Design Tokens compatible con Penpot, con
+referencias semánticas como `{Primitives.gray-900}`.
 
 También admite rutas explícitas para validaciones o fuentes alternativas:
 
 ```bash
 python3 scripts/generate_design_tokens.py \
 	--source ui-ux/DT-UI-DS-DOC-001.md \
-	--target ui-ux/assets/tokens.css
+	--target ui-ux/assets/tokens.css \
+	--penpot-target ui-ux/assets/tokens_penpot.json
 ```
 
 ---
