@@ -218,8 +218,8 @@ flowchart TD
 ```
 
 * **Comportamiento Visual:** Se activa de forma inmediata un banner superior persistente en color ámbar (`--dt-color-alarm-warning`), acompañado por el icono WCAG de desconexión.
-* **Restricción de Enrutamiento:** Se bloquea el acceso a pantallas de administración de datos maestros centralizados ([[SCR-ADM-013|SCR-ADM-013]], [[SCR-ADM-014|SCR-ADM-014]], [[SCR-ADM-032|SCR-ADM-032]]). 
-* **Permisividad Operativa:** Se permite la navegación y edición completa en las pantallas de ejecución de campo ([[SCR-MTTO-002|SCR-MTTO-002]], [[SCR-VIS-011|SCR-VIS-011]], [[SCR-INV-025|SCR-INV-025]]), realizando la lectura y escritura sobre la base de datos local cifrada ([[TR-002]]). Las mutaciones generadas se registran en una cola de sincronización transaccional para su posterior envío al restablecer la red.
+* **Restricción de Enrutamiento:** Se bloquea el acceso a pantallas de administración de datos maestros centralizados ([[SCR-ADM-013]], [[SCR-ADM-014]], [[SCR-ADM-032]]). 
+* **Permisividad Operativa:** Se permite la navegación y edición completa en las pantallas de ejecución de campo ([[SCR-MTTO-002]], [[SCR-VIS-011]], [[SCR-INV-025]]), realizando la lectura y escritura sobre la base de datos local cifrada ([[TR-002]]). Las mutaciones generadas se registran en una cola de sincronización transaccional para su posterior envío al restablecer la red.
 
 ### 6.2. Guarda de Bloqueo LOTO y Falla Segura 
 
