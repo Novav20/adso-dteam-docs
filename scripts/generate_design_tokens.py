@@ -72,7 +72,7 @@ def table_for(tables, heading_fragment: str, header_fragment: str) -> list[list[
             header_fragment
         ) in comparable(" ".join(headers)):
             return rows
-    raise ValueError(f"No se encontro tabla: {heading_fragment} / {header_fragment}")
+    raise ValueError(f"No se encontró tabla: {heading_fragment} / {header_fragment}")
 
 
 def css_value(value: str) -> str:
@@ -91,13 +91,12 @@ def semantic_value(value: str) -> str:
 def penpot_reference(value: str) -> str:
     value = css_value(value)
     if value.startswith("--dt-primitive-"):
-        # Penpot references tokens directly by name without the Set prefix
         return "{" + value.removeprefix("--dt-primitive-") + "}"
     return value
 
 
 def penpot_token(value: str, token_type: str) -> dict[str, str]:
-    return {"$value": value, "$type": token_type}
+    return {"$value": value, "$type": token_type, "$description": ""}
 
 
 def penpot_semantic_name(token: str) -> str:
@@ -117,7 +116,7 @@ def parse_font_families(text: str) -> tuple[str, str]:
     primary = re.search(r"Pila de Fuentes Primaria:\s*([^\n]+)", text)
     mono = re.search(r"Pila de Fuentes Monoespaciada[^:]*:\s*([^\n]+)", text)
     if not primary or not mono:
-        raise ValueError("No se encontraron las pilas tipograficas")
+        raise ValueError("No se encontraron las pilas tipográficas")
     return primary.group(1).strip().rstrip("."), mono.group(1).strip().rstrip(".")
 
 
@@ -128,13 +127,14 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     controls = table_for(tables, "Dimensiones de Controles", "Token de Control")
     breakpoints = table_for(tables, "Puntos de Quiebre", "Token de Breakpoint")
     primitives = table_for(tables, "Tokens Primitivos", "Token Primitivo")
-    semantic = table_for(tables, "Tokens Semanticos", "Token Semantico")
-    alarms = table_for(tables, "Semantica de Alarmas", "Estado / Severidad")
-    typography = table_for(tables, "Escala Tipografica", "Token Tipografico")
+    semantic = table_for(tables, "Tokens Semánticos", "Token Semántico")
+    alarms = table_for(tables, "Semántica de Alarmas", "Estado / Severidad")
+    typography = table_for(tables, "Escala Tipográfica", "Token Tipográfico")
     radii = table_for(tables, "Radios de Borde", "Token")
     zindex = table_for(tables, "Capas y Niveles", "Token Z-Index")
     font_base, font_mono = parse_font_families(text)
 
+    # 1. Generación de ui-ux/assets/tokens.css
     lines = [
         "/* GENERATED FILE - Do not edit manually.",
         f" * Source: {source.relative_to(ROOT)}",
@@ -215,41 +215,48 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     target.write_text("\n".join(lines), encoding="utf-8")
     print(f"Generado: {target}")
 
+    # 2. Generación de ui-ux/assets/tokens_penpot.json
     penpot: dict[str, Any] = {
         "Global": {},
         "Primitives": {},
         "Semantic-Dark": {},
         "Semantic-Light": {},
+        "$themes": [
+            {
+                "id": "dark-mode",
+                "name": "Dark Mode",
+                "group": "",
+                "description": "",
+                "isSource": False,
+                "selectedTokenSets": {
+                    "Global": "enabled",
+                    "Primitives": "enabled",
+                    "Semantic-Dark": "enabled",
+                },
+            },
+            {
+                "id": "light-mode",
+                "name": "Light Mode",
+                "group": "",
+                "description": "",
+                "isSource": False,
+                "selectedTokenSets": {
+                    "Global": "enabled",
+                    "Primitives": "enabled",
+                    "Semantic-Light": "enabled",
+                },
+            },
+        ],
         "$metadata": {
             "tokenSetOrder": [
                 "Global",
                 "Primitives",
                 "Semantic-Dark",
                 "Semantic-Light",
-            ]
+            ],
+            "activeThemes": ["/Dark Mode"],
+            "activeSets": ["Global", "Primitives", "Semantic-Dark"],
         },
-        "$themes": [
-            {
-                "id": "dark-mode",
-                "name": "Dark Mode",
-                "selectedTokenSets": {
-                    "Global": "enabled",
-                    "Primitives": "enabled",
-                    "Semantic-Dark": "enabled",
-                    "Semantic-Light": "disabled",
-                },
-            },
-            {
-                "id": "light-mode",
-                "name": "Light Mode",
-                "selectedTokenSets": {
-                    "Global": "enabled",
-                    "Primitives": "enabled",
-                    "Semantic-Dark": "disabled",
-                    "Semantic-Light": "enabled",
-                },
-            },
-        ],
     }
 
     for row in spacing:
