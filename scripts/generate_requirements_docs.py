@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generador unificado de Historias de Usuario (US) y Requisitos Transversales (TR)
 
-para el repositorio adso-gemelo-digital-docs.
+para el repositorio adso-dteam-docs.
 
 Uso:
   python scripts/generate_requirements_docs.py                  # Modo seguro (Dry-run)

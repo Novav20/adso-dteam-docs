@@ -3,7 +3,7 @@
 DTEAM Docs-as-Code Coherence Auditor
 =====================================
 Verifica trazabilidad, coherencia normativa y scope guard sobre artefactos
-del repositorio adso-gemelo-digital-docs (proyecto DTEAM).
+del repositorio adso-dteam-docs (proyecto DTEAM).
 
 Uso:
     uv run audit.py audit       --file <ruta-relativa>
@@ -598,7 +598,7 @@ def main() -> int:
     repo_root = find_repo_root(Path.cwd())
     if repo_root is None:
         print("[ERROR] No se encontró la raíz del repositorio git. "
-              "Ejecutar desde dentro de adso-gemelo-digital-docs/.", file=sys.stderr)
+              "Ejecutar desde dentro de adso-dteam-docs/.", file=sys.stderr)
         return 1
 
     dispatch = {

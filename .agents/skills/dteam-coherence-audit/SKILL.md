@@ -14,7 +14,7 @@ description: >-
 ## Descripción General
 
 Esta skill ejecuta tres ejes de verificación sobre un artefacto candidato
-antes de que sea integrado formalmente al repositorio `adso-gemelo-digital-docs`:
+antes de que sea integrado formalmente al repositorio `adso-dteam-docs`:
 
 1. **Trazabilidad de Referencias** — Valida que todos los IDs citados (UC-XXX,
    SCR-XXX, ADR-NNN, ASR-NNN, DT-UI-*) existan como archivos reales en el repo.
@@ -51,14 +51,14 @@ Determina la ruta absoluta del artefacto a auditar:
   búscalo con `find . -name "*NAV-DOC-001*"` desde la raíz del repositorio.
 
 La raíz del repositorio es siempre:
-`/home/novillus/Documents/vscode/SENA-Career/adso-gemelo-digital-docs`
+`/home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs`
 
 ### Paso 2 — Ejecutar el Helper Script
 
 Desde la raíz del repositorio, ejecuta:
 
 ```bash
-cd /home/novillus/Documents/vscode/SENA-Career/adso-gemelo-digital-docs
+cd /home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs
 uv run .agents/skills/dteam-coherence-audit/scripts/audit.py audit --file <ruta-relativa>
 ```
 
@@ -77,7 +77,7 @@ Lee el informe generado y preséntalo de forma estructurada:
 Si el usuario pide "audita todo el repositorio" o "modo CI":
 
 ```bash
-cd /home/novillus/Documents/vscode/SENA-Career/adso-gemelo-digital-docs
+cd /home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs
 uv run .agents/skills/dteam-coherence-audit/scripts/audit.py audit-all \
   --output compliance/AUD-FULL-REPO.md
 ```
@@ -108,5 +108,5 @@ uv run .agents/skills/dteam-coherence-audit/scripts/audit.py audit-all \
 ## Errores Comunes
 
 - **"Archivo no encontrado"**: Verifica que la ruta sea relativa a la raíz del repo.
-- **"No es un repositorio git"**: El script debe ejecutarse desde dentro de `adso-gemelo-digital-docs/`.
+- **"No es un repositorio git"**: El script debe ejecutarse desde dentro de `adso-dteam-docs/`.
 - **"ID no en índice MVP"**: El ID referenciado puede ser legítimo pero el índice del script requiere actualización manual — consulta al arquitecto antes de modificarlo.
