@@ -1,6 +1,6 @@
 ---
 code: DT-DM-DOC-001
-version: 1.10
+version: 1.1
 date: 2026-08-05
 status: Brechas de auditoría estructural resueltas (ISO 14224 e ISO 27001)
 author: Juan David Julio Serrano
@@ -37,7 +37,7 @@ Esta división reduce el acoplamiento, evita sobrecargar la lógica de negocio y
 
 Para cumplir con la gestión de riesgos exigida por la norma ISO 55001 y las mejores prácticas de la ingeniería de mantenimiento, el sistema adopta el estándar RIME (Ranking Index for Maintenance Expenditure).
 
-De acuerdo con [[ADR-002-RIME-MVP-Static-Factors|ADR-002]], el cálculo del puntaje de prioridad se encapsula bajo el patrón *Strategy* a través de un servicio de dominio. La arquitectura desacopla este algoritmo del la orden de trabajo, permitiendo incorporar a futuro estrategias adaptadas a factores económicos o de inventario sin alterar las entidades del núcleo.
+De acuerdo con [[ADR-002]], el cálculo del puntaje de prioridad se encapsula bajo el patrón *Strategy* a través de un servicio de dominio. La arquitectura desacopla este algoritmo del la orden de trabajo, permitiendo incorporar a futuro estrategias adaptadas a factores económicos o de inventario sin alterar las entidades del núcleo.
 
 ### 2.3 Aislamiento Multi-Fuente y Extensibilidad de Seguridad
 

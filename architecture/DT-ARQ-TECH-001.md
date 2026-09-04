@@ -39,8 +39,8 @@ Este documento es la fuente consolidada para identificar el stack tecnológico o
 
 ## Artefactos relacionados
 
-- [ADR-004: Cliente Frontend con .NET MAUI Blazor Hybrid](adr/ADR-004-DotNet-MAUI-Blazor-Hybrid.md)
+- [[ADR-004|ADR-004: Cliente Frontend con .NET MAUI Blazor Hybrid]]
 - [Modelo de componentes](views/DT-ARQ-CMP-001-component-model.drawio)
-- [Especificación de interfaces](views/DT-ARQ-CMP-DOC-001-architecture-interfaces-specification.md)
+- [[DT-ARQ-CMP-DOC-001|Especificación de Componentes]]
 - [Modelo de despliegue](views/DT-ARQ-DEP-001-deployment-model.drawio)
-- [Especificación de despliegue](views/DT-ARQ-DEP-DOC-001-deployment-specification.md)
+- [[DT-ARQ-DEP-DOC-001|Especificación de despliegue]]

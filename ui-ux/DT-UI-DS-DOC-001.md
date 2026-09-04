@@ -12,10 +12,10 @@ standard:
   - ISO 45001:2018 (Cláusula 8.1 — LOTO & Seguridad Operativa)
 ---
 
-# Especificación Técnica de Tokens de Diseño y Guía de Estilo HPHMI
+# Especificación Técnica de Tokens de Diseño
 
 ## 1. Alcance
-Este documento establece la **Fuente Única de Verdad** para todos los tokens de diseño (espaciado, color, tipografía, elevación y patrones de seguridad) utilizados en la construcción de prototipos y en la implementación de la **Librería de Clases de Razor** en .NET MAUI Blazor Hybrid y Blazor Web App.
+Este documento establece la **Fuente Única de Verdad** para todos los tokens de diseño aplicados en el diseño de prototipos y en la implementación de las interfaces de usuario de la plataforma DTEAM, abarcando tanto los clientes móviles de operación en campo como los portales web de supervisión y administración.
 
 ### Principios Obligatorios:
 1. **Regla HPHMI del 90/10:** El 90% de la interfaz opera en escala de grises neutra de bajo contraste para minimizar la fatiga visual. El 10% del color saturado se reserva exclusivamente para anomalías, alarmas y condiciones de peligro.
@@ -102,8 +102,8 @@ La paleta se estructura en dos capas: **Tokens Primitivos** (valores absolutos d
 | --dt-primitive-teal-600  | #0D9488   | Confirmación documental base                                         |
 | --dt-primitive-teal-400  | #2A9D8F   | Confirmación documental en fondo oscuro                              |
 
-### 3.2. Tokens Semánticos: Tema Oscuro vs. Tema Claro
-*Aplicación de la regla HPHMI del 90% de superficies neutras utilizando referencias directas a tokens primitivos (sin código HEX en cascada)*
+### 3.2. Tokens Semánticos para los Temas Claro y Oscuro
+*Aplicación de la regla HPHMI del 90% de superficies neutras utilizando referencias directas a tokens primitivos*
 
 | Token Semántico | Tema Oscuro (Móvil / Noche) | Tema Claro (Escritorio / Día) | Aplicación en Interfaz |
 | ------ | ------ | ------ | ------ |
@@ -122,7 +122,6 @@ La paleta se estructura en dos capas: **Tokens Primitivos** (valores absolutos d
 | --dt-color-mai-interlock | --dt-primitive-gray-10 | --dt-primitive-gray-980 | Marcador de límite de disparo de interbloqueo en MAI |
 
 ### 3.3. Semántica de Alarmas y Seguridad (10% Reservado)
-*Asociación con tokens primitivos de seguridad y alto contraste normativo*
 
 | Estado / Severidad | Token de Color | Valor (Tema Oscuro) | Valor (Tema Claro) | Símbolo Obligatorio |
 | ------ | ------ | ------ | ------ | ------ |
@@ -190,7 +189,7 @@ En cumplimiento de ISA-101.01 y *The High Performance HMI Handbook* (Hollifield 
 ![[assets/MAI-dark.svg]]
 
 #### 6.1.1. Tabla de Tokens Semánticos Dual-Theme para MAI
-Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la compatibilidad entre la Sala de Control (Tema Claro) y la Operación de Campo (Tema Oscuro), los componentes Razor deben consumir estrictamente la siguiente matriz de tokens basados en **referencias primitivas**:
+Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la compatibilidad entre la Sala de Control (Tema Claro) y la Operación de Campo (Tema Oscuro), los componentes de interfaz en el frontend deben consumir la siguiente matriz de tokens:
 
 | Elemento Gráfico del MAI | Token Semántico CSS / C# | Tema Claro (Desktop / Día) | Tema Oscuro (Móvil / Noche) | Función Ergonomía HPHMI / ISA-101 |
 | ------ | ------ | ------ | ------ | ------ |
@@ -231,6 +230,7 @@ En cumplimiento del principio de **Controlabilidad** (ISO 9241-110:2020, Cláusu
 3. **Conmutación Discreta:** La pulsación simple (*tap*) sobre dicho elemento debe alternar secuencialmente entre los estados definidos para el componente (Colapsado, Vista Parcial, Expandido), garantizando la operación sin requerir motricidad fina.
 ---
 
-## 7. Archivo de Variables CSS para Librería de Clases de Razor
+## 7. Archivo de Variables CSS del Sistema de Diseño
 
-Vease `adso-gemelo-digital-docs/ui-ux/assets/tokens.css`
+Para la implementación física en hojas de estilo web o componentes desacoplados, consúltese el archivo canónico:
+`adso-gemelo-digital-docs/ui-ux/assets/tokens.css`
