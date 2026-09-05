@@ -95,8 +95,8 @@ def penpot_reference(value: str) -> str:
     return value
 
 
-def penpot_token(value: str, token_type: str) -> dict[str, str]:
-    return {"$value": value, "$type": token_type, "$description": ""}
+def penpot_token(value: Any, token_type: str, description: str = "") -> dict[str, Any]:
+    return {"$value": value, "$type": token_type, "$description": description}
 
 
 def penpot_semantic_name(token: str) -> str:
@@ -112,12 +112,36 @@ def emit_table_tokens(rows: list[list[str]], value_index: int = 1) -> list[str]:
     return output
 
 
-def parse_font_families(text: str) -> tuple[str, str]:
-    primary = re.search(r"Pila de Fuentes Primaria:\s*([^\n]+)", text)
-    mono = re.search(r"Pila de Fuentes Monoespaciada[^:]*:\s*([^\n]+)", text)
-    if not primary or not mono:
-        raise ValueError("No se encontraron las pilas tipográficas")
-    return primary.group(1).strip().rstrip("."), mono.group(1).strip().rstrip(".")
+def parse_font_families(tables) -> tuple[str, str, str, str]:
+    rows = table_for(tables, "Familias Tipográficas", "Rol Tipográfico")
+    primary_penpot, primary_css = "", ""
+    mono_penpot, mono_css = "", ""
+    for row in rows:
+        role = row[0].lower()
+        if "primaria" in role:
+            primary_penpot = clean_cell(row[1])
+            primary_css = clean_cell(row[2])
+        elif "monoespaciada" in role:
+            mono_penpot = clean_cell(row[1])
+            mono_css = clean_cell(row[2])
+    return primary_penpot, primary_css, mono_penpot, mono_css
+
+
+def extract_font_weight(raw_weight: str) -> str:
+    match = re.search(r"\(?(\d{3,4})\)?", raw_weight)
+    if match:
+        return match.group(1)
+    cleaned = raw_weight.lower()
+    mapping = {
+        "regular": "400",
+        "medium": "500",
+        "semibold": "600",
+        "bold": "700",
+    }
+    for key, val in mapping.items():
+        if key in cleaned:
+            return val
+    return "400"
 
 
 def generate(source: Path, target: Path, penpot_target: Path) -> None:
@@ -132,7 +156,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     typography = table_for(tables, "Escala Tipográfica", "Token Tipográfico")
     radii = table_for(tables, "Radios de Borde", "Token")
     zindex = table_for(tables, "Capas y Niveles", "Token Z-Index")
-    font_base, font_mono = parse_font_families(text)
+    font_base_penpot, font_base_css, font_mono_penpot, font_mono_css = parse_font_families(tables)
 
     # 1. Generación de ui-ux/assets/tokens.css
     lines = [
@@ -169,14 +193,14 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             *emit_table_tokens(breakpoints),
             "",
             "  /* Typography */",
-            f"  --dt-font-family-base: {css_value(font_base)};",
-            f"  --dt-font-family-mono: {css_value(font_mono)};",
+            f"  --dt-font-family-base: {css_value(font_base_css)};",
+            f"  --dt-font-family-mono: {css_value(font_mono_css)};",
         ]
     )
     for row in typography:
         if row and row[0].startswith("--"):
-            token, size = row[:2]
-            px = size.split("/")[0].strip()
+            token = row[0]
+            px = css_value(row[1])
             lines.append(f"  {token}: {px};")
 
     lines.extend(
@@ -259,6 +283,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         },
     }
 
+    # Dimensiones y Espaciados
     for row in spacing:
         if row and row[0].startswith("--dt-space-"):
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
@@ -274,11 +299,41 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
                 css_value(row[1]), "borderRadius"
             )
+
+    # Tipografía Compuesta (Penpot W3C standard)
+    for row in typography:
+        if row and row[0].startswith("--dt-font-"):
+            token_id = row[0].removeprefix("--dt-")
+            size_px = css_value(row[1])
+            line_height_px = css_value(row[3])
+            weight_str = extract_font_weight(row[4])
+            description = row[5].replace("**", "").strip() if len(row) > 5 else ""
+
+            is_mono = "mono" in token_id
+            family_name = font_mono_penpot if is_mono else font_base_penpot
+
+            penpot["Global"][token_id] = {
+                "$value": {
+                    "fontFamilies": [family_name],
+                    "fontSizes": size_px,
+                    "fontWeights": weight_str,
+                    "lineHeights": line_height_px,
+                    "letterSpacing": "0px",
+                    "textCase": "none",
+                    "textDecoration": "none",
+                },
+                "$type": "typography",
+                "$description": description,
+            }
+
+    # Primitivos de Color
     for row in primitives:
         if row and row[0].startswith("--dt-primitive-"):
             penpot["Primitives"][row[0].removeprefix("--dt-primitive-")] = penpot_token(
                 css_value(row[1]), "color"
             )
+
+    # Semánticos de Color
     for row in semantic:
         if row and row[0].startswith("--dt-"):
             token, dark, light = row[:3]

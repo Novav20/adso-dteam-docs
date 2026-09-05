@@ -1,7 +1,7 @@
 ---
 code: DT-UI-DS-DOC-001
-version: 1.5
-date: 2026-09-04
+version: 1.6
+date: 2026-09-05
 status: Aprobado
 author: Juan David Julio Serrano
 standard:
@@ -56,13 +56,16 @@ El espaciado y dimensionamiento se rige bajo un sistema de cuadrícula base de *
 | --dt-control-height-lg   | 48px               | auto              | Mobile/Tablet: Altura estándar para todos los campos de entrada (InputText, InputSelect).          |
 | --dt-control-height-xl   | 56px               | 100%              | Mobile: Botón de acción primaria de pie de pantalla (ej. "Completar Orden de Trabajo").            |
 
-### 2.3. Puntos de Quiebre Responsivos
-| Token de Breakpoint | Ancho (px) | Dispositivo de Referencia                      | Disposición de Layout                                                                  |
-| ------------------- | ---------- | ---------------------------------------------- | -------------------------------------------------------------------------------------- |
-| --dt-breakpoint-sm  | 390px      | Smartphone vertical (iOS / Android)            | 1 columna, navegación por barra inferior.                                              |
-| --dt-breakpoint-md  | 768px      | Tablet vertical / Smartphone horizontal        | 1 a 2 columnas, drawer colapsable.                                                     |
-| --dt-breakpoint-lg  | 1280px     | Tablet Industrial horizontal (Zebra/Honeywell) | 2 columnas fijas (Barra lateral / Canvas + Panel de contexto).                         |
-| --dt-breakpoint-xl  | 1920px     | Estación de Trabajo Desktop (Full HD)          | 3 columnas (Barra lateral de navegación + Panel de control principal + Panel lateral). |
+### 2.3. Puntos de Quiebre Responsivos y Marcos de Referencia
+
+Los diseños y las reglas de adaptación responsive en CSS se calibran contra los siguientes factores de forma y resoluciones de lienzo estándar:
+
+| Token de Breakpoint | Ancho Mínimo (px) | Dimensiones Base Lienzo (W x H) | Relación de Aspecto | Dispositivo de Referencia                            | Disposición de Layout y Contenedores           |
+| :------------------ | :---------------: | :-----------------------------: | :-----------------: | :--------------------------------------------------- | :--------------------------------------------- |
+| --dt-breakpoint-sm  |       390px       |          390 x 844 px           |      $9:19.5$       | Smartphone vertical (iOS / Android)                  | 1 columna; navegación por barra inferior.      |
+| --dt-breakpoint-md  |       768px       |          768 x 1024 px          |        $3:4$        | Tablet vertical / Colector industrial                | 1 a 2 columnas; drawer colapsable.             |
+| --dt-breakpoint-lg  |      1280px       |          1280 x 800 px          |       $16:10$       | **Tablet Industrial (Zebra ET51 / Honeywell RT10A)** | 2 columnas (Lienzo SVG + Panel contextual).    |
+| --dt-breakpoint-xl  |      1920px       |         1920 x 1080 px          |       $16:9$        | Estación de Trabajo Desktop (Full HD)                | 3 columnas (Sidebar + Panel Central + Drawer). |
 
 ---
 
@@ -140,20 +143,24 @@ La paleta se estructura en dos capas: **Tokens Primitivos** (valores absolutos d
 ---
 
 ## 4. Tokens Tipográficos
-La tipografía utiliza la pila nativa del sistema (*System Sans-Serif Stack*) para optimizar los tiempos de arranque en frío en dispositivos móviles y evitar la descarga de fuentes web pesadas.
-* **Pila de Fuentes Primaria:** Segoe UI, Inter, Roboto, -apple-system, sans-serif
-* **Pila de Fuentes Monoespaciada (Tags / Hashes / Telemetría):** Cascadia Code, SF Mono, Consolas, monospace
+La tipografía se define bajo un modelo dual: fuentes nativas de alta disponibilidad en el motor de diseño (Google Fonts en Penpot) y pilas completas de respaldo (*System Fallbacks*) para las hojas de estilo web en producción.
 
-### 4.1. Escala Tipográfica
-| Token Tipográfico   | Tamaño (px / rem) | Altura de Línea | Peso (Font-Weight) | Uso Estándar en la Aplicación                                    |
-| ------------------- | ----------------- | --------------- | ------------------ | ---------------------------------------------------------------- |
-| --dt-font-display   | 28px / 1.75rem    | 36px            | Bold (700)         | KPIs macros de nivel ejecutivo en Dashboard L1.                  |
-| --dt-font-h1        | 22px / 1.375rem   | 28px            | SemiBold (600)     | Título principal de la pantalla / Nombre del activo en Ficha L3. |
-| --dt-font-h2        | 18px / 1.125rem   | 24px            | SemiBold (600)     | Encabezados de tarjetas, títulos de modales y paneles laterales. |
-| --dt-font-body-lg   | 16px / 1.0rem     | 24px            | Regular (400)      | Texto de campos de entrada en móvil, lectura principal de OTs.   |
-| --dt-font-body-md   | 14px / 0.875rem   | 20px            | Regular (400)      | Texto de celdas de tabla, descripciones técnicas y menús.        |
-| --dt-font-caption   | 12px / 0.75rem    | 16px            | Medium (500)       | Etiquetas flotantes de formularios, metadatos, autoría de logs.  |
-| --dt-font-mono-data | 13px / 0.8125rem  | 16px            | Medium (500)       | **Tags industriales (P-101), hashes criptográficos, IP, horas.** |
+### 4.1. Familias Tipográficas
+| Rol Tipográfico     | Fuente Base (Penpot / Diseño) | Pila de Fallback (CSS / Web)                       | Uso en la Aplicación                              |
+| :------------------ | :---------------------------- | :------------------------------------------------- | :------------------------------------------------ |
+| Primaria Sans-Serif | Inter                         | Segoe UI, Inter, Roboto, -apple-system, sans-serif | Títulos, etiquetas, descripciones y controles     |
+| Monoespaciada       | Roboto Mono                   | Cascadia Code, SF Mono, Consolas, monospace        | Tags de equipos (P-101), hashes, IPs y timestamps |
+
+### 4.2. Escala Tipográfica
+| Token Tipográfico   | Tamaño (px) | Tamaño (rem) | Altura de Línea (px) | Peso (Font-Weight) | Uso Estándar en la Aplicación                                   |
+| :------------------ | :---------- | :----------- | :------------------- | :----------------- | :-------------------------------------------------------------- |
+| --dt-font-display   | 28px        | 1.75rem      | 36px                 | Bold (700)         | KPIs macros de nivel ejecutivo en Dashboard L1                  |
+| --dt-font-h1        | 22px        | 1.375rem     | 28px                 | SemiBold (600)     | Título principal de la pantalla / Nombre del activo en Ficha L3 |
+| --dt-font-h2        | 18px        | 1.125rem     | 24px                 | SemiBold (600)     | Encabezados de tarjetas, títulos de modales y paneles laterales |
+| --dt-font-body-lg   | 16px        | 1.0rem       | 24px                 | Regular (400)      | Texto de campos de entrada en móvil, lectura principal de OTs   |
+| --dt-font-body-md   | 14px        | 0.875rem     | 20px                 | Regular (400)      | Texto de celdas de tabla, descripciones técnicas y menús        |
+| --dt-font-caption   | 12px        | 0.75rem      | 16px                 | Medium (500)       | Etiquetas flotantes de formularios, metadatos, autoría de logs  |
+| --dt-font-mono-data | 13px        | 0.8125rem    | 16px                 | Medium (500)       | Tags industriales (P-101), hashes criptográficos, IP y horas    |
 
 ---
 
