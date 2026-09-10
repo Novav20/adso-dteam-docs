@@ -1,7 +1,7 @@
 ---
 code: DT-UI-DS-DOC-001
-version: 1.6
-date: 2026-09-05
+version: 1.7
+date: 2026-09-06
 status: Aprobado
 author: Juan David Julio Serrano
 standard:
@@ -91,6 +91,7 @@ La paleta se estructura en dos capas: **Tokens Primitivos** (valores absolutos d
 | --dt-primitive-gray-420  | #8A98AA   | Gris claro para texto secundario en oscuro                           |
 | --dt-primitive-gray-400  | #7E8B9B   | Texto secundario y atenuado general                                  |
 | --dt-primitive-gray-380  | #9CA3AF   | Gris deshabilitado para fondo claro (Tailwind gray-400)              |
+| --dt-primitive-gray-350  | #AAB1BD   | Borde intermedio sutil para controles en tema claro                  |
 | --dt-primitive-gray-300  | #B8C0CC   | Bordes en fondo claro                                                |
 | --dt-primitive-gray-280  | #C2CBD6   | Gris claro para texto base en oscuro                                 |
 | --dt-primitive-gray-200  | #D8DBE0   | Gris neutro claro (Munsell N7.5 / Hollifield / Lienzo en claro)      |
@@ -204,17 +205,19 @@ En cumplimiento de ISA-101.01 y *The High Performance HMI Handbook* (Hollifield 
 #### 6.1.1. Tabla de Tokens Semánticos Dual-Theme para MAI
 Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la compatibilidad entre la Sala de Control (Tema Claro) y la Operación de Campo (Tema Oscuro), los componentes de interfaz en el frontend deben consumir la siguiente matriz de tokens:
 
-| Elemento Gráfico del MAI                        | Token Semántico CSS / C#       | Tema Claro (Desktop / Día) | Tema Oscuro (Móvil / Noche) | Función Ergonomía HPHMI / ISA-101                                                    |
-| ----------------------------------------------- | ------------------------------ | -------------------------- | --------------------------- | ------------------------------------------------------------------------------------ |
-| **Pista Base (Track)**                          | --dt-color-mai-track           | --dt-primitive-gray-100    | --dt-primitive-gray-700     | Fondo perimetral del indicador (Alto $8\text{px}$, Radio $4\text{px}$).              |
-| **Zona Normal de Operación**                    | --dt-color-mai-normal-zone     | --dt-primitive-blue-200    | --dt-primitive-blue-700     | **Franja azul clara** para reconocimiento pre-atentivo del rango seguro.             |
-| **Puntero de Valor Actual**                     | --dt-color-mai-pointer         | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Puntero circular/triangular móvil. **Mantiene forma y color neutro.**                |
-| **Borde del Puntero**                           | --dt-color-mai-pointer-border  | --dt-primitive-white       | --dt-primitive-gray-800     | Contorno de alto contraste para visibilidad sobre la zona normal.                    |
-| **Indicador de Alarma Alta (P1)**               | --dt-color-alarm-critical      | --dt-primitive-red-600     | --dt-primitive-red-600      | **Elemento separado (Método 3):** Cuadrado rojo + '1' que aparece junto al límite.   |
-| **Texto sobre Alarma Crítica**                  | --dt-color-alarm-text-critical | --dt-primitive-white       | --dt-primitive-white        | Texto de alto contraste sobre cuadrado rojo ($4.6:1$ WCAG AA).                       |
-| **Indicador de Alarma Baja / Advertencia (P2)** | --dt-color-alarm-warning       | --dt-primitive-amber-600   | --dt-primitive-amber-400    | **Elemento separado (Método 3):** Triángulo ámbar + '2' (Ajustado WCAG AA $3.47:1$). |
-| **Texto sobre Advertencia Ámbar**               | --dt-color-alarm-text-warning  | --dt-primitive-white       | --dt-primitive-gray-900     | Texto de alto contraste sobre Ámbar ($5.36:1$ en claro, $8.5:1$ en oscuro).          |
-| **Límite de Interbloqueo (Interlock)**          | --dt-color-mai-interlock       | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Bloque sólido en el extremo que señala disparo automático de seguridad.              |
+| Elemento Gráfico del MAI                        | Token Semántico CSS / C#          | Tema Claro (Desktop / Día) | Tema Oscuro (Móvil / Noche) | Función Ergonomía HPHMI / ISA-101                                                       |
+| ----------------------------------------------- | --------------------------------- | -------------------------- | --------------------------- | --------------------------------------------------------------------------------------- |
+| **Pista Base (Track)**                          | --dt-color-mai-track              | --dt-primitive-gray-300    | --dt-primitive-gray-700     | Fondo perimetral del indicador (Alto $8\text{px}$, Radio $4\text{px}$).                 |
+| **Borde de Pista Base**                         | --dt-color-mai-track-border       | --dt-primitive-gray-350    | --dt-primitive-gray-650     | Contorno sutil (`1px`) para definir los límites absolutos de la escala del instrumento. |
+| **Zona Normal de Operación**                    | --dt-color-mai-normal-zone        | --dt-primitive-blue-200    | --dt-primitive-blue-700     | **Franja azul clara** para reconocimiento pre-atentivo del rango seguro.                |
+| **Borde de Zona Normal**                        | --dt-color-mai-normal-zone-border | --dt-primitive-blue-400    | --dt-primitive-blue-450     | Contorno (`0.5px` o `1px`) para mejorar el contraste del bloque azul seguro.            |
+| **Puntero de Valor Actual**                     | --dt-color-mai-pointer            | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Puntero circular móvil. **Mantiene forma y color neutro.** Borde `2px`.                 |
+| **Borde del Puntero**                           | --dt-color-mai-pointer-border     | --dt-primitive-white       | --dt-primitive-gray-980     | Contorno de alto contraste para visibilidad sobre la zona normal.                       |
+| **Indicador de Alarma Alta (P1)**               | --dt-color-alarm-critical         | --dt-primitive-red-600     | --dt-primitive-red-600      | **Elemento separado (Método 3):** Cuadrado rojo + '1' que aparece junto al límite.      |
+| **Texto sobre Alarma Crítica**                  | --dt-color-alarm-text-critical    | --dt-primitive-white       | --dt-primitive-white        | Texto de alto contraste sobre cuadrado rojo ($4.6:1$ WCAG AA).                          |
+| **Indicador de Alarma Baja / Advertencia (P2)** | --dt-color-alarm-warning          | --dt-primitive-amber-600   | --dt-primitive-amber-400    | **Elemento separado (Método 3):** Triángulo ámbar + '2' (Ajustado WCAG AA $3.47:1$).    |
+| **Texto sobre Advertencia Ámbar**               | --dt-color-alarm-text-warning     | --dt-primitive-white       | --dt-primitive-gray-900     | Texto de alto contraste sobre Ámbar ($5.36:1$ en claro, $8.5:1$ en oscuro).             |
+| **Límite de Interbloqueo (Interlock)**          | --dt-color-mai-interlock          | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Bloque sólido en el extremo que señala disparo automático de seguridad.                 |
 
 #### 6.1.2. Reglas de Comportamiento Dinámico y Alarmas
 1. **Pista de Fondo y Zona Normal:** La pista abarca el $100\%$ de la escala calibrada del instrumento. La Zona de Operación Normal se renderiza como un segmento interno destacado en azul claro (`--dt-color-mai-normal-zone`).

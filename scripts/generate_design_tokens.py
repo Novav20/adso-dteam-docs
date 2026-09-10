@@ -153,6 +153,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     primitives = table_for(tables, "Tokens Primitivos", "Token Primitivo")
     semantic = table_for(tables, "Tokens Semánticos", "Token Semántico")
     alarms = table_for(tables, "Semántica de Alarmas", "Estado / Severidad")
+    mai_tokens = table_for(tables, "Tabla de Tokens Semánticos Dual-Theme para MAI", "Token Semántico CSS / C#")
     typography = table_for(tables, "Escala Tipográfica", "Token Tipográfico")
     radii = table_for(tables, "Radios de Borde", "Token")
     zindex = table_for(tables, "Capas y Niveles", "Token Z-Index")
@@ -219,6 +220,10 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         if row and row[0].startswith("--"):
             token, dark, light = row[:3]
             lines.append(f"  {token}: {semantic_value(light)};")
+    for row in mai_tokens:
+        if row and len(row) > 3 and row[1].startswith("--"):
+            _, token, light, dark = row[:4]  # La tabla MAI tiene Claro en col 2 y Oscuro en col 3
+            lines.append(f"  {token}: {semantic_value(light)};")
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, dark, light = row[:4]
@@ -228,6 +233,10 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     for row in semantic:
         if row and row[0].startswith("--"):
             token, dark, _ = row[:3]
+            lines.append(f"  {token}: {semantic_value(dark)};")
+    for row in mai_tokens:
+        if row and len(row) > 3 and row[1].startswith("--"):
+            _, token, _, dark = row[:4]
             lines.append(f"  {token}: {semantic_value(dark)};")
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--"):
@@ -337,6 +346,16 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     for row in semantic:
         if row and row[0].startswith("--dt-"):
             token, dark, light = row[:3]
+            name = penpot_semantic_name(token)
+            penpot["Semantic-Dark"][name] = penpot_token(
+                penpot_reference(dark), "color"
+            )
+            penpot["Semantic-Light"][name] = penpot_token(
+                penpot_reference(light), "color"
+            )
+    for row in mai_tokens:
+        if row and len(row) > 3 and row[1].startswith("--dt-"):
+            _, token, light, dark = row[:4]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
                 penpot_reference(dark), "color"
