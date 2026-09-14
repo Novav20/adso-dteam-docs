@@ -20,7 +20,8 @@ El sistema está diseñado bajo el cumplimiento estricto de estándares internac
 Conforme a la decisión de arquitectura **[[ADR-004]]** y la matriz de trazabilidad **[[DT-ARQ-TECH-001]]**, el software se implementa bajo un ecosistema unificado en **.NET**:
 
 * **Backend:** Monolito Modular en .NET 10 estructurado con Arquitectura Hexagonal (*Ports & Adapters*) y Domain-Driven Design (DDD).
-* **Base de Datos Central:** PostgreSQL 18 + extensión TimescaleDB (series de tiempo para telemetría) + extensión `ltree` (árbol taxonómico ISO 14224).
+
+* **Base de Datos Central:** PostgreSQL 18 + extensión TimescaleDB (series de tiempo para telemetría). La resolución del árbol taxonómico ISO 14224 se gestiona nativamente mediante CTEs recursivos.
 * **Cliente Móvil de Campo:** .NET MAUI Blazor Hybrid (Android/iOS) con persistencia local relacional cifrada vía `sqlite-net-pcl` con SQLCipher (Offline-First).
 * **Cliente Web Administrativo:** Blazor Web App para supervisión HSEQ, planificación de backlog y tableros de control en estaciones de escritorio.
 * **Librería de Componentes:** Componentes Razor compartidos en una Razor Class Library (RCL) que consumen los tokens del Design System.
