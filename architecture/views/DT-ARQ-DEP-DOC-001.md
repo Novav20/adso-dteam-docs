@@ -1,7 +1,7 @@
 ---
 code: DT-ARQ-DEP-DOC-001
-version: 1.3
-date: 2026-09-04
+version: 1.4
+date: 2026-09-14
 status: Vigente
 author: Juan David Julio Serrano
 standard:
@@ -17,7 +17,7 @@ standard:
 
 Este documento constituye la especificación técnica de la vista de despliegue físico (`DT-ARQ-DEP-001`) para el sistema DTEAM. Define la distribución de nodos de ejecución, contenedores, topología de red, protocolos de comunicación y el mecanismo de seguridad perimetral _Fail-Safe_ (LOTO Watchdog) en dispositivos móviles.
 
-> **Nota:** La estación de control local (*Local Control Station / SCADA*) se implementa como una Prueba de Concepto (PoC) interna para emular instrumentación industrial de campo y validar la ingesta asíncrona de telemetría hacia Azure IoT Hub.
+> **Nota:** La estación de control local (*SCADA*) se implementa como una Prueba de Concepto (PoC) interna para emular instrumentación industrial de campo y validar la ingesta asíncrona de telemetría hacia Azure IoT Hub.
 
 ---
 
@@ -53,7 +53,9 @@ Este documento constituye la especificación técnica de la vista de despliegue 
 
 Para mitigar el ruido electromagnético (EMI) de las plantas industriales que ocasiona caídas en la red móvil:
 
-1. **Monitoreo de Heartbeat:** El hilo nativo `LOTO Watchdog` en el dispositivo móvil valida la conexión contra el servidor central enviando un _ping_ cada 2 segundos sobre WebSockets (`WSS`).
-2. **Umbral de Tolerancia y Calidad de Señal:** Si se registran 3 fallos consecutivos de respuesta (ventana de $>6.0\text{ segundos}$), o si la trama de telemetría entrante reporta explícitamente una calidad de señal *"Bad/Failure"* desde el instrumento, el Watchdog interrumpe inmediatamente el flujo normal, asumiendo un estado de peligro preventivo.
-3. **Acción Fail-Safe Local:** El Watchdog escribe de forma directa un estado de **Bloqueo Preventivo de Seguridad** en la base de datos local SQLite del dispositivo, garantizando inmutabilidad local de la interrupción.
-4. **Interrupción de Interfaz:** La aplicación .NET MAUI Blazor Hybrid detecta la bandera local y bloquea la pantalla de trabajo del técnico, impidiendo la transición al estado `IN_PROGRESS` hasta que la conexión se restablezca y el servidor re-confirme la Energía Cero.
+1. **Monitoreo de Heartbeat:** El hilo nativo `LOTO Watchdog` en el dispositivo móvil valida la conexión contra el servidor central enviando un _ping_ periódico sobre WebSockets (`WSS`).
+2. **Umbral de Tolerancia y Ventana de Gracia:** Para tolerar la atenuación por radiofrecuencia (*RF Shadowing*) y los retardos de itinerancia (*AP Roaming*) característicos de estructuras metálicas en refinerías sin generar falsos positivos, se establece un umbral de tolerancia de **30 segundos** (ventana de gracia).
+3. **Acción Fail-Safe Local:** Si se agota la ventana de 30 segundos sin recepción de latido:
+   * Si el dispositivo cuenta con un Arrendamiento Criptográfico LOTO (*Offline Lease* conforme a [[ADR-006]]) vigente, transiciona a modo seguro fuera de línea permitiendo verificaciones locales paso a paso.
+   * Si no existe un arrendamiento válido o ha expirado, el Watchdog escribe de forma directa un estado de **Bloqueo Preventivo de Seguridad** en la base de datos local SQLite, congelando la pantalla del técnico mediante el modal crítico no descartable (`--dt-z-modal-fail-safe: 1500`).
+4. **Interrupción de Interfaz:** La aplicación móvil detecta la bandera local y bloquea la pantalla de trabajo del técnico, impidiendo la transición al estado `IN_PROGRESS` hasta que la conexión se restablezca y el servidor re-confirme la Energía Cero.
