@@ -1,0 +1,34 @@
+' --- CONFIGURACIÓN VISUAL ---
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 80
+
+' Paleta de colores consistente con el modelo de dominio
+skinparam class {
+    BackgroundColor #EBF5FB
+    BorderColor #2E86C1
+    BorderThickness 1.5
+    ArrowColor #154360
+    AttributeIconSize 0
+}
+
+' Paquetes con borde más oscuro y fondo de contraste
+skinparam package {
+    BackgroundColor #F8F9F9
+    BorderColor #1B4F72
+    BorderThickness 1.5
+    FontStyle bold
+}
+
+' Leyenda e Información General (ISO 9001:2015)
+legend top right
+|= Control Documental (ISO 9001:2015) |
+| **Código:** DT-ERD-LOG-001 |
+| **Versión:** Autogenerada |
+| **Fecha:** 2026-09-16 |
+| **Estado:** Brechas de Auditoría Resueltas (ISO 14224/27001) |
+| **Autor:** Juan David Julio Serrano |
+endlegend
