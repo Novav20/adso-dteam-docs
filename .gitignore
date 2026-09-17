@@ -22,4 +22,4 @@ ui-ux/assets/tokens.css
 ui-ux/assets/tokens_penpot.json
 architecture/views/DT-ARQ-DEP-001-deployment-model.puml
 
-architecture/views/DT-ARQ-CMP-001-component-model.puml
+architecture/views/DT-ARQ-CMP-001-component-model.dsl

@@ -52,6 +52,7 @@ La especificación se acota estrictamente al alcance del **Producto Mínimo Viab
 | **db_postgres** | PostgreSQL Master | External System | Relational Database | Almacén relacional maestro (PostgreSQL 18 + TimescaleDB). |
 | **azure_iot** | Azure IoT Hub | External System | Cloud Broker | Bróker administrado para ingesta asíncrona de telemetría. |
 | **redis_cache** | Redis Cache | External System | In-Memory Datastore | Caché distribuida para claves de idempotencia. |
+| **scada_node** | SCADA Control Station | External System | Edge Device | Estación de control local (Edge Node) que envía telemetría industrial a Azure IoT. |
 
 ---
 
@@ -63,6 +64,7 @@ La especificación se acota estrictamente al alcance del **Producto Mínimo Viab
 | **mobile_app** | **signalr_hub** | WSS | Conexión persistente para telemetría y LOTO Heartbeat. |
 | **web_admin** | **api_controllers** | HTTPS / JSON | Consumo de API REST administrativa. |
 | **web_admin** | **signalr_hub** | WSS | Conexión en tiempo real para dashboards. |
+| **scada_node** | **azure_iot** | MQTT/AMQP | Envía datos físicos continuos desde campo. |
 | **azure_iot** | **telemetry_listener** | AMQP | Consumo asíncrono de eventos de planta. |
 | **idempotency_filter** | **redis_cache** | TCP/IP (Redis) | Consulta y guarda claves para prevenir reintentos. |
 | **idempotency_filter** | **api_controllers** | Pipeline in-memory | Permite el paso de solicitudes HTTP seguras e idempotentes. |
