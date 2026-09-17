@@ -20,3 +20,5 @@ requirements/common/
 requirements/user-stories/
 ui-ux/assets/tokens.css
 ui-ux/assets/tokens_penpot.json
+architecture/views/DT-ARQ-DEP-001-deployment-model.puml
+
