@@ -66,7 +66,7 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
                 boundaries["Domain Service"].append(c)
 
     dsl = []
-    dsl.append("workspace \"SENA-Career Component Model\" {")
+    dsl.append("workspace \"System Component Model\" {")
     dsl.append("")
     dsl.append("    model {")
     dsl.append("        # External Systems and Clients")
@@ -78,7 +78,7 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
         dsl.append(f"        {c['ID Componente']} = softwareSystem \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"External\"")
         
     dsl.append("")
-    dsl.append("        monolith = softwareSystem \"SENA-Career Monolith\" \"Modular Monolith (.NET 10)\" {")
+    dsl.append("        monolith = softwareSystem \"Modular Monolith\" \"Sistema Central de Mantenimiento y LOTO (.NET 10)\" {")
     
     # We map C4 Components to Components within a default Container
     dsl.append("            appContainer = container \"Application Core\" \"Core services and adapters\" \".NET 10\" {")
