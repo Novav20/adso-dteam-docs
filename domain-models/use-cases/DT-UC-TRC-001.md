@@ -69,7 +69,7 @@ Este documento constituye la **Única Fuente de Verdad (SSoT)** para la especifi
 | :----------------- | :----------------------------------------------------- | :----------------------- | :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[[UC-VIS-008]]** | Visualizar Capa de Permisos de Trabajo                 | [[VIS-008]]              | Inspector HSEQ  | **ISO 45001 (8.1):** Control visual de operaciones simultáneas (SIMOPS) para mitigar interferencias de alto riesgo.                            |
 | **[[UC-VIS-011]]** | Verificar Rutas de Aislamiento (LOTO) y Bloqueo Activo | [[VIS-011]]              | Técnico         | **ISO 45001 (8.1) / ASR-2:** Bloqueo de software (fail-safe) que impide iniciar la ejecución si hay energía en campo o falla el latido de red. |
-| **[[UC-VIS-033]]** | Inspeccionar Activos sobre el Plano Base 2D            | [[VIS-033]]              | Supervisor      | **ISO 55001 (7.5) / ISA-101.01 / ADR-001:** Lienzo base HPHMI 2D para concienciación situacional e inspección contextual en tiempo real.       |
+| **[[UC-VIS-033]]** | Inspeccionar Activos sobre el Plano Base 2D            | [[VIS-033]]              | Supervisor      | **ISO 55001 (7.5) / ISA-101.01 / ADR-001:** Lienzo base para concienciación situacional e inspección contextual en tiempo real.                |
 
 ### Casos de Uso Planificados para Fases Posteriores (Fuera del MVP)
 

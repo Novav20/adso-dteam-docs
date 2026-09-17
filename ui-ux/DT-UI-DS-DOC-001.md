@@ -11,7 +11,7 @@ standard:
   - WCAG 2.1 Nivel AA (Web Content Accessibility Guidelines)
   - ISO 45001:2018 (Cláusula 8.1 — LOTO & Seguridad Operativa)
 ---
-
+		
 # Especificación Técnica de Tokens de Diseño
 
 ## 1. Alcance
@@ -232,11 +232,11 @@ Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la co
 | Concepto de Seguridad                 | Color Principal / Token   | Forma Geométrica                      | Icono Asociado             | Texto Obligatorio   |
 | ------------------------------------- | ------------------------- | ------------------------------------- | -------------------------- | ------------------- |
 | **Permiso en Caliente (Hot Work)**    | --dt-color-alarm-critical | Cuadrado ( $24\times24\text{px}$ )    | Llama ( `flame` )          | HOT WORK            |
-| **Permiso en Alturas (Heights)**      | --dt-primitive-blue-400   | Triángulo ( $24\times24\text{px}$ )   | Escalera / Arnés           | HEIGHTS             |
-| **Espacio Confinado (Confined)**      | --dt-primitive-amber-400  | Círculo ( $\varnothing 24\text{px}$ ) | Silueta / Tanque           | CONFINED            |
+| **Permiso en Alturas (Heights)**      | --dt-color-state-info     | Triángulo ( $24\times24\text{px}$ )   | Escalera / Arnés           | HEIGHTS             |
+| **Espacio Confinado (Confined)**      | --dt-color-alarm-warning  | Círculo ( $\varnothing 24\text{px}$ ) | Silueta / Tanque           | CONFINED            |
 | **Punto LOTO Bloqueado (Seguro)**     | --dt-color-state-success  | Candado cerrado                       | Candado ( `lock` )         | ISOLATED - 0 ENERGY |
 | **Punto LOTO Energizado (Peligro)**   | --dt-color-alarm-critical | Candado abierto con halo              | Rayo / Alerta              | DANGER - ENERGIZED  |
-| **Pérdida de Telemetría (Fail-Safe)** | --dt-color-alarm-warning  | Rombo con signo '?'                   | Desconexión ( `wifi-off` ) | SIGNAL LOST - STALE |
+| **Pérdida de Telemetría (Fail-Safe)** | --dt-color-alarm-warning  | Rombo                                 | Desconexión ( `wifi-off` ) | SIGNAL LOST - STALE |
 
 ### 6.3. Patrón de Contenedores Deslizantes (*Bottom Sheets* y *Drawers*)
 En cumplimiento del principio de **Controlabilidad** (ISO 9241-110:2020, Cláusula 5.5) y para mitigar la baja precisión de sensores capacitivos al operar con guantes industriales o en condiciones húmedas, los contenedores móviles deslizantes deben regirse por las siguientes directrices:

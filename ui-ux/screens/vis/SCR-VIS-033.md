@@ -33,7 +33,7 @@ status: In Review
 # SCR-VIS-033: Inspección de Activos sobre el Plano Base 2D
 
 ## 1. Propósito y Contexto Operacional
-* **Objetivo de la Vista:** Visualización espacial interactiva de la planta o subsistema en 2D, permitiendo la localización de equipos, consulta de condición en tiempo real bajo filosofía HPHMI y despliegue de la ficha contextual de operaciones.
+* **Objetivo de la Vista:** Visualización espacial interactiva de la planta o subsistema en 2D, permitiendo la localización de equipos, consulta de condición en tiempo real y despliegue de la ficha contextual de operaciones.
 * **Contexto Operativo:** Desplegada en consolas web de escritorio (Tema Claro) y en tabletas industriales de campo (Tema Oscuro con ergonomía táctil apta para uso con guantes).
 * **Modo de Operación:** Supervisión, diagnóstico visual y navegación contextual pasiva. La interfaz no emite comandos de control industrial (arranque/parada), no altera variables de proceso ni ejecuta maniobras remotas sobre el SCADA.
 

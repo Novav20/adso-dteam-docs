@@ -119,6 +119,10 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     dsl.append("    views {")
     dsl.append("        component appContainer \"ComponentDiagram\" {")
     dsl.append("            include *")
+    for c in boundaries["Client Application"]:
+        dsl.append(f"            include {c['ID Componente']}")
+    for c in boundaries["External System"]:
+        dsl.append(f"            include {c['ID Componente']}")
     dsl.append("            autoLayout tb")
     dsl.append("        }")
     dsl.append("        ")
