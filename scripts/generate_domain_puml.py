@@ -30,6 +30,7 @@ def generate_domain_puml():
     
     classes = {}
     current_schema = "Common"
+    current_table = None
     
     # 0. Parse DM-DOC-001 for stereotypes
     try:
@@ -76,12 +77,18 @@ def generate_domain_puml():
             current_schema = line.split("Esquema")[-1].strip()
             continue
             
+        # Table Detection
+        m_table = re.match(r'^#### 3\.\d+\.\d+ (\w+)', line)
+        if m_table:
+            current_table = m_table.group(1)
+            continue
+            
         if line.startswith("## 4. Matriz de Relaciones"):
             in_relations = True
             in_table = False
             continue
             
-        if line.startswith("| Entidad |") or line.startswith("| Entidad Origen"):
+        if line.startswith("| Campo Físico |") or line.startswith("| Entidad Origen"):
             in_table = True
             continue
             
@@ -90,11 +97,11 @@ def generate_domain_puml():
             
         if in_table and line.startswith("|"):
             parts = [p.strip() for p in line.split("|")[1:-1]]
-            if not in_relations and len(parts) >= 6:
-                table_name = parts[0]
-                column_name = parts[1]
-                pg_type = parts[2]
-                nullable = parts[3]
+            if not in_relations and len(parts) >= 5:
+                table_name = current_table
+                column_name = parts[0]
+                pg_type = parts[1]
+                nullable = parts[2]
                 
                 class_name = singularize(snake_to_pascal(table_name))
                 prop_name = snake_to_pascal(column_name)

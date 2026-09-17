@@ -16,6 +16,8 @@ if sec3_start != -1 and sec4_start != -1:
     sec3_content = md_content[sec3_start:sec4_start]
     
     current_schema = None
+    current_table = None
+    
     for line in sec3_content.split('\n'):
         m_schema = re.match(r'^### 3\.\d+ Esquema \**`?(\w+)`?\**', line)
         if m_schema:
@@ -23,21 +25,25 @@ if sec3_start != -1 and sec4_start != -1:
             schemas[current_schema] = {}
             continue
             
-        if line.startswith('|') and not line.startswith('| Entidad') and not line.startswith('| ---'):
+        m_table = re.match(r'^#### 3\.\d+\.\d+ (\w+)', line)
+        if m_table:
+            current_table = m_table.group(1)
+            if current_schema:
+                schemas[current_schema][current_table] = []
+                table_to_schema[current_table] = current_schema
+            continue
+            
+        if line.startswith('|') and not line.startswith('| Campo') and not line.startswith('| ---'):
             parts = [p.strip() for p in line.split('|')]
-            if len(parts) > 6:
-                table = parts[1]
-                col = parts[2]
-                typ = parts[3]
-                not_null = parts[4]
-                constraints = parts[5]
-                just = parts[6]
+            if len(parts) >= 6:
+                col = parts[1]
+                typ = parts[2]
+                not_null = parts[3]
+                constraints = parts[4]
+                just = parts[5]
                 
-                if current_schema:
-                    if table not in schemas[current_schema]:
-                        schemas[current_schema][table] = []
-                        table_to_schema[table] = current_schema
-                    schemas[current_schema][table].append({
+                if current_schema and current_table:
+                    schemas[current_schema][current_table].append({
                         'col': col,
                         'typ': typ,
                         'not_null': not_null,
