@@ -24,22 +24,48 @@ def map_pg_type_to_agnostic(pg_type):
 
 def generate_domain_puml():
     erd_md = "domain-models/entity-relationship/DT-ERD-DOC-001.md"
-    dm_md = "domain-models/class/DT-DM-DOC-002.md"
+    dm_doc1 = "domain-models/class/DT-DM-DOC-001.md"
+    dm_doc2 = "domain-models/class/DT-DM-DOC-002.md"
     out_puml = "domain-models/class/DT-DM-001-domain-model.puml"
     
     classes = {}
-    schemas = {}
     current_schema = "Common"
+    
+    # 0. Parse DM-DOC-001 for stereotypes
+    try:
+        with open(dm_doc1, "r", encoding="utf-8") as f:
+            dm1_lines = f.readlines()
+        in_table = False
+        for line in dm1_lines:
+            line = line.strip()
+            if "| Entidad" in line and "| Estereotipo DDD" in line:
+                in_table = True
+                continue
+            if line.startswith("| ---") or line.startswith("| -"):
+                continue
+            if in_table and line.startswith("|"):
+                parts = [p.strip() for p in line.split("|")[1:-1]]
+                if len(parts) >= 2:
+                    cls_name = parts[0]
+                    stereotype = parts[1]
+                    if cls_name not in classes:
+                        classes[cls_name] = {"props": [], "methods": [], "schema": "Common", "stereotype": stereotype}
+                    else:
+                        classes[cls_name]["stereotype"] = stereotype
+            elif not line.strip() and in_table:
+                in_table = False
+    except Exception as e:
+        pass
     
     # 1. Parse ERD for properties and schemas
     with open(erd_md, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+        erd_lines = f.readlines()
         
     in_table = False
     in_relations = False
     relations = []
     
-    for line in lines:
+    for line in erd_lines:
         line = line.strip()
         
         # Schema Detection
@@ -76,9 +102,11 @@ def generate_domain_puml():
                     agnostic_type += "?"
                     
                 if class_name not in classes:
-                    classes[class_name] = {"props": [], "methods": [], "schema": current_schema}
+                    classes[class_name] = {"props": [], "methods": [], "schema": current_schema, "stereotype": "Entity"}
+                else:
+                    classes[class_name]["schema"] = current_schema
                     
-                classes[class_name]["props"].append(f"+ {prop_name}: {agnostic_type}")
+                classes[class_name]["props"].append(f"- {prop_name}: {agnostic_type}")
                 
             elif in_relations and len(parts) >= 5:
                 parent_table = parts[0]
@@ -90,6 +118,8 @@ def generate_domain_puml():
                 parent_class = singularize(snake_to_pascal(parent_table))
                 child_class = singularize(snake_to_pascal(child_table))
                 
+                # Convert N to * for UML standard
+                card = card.replace("N", "*")
                 c_parts = card.split(" : ")
                 card_parent = f'"{c_parts[0].strip()}"' if len(c_parts) > 1 else '""'
                 card_child = f'"{c_parts[1].strip()}"' if len(c_parts) > 1 else '""'
@@ -102,7 +132,7 @@ def generate_domain_puml():
             
     # 2. Parse DM for methods
     try:
-        with open(dm_md, "r", encoding="utf-8") as f:
+        with open(dm_doc2, "r", encoding="utf-8") as f:
             dm_content = f.read()
             
         sections = re.split(r'###\s+\d+\.\d+\.\s+`([^`]+)`', dm_content)
@@ -124,7 +154,7 @@ def generate_domain_puml():
                     if len(parts) >= 1:
                         method_signature = parts[0].replace('`', '')
                         if class_name not in classes:
-                            classes[class_name] = {"props": [], "methods": [], "schema": "Common"}
+                            classes[class_name] = {"props": [], "methods": [], "schema": "Common", "stereotype": "Entity"}
                         classes[class_name]["methods"].append(f"+ {method_signature}")
                 elif not line.strip() and in_table:
                     in_table = False
@@ -139,13 +169,20 @@ def generate_domain_puml():
     puml.append("hide circle")
     puml.append("")
     
-    # Colors for schemas
-    schema_colors = {
-        "tax": "#E8F4F8",
-        "mtto": "#FFF0E6",
-        "inv": "#E6F4EA",
-        "vis": "#F3E5F5",
-        "adm": "#FFF3CD"
+    puml.append("skinparam class {")
+    puml.append("    BackgroundColor #E3F2FD")
+    puml.append("    BorderColor #1565C0")
+    puml.append("    ArrowColor #1565C0")
+    puml.append("    FontName Arial")
+    puml.append("}")
+    puml.append("")
+    
+    schema_titles = {
+        "tax": "Taxonomía de Activos (ISO 14224)",
+        "mtto": "Operaciones de Mantenimiento (MTTO)",
+        "inv": "Control de Recursos (INV)",
+        "vis": "Convergencia Gemelo Digital (VIS)",
+        "adm": "Seguridad y Gobernanza (ADM)"
     }
     
     schemas_group = {}
@@ -155,10 +192,11 @@ def generate_domain_puml():
         schemas_group[s].append((c_name, data))
         
     for schema, cls_list in schemas_group.items():
-        color = schema_colors.get(schema, "#FFFFFF")
-        puml.append(f'package "{schema}" <<Folder>> {color} {{')
+        title = schema_titles.get(schema, schema)
+        puml.append(f'package "{title}" <<Folder>> #F0F0F0 {{')
         for class_name, data in cls_list:
-            puml.append(f"    class {class_name} {{")
+            stereotype = f' <<{data["stereotype"]}>>' if data.get("stereotype") else ""
+            puml.append(f"    class {class_name}{stereotype} {{")
             for prop in data["props"]:
                 puml.append(f"        {prop}")
             if data["methods"]:
