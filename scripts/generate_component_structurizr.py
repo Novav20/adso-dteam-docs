@@ -72,10 +72,14 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     dsl.append("        # External Systems and Clients")
     
     for c in boundaries["Client Application"]:
-        dsl.append(f"        {c['ID Componente']} = softwareSystem \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"Client\"")
+        c_id = c['ID Componente']
+        tag = "Mobile" if "mobile" in c_id.lower() else "WebBrowser" if "web" in c_id.lower() else "Client"
+        dsl.append(f"        {c_id} = softwareSystem \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"{tag}\"")
         
     for c in boundaries["External System"]:
-        dsl.append(f"        {c['ID Componente']} = softwareSystem \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"External\"")
+        c_id = c['ID Componente']
+        tag = "Database" if "db" in c_id.lower() or "redis" in c_id.lower() else "External"
+        dsl.append(f"        {c_id} = softwareSystem \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"{tag}\"")
         
     dsl.append("")
     dsl.append("        monolith = softwareSystem \"Modular Monolith\" \"Sistema Central de Mantenimiento y LOTO (.NET 10)\" {")
@@ -125,7 +129,12 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
         dsl.append(f"            include {c['ID Componente']}")
     dsl.append("            autoLayout tb")
     dsl.append("        }")
-    dsl.append("        ")
+    dsl.append("        styles {")
+    dsl.append("            element \"Database\" { shape Cylinder }")
+    dsl.append("            element \"Mobile\" { shape MobileDevicePortrait }")
+    dsl.append("            element \"WebBrowser\" { shape WebBrowser }")
+    dsl.append("            element \"Element\" { metadata false }")
+    dsl.append("        }")
     dsl.append("        theme default")
     dsl.append("    }")
     dsl.append("}")
