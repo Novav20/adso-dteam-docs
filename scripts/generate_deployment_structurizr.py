@@ -110,11 +110,12 @@ def parse_deployment_structurizr(md_path, out_dsl_path):
         node = nodes[node_id]
         sp = "            " + ("    " * indent)
         lines = []
-        lines.append(f'{sp}deploymentNode "{node["name"]}" "{node["tech"]}" {node["id"]} {{')
+        # Proper Structurizr DSL assignment: identifier = deploymentNode "Name" "Description" "Technology"
+        lines.append(f'{sp}{node["id"]} = deploymentNode "{node["name"]}" "" "{node["tech"]}" {{')
         for child_id in node["children"]:
             lines.extend(render_deployment_node(child_id, indent + 1))
         for comp in node["components"]:
-            lines.append(f'{sp}    containerInstance {comp["id"]}')
+            lines.append(f'{sp}    {comp["id"]}_inst = containerInstance {comp["id"]}')
         lines.append(f'{sp}}}')
         return lines
 
