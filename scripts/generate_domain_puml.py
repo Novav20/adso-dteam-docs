@@ -183,6 +183,7 @@ def generate_domain_puml():
     puml.append("    BorderColor #1565C0")
     puml.append("    ArrowColor #1565C0")
     puml.append("    FontName Arial")
+    puml.append("    HeaderFontStyle bold")
     puml.append("}")
     puml.append("")
     

@@ -12,6 +12,7 @@ skinparam class {
     BorderColor #1565C0
     ArrowColor #1565C0
     FontName Arial
+    HeaderFontStyle bold
 }
 
 package "Taxonomía de Activos (ISO 14224)" <<Folder>> #F0F0F0 {
