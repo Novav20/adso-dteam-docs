@@ -97,7 +97,17 @@ def parse_deployment_structurizr(md_path, out_dsl_path):
     dsl.append('    model {')
     dsl.append('        sys = softwareSystem "System Software" {')
     for c_id, c in components.items():
-        tag = "Database" if c.get("type") == "ContainerDb" else "Container"
+        if c.get("type") == "ContainerDb":
+            tag = "Database"
+        elif "mobile" in c_id.lower():
+            tag = "Mobile"
+        elif "admin" in c_id.lower() or "web" in c_id.lower():
+            tag = "WebBrowser"
+        elif "iot" in c_id.lower() or "broker" in c_id.lower():
+            tag = "Broker"
+        else:
+            tag = "ComponentShape"
+            
         dsl.append(f'            {c_id} = container "{c["name"]}" "{c["desc"]}" "{c["tech"]}" "{tag}"')
     dsl.append('        }')
     dsl.append('')
@@ -136,6 +146,18 @@ def parse_deployment_structurizr(md_path, out_dsl_path):
     dsl.append('        styles {')
     dsl.append('            element "Database" {')
     dsl.append('                shape Cylinder')
+    dsl.append('            }')
+    dsl.append('            element "Mobile" {')
+    dsl.append('                shape MobileDevicePortrait')
+    dsl.append('            }')
+    dsl.append('            element "WebBrowser" {')
+    dsl.append('                shape WebBrowser')
+    dsl.append('            }')
+    dsl.append('            element "Broker" {')
+    dsl.append('                shape Pipe')
+    dsl.append('            }')
+    dsl.append('            element "ComponentShape" {')
+    dsl.append('                shape Component')
     dsl.append('            }')
     dsl.append('            element "Element" {')
     dsl.append('                metadata false')
