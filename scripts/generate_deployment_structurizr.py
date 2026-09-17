@@ -67,6 +67,7 @@ def parse_deployment_structurizr(md_path, out_dsl_path):
                 comp_obj = {
                     "id": comp_id,
                     "name": comp_name,
+                    "type": c4_type,
                     "tech": tech,
                     "desc": resp
                 }
@@ -96,7 +97,8 @@ def parse_deployment_structurizr(md_path, out_dsl_path):
     dsl.append('    model {')
     dsl.append('        sys = softwareSystem "System Software" {')
     for c_id, c in components.items():
-        dsl.append(f'            {c_id} = container "{c["name"]}" "{c["desc"]}" "{c["tech"]}"')
+        tag = "Database" if c.get("type") == "ContainerDb" else "Container"
+        dsl.append(f'            {c_id} = container "{c["name"]}" "{c["desc"]}" "{c["tech"]}" "{tag}"')
     dsl.append('        }')
     dsl.append('')
     dsl.append('        # Relationships')
@@ -130,6 +132,14 @@ def parse_deployment_structurizr(md_path, out_dsl_path):
     dsl.append('        deployment sys "Production" "DeploymentDiagram" {')
     dsl.append('            include *')
     dsl.append('            autoLayout tb')
+    dsl.append('        }')
+    dsl.append('        styles {')
+    dsl.append('            element "Database" {')
+    dsl.append('                shape Cylinder')
+    dsl.append('            }')
+    dsl.append('            element "Element" {')
+    dsl.append('                metadata false')
+    dsl.append('            }')
     dsl.append('        }')
     dsl.append('        theme default')
     dsl.append('    }')
