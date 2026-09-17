@@ -169,6 +169,12 @@ def generate_domain_puml():
     puml.append("hide circle")
     puml.append("")
     
+    # Layout and routing improvements
+    puml.append("skinparam linetype ortho")
+    puml.append("skinparam nodesep 80")
+    puml.append("skinparam ranksep 80")
+    puml.append("")
+    
     puml.append("skinparam class {")
     puml.append("    BackgroundColor #E3F2FD")
     puml.append("    BorderColor #1565C0")

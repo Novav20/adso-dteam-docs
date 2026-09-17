@@ -3,6 +3,10 @@ skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
 hide circle
 
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 80
+
 skinparam class {
     BackgroundColor #E3F2FD
     BorderColor #1565C0
