@@ -1,450 +1,436 @@
 @startuml DT-DM-001-domain-model
 skinparam classAttributeIconSize 0
-skinparam monochrome true
+skinparam packageStyle rectangle
 hide circle
 
-class EquipmentClass {
-    + Guid Id {get; set;}
-    + string ClassName {get; set;}
-    + string Description {get; set;}
-    + string ManufacturerStandard {get; set;}
+package "tax" <<Folder>> #E8F4F8 {
+    class EquipmentClass {
+        + Id: UUID
+        + ClassName: String
+        + Description: String
+        + ManufacturerStandard: String
+    }
+    class EquipmentUnit {
+        + Id: UUID
+        + SerialNumber: String
+        + Manufacturer: String
+        + Model: String
+        + PurchaseDate: DateTime
+        + RejectionReason: String
+        + BoundaryStart: String
+        + BoundaryEnd: String
+        + AcquisitionDate: DateTime
+        + InstallationDate: DateTime?
+        + OperationStartDate: DateTime?
+        + OperatingHours: Integer
+        + SurveillanceHours: Integer
+        + DisposalDate: DateTime?
+        + DisposalReason: String
+        + OperationalStatus: String
+        + LifecycleStatus: String
+        + MaintenanceStatus: String
+        + HealthStatus: String
+        + IsSce: Boolean
+        + FunctionalLocationId: UUID?
+        + EquipmentClassId: UUID
+        + WarehouseId: UUID?
+        --
+        + Activate(): void
+        + ValidateChronology(): void
+        + DefineBoundaries(boundaryStart: String, boundaryEnd: String): void
+        + UpdateOperationalStatus(newStatus: Enum): void
+        + AddSubunit(subunit: Subunit): void
+        + Decommission(reason: String, disposalDate: Date): void
+        + RejectCommissioning(reason: String): void
+        + TransitionToStorage(warehouseId: UUID): void
+        + TransitionToRepair(): void
+    }
+    class FunctionalLocation {
+        + Id: UUID
+        + TagNumber: String
+        + Name: String
+        + Description: String
+        + Criticality: String
+        + GeographicLocation: String
+        + EnvironmentalExposure: String
+        + HierarchyLevel: Integer
+        + ParentId: UUID?
+        --
+        + AddChild(child: FunctionalLocation): void
+        + RemoveChild(childId: UUID): void
+        + ReorganizeTree(newParentId: UUID): void
+        + InstallEquipment(equipment: EquipmentUnit): void
+        + UninstallEquipment(): EquipmentUnit
+    }
+    class MaintainableItem {
+        + Id: UUID
+        + SubunitId: UUID
+        + ComponentName: String
+        + SubunitType: String
+        + SparePartType: String
+        + DesignAttributes: JSON
+        + Status: String
+        --
+        + UpdateStatus(newStatus: Enum): void
+    }
+    class Subunit {
+        + Id: UUID
+        + EquipmentUnitId: UUID
+        + SubunitType: String
+        + Name: String
+        --
+        + AddMaintainableItem(item: MaintainableItem): void
+    }
 }
 
-class EquipmentUnit {
-    + Guid Id {get; set;}
-    + string SerialNumber {get; set;}
-    + string Manufacturer {get; set;}
-    + string Model {get; set;}
-    + DateTime PurchaseDate {get; set;}
-    + string RejectionReason {get; set;}
-    + string BoundaryStart {get; set;}
-    + string BoundaryEnd {get; set;}
-    + DateTime AcquisitionDate {get; set;}
-    + DateTime? InstallationDate {get; set;}
-    + DateTime? OperationStartDate {get; set;}
-    + int OperatingHours {get; set;}
-    + int SurveillanceHours {get; set;}
-    + DateTime? DisposalDate {get; set;}
-    + string DisposalReason {get; set;}
-    + string OperationalStatus {get; set;}
-    + string LifecycleStatus {get; set;}
-    + string MaintenanceStatus {get; set;}
-    + string HealthStatus {get; set;}
-    + bool IsSce {get; set;}
-    + Guid? FunctionalLocationId {get; set;}
-    + Guid EquipmentClassId {get; set;}
-    + Guid? WarehouseId {get; set;}
-    --
-    + Activate(): void
-    + ValidateChronology(): void
-    + DefineBoundaries(boundaryStart: String, boundaryEnd: String): void
-    + UpdateOperationalStatus(newStatus: Enum): void
-    + AddSubunit(subunit: Subunit): void
-    + Decommission(reason: String, disposalDate: Date): void
-    + RejectCommissioning(reason: String): void
-    + TransitionToStorage(warehouseId: UUID): void
-    + TransitionToRepair(): void
+package "mtto" <<Folder>> #FFF0E6 {
+    class BacklogItem {
+        + Id: UUID
+        + EquipmentUnitId: UUID
+        + WorkRequestId: UUID
+        + PriorityScore: Integer
+        + Status: String
+        --
+        + UpdatePriorityScore(score: int): void
+        + Defer(reason: String): void
+    }
+    class FailureRecord {
+        + Id: UUID
+        + WorkOrderId: UUID
+        + MaintainableItemId: UUID?
+        + FailureMode: String
+        + FailureMechanism: String
+        + FailureCause: String
+        + DetectionMethod: String
+        + OperationalCondition: String
+        + OperationalImpact: String
+        + Downtime: Decimal
+        + Status: String
+        --
+        + UpdateClassification(mode: Enum, mechanism: Enum, cause: Enum): void
+    }
+    class MaintenancePlan {
+        + Id: UUID
+        + EquipmentUnitId: UUID
+        + MaintenanceMethod: String
+        + Frequency: String
+        + FrequencyType: String
+        + NextWorkOrderDate: DateTime?
+        + IntervalValue: Decimal?
+        + NextTriggerLimit: Decimal?
+        + EstimatedLaborHours: Decimal
+        + RequiredSpecialty: String
+        + TechnicalDescription: String
+        + Status: String
+        --
+        + CalculateNextDueDate(lastCompletionDate: DateTime): void
+        + GenerateWorkOrder(): WorkOrder
+        + Activate(): void
+        + Suspend(reason: String): void
+        + Archive(): void
+        + CalculateNextTriggerLimit(currentUsage: Decimal): void
+    }
+    class MediaAttachment {
+        + Id: UUID
+        + WorkOrderId: UUID
+        + FileUrl: String
+        + FileType: String
+        + UploadedAt: DateTime
+    }
+    class WorkOrderHistory {
+        + Id: UUID
+        + WorkOrderId: UUID
+        + OldStatus: String
+        + NewStatus: String
+        + Timestamp: DateTime
+        + DurationSeconds: Integer?
+    }
+    class WorkOrder {
+        + Id: UUID
+        + EquipmentUnitId: UUID
+        + MaintenancePlanId: UUID?
+        + WorkRequestId: UUID?
+        + WorkPermitId: UUID?
+        + CurrentStatus: String
+        + MaintenanceMethod: String
+        + CreationDate: DateTime
+        + ScheduledDate: DateTime?
+        + ActualStart: DateTime?
+        + ActualFinish: DateTime?
+        + ActualLaborHours: Decimal?
+        + Criticality: String
+        --
+        + Schedule(scheduledDate: DateTime): void
+        + RequireIsolation(isolationPointId: UUID): void
+        + StartExecution(): void
+        + CompleteExecution(actualLaborHours: Decimal): void
+        + CloseAdministratively(): void
+        + ReportFailure(maintainableItemId: UUID, mode: Enum, mechanism: Enum, cause: Enum, detectionMethod: Enum, operationalCondition: Enum, operationalImpact: Enum): void
+        + AddMediaAttachment(fileUrl: String, fileType: Enum): void
+        + SuspendExecution(reason: String): void
+    }
+    class WorkRequest {
+        + Id: UUID
+        + EquipmentUnitId: UUID
+        + Description: String
+        + Priority: String
+        + RequestDate: DateTime
+        + RequestSource: String
+        + Status: String
+        + WorkClassCode: Integer
+        --
+        + PromoteToWorkOrder(): void
+        + Reject(reason: String): void
+        + UpdateWorkClass(workClass: int): void
+    }
 }
 
-class FunctionalLocation {
-    + Guid Id {get; set;}
-    + string TagNumber {get; set;}
-    + string Name {get; set;}
-    + string Description {get; set;}
-    + string Criticality {get; set;}
-    + string GeographicLocation {get; set;}
-    + string EnvironmentalExposure {get; set;}
-    + int HierarchyLevel {get; set;}
-    + Guid? ParentId {get; set;}
-    --
-    + AddChild(child: FunctionalLocation): void
-    + RemoveChild(childId: UUID): void
-    + ReorganizeTree(newParentId: UUID): void
-    + InstallEquipment(equipment: EquipmentUnit): void
-    + UninstallEquipment(): EquipmentUnit
+package "inv" <<Folder>> #E6F4EA {
+    class InventoryTransaction {
+        + Id: UUID
+        + SparePartId: UUID
+        + WarehouseId: UUID
+        + WorkOrderId: UUID?
+        + Quantity: Decimal
+        + TransactionType: String
+        + Timestamp: DateTime
+        + Reason: String
+        + TotalCost: Decimal
+        + AisleShelfLocation: String
+        + SerialNumber: String
+    }
+    class MaintainableItemSparePart {
+        + MaintainableItemId: UUID
+        + SparePartId: UUID
+    }
+    class MaterialRequirement {
+        + WorkOrderId: UUID
+        + SparePartId: UUID
+        + PlannedQuantity: Decimal
+        + ActualQuantity: Decimal?
+        + IsReserved: Boolean
+        --
+        + MarkAsReserved(): void
+        + RecordConsumption(actualQuantity: Decimal): void
+    }
+    class SparePart {
+        + Id: UUID
+        + Sku: String
+        + Description: String
+        + Manufacturer: String
+        + CommodityCode: String
+        + ReorderPoint: Decimal
+        + UnitOfMeasure: String
+        + StockPolicy: String
+        + IsRebuildable: Boolean
+        + QuantityOnHand: Decimal
+        + ReservedQuantity: Decimal
+        + MaxCapacity: Decimal
+        + UnitCost: Decimal
+        + Status: String
+        + SupplierId: UUID
+        + EquipmentClassId: UUID?
+        --
+        + UpdateStockPolicy(policy: Enum, reorderPoint: Decimal, maxCapacity: Decimal): void
+        + ReserveStock(quantity: Decimal): void
+        + ReleaseReservation(quantity: Decimal): void
+        + ReceiveStock(quantity: Decimal): void
+        + IssueStock(quantity: Decimal): void
+    }
+    class Supplier {
+        + Id: UUID
+        + Name: String
+        + ContactInfo: String
+        + WarrantyTerms: String
+    }
+    class Warehouse {
+        + Id: UUID
+        + Name: String
+        + Location: String
+        + Capacity: Decimal
+    }
 }
 
-class MaintainableItem {
-    + Guid Id {get; set;}
-    + Guid SubunitId {get; set;}
-    + string ComponentName {get; set;}
-    + string SubunitType {get; set;}
-    + string SparePartType {get; set;}
-    + string DesignAttributes {get; set;}
-    + string Status {get; set;}
-    --
-    + UpdateStatus(newStatus: Enum): void
+package "vis" <<Folder>> #F3E5F5 {
+    class IsolationPoint {
+        + Id: UUID
+        + EquipmentUnitId: UUID
+        + IsolationTag: String
+        + IsolationType: String
+        + IsVerified: Boolean
+        --
+        + MarkAsVerified(): void
+    }
+    class MeshMapping {
+        + Id: UUID
+        + EquipmentUnitId: UUID
+        + MeshUuid: String
+        + MappingStatus: String
+        + LastSyncTime: DateTime?
+    }
+    class SpatialMetadata {
+        + MeshMappingId: UUID
+        + Position: JSON
+        + Rotation: JSON
+        + Scale: JSON
+    }
+    class TelemetrySignal {
+        + Id: UUID
+        + EquipmentUnitId: UUID
+        + SignalType: String
+        + Value: Decimal
+        + Unit: String
+        + Threshold: Decimal?
+        + Timestamp: DateTime
+        + IsSafetyCritical: Boolean
+    }
+    class VisualLayer {
+        + Id: UUID
+        + WorkOrderId: UUID
+        + LayerType: String
+        + OpacityLevel: Decimal
+        + Status: String
+    }
+    class WorkOrderIsolation {
+        + WorkOrderId: UUID
+        + IsolationPointId: UUID
+        + IsIsolated: Boolean
+        + IsolatedAt: DateTime?
+        + PadlockTagId: String
+    }
+    class WorkPermit {
+        + Id: UUID
+        + EquipmentUnitId: UUID
+        + PermitIdentifier: String
+        + PermitType: String
+        + ContractorName: String
+        + Status: String
+        --
+        + Approve(): void
+        + Revoke(reason: String): void
+        + Expire(): void
+        + Close(): void
+    }
 }
 
-class Subunit {
-    + Guid Id {get; set;}
-    + Guid EquipmentUnitId {get; set;}
-    + string SubunitType {get; set;}
-    + string Name {get; set;}
-    --
-    + AddMaintainableItem(item: MaintainableItem): void
-}
-
-class BacklogItem {
-    + Guid Id {get; set;}
-    + Guid EquipmentUnitId {get; set;}
-    + Guid WorkRequestId {get; set;}
-    + int PriorityScore {get; set;}
-    + string Status {get; set;}
-    --
-    + UpdatePriorityScore(score: int): void
-    + Defer(reason: String): void
-}
-
-class FailureRecord {
-    + Guid Id {get; set;}
-    + Guid WorkOrderId {get; set;}
-    + Guid? MaintainableItemId {get; set;}
-    + string FailureMode {get; set;}
-    + string FailureMechanism {get; set;}
-    + string FailureCause {get; set;}
-    + string DetectionMethod {get; set;}
-    + string OperationalCondition {get; set;}
-    + string OperationalImpact {get; set;}
-    + decimal Downtime {get; set;}
-    + string Status {get; set;}
-    --
-    + UpdateClassification(mode: Enum, mechanism: Enum, cause: Enum): void
-}
-
-class MaintenancePlan {
-    + Guid Id {get; set;}
-    + Guid EquipmentUnitId {get; set;}
-    + string MaintenanceMethod {get; set;}
-    + string Frequency {get; set;}
-    + string FrequencyType {get; set;}
-    + DateTime? NextWorkOrderDate {get; set;}
-    + decimal? IntervalValue {get; set;}
-    + decimal? NextTriggerLimit {get; set;}
-    + decimal EstimatedLaborHours {get; set;}
-    + string RequiredSpecialty {get; set;}
-    + string TechnicalDescription {get; set;}
-    + string Status {get; set;}
-    --
-    + CalculateNextDueDate(lastCompletionDate: DateTime): void
-    + GenerateWorkOrder(): WorkOrder
-    + Activate(): void
-    + Suspend(reason: String): void
-    + Archive(): void
-    + CalculateNextTriggerLimit(currentUsage: Decimal): void
-}
-
-class MediaAttachment {
-    + Guid Id {get; set;}
-    + Guid WorkOrderId {get; set;}
-    + string FileUrl {get; set;}
-    + string FileType {get; set;}
-    + DateTime UploadedAt {get; set;}
-}
-
-class WorkOrderHistory {
-    + Guid Id {get; set;}
-    + Guid WorkOrderId {get; set;}
-    + string OldStatus {get; set;}
-    + string NewStatus {get; set;}
-    + DateTime Timestamp {get; set;}
-    + int? DurationSeconds {get; set;}
-}
-
-class WorkOrder {
-    + Guid Id {get; set;}
-    + Guid EquipmentUnitId {get; set;}
-    + Guid? MaintenancePlanId {get; set;}
-    + Guid? WorkRequestId {get; set;}
-    + Guid? WorkPermitId {get; set;}
-    + string CurrentStatus {get; set;}
-    + string MaintenanceMethod {get; set;}
-    + DateTime CreationDate {get; set;}
-    + DateTime? ScheduledDate {get; set;}
-    + DateTime? ActualStart {get; set;}
-    + DateTime? ActualFinish {get; set;}
-    + decimal? ActualLaborHours {get; set;}
-    + string Criticality {get; set;}
-    --
-    + Schedule(scheduledDate: DateTime): void
-    + RequireIsolation(isolationPointId: UUID): void
-    + StartExecution(): void
-    + CompleteExecution(actualLaborHours: Decimal): void
-    + CloseAdministratively(): void
-    + ReportFailure(maintainableItemId: UUID, mode: Enum, mechanism: Enum, cause: Enum, detectionMethod: Enum, operationalCondition: Enum, operationalImpact: Enum): void
-    + AddMediaAttachment(fileUrl: String, fileType: Enum): void
-    + SuspendExecution(reason: String): void
-}
-
-class WorkRequest {
-    + Guid Id {get; set;}
-    + Guid EquipmentUnitId {get; set;}
-    + string Description {get; set;}
-    + string Priority {get; set;}
-    + DateTime RequestDate {get; set;}
-    + string RequestSource {get; set;}
-    + string Status {get; set;}
-    + int WorkClassCode {get; set;}
-    --
-    + PromoteToWorkOrder(): void
-    + Reject(reason: String): void
-    + UpdateWorkClass(workClass: int): void
-}
-
-class InventoryTransaction {
-    + Guid Id {get; set;}
-    + Guid SparePartId {get; set;}
-    + Guid WarehouseId {get; set;}
-    + Guid? WorkOrderId {get; set;}
-    + decimal Quantity {get; set;}
-    + string TransactionType {get; set;}
-    + DateTime Timestamp {get; set;}
-    + string Reason {get; set;}
-    + decimal TotalCost {get; set;}
-    + string AisleShelfLocation {get; set;}
-    + string SerialNumber {get; set;}
-}
-
-class MaintainableItemSparePart {
-    + Guid MaintainableItemId {get; set;}
-    + Guid SparePartId {get; set;}
-}
-
-class MaterialRequirement {
-    + Guid WorkOrderId {get; set;}
-    + Guid SparePartId {get; set;}
-    + decimal PlannedQuantity {get; set;}
-    + decimal? ActualQuantity {get; set;}
-    + bool IsReserved {get; set;}
-    --
-    + MarkAsReserved(): void
-    + RecordConsumption(actualQuantity: Decimal): void
-}
-
-class SparePart {
-    + Guid Id {get; set;}
-    + string Sku {get; set;}
-    + string Description {get; set;}
-    + string Manufacturer {get; set;}
-    + string CommodityCode {get; set;}
-    + decimal ReorderPoint {get; set;}
-    + string UnitOfMeasure {get; set;}
-    + string StockPolicy {get; set;}
-    + bool IsRebuildable {get; set;}
-    + decimal QuantityOnHand {get; set;}
-    + decimal ReservedQuantity {get; set;}
-    + decimal MaxCapacity {get; set;}
-    + decimal UnitCost {get; set;}
-    + string Status {get; set;}
-    + Guid SupplierId {get; set;}
-    + Guid? EquipmentClassId {get; set;}
-    --
-    + UpdateStockPolicy(policy: Enum, reorderPoint: Decimal, maxCapacity: Decimal): void
-    + ReserveStock(quantity: Decimal): void
-    + ReleaseReservation(quantity: Decimal): void
-    + ReceiveStock(quantity: Decimal): void
-    + IssueStock(quantity: Decimal): void
-}
-
-class Supplier {
-    + Guid Id {get; set;}
-    + string Name {get; set;}
-    + string ContactInfo {get; set;}
-    + string WarrantyTerms {get; set;}
-}
-
-class Warehouse {
-    + Guid Id {get; set;}
-    + string Name {get; set;}
-    + string Location {get; set;}
-    + decimal Capacity {get; set;}
-}
-
-class IsolationPoint {
-    + Guid Id {get; set;}
-    + Guid EquipmentUnitId {get; set;}
-    + string IsolationTag {get; set;}
-    + string IsolationType {get; set;}
-    + bool IsVerified {get; set;}
-    --
-    + MarkAsVerified(): void
-}
-
-class MeshMapping {
-    + Guid Id {get; set;}
-    + Guid EquipmentUnitId {get; set;}
-    + string MeshUuid {get; set;}
-    + string MappingStatus {get; set;}
-    + DateTime? LastSyncTime {get; set;}
-}
-
-class SpatialMetadata {
-    + Guid MeshMappingId {get; set;}
-    + string Position {get; set;}
-    + string Rotation {get; set;}
-    + string Scale {get; set;}
-}
-
-class TelemetrySignal {
-    + Guid Id {get; set;}
-    + Guid EquipmentUnitId {get; set;}
-    + string SignalType {get; set;}
-    + decimal Value {get; set;}
-    + string Unit {get; set;}
-    + decimal? Threshold {get; set;}
-    + DateTime Timestamp {get; set;}
-    + bool IsSafetyCritical {get; set;}
-}
-
-class VisualLayer {
-    + Guid Id {get; set;}
-    + Guid WorkOrderId {get; set;}
-    + string LayerType {get; set;}
-    + decimal OpacityLevel {get; set;}
-    + string Status {get; set;}
-}
-
-class WorkOrderIsolation {
-    + Guid WorkOrderId {get; set;}
-    + Guid IsolationPointId {get; set;}
-    + bool IsIsolated {get; set;}
-    + DateTime? IsolatedAt {get; set;}
-    + string PadlockTagId {get; set;}
-}
-
-class WorkPermit {
-    + Guid Id {get; set;}
-    + Guid EquipmentUnitId {get; set;}
-    + string PermitIdentifier {get; set;}
-    + string PermitType {get; set;}
-    + string ContractorName {get; set;}
-    + string Status {get; set;}
-    --
-    + Approve(): void
-    + Revoke(reason: String): void
-    + Expire(): void
-    + Close(): void
-}
-
-class AuditLog {
-    + Guid Id {get; set;}
-    + Guid? UserId {get; set;}
-    + string EntityType {get; set;}
-    + string EntityIdentifier {get; set;}
-    + string ActionType {get; set;}
-    + DateTime Timestamp {get; set;}
-    + string PreviousState {get; set;}
-    + string NewState {get; set;}
-    + string IntegrityHash {get; set;}
-    --
-    + VerifyIntegrity(): boolean
-}
-
-class AuthToken {
-    + Guid Id {get; set;}
-    + Guid UserId {get; set;}
-    + string TokenHash {get; set;}
-    + DateTime ExpiresAt {get; set;}
-    + bool IsUsed {get; set;}
-    + string IpAddress {get; set;}
-    + string UserAgent {get; set;}
-    --
-    + Revoke(): void
-    + MarkAsUsed(): void
-}
-
-class RolePermission {
-    + Guid Id {get; set;}
-    + Guid RoleId {get; set;}
-    + string Module {get; set;}
-    + string Action {get; set;}
-}
-
-class Role {
-    + Guid Id {get; set;}
-    + string RoleName {get; set;}
-    + string Description {get; set;}
-    + bool IsSystemRole {get; set;}
-    --
-    + AddPermission(module: String, action: String): void
-    + RemovePermission(module: String, action: String): void
-    + ValidateSoD(): void
-}
-
-class UserRole {
-    + Guid UserId {get; set;}
-    + Guid RoleId {get; set;}
-}
-
-class User {
-    + Guid Id {get; set;}
-    + string Username {get; set;}
-    + string FullName {get; set;}
-    + string Email {get; set;}
-    + string Status {get; set;}
-    + string PasswordHash {get; set;}
-    + int FailedLoginAttempts {get; set;}
-    + DateTime? LockoutUntil {get; set;}
-    + bool MfaEnabled {get; set;}
-    + string TotpSecret {get; set;}
-    + string DeactivationReason {get; set;}
-    --
-    + AssignRole(roleId: UUID): void
-    + RemoveRole(roleId: UUID): void
-    + RecordFailedLogin(): void
-    + RegisterSuccessfulLogin(): void
-    + UpdatePassword(newPasswordHash: String): void
-    + Deactivate(reason: String): void
-    + Activate(): void
-}
-
-class WorkOrderAssignment {
-    + Guid Id {get; set;}
-    + Guid WorkOrderId {get; set;}
-    + Guid UserId {get; set;}
-    + string RoleInWork {get; set;}
-    + DateTime AssignedAt {get; set;}
+package "adm" <<Folder>> #FFF3CD {
+    class AuditLog {
+        + Id: UUID
+        + UserId: UUID?
+        + EntityType: String
+        + EntityIdentifier: String
+        + ActionType: String
+        + Timestamp: DateTime
+        + PreviousState: JSON
+        + NewState: JSON
+        + IntegrityHash: String
+        --
+        + VerifyIntegrity(): boolean
+    }
+    class AuthToken {
+        + Id: UUID
+        + UserId: UUID
+        + TokenHash: String
+        + ExpiresAt: DateTime
+        + IsUsed: Boolean
+        + IpAddress: String
+        + UserAgent: String
+        --
+        + Revoke(): void
+        + MarkAsUsed(): void
+    }
+    class RolePermission {
+        + Id: UUID
+        + RoleId: UUID
+        + Module: String
+        + Action: String
+    }
+    class Role {
+        + Id: UUID
+        + RoleName: String
+        + Description: String
+        + IsSystemRole: Boolean
+        --
+        + AddPermission(module: String, action: String): void
+        + RemovePermission(module: String, action: String): void
+        + ValidateSoD(): void
+    }
+    class UserRole {
+        + UserId: UUID
+        + RoleId: UUID
+    }
+    class User {
+        + Id: UUID
+        + Username: String
+        + FullName: String
+        + Email: String
+        + Status: String
+        + PasswordHash: String
+        + FailedLoginAttempts: Integer
+        + LockoutUntil: DateTime?
+        + MfaEnabled: Boolean
+        + TotpSecret: String
+        + DeactivationReason: String
+        --
+        + AssignRole(roleId: UUID): void
+        + RemoveRole(roleId: UUID): void
+        + RecordFailedLogin(): void
+        + RegisterSuccessfulLogin(): void
+        + UpdatePassword(newPasswordHash: String): void
+        + Deactivate(reason: String): void
+        + Activate(): void
+    }
+    class WorkOrderAssignment {
+        + Id: UUID
+        + WorkOrderId: UUID
+        + UserId: UUID
+        + RoleInWork: String
+        + AssignedAt: DateTime
+    }
 }
 
 ' Relationships
-EquipmentUnit --> FunctionalLocation
-EquipmentUnit --> Warehouse
-MaintainableItem --> Subunit
-Subunit --> EquipmentUnit
-BacklogItem --> WorkRequest
-BacklogItem --> EquipmentUnit
-FailureRecord --> WorkOrder
-FailureRecord --> MaintainableItem
-MaintenancePlan --> EquipmentUnit
-MediaAttachment --> WorkOrder
-WorkOrderHistory --> WorkOrder
-WorkOrder --> WorkRequest
-WorkOrder --> WorkPermit
-WorkOrder --> EquipmentUnit
-WorkOrder --> MaintenancePlan
-WorkRequest --> EquipmentUnit
-InventoryTransaction --> SparePart
-InventoryTransaction --> WorkOrder
-InventoryTransaction --> Warehouse
-MaintainableItemSparePart --> SparePart
-MaintainableItemSparePart --> MaintainableItem
-MaterialRequirement --> SparePart
-MaterialRequirement --> WorkOrder
-SparePart --> Supplier
-IsolationPoint --> EquipmentUnit
-MeshMapping --> EquipmentUnit
-SpatialMetadata --> MeshMapping
-TelemetrySignal --> EquipmentUnit
-VisualLayer --> WorkOrder
-WorkOrderIsolation --> IsolationPoint
-WorkOrderIsolation --> WorkOrder
-WorkPermit --> EquipmentUnit
-AuditLog --> User
-AuthToken --> User
-RolePermission --> Role
-UserRole --> Role
-UserRole --> User
-WorkOrderAssignment --> WorkOrder
-WorkOrderAssignment --> User
+FunctionalLocation "1" --> "0..N" FunctionalLocation : contiene jerárquicamente a
+FunctionalLocation "1" --> "0..1" EquipmentUnit : instala
+EquipmentClass "1" --> "0..N" EquipmentUnit : categoriza
+EquipmentUnit "1" *-- "1..N" Subunit : se compone de
+Subunit "1" *-- "1..N" MaintainableItem : contiene
+EquipmentUnit "1" --> "0..N" WorkRequest : genera
+EquipmentUnit "1" --> "0..N" MaintenancePlan : posee
+EquipmentUnit "1" --> "0..N" WorkOrder : mantenido por
+EquipmentUnit "1" --> "0..N" BacklogItem : está listado en
+WorkRequest "0..1" --> "0..1" WorkOrder : se convierte en
+MaintenancePlan "1" --> "0..N" WorkOrder : dispara
+WorkOrder "1" *-- "0..N" WorkOrderHistory : registra cambios en
+WorkOrder "1" --> "0..1" FailureRecord : reporta
+MaintainableItem "1" --> "0..N" FailureRecord : experimenta
+WorkOrder "1" *-- "0..N" MediaAttachment : adjunta
+WorkRequest "1" --> "0..1" BacklogItem : prioriza
+Supplier "1" --> "0..N" SparePart : suministra
+EquipmentClass "1" --> "0..N" SparePart : estandariza
+SparePart "1" --> "0..N" InventoryTransaction : involucrado en
+Warehouse "1" --> "0..N" InventoryTransaction : almacena
+Warehouse "1" o-- "0..N" EquipmentUnit : resguarda en stock
+WorkOrder "1" --> "0..N" InventoryTransaction : genera
+WorkOrder "1" *-- "1..N" MaterialRequirement : planifica
+SparePart "1" --> "1..N" MaterialRequirement : es consumido en
+MaintainableItem "1" *-- "1..N" MaintainableItemSparePart : requiere
+SparePart "1" --> "1..N" MaintainableItemSparePart : es repuesto para
+EquipmentUnit "1" --> "0..1" MeshMapping : representado por
+MeshMapping "1" *-- "1" SpatialMetadata : ubicado en
+EquipmentUnit "1" --> "0..N" TelemetrySignal : monitoreado por
+EquipmentUnit "1" --> "0..N" WorkPermit : autoriza intervención en
+EquipmentUnit "1" --> "0..N" IsolationPoint : contiene
+WorkPermit "1" --> "0..N" WorkOrder : valida ejecución de
+WorkOrder "1" *-- "0..N" VisualLayer : visualizada en
+WorkOrder "1" *-- "1..N" WorkOrderIsolation : requiere
+IsolationPoint "1" --> "1..N" WorkOrderIsolation : bloqueado por
+User "1" *-- "1..N" UserRole : asociado a
+Role "1" *-- "1..N" UserRole : concedido a
+Role "1" *-- "0..N" RolePermission : contiene
+User "1" *-- "0..N" AuthToken : autenticado con
+User "1" *-- "0..N" WorkOrderAssignment : se le asigna
+WorkOrder "1" *-- "0..N" WorkOrderAssignment : asigna personal
+User "1" o-- "0..N" AuditLog : genera
 
 @enduml
