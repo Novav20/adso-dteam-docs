@@ -47,6 +47,9 @@ def generate_domain_puml():
                 parts = [p.strip() for p in line.split("|")[1:-1]]
                 if len(parts) >= 2:
                     cls_name = parts[0]
+                    # Fix manual mismatches between DM concepts and physical ERD entities
+                    if cls_name == "Permission":
+                        cls_name = "RolePermission"
                     stereotype = parts[1]
                     if cls_name not in classes:
                         classes[cls_name] = {"props": [], "methods": [], "schema": "Common", "stereotype": stereotype}
@@ -194,6 +197,11 @@ def generate_domain_puml():
     schemas_group = {}
     for c_name, data in classes.items():
         s = data["schema"]
+        
+        # Don't render phantom classes from DM docs that weren't physically mapped in ERD
+        if s == "Common" and len(data["props"]) == 0 and len(data["methods"]) == 0:
+            continue
+            
         if s not in schemas_group: schemas_group[s] = []
         schemas_group[s].append((c_name, data))
         

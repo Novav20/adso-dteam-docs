@@ -356,6 +356,12 @@ package "Seguridad y Gobernanza (ADM)" <<Folder>> #F0F0F0 {
         + RemovePermission(module: String, action: String): void
         + ValidateSoD(): void
     }
+    class RolePermission <<Value Object>> {
+        - Id: UUID
+        - RoleId: UUID
+        - Module: String
+        - Action: String
+    }
     class AuthToken <<Entity>> {
         - Id: UUID
         - UserId: UUID
@@ -388,20 +394,9 @@ package "Seguridad y Gobernanza (ADM)" <<Folder>> #F0F0F0 {
         --
         + VerifyIntegrity(): boolean
     }
-    class RolePermission <<Entity>> {
-        - Id: UUID
-        - RoleId: UUID
-        - Module: String
-        - Action: String
-    }
     class UserRole <<Entity>> {
         - UserId: UUID
         - RoleId: UUID
-    }
-}
-
-package "Common" <<Folder>> #F0F0F0 {
-    class Permission <<Value Object>> {
     }
 }
 
