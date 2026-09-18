@@ -103,24 +103,44 @@ Esta segregación permite:
 
 ## 4. Vocabulario Controlado
 
-### 4.1 EquipmentUnit.operationalStatus
+### 4.1 AuditLog.actionType
 
-| Valor     | Significado                                                       |
-| --------- | ----------------------------------------------------------------- |
-| UP      | El activo está en funcionamiento o listo en un sentido operativo. |
-| DOWN    | El activo no está disponible debido a una falla o interrupción.   |
-| STANDBY | El activo está listo pero no está produciendo activamente.        |
+| Valor    | Significado                                                | Norma / Concepto   |
+| -------- | ---------------------------------------------------------- | ------------------ |
+| CREATE | Registro inicial de un nuevo objeto en el sistema.         | Auditoría ISO 9001 |
+| UPDATE | Modificación de campos existentes (rastrea estado previo). | Auditoría ISO 9001 |
+| DELETE | Eliminación lógica o física de una entidad crítica.        | Auditoría ISO 9001 |
 
-### 4.2 EquipmentUnit.lifecycleStatus
+### 4.2 BacklogItem.status
 
-| Valor            | Significado                                                     |
-| ---------------- | --------------------------------------------------------------- |
+| Valor      | Significado                                                        | Norma / Concepto      |
+| ---------- | ------------------------------------------------------------------ | --------------------- |
+| PENDING  | En espera de análisis técnico o definición de materiales.          | Cola de planificación |
+| READY    | Planificado completamente y listo para ser calendarizado.          | Listo para programar  |
+| DEFERRED | Aplazado intencionalmente (falta de presupuesto o parada general). | Suspensión en cola    |
+
+### 4.3 EquipmentUnit.healthStatus
+
+| Valor                 | Significado                                               | Norma / Concepto              |
+| --------------------- | --------------------------------------------------------- | ----------------------------- |
+| UNDETERMINED        | Estado de salud desconocido.                              | ISO 13374-4 Health Assessment |
+| GOOD                | Todos los indicadores dentro de límites normales.         | ISO 13374-4 Health Assessment |
+| FAIR                | Algunas anomalías leves detectadas, sin riesgo inmediato. | ISO 13374-4 Health Assessment |
+| SERIOUS_BUT_STABLE  | Anomalías serias pero sin empeoramiento progresivo.       | ISO 13374-4 Health Assessment |
+| SERIOUS             | Anomalías serias en deterioro.                            | ISO 13374-4 Health Assessment |
+| CRITICAL_BUT_STABLE | Condición crítica que no empeora a corto plazo.           | ISO 13374-4 Health Assessment |
+| CRITICAL            | Falla inminente, intervención inmediata requerida.        | ISO 13374-4 Health Assessment |
+
+### 4.4 EquipmentUnit.lifecycleStatus
+
+| Valor          | Significado                                                     |
+| -------------- | --------------------------------------------------------------- |
 | IN_STORAGE     | El activo existe como inventario pero no está instalado.        |
 | INSTALLED      | El activo está instalado físicamente en su ubicación funcional. |
 | COMMISSIONING  | El activo está siendo puesto en servicio.                       |
 | DECOMMISSIONED | El activo ha sido retirado permanentemente del servicio.        |
 
-### 4.3 EquipmentUnit.maintenanceStatus
+### 4.5 EquipmentUnit.maintenanceStatus
 
 | Valor               | Significado                                                               |
 | ------------------- | ------------------------------------------------------------------------- |
@@ -128,22 +148,91 @@ Esta segregación permite:
 | UNDER_MAINTENANCE | El activo está siendo reparado o atendido activamente.                    |
 | UNDER_TEST        | El activo está bajo verificación o prueba funcional.                      |
 
-### 4.4 Vocabulario Controlado de Clase de Trabajo (Work Class RIME)
+### 4.6 EquipmentUnit.operationalStatus
 
-| Código (Peso) | Clase de Trabajo                           | Ejemplo Industrial                                                 |
-| ------------- | ------------------------------------------ | ------------------------------------------------------------------ |
-| 10            | Emergencia de Seguridad o Ambiental        | Fuga de hidrocarburos, falla de aislamiento de seguridad crítica.  |
-| 9             | Parada de Producción (Downtime Directo)    | Falla funcional catastrófica en un activo crítico (Bomba Nivel 6). |
-| 8             | Trabajo de Alta Prioridad de Proceso       | Degradación de rendimiento con riesgo inminente de detención.      |
-| 7             | Mantenimiento Preventivo (PM) Regulado     | Calibraciones de seguridad instrumentada exigidas por ley.         |
-| 6             | Mantenimiento Preventivo Sistemático       | Planes cíclicos calendario o por telemetría.                       |
-| 5             | Mantenimiento Predictivo (Análisis / Ruta) | Inspección de vibraciones, termografía planificada.                |
-| 4             | Trabajo Correctivo No Crítico              | Reparación de fallas con redundancia activa en el sistema.         |
-| 3             | Modificaciones de Ingeniería (Mejoras)     | Proyectos de optimización CAPEX (No urgentes).                     |
-| 2             | Trabajos Estéticos / Orden y Aseo          | Pintura de estructuras, barandas, limpieza general.                |
-| 1             | Trabajo por Conveniencia Operativa         | Ajustes menores de confort o soporte administrativo.               |
+| Valor     | Significado                                                       |
+| --------- | ----------------------------------------------------------------- |
+| UP      | El activo está en funcionamiento o listo en un sentido operativo. |
+| DOWN    | El activo no está disponible debido a una falla o interrupción.   |
+| STANDBY | El activo está listo pero no está produciendo activamente.        |
 
-### 4.5 MaintenancePlan.frequencyType
+### 4.7 FailureRecord.detectionMethod
+
+| Valor                     | Significado                                                                             | Norma de Referencia      |
+| ------------------------- | --------------------------------------------------------------------------------------- | ------------------------ |
+| PERIODIC_MAINTENANCE    | Descubierto durante actividades programadas del plan preventivo.                        | ISO 14224:2016 Tabla B.4 |
+| FUNCTIONAL_TESTING      | Descubierto al activar una función y comparar contra estándar.                          | ISO 14224:2016 Tabla B.4 |
+| INSPECTION              | Descubierto durante inspección visual planificada o ensayos NDT.                        | ISO 14224:2016 Tabla B.4 |
+| PERIODIC_CBM            | Revelado durante rondas de medición programadas (vibración, termografía offline).       | ISO 14224:2016 Tabla B.4 |
+| PRESSURE_TESTING        | Observado específicamente durante ensayo de presión.                                    | ISO 14224:2016 Tabla B.4 |
+| CONTINUOUS_CBM          | Revelado por alarmas o lecturas de instrumentos en línea (SCADA).                       | ISO 14224:2016 Tabla B.4 |
+| PRODUCTION_INTERFERENCE | Descubierto por interrupción o reducción inesperada de producción.                      | ISO 14224:2016 Tabla B.4 |
+| CASUAL_OBSERVATION      | Descubierto por los sentidos (ruido, olor, fuga) en rutinas normales.                   | ISO 14224:2016 Tabla B.4 |
+| CORRECTIVE_MAINTENANCE  | Observado mientras se reparaba otra falla distinta.                                     | ISO 14224:2016 Tabla B.4 |
+| ON_DEMAND               | Descubierto durante un intento real de activación (ej. falla de cierre de válvula ESD). | ISO 14224:2016 Tabla B.4 |
+| OTHER                   | Otro método de detección no clasificado.                                                | ISO 14224:2016 Tabla B.4 |
+
+### 4.8 FailureRecord.operationalCondition
+
+| Valor          | Significado                                                | Norma de Referencia    |
+| -------------- | ---------------------------------------------------------- | ---------------------- |
+| RUNNING      | En operación normal de proceso al momento del evento.      | ISO 14224:2016 Tabla 6 |
+| START_UP     | Ocurrido durante el proceso de puesta en marcha.           | ISO 14224:2016 Tabla 6 |
+| RUN_DOWN     | Ocurrido durante el proceso de parada/salida de servicio.  | ISO 14224:2016 Tabla 6 |
+| HOT_STANDBY  | En reserva activa (listo para operar de inmediato).        | ISO 14224:2016 Tabla 6 |
+| COLD_STANDBY | En reserva pasiva (requiere acciones previas para operar). | ISO 14224:2016 Tabla 6 |
+| IDLE         | Disponible pero no requerido por el proceso.               | ISO 14224:2016 Tabla 6 |
+| TESTING      | Ocurrido durante la ejecución de una prueba funcional.     | ISO 14224:2016 Tabla 6 |
+
+### 4.9 FailureRecord.operationalImpact
+
+| Valor                   | Significado                                                     | Norma de Referencia      |
+| ----------------------- | --------------------------------------------------------------- | ------------------------ |
+| EXTENSIVE_STOP        | Parada extensa catastrófica de la producción o instalación.     | ISO 14224:2016 Tabla C.2 |
+| STOP_ABOVE_ACCEPTABLE | Parada de producción por encima del límite aceptable de planta. | ISO 14224:2016 Tabla C.2 |
+| STOP_BELOW_ACCEPTABLE | Parada de producción por debajo del límite aceptable.           | ISO 14224:2016 Tabla C.2 |
+| STOP_MINOR            | Impacto de producción menor o despreciable.                     | ISO 14224:2016 Tabla C.2 |
+
+### 4.10 FunctionalLocation.environmentalExposure
+
+| Valor      | Significado                                                                                 | Norma de Referencia       |
+| ---------- | ------------------------------------------------------------------------------------------- | ------------------------- |
+| SEVERE   | Instalaciones no cerradas o a la intemperie; expuestas a vibración, calor, polvo o salitre. | ISO 14224:2016 Tabla A.70 |
+| MODERATE | Instalaciones parcialmente cerradas o moderadamente expuestas; ventilación natural.         | ISO 14224:2016 Tabla A.70 |
+| LOW      | Instalaciones cerradas o en interiores (indoor); exposición mínima; ventilación mecánica.   | ISO 14224:2016 Tabla A.70 |
+| UNKNOWN  | No se dispone de información sobre la exposición ambiental.                                 | ISO 14224:2016 Tabla A.70 |
+
+### 4.11 InventoryTransaction.transactionType
+
+| Valor        | Significado                                                 | Norma / Concepto           |
+| ------------ | ----------------------------------------------------------- | -------------------------- |
+| RECEIPT    | Entrada de inventario (compra, devolución, transferencia).  | Ingesta de Stock           |
+| ISSUE      | Salida de inventario (consumo en Orden de Trabajo).         | Carga a Costos de OT       |
+| ADJUSTMENT | Ajuste manual/automático por discrepancia en conteo físico. | Conciliación de Inventario |
+
+### 4.12 IsolationPoint.isolationType
+
+| Valor           | Significado                                                 | Norma / Concepto       |
+| --------------- | ----------------------------------------------------------- | ---------------------- |
+| ELECTRICAL    | Apertura de disyuntores, breakers o desconexión física.     | LOTO Eléctrico (OSHA)  |
+| MECHANICAL    | Bloqueos mecánicos, pasadores o trabas físicas.             | LOTO Mecánico          |
+| PNEUMATIC     | Purga y bloqueo de líneas de aire o gases comprimidos.      | LOTO Neumático         |
+| HYDRAULIC     | Cierre de válvulas de fluido y purga de acumuladores.       | LOTO Hidráulico        |
+| CHEMICAL      | Cierre de doble válvula y purga (Double Block and Bleed).   | LOTO Químico / Proceso |
+| THERMAL       | Aislamiento térmico de superficies calientes o criogénicas. | LOTO Térmico           |
+| GRAVITATIONAL | Bloques físicos para prevenir caída de masas suspendidas.   | LOTO de Gravedad       |
+
+### 4.13 MaintainableItem.status
+
+| Valor          | Significado                                                                               | Norma de Referencia                             |
+| -------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| OPERATIONAL  | Saludable y operando dentro de los parámetros de diseño.                                  | ISO 13374 (Normal)                              |
+| DEGRADED     | Falla parcial o advertencia de condición; requiere monitoreo o intervención planificada.  | ISO 14224 (Partial Failure) / ISO 13374 (Alert) |
+| FAILED       | Falla funcional completa; el ítem ya no puede realizar su función requerida.              | ISO 14224 (Complete Failure)                    |
+| UNDER_REPAIR | El componente está siendo mantenido, reparado o reemplazado activamente.                  | Estado transaccional EAM                        |
+| REPLACED     | Fin del ciclo de vida del componente en esa ubicación; conservado para historial de MTBF. | Historial de Confiabilidad                      |
+
+### 4.14 MaintenancePlan.frequencyType
 
 | Valor             | Significado                                                      |
 | ----------------- | ---------------------------------------------------------------- |
@@ -151,7 +240,79 @@ Esta segregación permite:
 | OPERATING_HOURS | El plan es impulsado por las horas de funcionamiento acumuladas. |
 | CYCLES          | El plan es impulsado por ciclos o arranques.                     |
 
-### 4.6 TelemetrySignal.signalType
+### 4.15 MaintenancePlan.maintenanceMethod
+
+| Valor             | Significado                                                         | Norma / Concepto            |
+| ----------------- | ------------------------------------------------------------------- | --------------------------- |
+| PREVENTIVE      | Mantenimiento preventivo sistemático (basado en tiempo/uso).        | ISO 14224 (Preventative)    |
+| PREDICTIVE      | Monitoreo predictivo (análisis de vibraciones, termografía, etc.).  | ISO 14224 (Condition-based) |
+| CONDITION_BASED | Acciones directas disparadas por límites de sensores en telemetría. | ISO 13374 / CBM             |
+
+### 4.16 MaintenancePlan.requiredSpecialty
+
+| Valor                         | Significado                                                              | Referencia / Marco                       |
+| ----------------------------- | ------------------------------------------------------------------------ | ---------------------------------------- |
+| MECHANICAL                  | Intervenciones mecánicas, ajuste de transmisión, alineación y bombas.    | Vocabulario Interno (Prácticas SMRP)     |
+| ELECTRICAL                  | Sistemas de potencia, motores eléctricos, tableros y subestaciones.      | Vocabulario Interno (Prácticas SMRP)     |
+| INSTRUMENTATION_AND_CONTROL | Calibración de instrumentos, lazos de control y automatización/PLCs.     | Vocabulario Interno (Prácticas SMRP)     |
+| LUBRICATION                 | Rutas de lubricación, cambio de aceites y engrase especializado.         | Vocabulario Interno (ISO 18436-4 / SMRP) |
+| CONDITION_MONITORING        | Rutas de monitoreo predictivo (vibraciones, termografía, ultrasonido).   | Vocabulario Interno (ISO 18436-2 / SMRP) |
+| ELECTRONICS                 | Tarjetas electrónicas, variadores de frecuencia y componentes digitales. | Vocabulario Interno (Prácticas SMRP)     |
+| WELDING_FABRICATION         | Soldadura, pailería, calderería y reparaciones estructurales.            | Vocabulario Interno (Prácticas SMRP)     |
+| FACILITIES                  | Infraestructura civil, estructuras, iluminación y servicios generales.   | Vocabulario Interno (Prácticas EAM)      |
+
+### 4.17 MaintenancePlan.status
+
+| Valor      | Significado                                                     | Norma / Concepto        |
+| ---------- | --------------------------------------------------------------- | ----------------------- |
+| DRAFT    | Plan en fase de diseño o revisión técnica, inactivo.            | Control documental      |
+| ACTIVE   | Activo y disparando órdenes de trabajo según su ciclo.          | Operativo               |
+| INACTIVE | Desactivado temporalmente por parada o cambio operativo.        | Suspensión de ciclos    |
+| ARCHIVED | Obsoleto o reemplazado; conservado para historial de auditoría. | ISO 55001 Ciclo de Vida |
+
+### 4.18 MediaAttachment.fileType
+
+| Valor | Significado                                               |
+| ----- | --------------------------------------------------------- |
+| PDF | Portable Document Format (Formato de Documento Portátil). |
+| JPG | Archivo de imagen JPEG.                                   |
+| PNG | Archivo de imagen Portable Network Graphics.              |
+
+### 4.19 MeshMapping.mappingStatus
+
+| Valor        | Significado                                                                 | Norma / Concepto        |
+| ------------ | --------------------------------------------------------------------------- | ----------------------- |
+| MAPPED     | El activo está correctamente vinculado a su representación 3D en el gemelo. | Vinculación Digital     |
+| UNMAPPED   | Falta cargar o posicionar la malla 3D del activo.                           | Gemelo Incompleto       |
+| SYNC_ERROR | Error de consistencia o carga entre el motor gráfico y la DB.               | Error de Sincronización |
+
+### 4.20 RolePermission.module
+
+| Valor         | Significado                                          | Norma / Concepto         |
+| ------------- | ---------------------------------------------------- | ------------------------ |
+| ASSETS      | Gestión de taxonomía, equipos y planes.              | Dominio de Activos       |
+| MAINTENANCE | Gestión de solicitudes, backlog e historial.         | Dominio de Mantenimiento |
+| INVENTORY   | Gestión de repuestos, almacenes y movimientos.       | Dominio de Inventario    |
+| SAFETY      | Gestión de telemetría, permisos LOTO y aislamientos. | Dominio de Seguridad     |
+| SYSTEM      | Gobernanza, usuarios, roles y logs de auditoría.     | Dominio IAM              |
+
+### 4.21 SparePart.status
+
+| Valor       | Significado                                                               | Norma / Concepto        |
+| ----------- | ------------------------------------------------------------------------- | ----------------------- |
+| ACTIVE    | Activo y disponible para consumo y compras.                               | Gestión de Stock        |
+| OBSOLETE  | Obsoleto, no se permite nueva compra (se mantiene para historial).        | ISO 55001 Ciclo de Vida |
+| SUSPENDED | Temporalmente bloqueado por control de calidad o problemas del proveedor. | Control de Calidad      |
+
+### 4.22 SparePart.stockPolicy
+
+| Valor           | Significado                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
+| REORDER_POINT | Reabastecer cuando el inventario alcance un umbral de activación (trigger). |
+| MIN_MAX       | Mantener el stock entre niveles mínimo y máximo.                            |
+| JUST_IN_TIME  | Reabastecer solo cuando se espere demanda.                                  |
+
+### 4.23 TelemetrySignal.signalType
 
 | Valor         | Significado                           | Norma / Concepto        |
 | ------------- | ------------------------------------- | ----------------------- |
@@ -162,7 +323,15 @@ Esta segregación permite:
 | VOLTAGE     | Medición de tensión eléctrica.        | Sensor de Tensión       |
 | RPM         | Medición de velocidad angular.        | Tacómetro               |
 
-### 4.7 VisualLayer.status
+### 4.24 User.status
+
+| Valor      | Significado                                                           | Norma / Concepto           |
+| ---------- | --------------------------------------------------------------------- | -------------------------- |
+| ACTIVE   | Cuenta activa y autorizada para interactuar con la plataforma.        | Ciclo de Vida de Cuenta    |
+| INACTIVE | Cuenta desactivada temporal o permanentemente (historial preservado). | Ciclo de Vida de Cuenta    |
+| LOCKED   | Bloqueada automáticamente tras exceder intentos fallidos de login.    | Mitigación de Fuerza Bruta |
+
+### 4.25 VisualLayer.status
 
 | Valor     | Significado                                             | Norma / Concepto   |
 | --------- | ------------------------------------------------------- | ------------------ |
@@ -170,68 +339,16 @@ Esta segregación permite:
 | HIDDEN  | Capa oculta temporalmente.                              | Estado Renderizado |
 | GHOSTED | Capa visible con transparencia para revelar interiores. | Estado Renderizado |
 
-### 4.8 RolePermission.module
+### 4.26 WorkOrder.criticality
 
-| Valor         | Significado                                          | Norma / Concepto         |
-| ------------- | ---------------------------------------------------- | ------------------------ |
-| ASSETS      | Gestión de taxonomía, equipos y planes.              | Dominio de Activos       |
-| MAINTENANCE | Gestión de solicitudes, backlog e historial.         | Dominio de Mantenimiento |
-| INVENTORY   | Gestión de repuestos, almacenes y movimientos.       | Dominio de Inventario    |
-| SAFETY      | Gestión de telemetría, permisos LOTO y aislamientos. | Dominio de Seguridad     |
-| SYSTEM      | Gobernanza, usuarios, roles y logs de auditoría.     | Dominio IAM              |
+| Valor       | Significado                                                           | Norma / Concepto  |
+| ----------- | --------------------------------------------------------------------- | ----------------- |
+| EMERGENCY | Detención total de planta, riesgo de seguridad o ambiental inminente. | Criticidad Máxima |
+| URGENT    | Falla con impacto operativo inmediato; reparar en menos de 24-48h.    | Prioridad Alta    |
+| NORMAL    | Planificable dentro de los ciclos y ventanas semanales.               | Prioridad Media   |
+| LOW       | Tareas estéticas o menores de conveniencia operativa.                 | Prioridad Baja    |
 
-### 4.9 SparePart.stockPolicy
-
-| Valor           | Significado                                                                 |
-| --------------- | --------------------------------------------------------------------------- |
-| REORDER_POINT | Reabastecer cuando el inventario alcance un umbral de activación (trigger). |
-| MIN_MAX       | Mantener el stock entre niveles mínimo y máximo.                            |
-| JUST_IN_TIME  | Reabastecer solo cuando se espere demanda.                                  |
-
-### 4.10 MediaAttachment.fileType
-
-| Valor | Significado                                               |
-| ----- | --------------------------------------------------------- |
-| PDF | Portable Document Format (Formato de Documento Portátil). |
-| JPG | Archivo de imagen JPEG.                                   |
-| PNG | Archivo de imagen Portable Network Graphics.              |
-
-### 4.11 MaintainableItem.status
-
-| Valor          | Significado                                                                               | Norma de Referencia                             |
-| -------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| OPERATIONAL  | Saludable y operando dentro de los parámetros de diseño.                                  | ISO 13374 (Normal)                              |
-| DEGRADED     | Falla parcial o advertencia de condición; requiere monitoreo o intervención planificada.  | ISO 14224 (Partial Failure) / ISO 13374 (Alert) |
-| FAILED       | Falla funcional completa; el ítem ya no puede realizar su función requerida.              | ISO 14224 (Complete Failure)                    |
-| UNDER_REPAIR | El componente está siendo mantenido, reparado o reemplazado activamente.                  | Estado transaccional EAM                        |
-| REPLACED     | Fin del ciclo de vida del componente en esa ubicación; conservado para historial de MTBF. | Historial de Confiabilidad                      |
-
-### 4.12 WorkRequest.status
-
-| Valor      | Significado                                            | Norma / Concepto                 |
-| ---------- | ------------------------------------------------------ | -------------------------------- |
-| NEW      | Solicitud recién creada y pendiente de evaluación.     | Admisión básica de CMMS          |
-| APPROVED | Aprobada y promovida a Orden de Trabajo (WorkOrder). | Transición a planificación       |
-| REJECTED | Rechazada por ser inválida, duplicada o falsa alarma.  | Trazabilidad de falsos positivos |
-
-### 4.13 MaintenancePlan.status
-
-| Valor      | Significado                                                     | Norma / Concepto        |
-| ---------- | --------------------------------------------------------------- | ----------------------- |
-| DRAFT    | Plan en fase de diseño o revisión técnica, inactivo.            | Control documental      |
-| ACTIVE   | Activo y disparando órdenes de trabajo según su ciclo.          | Operativo               |
-| INACTIVE | Desactivado temporalmente por parada o cambio operativo.        | Suspensión de ciclos    |
-| ARCHIVED | Obsoleto o reemplazado; conservado para historial de auditoría. | ISO 55001 Ciclo de Vida |
-
-### 4.14 MaintenancePlan.maintenanceMethod
-
-| Valor             | Significado                                                         | Norma / Concepto            |
-| ----------------- | ------------------------------------------------------------------- | --------------------------- |
-| PREVENTIVE      | Mantenimiento preventivo sistemático (basado en tiempo/uso).        | ISO 14224 (Preventative)    |
-| PREDICTIVE      | Monitoreo predictivo (análisis de vibraciones, termografía, etc.).  | ISO 14224 (Condition-based) |
-| CONDITION_BASED | Acciones directas disparadas por límites de sensores en telemetría. | ISO 13374 / CBM             |
-
-### 4.15 WorkOrder.currentStatus
+### 4.27 WorkOrder.currentStatus
 
 | Valor           | Significado                                                    | Norma / Concepto                  |
 | --------------- | -------------------------------------------------------------- | --------------------------------- |
@@ -248,7 +365,7 @@ Esta segregación permite:
   1.  **Permiso de Trabajo (WorkPermit):** Debe existir un permiso de trabajo asociado y su estado (status) debe ser estrictamente APPROVED.
   2.  **Bloqueo y Etiquetado (LOTO):** Todos los puntos de aislamiento declarados para la orden de trabajo en la tabla intermedia work_order_isolations deben tener su estado de bloqueo verificado (is_isolated = TRUE e isolated_at no nulo).
 
-### 4.16 WorkOrder.maintenanceMethod
+### 4.28 WorkOrder.maintenanceMethod
 
 | Valor         | Significado                                                | Norma / Concepto                |
 | ------------- | ---------------------------------------------------------- | ------------------------------- |
@@ -257,48 +374,15 @@ Esta segregación permite:
 | PREDICTIVE  | Monitoreo o inspección predictiva programada.              | ISO 14224 (Condition-based)     |
 | IMPROVEMENT | Modificación, rediseño o mejora técnica (CAPEX/OPEX).      | Gestión de Cambios / Ingeniería |
 
-### 4.17 WorkOrder.criticality
+### 4.29 WorkOrderAssignment.roleInWork
 
-| Valor       | Significado                                                           | Norma / Concepto  |
-| ----------- | --------------------------------------------------------------------- | ----------------- |
-| EMERGENCY | Detención total de planta, riesgo de seguridad o ambiental inminente. | Criticidad Máxima |
-| URGENT    | Falla con impacto operativo inmediato; reparar en menos de 24-48h.    | Prioridad Alta    |
-| NORMAL    | Planificable dentro de los ciclos y ventanas semanales.               | Prioridad Media   |
-| LOW       | Tareas estéticas o menores de conveniencia operativa.                 | Prioridad Baja    |
+| Valor        | Significado                                                   | Norma / Concepto            |
+| ------------ | ------------------------------------------------------------- | --------------------------- |
+| TECHNICIAN | Técnico ejecutor que realiza la labor y registra wrench time. | Ejecución Técnica           |
+| SUPERVISOR | Supervisor que firma el cierre técnico y aprueba LOTO.        | Responsable de Línea        |
+| PLANNER    | Planificador que diseña la orden, asigna repuestos y tiempos. | Ingeniería de Mantenimiento |
 
-### 4.18 BacklogItem.status
-
-| Valor      | Significado                                                        | Norma / Concepto      |
-| ---------- | ------------------------------------------------------------------ | --------------------- |
-| PENDING  | En espera de análisis técnico o definición de materiales.          | Cola de planificación |
-| READY    | Planificado completamente y listo para ser calendarizado.          | Listo para programar  |
-| DEFERRED | Aplazado intencionalmente (falta de presupuesto o parada general). | Suspensión en cola    |
-
-### 4.19 SparePart.status
-
-| Valor       | Significado                                                               | Norma / Concepto        |
-| ----------- | ------------------------------------------------------------------------- | ----------------------- |
-| ACTIVE    | Activo y disponible para consumo y compras.                               | Gestión de Stock        |
-| OBSOLETE  | Obsoleto, no se permite nueva compra (se mantiene para historial).        | ISO 55001 Ciclo de Vida |
-| SUSPENDED | Temporalmente bloqueado por control de calidad o problemas del proveedor. | Control de Calidad      |
-
-### 4.20 InventoryTransaction.transactionType
-
-| Valor        | Significado                                                 | Norma / Concepto           |
-| ------------ | ----------------------------------------------------------- | -------------------------- |
-| RECEIPT    | Entrada de inventario (compra, devolución, transferencia).  | Ingesta de Stock           |
-| ISSUE      | Salida de inventario (consumo en Orden de Trabajo).         | Carga a Costos de OT       |
-| ADJUSTMENT | Ajuste manual/automático por discrepancia en conteo físico. | Conciliación de Inventario |
-
-### 4.21 MeshMapping.mappingStatus
-
-| Valor        | Significado                                                                 | Norma / Concepto        |
-| ------------ | --------------------------------------------------------------------------- | ----------------------- |
-| MAPPED     | El activo está correctamente vinculado a su representación 3D en el gemelo. | Vinculación Digital     |
-| UNMAPPED   | Falta cargar o posicionar la malla 3D del activo.                           | Gemelo Incompleto       |
-| SYNC_ERROR | Error de consistencia o carga entre el motor gráfico y la DB.               | Error de Sincronización |
-
-### 4.22 WorkPermit.permitType
+### 4.30 WorkPermit.permitType
 
 | Valor            | Significado                                                          | Norma / Concepto                |
 | ---------------- | -------------------------------------------------------------------- | ------------------------------- |
@@ -310,7 +394,7 @@ Esta segregación permite:
 | EXCAVATION     | Excavaciones, zanjas o movimientos de tierra profundos.              | Excavación (OSHA)               |
 | CHEMICAL       | Manejo o exposición a químicos peligrosos o gases nocivos.           | Riesgo Químico                  |
 
-### 4.23 WorkPermit.status
+### 4.31 WorkPermit.status
 
 | Valor      | Significado                                                          | Norma / Concepto             |
 | ---------- | -------------------------------------------------------------------- | ---------------------------- |
@@ -321,112 +405,28 @@ Esta segregación permite:
 | REVOKED  | Cancelado inmediatamente por condiciones inseguras en campo.         | Intervención de Emergencia   |
 | CLOSED   | Finalizado formalmente tras concluir la intervención y retirar LOTO. | Cierre de Operación          |
 
-### 4.24 IsolationPoint.isolationType
+### 4.32 WorkRequest.status
 
-| Valor           | Significado                                                 | Norma / Concepto       |
-| --------------- | ----------------------------------------------------------- | ---------------------- |
-| ELECTRICAL    | Apertura de disyuntores, breakers o desconexión física.     | LOTO Eléctrico (OSHA)  |
-| MECHANICAL    | Bloqueos mecánicos, pasadores o trabas físicas.             | LOTO Mecánico          |
-| PNEUMATIC     | Purga y bloqueo de líneas de aire o gases comprimidos.      | LOTO Neumático         |
-| HYDRAULIC     | Cierre de válvulas de fluido y purga de acumuladores.       | LOTO Hidráulico        |
-| CHEMICAL      | Cierre de doble válvula y purga (Double Block and Bleed).   | LOTO Químico / Proceso |
-| THERMAL       | Aislamiento térmico de superficies calientes o criogénicas. | LOTO Térmico           |
-| GRAVITATIONAL | Bloques físicos para prevenir caída de masas suspendidas.   | LOTO de Gravedad       |
+| Valor      | Significado                                            | Norma / Concepto                 |
+| ---------- | ------------------------------------------------------ | -------------------------------- |
+| NEW      | Solicitud recién creada y pendiente de evaluación.     | Admisión básica de CMMS          |
+| APPROVED | Aprobada y promovida a Orden de Trabajo (WorkOrder). | Transición a planificación       |
+| REJECTED | Rechazada por ser inválida, duplicada o falsa alarma.  | Trazabilidad de falsos positivos |
 
-### 4.25 User.status
+### 4.33 WorkRequest.workClassCode (Work Class RIME)
 
-| Valor      | Significado                                                           | Norma / Concepto           |
-| ---------- | --------------------------------------------------------------------- | -------------------------- |
-| ACTIVE   | Cuenta activa y autorizada para interactuar con la plataforma.        | Ciclo de Vida de Cuenta    |
-| INACTIVE | Cuenta desactivada temporal o permanentemente (historial preservado). | Ciclo de Vida de Cuenta    |
-| LOCKED   | Bloqueada automáticamente tras exceder intentos fallidos de login.    | Mitigación de Fuerza Bruta |
-
-### 4.26 WorkOrderAssignment.roleInWork
-
-| Valor        | Significado                                                   | Norma / Concepto            |
-| ------------ | ------------------------------------------------------------- | --------------------------- |
-| TECHNICIAN | Técnico ejecutor que realiza la labor y registra wrench time. | Ejecución Técnica           |
-| SUPERVISOR | Supervisor que firma el cierre técnico y aprueba LOTO.        | Responsable de Línea        |
-| PLANNER    | Planificador que diseña la orden, asigna repuestos y tiempos. | Ingeniería de Mantenimiento |
-
-### 4.27 AuditLog.actionType
-
-| Valor    | Significado                                                | Norma / Concepto   |
-| -------- | ---------------------------------------------------------- | ------------------ |
-| CREATE | Registro inicial de un nuevo objeto en el sistema.         | Auditoría ISO 9001 |
-| UPDATE | Modificación de campos existentes (rastrea estado previo). | Auditoría ISO 9001 |
-| DELETE | Eliminación lógica o física de una entidad crítica.        | Auditoría ISO 9001 |
-
-### 4.28 EquipmentUnit.healthStatus
-
-| Valor                 | Significado                                               | Norma / Concepto              |
-| --------------------- | --------------------------------------------------------- | ----------------------------- |
-| UNDETERMINED        | Estado de salud desconocido.                              | ISO 13374-4 Health Assessment |
-| GOOD                | Todos los indicadores dentro de límites normales.         | ISO 13374-4 Health Assessment |
-| FAIR                | Algunas anomalías leves detectadas, sin riesgo inmediato. | ISO 13374-4 Health Assessment |
-| SERIOUS_BUT_STABLE  | Anomalías serias pero sin empeoramiento progresivo.       | ISO 13374-4 Health Assessment |
-| SERIOUS             | Anomalías serias en deterioro.                            | ISO 13374-4 Health Assessment |
-| CRITICAL_BUT_STABLE | Condición crítica que no empeora a corto plazo.           | ISO 13374-4 Health Assessment |
-| CRITICAL            | Falla inminente, intervención inmediata requerida.        | ISO 13374-4 Health Assessment |
-
-### 4.29 FunctionalLocation.environmentalExposure
-
-| Valor      | Significado                                                                                 | Norma de Referencia       |
-| ---------- | ------------------------------------------------------------------------------------------- | ------------------------- |
-| SEVERE   | Instalaciones no cerradas o a la intemperie; expuestas a vibración, calor, polvo o salitre. | ISO 14224:2016 Tabla A.70 |
-| MODERATE | Instalaciones parcialmente cerradas o moderadamente expuestas; ventilación natural.         | ISO 14224:2016 Tabla A.70 |
-| LOW      | Instalaciones cerradas o en interiores (indoor); exposición mínima; ventilación mecánica.   | ISO 14224:2016 Tabla A.70 |
-| UNKNOWN  | No se dispone de información sobre la exposición ambiental.                                 | ISO 14224:2016 Tabla A.70 |
-
-### 4.30 FailureRecord.detectionMethod
-
-| Valor                     | Significado                                                                             | Norma de Referencia      |
-| ------------------------- | --------------------------------------------------------------------------------------- | ------------------------ |
-| PERIODIC_MAINTENANCE    | Descubierto durante actividades programadas del plan preventivo.                        | ISO 14224:2016 Tabla B.4 |
-| FUNCTIONAL_TESTING      | Descubierto al activar una función y comparar contra estándar.                          | ISO 14224:2016 Tabla B.4 |
-| INSPECTION              | Descubierto durante inspección visual planificada o ensayos NDT.                        | ISO 14224:2016 Tabla B.4 |
-| PERIODIC_CBM            | Revelado durante rondas de medición programadas (vibración, termografía offline).       | ISO 14224:2016 Tabla B.4 |
-| PRESSURE_TESTING        | Observado específicamente durante ensayo de presión.                                    | ISO 14224:2016 Tabla B.4 |
-| CONTINUOUS_CBM          | Revelado por alarmas o lecturas de instrumentos en línea (SCADA).                       | ISO 14224:2016 Tabla B.4 |
-| PRODUCTION_INTERFERENCE | Descubierto por interrupción o reducción inesperada de producción.                      | ISO 14224:2016 Tabla B.4 |
-| CASUAL_OBSERVATION      | Descubierto por los sentidos (ruido, olor, fuga) en rutinas normales.                   | ISO 14224:2016 Tabla B.4 |
-| CORRECTIVE_MAINTENANCE  | Observado mientras se reparaba otra falla distinta.                                     | ISO 14224:2016 Tabla B.4 |
-| ON_DEMAND               | Descubierto durante un intento real de activación (ej. falla de cierre de válvula ESD). | ISO 14224:2016 Tabla B.4 |
-| OTHER                   | Otro método de detección no clasificado.                                                | ISO 14224:2016 Tabla B.4 |
-
-### 4.31 FailureRecord.operationalCondition
-
-| Valor          | Significado                                                | Norma de Referencia    |
-| -------------- | ---------------------------------------------------------- | ---------------------- |
-| RUNNING      | En operación normal de proceso al momento del evento.      | ISO 14224:2016 Tabla 6 |
-| START_UP     | Ocurrido durante el proceso de puesta en marcha.           | ISO 14224:2016 Tabla 6 |
-| RUN_DOWN     | Ocurrido durante el proceso de parada/salida de servicio.  | ISO 14224:2016 Tabla 6 |
-| HOT_STANDBY  | En reserva activa (listo para operar de inmediato).        | ISO 14224:2016 Tabla 6 |
-| COLD_STANDBY | En reserva pasiva (requiere acciones previas para operar). | ISO 14224:2016 Tabla 6 |
-| IDLE         | Disponible pero no requerido por el proceso.               | ISO 14224:2016 Tabla 6 |
-| TESTING      | Ocurrido durante la ejecución de una prueba funcional.     | ISO 14224:2016 Tabla 6 |
-
-### 4.32 FailureRecord.operationalImpact
-
-| Valor                   | Significado                                                     | Norma de Referencia      |
-| ----------------------- | --------------------------------------------------------------- | ------------------------ |
-| EXTENSIVE_STOP        | Parada extensa catastrófica de la producción o instalación.     | ISO 14224:2016 Tabla C.2 |
-| STOP_ABOVE_ACCEPTABLE | Parada de producción por encima del límite aceptable de planta. | ISO 14224:2016 Tabla C.2 |
-| STOP_BELOW_ACCEPTABLE | Parada de producción por debajo del límite aceptable.           | ISO 14224:2016 Tabla C.2 |
-| STOP_MINOR            | Impacto de producción menor o despreciable.                     | ISO 14224:2016 Tabla C.2 |
-
-### 4.33 MaintenancePlan.requiredSpecialty
-
-| Valor                         | Significado                                                              | Referencia / Marco                       |
-| ----------------------------- | ------------------------------------------------------------------------ | ---------------------------------------- |
-| MECHANICAL                  | Intervenciones mecánicas, ajuste de transmisión, alineación y bombas.    | Vocabulario Interno (Prácticas SMRP)     |
-| ELECTRICAL                  | Sistemas de potencia, motores eléctricos, tableros y subestaciones.      | Vocabulario Interno (Prácticas SMRP)     |
-| INSTRUMENTATION_AND_CONTROL | Calibración de instrumentos, lazos de control y automatización/PLCs.     | Vocabulario Interno (Prácticas SMRP)     |
-| LUBRICATION                 | Rutas de lubricación, cambio de aceites y engrase especializado.         | Vocabulario Interno (ISO 18436-4 / SMRP) |
-| CONDITION_MONITORING        | Rutas de monitoreo predictivo (vibraciones, termografía, ultrasonido).   | Vocabulario Interno (ISO 18436-2 / SMRP) |
-| ELECTRONICS                 | Tarjetas electrónicas, variadores de frecuencia y componentes digitales. | Vocabulario Interno (Prácticas SMRP)     |
-| WELDING_FABRICATION         | Soldadura, pailería, calderería y reparaciones estructurales.            | Vocabulario Interno (Prácticas SMRP)     |
-| FACILITIES                  | Infraestructura civil, estructuras, iluminación y servicios generales.   | Vocabulario Interno (Prácticas EAM)      |
+| Código (Peso) | Clase de Trabajo                           | Ejemplo Industrial                                                 |
+| ------------- | ------------------------------------------ | ------------------------------------------------------------------ |
+| 10            | Emergencia de Seguridad o Ambiental        | Fuga de hidrocarburos, falla de aislamiento de seguridad crítica.  |
+| 9             | Parada de Producción (Downtime Directo)    | Falla funcional catastrófica en un activo crítico (Bomba Nivel 6). |
+| 8             | Trabajo de Alta Prioridad de Proceso       | Degradación de rendimiento con riesgo inminente de detención.      |
+| 7             | Mantenimiento Preventivo (PM) Regulado     | Calibraciones de seguridad instrumentada exigidas por ley.         |
+| 6             | Mantenimiento Preventivo Sistemático       | Planes cíclicos calendario o por telemetría.                       |
+| 5             | Mantenimiento Predictivo (Análisis / Ruta) | Inspección de vibraciones, termografía planificada.                |
+| 4             | Trabajo Correctivo No Crítico              | Reparación de fallas con redundancia activa en el sistema.         |
+| 3             | Modificaciones de Ingeniería (Mejoras)     | Proyectos de optimización CAPEX (No urgentes).                     |
+| 2             | Trabajos Estéticos / Orden y Aseo          | Pintura de estructuras, barandas, limpieza general.                |
+| 1             | Trabajo por Conveniencia Operativa         | Ajustes menores de confort o soporte administrativo.               |
 
 ## 5. Mapeo Físico y Diccionario de Datos
 
