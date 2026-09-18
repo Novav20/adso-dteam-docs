@@ -62,10 +62,10 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | surveillance_hours | BIGINT | NOT NULL |  | Tiempo de vigilancia/standby para cálculo preciso de fallas (ISO 14224). |
 | disposal_date | DATE | NULL |  | Registro de fin de vida para trazabilidad de pasivos (ISO 55000). |
 | disposal_reason | VARCHAR(255) | NULL |  | Razón del retiro o desmantelamiento del activo. |
-| operational_status | VARCHAR(20) | NOT NULL |  | Vocabulario de estado operativo controlado. |
-| lifecycle_status | VARCHAR(20) | NOT NULL |  | Vocabulario de ciclo de vida controlado. |
-| maintenance_status | VARCHAR(30) | NOT NULL |  | Vocabulario de estado de mantenimiento controlado. |
-| health_status | VARCHAR(30) | NULL |  | Vocabulario de estado de salud general (ISO 13374-4). |
+| operational_status | VARCHAR(20) | NOT NULL | CHECK | Vocabulario de estado operativo controlado. |
+| lifecycle_status | VARCHAR(20) | NOT NULL | CHECK | Vocabulario de ciclo de vida controlado. |
+| maintenance_status | VARCHAR(30) | NOT NULL | CHECK | Vocabulario de estado de mantenimiento controlado. |
+| health_status | VARCHAR(30) | NULL | CHECK | Vocabulario de estado de salud general (ISO 13374-4). |
 | is_sce | BOOLEAN | NOT NULL |  | Indicador de Equipo Crítico de Seguridad (Safety Critical Element). |
 | functional_location_id | UUID | NULL | FK, UNIQUE | Llave foránea hacia la tabla relacionada. |
 | equipment_class_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
@@ -81,7 +81,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | description | VARCHAR(255) | NULL |  | Texto explicativo opcional. |
 | criticality | VARCHAR(30) | NOT NULL |  | Vocabulario de prioridad controlado. |
 | geographic_location | VARCHAR(150) | NULL |  | Contexto físico de la ubicación. |
-| environmental_exposure | VARCHAR(150) | NULL |  | Condiciones ambientales para cálculos de confiabilidad (ISO 14224). |
+| environmental_exposure | VARCHAR(150) | NULL | CHECK | Condiciones ambientales para cálculos de confiabilidad (ISO 14224). |
 | hierarchy_level | SMALLINT | NOT NULL |  | Niveles 1 al 5 de la taxonomía ISO 14224 (las Ubicaciones Funcionales gobiernan la estructura espacial de planta hasta el proceso, mientras que L6 a L8 corresponden a equipos y componentes físicos). |
 | parent_id | UUID | NULL | FK | Llave foránea hacia la tabla relacionada. |
 
@@ -95,7 +95,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | subunit_type | VARCHAR(80) | NOT NULL |  | Clasificación taxonómica. |
 | spare_part_type | VARCHAR(80) | NULL |  | Correspondencia opcional de partes de repuesto. |
 | design_attributes | JSONB | NULL |  | Propiedades estáticas de diseño estructuradas (ISO 14224 Anexo A). |
-| status | VARCHAR(30) | NOT NULL |  | Estado del ciclo de vida del ítem. |
+| status | VARCHAR(30) | NOT NULL | CHECK | Estado del ciclo de vida del ítem. |
 
 #### 3.1.5 subunits
 
@@ -116,7 +116,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | equipment_unit_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
 | work_request_id | UUID | NOT NULL | FK, UNIQUE | Llave foránea hacia la tabla relacionada. |
 | priority_score | INT | NOT NULL |  | Puntaje del backlog derivado de RIME (Calculado). |
-| status | VARCHAR(20) | NOT NULL |  | Estado del ciclo de vida del backlog (priorización). |
+| status | VARCHAR(20) | NOT NULL | CHECK | Estado del ciclo de vida del backlog (priorización). |
 
 #### 3.2.2 failure_records
 
@@ -128,9 +128,9 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | failure_mode | VARCHAR(120) | NOT NULL |  | Codificación de fallas de la ISO 14224. |
 | failure_mechanism | VARCHAR(120) | NOT NULL |  | Codificación de fallas de la ISO 14224. |
 | failure_cause | VARCHAR(120) | NOT NULL |  | Codificación de fallas de la ISO 14224. |
-| detection_method | VARCHAR(120) | NOT NULL |  | Método de detección de la falla (ISO 14224). |
-| operational_condition | VARCHAR(120) | NOT NULL |  | Condición operativa al momento de la falla (ISO 14224). |
-| operational_impact | VARCHAR(120) | NOT NULL |  | Impacto operacional de la falla (ISO 14224). |
+| detection_method | VARCHAR(120) | NOT NULL | CHECK | Método de detección de la falla (ISO 14224). |
+| operational_condition | VARCHAR(120) | NOT NULL | CHECK | Condición operativa al momento de la falla (ISO 14224). |
+| operational_impact | VARCHAR(120) | NOT NULL | CHECK | Impacto operacional de la falla (ISO 14224). |
 | downtime | DECIMAL(10,2) | NOT NULL |  | Métrica de análisis de confiabilidad (Calculada). |
 | status | VARCHAR(20) | NOT NULL |  | Estado del registro de fallas. |
 
@@ -140,16 +140,16 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | Identificador único de la entidad (PK). |
 | equipment_unit_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
-| maintenance_method | VARCHAR(80) | NOT NULL |  | Estrategia de mantenimiento (PM, PdM, CBM). |
+| maintenance_method | VARCHAR(80) | NOT NULL | CHECK | Estrategia de mantenimiento (PM, PdM, CBM). |
 | frequency | VARCHAR(50) | NOT NULL |  | Descripción de la frecuencia legible por humanos. |
-| frequency_type | VARCHAR(20) | NOT NULL |  | Cadencia controlada del plan. |
+| frequency_type | VARCHAR(20) | NOT NULL | CHECK | Cadencia controlada del plan. |
 | next_work_order_date | DATE | NULL |  | Fecha de ejecución programada (Calculada). |
 | interval_value | DECIMAL(12,2) | NULL |  | Valor numérico del intervalo para telemetría (ej. 500 horas). |
 | next_trigger_limit | DECIMAL(12,2) | NULL |  | Límite acumulado calculado para el próximo disparo. |
 | estimated_labor_hours | DECIMAL(10,2) | NOT NULL |  | Horas-Hombre estimadas (Wrench Time) para planificación. |
-| required_specialty | VARCHAR(80) | NOT NULL |  | Especialidad técnica requerida (ej. Mecánica, Eléctrica). |
+| required_specialty | VARCHAR(80) | NOT NULL | CHECK | Especialidad técnica requerida (ej. Mecánica, Eléctrica). |
 | technical_description | VARCHAR(255) | NOT NULL |  | Descripción técnica del alcance de las tareas. |
-| status | VARCHAR(20) | NOT NULL |  | Estado del ciclo de vida del plan (documento). |
+| status | VARCHAR(20) | NOT NULL | CHECK | Estado del ciclo de vida del plan (documento). |
 
 #### 3.2.4 media_attachments
 
@@ -158,7 +158,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | id | UUID | NOT NULL | PK | Identificador único de la entidad (PK). |
 | work_order_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
 | file_url | VARCHAR(255) | NOT NULL |  | Ubicación de la evidencia. |
-| file_type | VARCHAR(20) | NOT NULL |  | Formato de archivo adjunto controlado. |
+| file_type | VARCHAR(20) | NOT NULL | CHECK | Formato de archivo adjunto controlado. |
 | uploaded_at | TIMESTAMP | NOT NULL |  | Tiempo de subida/ingesta de la evidencia. |
 
 #### 3.2.5 work_order_histories
@@ -181,14 +181,14 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | maintenance_plan_id | UUID | NULL | FK | Llave foránea hacia la tabla relacionada. |
 | work_request_id | UUID | NULL | FK, UNIQUE | Llave foránea hacia la tabla relacionada. |
 | work_permit_id | UUID | NULL | FK | Llave foránea hacia la tabla relacionada. |
-| current_status | VARCHAR(20) | NOT NULL |  | Estado del ciclo de vida de ejecución (FSM). |
-| maintenance_method | VARCHAR(80) | NOT NULL |  | Método de mantenimiento (Correctivo, Preventivo, etc.). |
+| current_status | VARCHAR(20) | NOT NULL | CHECK | Estado del ciclo de vida de ejecución (FSM). |
+| maintenance_method | VARCHAR(80) | NOT NULL | CHECK | Método de mantenimiento (Correctivo, Preventivo, etc.). |
 | creation_date | TIMESTAMP | NOT NULL |  | Marca de tiempo (timestamp) de creación de la orden. |
 | scheduled_date | TIMESTAMP | NULL |  | Inicio planeado. |
 | actual_start | TIMESTAMP | NULL |  | Inicio real de la ejecución. |
 | actual_finish | TIMESTAMP | NULL |  | Finalización real de la ejecución. |
 | actual_labor_hours | DECIMAL(10,2) | NULL |  | Duración laboral real (Calculada). |
-| criticality | VARCHAR(20) | NOT NULL |  | Etiqueta de criticidad / prioridad de la OT. |
+| criticality | VARCHAR(20) | NOT NULL | CHECK | Etiqueta de criticidad / prioridad de la OT. |
 
 #### 3.2.7 work_requests
 
@@ -200,8 +200,8 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | priority | VARCHAR(20) | NOT NULL |  | Etiqueta de prioridad de la solicitud. |
 | request_date | TIMESTAMP | NOT NULL |  | Línea de tiempo para auditoría. |
 | request_source | VARCHAR(80) | NOT NULL |  | Origen de la solicitud. |
-| status | VARCHAR(20) | NOT NULL |  | Estado del ciclo de vida de la solicitud. |
-| work_class_code | SMALLINT | NOT NULL |  | Peso numérico de la clase de trabajo seleccionada para el RIME. |
+| status | VARCHAR(20) | NOT NULL | CHECK | Estado del ciclo de vida de la solicitud. |
+| work_class_code | SMALLINT | NOT NULL | CHECK | Peso numérico de la clase de trabajo seleccionada para el RIME. |
 
 ### 3.3 Esquema inv
 
@@ -214,7 +214,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | warehouse_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
 | work_order_id | UUID | NULL | FK | Llave foránea hacia la tabla relacionada. |
 | quantity | DECIMAL(12,4) | NOT NULL |  | Cantidad transada (positiva para entradas, negativa para salidas). |
-| transaction_type | VARCHAR(20) | NOT NULL |  | Tipo de movimiento (RECEIPT, ISSUE, ADJUSTMENT). |
+| transaction_type | VARCHAR(20) | NOT NULL | CHECK | Tipo de movimiento (RECEIPT, ISSUE, ADJUSTMENT). |
 | timestamp | TIMESTAMP | NOT NULL |  | Registro temporal preciso del movimiento. |
 | reason | VARCHAR(255) | NOT NULL |  | Razón del movimiento o referencia a documentos externos. |
 | total_cost | DECIMAL(12,2) | NOT NULL |  | Costo total de la transacción (Cantidad \* Costo). |
@@ -249,13 +249,13 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | commodity_code | VARCHAR(80) | NULL |  | Código de clasificación. |
 | reorder_point | DECIMAL(12,4) | NOT NULL |  | Umbral mínimo de activación de compra. |
 | unit_of_measure | VARCHAR(20) | NOT NULL |  | Unidad de medida estándar (UoM). |
-| stock_policy | VARCHAR(20) | NOT NULL |  | Política de reabastecimiento (Min/Max, Reorder Point, JIT). |
+| stock_policy | VARCHAR(20) | NOT NULL | CHECK | Política de reabastecimiento (Min/Max, Reorder Point, JIT). |
 | is_rebuildable | BOOLEAN | NOT NULL |  | Indica si la parte se desecha o se envía a taller para reparación. |
 | quantity_on_hand | DECIMAL(12,4) | NOT NULL |  | Cantidad actualmente en inventario físico. |
 | reserved_quantity | DECIMAL(12,4) | NOT NULL |  | Stock comprometido para órdenes planificadas. |
 | max_capacity | DECIMAL(12,4) | NOT NULL |  | Límite físico del almacén para la parte. |
 | unit_cost | DECIMAL(12,2) | NOT NULL |  | Costo unitario estándar de adquisición. |
-| status | VARCHAR(20) | NOT NULL |  | Estado de disponibilidad del repuesto. |
+| status | VARCHAR(20) | NOT NULL | CHECK | Estado de disponibilidad del repuesto. |
 | supplier_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
 | equipment_class_id | UUID | NULL | FK | Llave foránea hacia la tabla relacionada. |
 
@@ -286,7 +286,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | id | UUID | NOT NULL | PK | Identificador único de la entidad (PK). |
 | equipment_unit_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
 | isolation_tag | VARCHAR(80) | NOT NULL | UNIQUE | Identidad del punto de aislamiento. |
-| isolation_type | VARCHAR(20) | NOT NULL |  | Vocabulario de aislamiento. |
+| isolation_type | VARCHAR(20) | NOT NULL | CHECK | Vocabulario de aislamiento. |
 | is_verified | BOOLEAN | NOT NULL |  | Estado de verificación. |
 
 #### 3.4.2 mesh_mappings
@@ -296,7 +296,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | id | UUID | NOT NULL | PK | Identificador único de la entidad (PK). |
 | equipment_unit_id | UUID | NOT NULL | FK, UNIQUE | Llave foránea hacia la tabla relacionada. |
 | mesh_uuid | VARCHAR(80) | NOT NULL | UNIQUE | Identidad o ruta del modelo 3D del activo. |
-| mapping_status | VARCHAR(20) | NOT NULL |  | Estado de vinculación del gemelo digital. |
+| mapping_status | VARCHAR(20) | NOT NULL | CHECK | Estado de vinculación del gemelo digital. |
 | last_sync_time | TIMESTAMP | NULL |  | Tiempo de la última sincronización. |
 
 #### 3.4.3 spatial_metadata
@@ -314,7 +314,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | Identificador único de la entidad (PK). |
 | equipment_unit_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
-| signal_type | VARCHAR(80) | NOT NULL |  | Etiqueta de la señal del sensor. |
+| signal_type | VARCHAR(80) | NOT NULL | CHECK | Etiqueta de la señal del sensor. |
 | value | DECIMAL(18,6) | NOT NULL |  | Valor de la medición cruda. |
 | unit | VARCHAR(20) | NOT NULL |  | Unidad de medición. |
 | threshold | DECIMAL(18,6) | NULL |  | Umbral de alerta. |
@@ -329,7 +329,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | work_order_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
 | layer_type | VARCHAR(80) | NOT NULL |  | Tipo de representación visual. |
 | opacity_level | DECIMAL(5,2) | NOT NULL |  | Control de renderizado. |
-| status | VARCHAR(20) | NOT NULL |  | Estado de la capa visual. |
+| status | VARCHAR(20) | NOT NULL | CHECK | Estado de la capa visual. |
 
 #### 3.4.6 work_order_isolations
 
@@ -348,9 +348,9 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | id | UUID | NOT NULL | PK | Identificador único de la entidad (PK). |
 | equipment_unit_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
 | permit_identifier | VARCHAR(80) | NOT NULL | UNIQUE | Trazabilidad del permiso. |
-| permit_type | VARCHAR(30) | NOT NULL |  | Vocabulario de permisos. |
+| permit_type | VARCHAR(30) | NOT NULL | CHECK | Vocabulario de permisos. |
 | contractor_name | VARCHAR(150) | NOT NULL |  | Identificación del contratista. |
-| status | VARCHAR(20) | NOT NULL |  | Estado del ciclo de vida del permiso. |
+| status | VARCHAR(20) | NOT NULL | CHECK | Estado del ciclo de vida del permiso. |
 
 ### 3.5 Esquema adm
 
@@ -362,7 +362,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | user_id | UUID | NULL | FK | Llave foránea hacia la tabla relacionada. |
 | entity_type | VARCHAR(80) | NOT NULL |  | Nombre de la tabla/entidad auditada. |
 | entity_identifier | VARCHAR(80) | NOT NULL |  | Identificador UUID de la fila modificada. |
-| action_type | VARCHAR(20) | NOT NULL |  | Tipo de operación DML (CREATE, UPDATE, DELETE). |
+| action_type | VARCHAR(20) | NOT NULL | CHECK | Tipo de operación DML (CREATE, UPDATE, DELETE). |
 | timestamp | TIMESTAMP | NOT NULL |  | Registro temporal preciso del evento de cambio. |
 | previous_state | JSONB | NULL |  | Representación JSON descompuesta binaria antes de la acción. |
 | new_state | JSONB | NULL |  | Representación JSON descompuesta binaria después de la acción. |
@@ -386,7 +386,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | Identificador único de la entidad (PK). |
 | role_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
-| module | VARCHAR(80) | NOT NULL |  | Módulo del sistema (ej. MTTO, INV, VIS). |
+| module | VARCHAR(80) | NOT NULL | CHECK | Módulo del sistema (ej. MTTO, INV, VIS). |
 | action | VARCHAR(80) | NOT NULL |  | Acción permitida (ej. READ, CREATE, UPDATE, SIGN_OFF). |
 
 #### 3.5.4 roles
@@ -413,7 +413,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | username | VARCHAR(80) | NOT NULL | UNIQUE | Identidad de la cuenta de usuario. |
 | full_name | VARCHAR(150) | NOT NULL |  | Nombre completo o institucional del usuario. |
 | email | VARCHAR(150) | NOT NULL | UNIQUE | Correo electrónico institucional y de contacto. |
-| status | VARCHAR(20) | NOT NULL |  | Estado de la cuenta (ACTIVE, INACTIVE, LOCKED). |
+| status | VARCHAR(20) | NOT NULL | CHECK | Estado de la cuenta (ACTIVE, INACTIVE, LOCKED). |
 | password_hash | VARCHAR(255) | NOT NULL |  | Hash de la contraseña de acceso (PBKDF2/BCrypt). |
 | failed_login_attempts | INT | NOT NULL |  | Contador de intentos fallidos de autenticación. |
 | lockout_until | TIMESTAMP | NULL |  | Fin del periodo de bloqueo temporal. |
@@ -428,7 +428,7 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 | id | UUID | NOT NULL | PK | Identificador único de la entidad (PK). |
 | work_order_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
 | user_id | UUID | NOT NULL | FK | Llave foránea hacia la tabla relacionada. |
-| role_in_work | VARCHAR(50) | NOT NULL |  | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR). |
+| role_in_work | VARCHAR(50) | NOT NULL | CHECK | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR). |
 | assigned_at | TIMESTAMP | NOT NULL |  | Registro temporal de la asignación. |
 
 ## 4. Matriz de Relaciones y Cardinalidad (Foreign Keys)
