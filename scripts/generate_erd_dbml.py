@@ -35,12 +35,13 @@ if sec3_start != -1 and sec4_start != -1:
             
         if line.startswith('|') and not line.startswith('| Campo') and not line.startswith('| ---'):
             parts = [p.strip() for p in line.split('|')]
-            if len(parts) >= 6:
+            if len(parts) >= 7:
                 col = parts[1]
                 typ = parts[2]
                 not_null = parts[3]
                 constraints = parts[4]
-                just = parts[5]
+                default_val = parts[5]
+                just = parts[6]
                 
                 if current_schema and current_table:
                     schemas[current_schema][current_table].append({
@@ -48,6 +49,7 @@ if sec3_start != -1 and sec4_start != -1:
                         'typ': typ,
                         'not_null': not_null,
                         'constraints': constraints,
+                        'default_val': default_val,
                         'just': just
                     })
 
@@ -58,19 +60,21 @@ if sec4_start != -1 and sec4_end != -1:
     for line in sec4_content.split('\n'):
         if line.startswith('|') and not line.startswith('| Entidad Origen') and not line.startswith('| ---'):
             parts = [p.strip() for p in line.split('|')]
-            if len(parts) > 5:
+            if len(parts) > 6:
                 parent = parts[1]
                 card = parts[2]
                 child = parts[3]
                 verb = parts[4]
                 del_rule = parts[5]
+                update_rule = parts[6]
                 
                 relationships.append({
                     'parent': parent,
                     'card': card,
                     'child': child,
                     'verb': verb,
-                    'del_rule': del_rule
+                    'del_rule': del_rule,
+                    'update_rule': update_rule
                 })
 
 dbml_output = "Project DT_ERD {\n"
@@ -92,6 +96,15 @@ for schema, tables in schemas.items():
             if 'PK' in c['constraints']: props.append("pk")
             if 'UNIQUE' in c['constraints']: props.append("unique")
             if c['not_null'] == 'NOT NULL': props.append("not null")
+            if c.get('default_val') and c['default_val'] not in ['-', 'NULL']:
+                if c['default_val'] == 'FALSE':
+                    props.append("default: false")
+                elif c['default_val'] == 'TRUE':
+                    props.append("default: true")
+                elif c['default_val'] in ['0', '1']:
+                    props.append(f"default: {c['default_val']}")
+                else:
+                    props.append(f"default: `{c['default_val']}`")
             
             note_text = c['just'].replace("'", "\\'")
             if note_text: props.append(f"note: '{note_text}'")
@@ -140,6 +153,8 @@ for r in relationships:
     actions = []
     if r['del_rule']:
         actions.append(f"delete: {r['del_rule'].lower()}")
+    if r['update_rule']:
+        actions.append(f"update: {r['update_rule'].lower()}")
         
     settings = ""
     if actions:

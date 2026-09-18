@@ -118,12 +118,13 @@ def generate_domain_puml():
                     
                 classes[class_name]["props"].append(f"- {prop_name}: {agnostic_type}")
                 
-            elif in_relations and len(parts) >= 5:
+            elif in_relations and len(parts) >= 6:
                 parent_table = parts[0]
                 card = parts[1]
                 child_table = parts[2]
                 verb = parts[3]
-                cascade = parts[4]
+                cascade = parts[4] # on delete action
+                on_update = parts[5]
                 
                 parent_class = singularize(snake_to_pascal(parent_table))
                 child_class = singularize(snake_to_pascal(child_table))

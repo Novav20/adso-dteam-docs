@@ -51,14 +51,14 @@ TableGroup adm {
 }
 
 Table "equipment_classes" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "class_name" "VARCHAR(120)" [unique, not null, note: 'Datos maestros a nivel de clase.']
   "description" "VARCHAR(255)" [note: 'Descripción de la clase.']
   "manufacturer_standard" "VARCHAR(120)" [note: 'Referencia de estandarización.']
 }
 
 Table "equipment_units" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "serial_number" "VARCHAR(100)" [unique, not null, note: 'Integridad de la identificación del activo.']
   "manufacturer" "VARCHAR(120)" [not null, note: 'Procedencia del activo.']
   "model" "VARCHAR(120)" [not null, note: 'Identificación del tipo de activo.']
@@ -69,22 +69,22 @@ Table "equipment_units" {
   "acquisition_date" "DATE" [not null, note: 'Trazabilidad de la adquisición del activo.']
   "installation_date" "DATE" [note: 'La instalación puede estar pendiente.']
   "operation_start_date" "DATE" [note: 'El inicio operativo puede estar pendiente.']
-  "operating_hours" "BIGINT" [not null, note: 'Seguimiento de confiabilidad y uso.']
-  "surveillance_hours" "BIGINT" [not null, note: 'Tiempo de vigilancia/standby para cálculo preciso de fallas (ISO 14224).']
+  "operating_hours" "BIGINT" [not null, default: 0, note: 'Seguimiento de confiabilidad y uso.']
+  "surveillance_hours" "BIGINT" [not null, default: 0, note: 'Tiempo de vigilancia/standby para cálculo preciso de fallas (ISO 14224).']
   "disposal_date" "DATE" [note: 'Registro de fin de vida para trazabilidad de pasivos (ISO 55000).']
   "disposal_reason" "VARCHAR(255)" [note: 'Razón del retiro o desmantelamiento del activo.']
   "operational_status" "VARCHAR(20)" [not null, note: 'Vocabulario de estado operativo controlado.']
   "lifecycle_status" "VARCHAR(20)" [not null, note: 'Vocabulario de ciclo de vida controlado.']
   "maintenance_status" "VARCHAR(30)" [not null, note: 'Vocabulario de estado de mantenimiento controlado.']
   "health_status" "VARCHAR(30)" [note: 'Vocabulario de estado de salud general (ISO 13374-4).']
-  "is_sce" "BOOLEAN" [not null, note: 'Indicador de Equipo Crítico de Seguridad (Safety Critical Element).']
+  "is_sce" "BOOLEAN" [not null, default: false, note: 'Indicador de Equipo Crítico de Seguridad (Safety Critical Element).']
   "functional_location_id" "UUID" [unique, note: 'Llave foránea hacia la tabla relacionada.']
   "equipment_class_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "warehouse_id" "UUID" [note: 'Llave foránea hacia la tabla relacionada.']
 }
 
 Table "functional_locations" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "tag_number" "VARCHAR(50)" [unique, not null, note: 'Identidad del tag de la ISO 14224 y trazabilidad de la ubicación.']
   "name" "VARCHAR(150)" [not null, note: 'Nombre de la ubicación legible por humanos.']
   "description" "VARCHAR(255)" [note: 'Texto explicativo opcional.']
@@ -96,7 +96,7 @@ Table "functional_locations" {
 }
 
 Table "maintainable_items" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "subunit_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "component_name" "VARCHAR(120)" [not null, note: 'Identidad del ítem mantenible.']
   "subunit_type" "VARCHAR(80)" [not null, note: 'Clasificación taxonómica.']
@@ -106,14 +106,14 @@ Table "maintainable_items" {
 }
 
 Table "subunits" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "subunit_type" "VARCHAR(80)" [not null, note: 'Taxonomía del subcomponente.']
   "name" "VARCHAR(120)" [not null, note: 'Etiqueta del subcomponente.']
 }
 
 Table "backlog_items" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "work_request_id" "UUID" [unique, not null, note: 'Llave foránea hacia la tabla relacionada.']
   "priority_score" "INT" [not null, note: 'Puntaje del backlog derivado de RIME (Calculado).']
@@ -121,7 +121,7 @@ Table "backlog_items" {
 }
 
 Table "failure_records" {
-  "id" "UUID" [pk, not null, note: 'Identidad del evento de falla.']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identidad del evento de falla.']
   "work_order_id" "UUID" [unique, not null, note: 'Llave foránea hacia la tabla relacionada.']
   "maintainable_item_id" "UUID" [note: 'Llave foránea hacia la tabla relacionada.']
   "failure_mode" "VARCHAR(120)" [not null, note: 'Codificación de fallas de la ISO 14224.']
@@ -135,7 +135,7 @@ Table "failure_records" {
 }
 
 Table "maintenance_plans" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "maintenance_method" "VARCHAR(80)" [not null, note: 'Estrategia de mantenimiento (PM, PdM, CBM).']
   "frequency" "VARCHAR(50)" [not null, note: 'Descripción de la frecuencia legible por humanos.']
@@ -150,7 +150,7 @@ Table "maintenance_plans" {
 }
 
 Table "media_attachments" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "work_order_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "file_url" "VARCHAR(255)" [not null, note: 'Ubicación de la evidencia.']
   "file_type" "VARCHAR(20)" [not null, note: 'Formato de archivo adjunto controlado.']
@@ -158,16 +158,16 @@ Table "media_attachments" {
 }
 
 Table "work_order_histories" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "work_order_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "old_status" "VARCHAR(20)" [note: 'Estado anterior del ciclo de vida (NULL si es primer estado).']
   "new_status" "VARCHAR(20)" [not null, note: 'Nuevo estado del ciclo de vida.']
-  "timestamp" "TIMESTAMP" [not null, note: 'Tiempo de transición.']
+  "timestamp" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Tiempo de transición.']
   "duration_seconds" "BIGINT" [note: 'Tiempo empleado en el estado (Calculado al transicionar).']
 }
 
 Table "work_orders" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "maintenance_plan_id" "UUID" [note: 'Llave foránea hacia la tabla relacionada.']
   "work_request_id" "UUID" [unique, note: 'Llave foránea hacia la tabla relacionada.']
@@ -183,7 +183,7 @@ Table "work_orders" {
 }
 
 Table "work_requests" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "description" "VARCHAR(255)" [not null, note: 'Narrativa de la solicitud.']
   "priority" "VARCHAR(20)" [not null, note: 'Etiqueta de prioridad de la solicitud.']
@@ -194,13 +194,13 @@ Table "work_requests" {
 }
 
 Table "inventory_transactions" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "spare_part_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "warehouse_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "work_order_id" "UUID" [note: 'Llave foránea hacia la tabla relacionada.']
-  "quantity" "DECIMAL(12,4)" [not null, note: 'Cantidad transada (positiva para entradas, negativa para salidas).']
+  "quantity" "DECIMAL(12,4)" [not null, default: 1, note: 'Cantidad transada (positiva para entradas, negativa para salidas).']
   "transaction_type" "VARCHAR(20)" [not null, note: 'Tipo de movimiento (RECEIPT, ISSUE, ADJUSTMENT).']
-  "timestamp" "TIMESTAMP" [not null, note: 'Registro temporal preciso del movimiento.']
+  "timestamp" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Registro temporal preciso del movimiento.']
   "reason" "VARCHAR(255)" [not null, note: 'Razón del movimiento o referencia a documentos externos.']
   "total_cost" "DECIMAL(12,2)" [not null, note: 'Costo total de la transacción (Cantidad \* Costo).']
   "aisle_shelf_location" "VARCHAR(150)" [note: 'Ubicación física específica de la transacción (pasillo/estante).']
@@ -215,13 +215,13 @@ Table "maintainable_item_spare_parts" {
 Table "material_requirements" {
   "work_order_id" "UUID" [pk, not null, note: 'Llave foránea hacia la tabla relacionada.']
   "spare_part_id" "UUID" [pk, not null, note: 'Llave foránea hacia la tabla relacionada.']
-  "planned_quantity" "DECIMAL(12,4)" [not null, note: 'Repuestos planificados antes de la ejecución de la OT.']
+  "planned_quantity" "DECIMAL(12,4)" [not null, default: 1, note: 'Repuestos planificados antes de la ejecución de la OT.']
   "actual_quantity" "DECIMAL(12,4)" [note: 'Repuestos realmente consumidos durante la ejecución de la OT.']
   "is_reserved" "BOOLEAN" [not null, note: 'Bandera que indica si el stock ya fue apartado en almacén.']
 }
 
 Table "spare_parts" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "sku" "VARCHAR(80)" [unique, not null, note: 'Identidad de la parte.']
   "description" "VARCHAR(255)" [not null, note: 'Descripción de la parte legible por humanos.']
   "manufacturer" "VARCHAR(120)" [not null, note: 'Identidad del proveedor/fabricante.']
@@ -229,7 +229,7 @@ Table "spare_parts" {
   "reorder_point" "DECIMAL(12,4)" [not null, note: 'Umbral mínimo de activación de compra.']
   "unit_of_measure" "VARCHAR(20)" [not null, note: 'Unidad de medida estándar (UoM).']
   "stock_policy" "VARCHAR(20)" [not null, note: 'Política de reabastecimiento (Min/Max, Reorder Point, JIT).']
-  "is_rebuildable" "BOOLEAN" [not null, note: 'Indica si la parte se desecha o se envía a taller para reparación.']
+  "is_rebuildable" "BOOLEAN" [not null, default: false, note: 'Indica si la parte se desecha o se envía a taller para reparación.']
   "quantity_on_hand" "DECIMAL(12,4)" [not null, note: 'Cantidad actualmente en inventario físico.']
   "reserved_quantity" "DECIMAL(12,4)" [not null, note: 'Stock comprometido para órdenes planificadas.']
   "max_capacity" "DECIMAL(12,4)" [not null, note: 'Límite físico del almacén para la parte.']
@@ -240,29 +240,29 @@ Table "spare_parts" {
 }
 
 Table "suppliers" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "name" "VARCHAR(120)" [not null, note: 'Identidad comercial del proveedor.']
   "contact_info" "VARCHAR(255)" [not null, note: 'Teléfono, correo o dirección de contacto.']
   "warranty_terms" "VARCHAR(255)" [not null, note: 'Términos estándar de garantía comercial.']
 }
 
 Table "warehouses" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "name" "VARCHAR(80)" [not null, note: 'Identidad del almacén.']
   "location" "VARCHAR(255)" [not null, note: 'Dirección o ubicación física del almacén.']
   "capacity" "DECIMAL(12,4)" [not null, note: 'Capacidad máxima volumétrica o de carga del almacén.']
 }
 
 Table "isolation_points" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "isolation_tag" "VARCHAR(80)" [unique, not null, note: 'Identidad del punto de aislamiento.']
   "isolation_type" "VARCHAR(20)" [not null, note: 'Vocabulario de aislamiento.']
-  "is_verified" "BOOLEAN" [not null, note: 'Estado de verificación.']
+  "is_verified" "BOOLEAN" [not null, default: false, note: 'Estado de verificación.']
 }
 
 Table "mesh_mappings" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "equipment_unit_id" "UUID" [unique, not null, note: 'Llave foránea hacia la tabla relacionada.']
   "mesh_uuid" "VARCHAR(80)" [unique, not null, note: 'Identidad o ruta del modelo 3D del activo.']
   "mapping_status" "VARCHAR(20)" [not null, note: 'Estado de vinculación del gemelo digital.']
@@ -277,18 +277,18 @@ Table "spatial_metadata" {
 }
 
 Table "telemetry_signals" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "signal_type" "VARCHAR(80)" [not null, note: 'Etiqueta de la señal del sensor.']
   "value" "DECIMAL(18,6)" [not null, note: 'Valor de la medición cruda.']
   "unit" "VARCHAR(20)" [not null, note: 'Unidad de medición.']
   "threshold" "DECIMAL(18,6)" [note: 'Umbral de alerta.']
-  "timestamp" "TIMESTAMP" [not null, note: 'Tiempo de medición.']
+  "timestamp" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Tiempo de medición.']
   "is_safety_critical" "BOOLEAN" [not null, note: 'Bandera de clasificación de seguridad.']
 }
 
 Table "visual_layers" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "work_order_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "layer_type" "VARCHAR(80)" [not null, note: 'Tipo de representación visual.']
   "opacity_level" "DECIMAL(5,2)" [not null, note: 'Control de renderizado.']
@@ -298,13 +298,13 @@ Table "visual_layers" {
 Table "work_order_isolations" {
   "work_order_id" "UUID" [pk, not null, note: 'Llave foránea hacia la tabla relacionada.']
   "isolation_point_id" "UUID" [pk, not null, note: 'Llave foránea hacia la tabla relacionada.']
-  "is_isolated" "BOOLEAN" [not null, note: 'Estado de bloqueo verificado para el trabajo específico.']
+  "is_isolated" "BOOLEAN" [not null, default: false, note: 'Estado de bloqueo verificado para el trabajo específico.']
   "isolated_at" "TIMESTAMP" [note: 'Marca de tiempo en que se ejecutó el bloqueo.']
   "padlock_tag_id" "VARCHAR(80)" [note: 'Identificador del candado o etiqueta física (Try-Out).']
 }
 
 Table "work_permits" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "permit_identifier" "VARCHAR(80)" [unique, not null, note: 'Trazabilidad del permiso.']
   "permit_type" "VARCHAR(30)" [not null, note: 'Vocabulario de permisos.']
@@ -313,36 +313,36 @@ Table "work_permits" {
 }
 
 Table "audit_logs" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "user_id" "UUID" [note: 'Llave foránea hacia la tabla relacionada.']
   "entity_type" "VARCHAR(80)" [not null, note: 'Nombre de la tabla/entidad auditada.']
   "entity_identifier" "VARCHAR(80)" [not null, note: 'Identificador UUID de la fila modificada.']
   "action_type" "VARCHAR(20)" [not null, note: 'Tipo de operación DML (CREATE, UPDATE, DELETE).']
-  "timestamp" "TIMESTAMP" [not null, note: 'Registro temporal preciso del evento de cambio.']
+  "timestamp" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Registro temporal preciso del evento de cambio.']
   "previous_state" "JSONB" [note: 'Representación JSON descompuesta binaria antes de la acción.']
   "new_state" "JSONB" [note: 'Representación JSON descompuesta binaria después de la acción.']
   "integrity_hash" "VARCHAR(255)" [not null, note: 'Hash SHA-256 encadenado para detectar manipulación del log.']
 }
 
 Table "auth_tokens" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "user_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "token_hash" "VARCHAR(255)" [unique, not null, note: 'Hash del token de autenticación API / sesión.']
   "expires_at" "TIMESTAMP" [not null, note: 'Fecha y hora de expiración del token.']
-  "is_used" "BOOLEAN" [not null, note: 'Indica si el token ya fue consumido (uso único).']
+  "is_used" "BOOLEAN" [not null, default: false, note: 'Indica si el token ya fue consumido (uso único).']
   "ip_address" "VARCHAR(45)" [note: 'Dirección IP desde la que se emitió el token (IPv4/IPv6).']
   "user_agent" "VARCHAR(255)" [note: 'Identificador del cliente/navegador para fingerprinting.']
 }
 
 Table "role_permissions" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "role_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "module" "VARCHAR(80)" [not null, note: 'Módulo del sistema (ej. MTTO, INV, VIS).']
   "action" "VARCHAR(80)" [not null, note: 'Acción permitida (ej. READ, CREATE, UPDATE, SIGN_OFF).']
 }
 
 Table "roles" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "role_name" "VARCHAR(80)" [unique, not null, note: 'Identificador del rol de usuario (ej. Planner, Technician).']
   "description" "VARCHAR(255)" [note: 'Descripción del alcance del rol.']
   "is_system_role" "BOOLEAN" [not null, note: 'Bandera para roles inmutables del sistema.']
@@ -354,67 +354,67 @@ Table "user_roles" {
 }
 
 Table "users" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "username" "VARCHAR(80)" [unique, not null, note: 'Identidad de la cuenta de usuario.']
   "full_name" "VARCHAR(150)" [not null, note: 'Nombre completo o institucional del usuario.']
   "email" "VARCHAR(150)" [unique, not null, note: 'Correo electrónico institucional y de contacto.']
   "status" "VARCHAR(20)" [not null, note: 'Estado de la cuenta (ACTIVE, INACTIVE, LOCKED).']
   "password_hash" "VARCHAR(255)" [not null, note: 'Hash de la contraseña de acceso (PBKDF2/BCrypt).']
-  "failed_login_attempts" "INT" [not null, note: 'Contador de intentos fallidos de autenticación.']
+  "failed_login_attempts" "INT" [not null, default: 0, note: 'Contador de intentos fallidos de autenticación.']
   "lockout_until" "TIMESTAMP" [note: 'Fin del periodo de bloqueo temporal.']
-  "mfa_enabled" "BOOLEAN" [not null, note: 'Bandera que indica si la autenticación multifactor está activa.']
+  "mfa_enabled" "BOOLEAN" [not null, default: false, note: 'Bandera que indica si la autenticación multifactor está activa.']
   "totp_secret" "VARCHAR(255)" [note: 'Secreto compartido para autenticación TOTP (Autenticador).']
   "deactivation_reason" "VARCHAR(255)" [note: 'Justificación administrativa para el borrado lógico (ISO 27001).']
 }
 
 Table "work_order_assignments" {
-  "id" "UUID" [pk, not null, note: 'Identificador único de la entidad (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identificador único de la entidad (PK).']
   "work_order_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "user_id" "UUID" [not null, note: 'Llave foránea hacia la tabla relacionada.']
   "role_in_work" "VARCHAR(50)" [not null, note: 'Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR).']
-  "assigned_at" "TIMESTAMP" [not null, note: 'Registro temporal de la asignación.']
+  "assigned_at" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Registro temporal de la asignación.']
 }
 
 // --- RELACIONES ---
-Ref: "functional_locations"."id" < "functional_locations"."parent_id"
-Ref: "functional_locations"."id" - "equipment_units"."functional_location_id"
-Ref: "equipment_classes"."id" < "equipment_units"."equipment_class_id"
-Ref: "equipment_units"."id" < "subunits"."equipment_unit_id" [delete: cascade]
-Ref: "subunits"."id" < "maintainable_items"."subunit_id" [delete: cascade]
-Ref: "equipment_units"."id" < "work_requests"."equipment_unit_id"
-Ref: "equipment_units"."id" < "maintenance_plans"."equipment_unit_id"
-Ref: "equipment_units"."id" < "work_orders"."equipment_unit_id"
-Ref: "equipment_units"."id" < "backlog_items"."equipment_unit_id"
-Ref: "work_requests"."id" - "work_orders"."work_request_id"
-Ref: "maintenance_plans"."id" < "work_orders"."maintenance_plan_id"
-Ref: "work_orders"."id" < "work_order_histories"."work_order_id" [delete: cascade]
-Ref: "work_orders"."id" - "failure_records"."work_order_id"
-Ref: "maintainable_items"."id" < "failure_records"."maintainable_item_id"
-Ref: "work_orders"."id" < "media_attachments"."work_order_id" [delete: cascade]
-Ref: "work_requests"."id" - "backlog_items"."work_request_id"
-Ref: "suppliers"."id" < "spare_parts"."supplier_id"
-Ref: "equipment_classes"."id" < "spare_parts"."equipment_class_id"
-Ref: "spare_parts"."id" < "inventory_transactions"."spare_part_id"
-Ref: "warehouses"."id" < "inventory_transactions"."warehouse_id"
-Ref: "warehouses"."id" < "equipment_units"."warehouse_id" [delete: set null]
-Ref: "work_orders"."id" < "inventory_transactions"."work_order_id"
-Ref: "work_orders"."id" < "material_requirements"."work_order_id" [delete: cascade]
-Ref: "spare_parts"."id" < "material_requirements"."spare_part_id"
-Ref: "maintainable_items"."id" < "maintainable_item_spare_parts"."maintainable_item_id" [delete: cascade]
-Ref: "spare_parts"."id" < "maintainable_item_spare_parts"."spare_part_id"
-Ref: "equipment_units"."id" - "mesh_mappings"."equipment_unit_id"
-Ref: "mesh_mappings"."id" - "spatial_metadata"."mesh_mapping_id" [delete: cascade]
-Ref: "equipment_units"."id" < "telemetry_signals"."equipment_unit_id"
-Ref: "equipment_units"."id" < "work_permits"."equipment_unit_id"
-Ref: "equipment_units"."id" < "isolation_points"."equipment_unit_id"
-Ref: "work_permits"."id" < "work_orders"."work_permit_id"
-Ref: "work_orders"."id" < "visual_layers"."work_order_id" [delete: cascade]
-Ref: "work_orders"."id" < "work_order_isolations"."work_order_id" [delete: cascade]
-Ref: "isolation_points"."id" < "work_order_isolations"."isolation_point_id"
-Ref: "users"."id" < "user_roles"."user_id" [delete: cascade]
-Ref: "roles"."id" < "user_roles"."role_id" [delete: cascade]
-Ref: "roles"."id" < "role_permissions"."role_id" [delete: cascade]
-Ref: "users"."id" < "auth_tokens"."user_id" [delete: cascade]
-Ref: "users"."id" < "work_order_assignments"."user_id" [delete: cascade]
-Ref: "work_orders"."id" < "work_order_assignments"."work_order_id" [delete: cascade]
-Ref: "users"."id" < "audit_logs"."user_id" [delete: set null]
+Ref: "functional_locations"."id" < "functional_locations"."parent_id" [delete: restrict, update: cascade]
+Ref: "functional_locations"."id" - "equipment_units"."functional_location_id" [delete: restrict, update: cascade]
+Ref: "equipment_classes"."id" < "equipment_units"."equipment_class_id" [delete: restrict, update: cascade]
+Ref: "equipment_units"."id" < "subunits"."equipment_unit_id" [delete: cascade, update: cascade]
+Ref: "subunits"."id" < "maintainable_items"."subunit_id" [delete: cascade, update: cascade]
+Ref: "equipment_units"."id" < "work_requests"."equipment_unit_id" [delete: restrict, update: cascade]
+Ref: "equipment_units"."id" < "maintenance_plans"."equipment_unit_id" [delete: restrict, update: cascade]
+Ref: "equipment_units"."id" < "work_orders"."equipment_unit_id" [delete: restrict, update: cascade]
+Ref: "equipment_units"."id" < "backlog_items"."equipment_unit_id" [delete: restrict, update: cascade]
+Ref: "work_requests"."id" - "work_orders"."work_request_id" [delete: restrict, update: cascade]
+Ref: "maintenance_plans"."id" < "work_orders"."maintenance_plan_id" [delete: restrict, update: cascade]
+Ref: "work_orders"."id" < "work_order_histories"."work_order_id" [delete: cascade, update: cascade]
+Ref: "work_orders"."id" - "failure_records"."work_order_id" [delete: restrict, update: cascade]
+Ref: "maintainable_items"."id" < "failure_records"."maintainable_item_id" [delete: restrict, update: cascade]
+Ref: "work_orders"."id" < "media_attachments"."work_order_id" [delete: cascade, update: cascade]
+Ref: "work_requests"."id" - "backlog_items"."work_request_id" [delete: restrict, update: cascade]
+Ref: "suppliers"."id" < "spare_parts"."supplier_id" [delete: restrict, update: cascade]
+Ref: "equipment_classes"."id" < "spare_parts"."equipment_class_id" [delete: restrict, update: cascade]
+Ref: "spare_parts"."id" < "inventory_transactions"."spare_part_id" [delete: restrict, update: cascade]
+Ref: "warehouses"."id" < "inventory_transactions"."warehouse_id" [delete: restrict, update: cascade]
+Ref: "warehouses"."id" < "equipment_units"."warehouse_id" [delete: set null, update: cascade]
+Ref: "work_orders"."id" < "inventory_transactions"."work_order_id" [delete: restrict, update: cascade]
+Ref: "work_orders"."id" < "material_requirements"."work_order_id" [delete: cascade, update: cascade]
+Ref: "spare_parts"."id" < "material_requirements"."spare_part_id" [delete: restrict, update: cascade]
+Ref: "maintainable_items"."id" < "maintainable_item_spare_parts"."maintainable_item_id" [delete: cascade, update: cascade]
+Ref: "spare_parts"."id" < "maintainable_item_spare_parts"."spare_part_id" [delete: restrict, update: cascade]
+Ref: "equipment_units"."id" - "mesh_mappings"."equipment_unit_id" [delete: restrict, update: cascade]
+Ref: "mesh_mappings"."id" - "spatial_metadata"."mesh_mapping_id" [delete: cascade, update: cascade]
+Ref: "equipment_units"."id" < "telemetry_signals"."equipment_unit_id" [delete: restrict, update: cascade]
+Ref: "equipment_units"."id" < "work_permits"."equipment_unit_id" [delete: restrict, update: cascade]
+Ref: "equipment_units"."id" < "isolation_points"."equipment_unit_id" [delete: restrict, update: cascade]
+Ref: "work_permits"."id" < "work_orders"."work_permit_id" [delete: restrict, update: cascade]
+Ref: "work_orders"."id" < "visual_layers"."work_order_id" [delete: cascade, update: cascade]
+Ref: "work_orders"."id" < "work_order_isolations"."work_order_id" [delete: cascade, update: cascade]
+Ref: "isolation_points"."id" < "work_order_isolations"."isolation_point_id" [delete: restrict, update: cascade]
+Ref: "users"."id" < "user_roles"."user_id" [delete: cascade, update: cascade]
+Ref: "roles"."id" < "user_roles"."role_id" [delete: cascade, update: cascade]
+Ref: "roles"."id" < "role_permissions"."role_id" [delete: cascade, update: cascade]
+Ref: "users"."id" < "auth_tokens"."user_id" [delete: cascade, update: cascade]
+Ref: "users"."id" < "work_order_assignments"."user_id" [delete: cascade, update: cascade]
+Ref: "work_orders"."id" < "work_order_assignments"."work_order_id" [delete: cascade, update: cascade]
+Ref: "users"."id" < "audit_logs"."user_id" [delete: set null, update: cascade]
