@@ -13,7 +13,7 @@ linked_to:
   - DT-DM-DOC-001
   - DT-ARQ-DB-DOC-001
 ---
-
+	
 # Diccionario de Datos Físico y Relacional
 
 ## 1. Alcance y Propósito
@@ -435,50 +435,50 @@ Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base 
 
 Esta matriz especifica cómo interactúan las entidades entre sí, definiendo explícitamente las reglas de integridad referencial para autogenerar el diagrama.
 
-| Entidad Origen (Parent) | Cardinalidad | Entidad Destino (Child) | Verbo de Negocio | RESTRICT | CASCADE |
-| --- | --- | --- | --- | --- | --- |
-| functional_locations | 1 : 0..N | functional_locations | contiene jerárquicamente a | RESTRICT | CASCADE |
-| functional_locations | 1 : 0..1 | equipment_units | instala | RESTRICT | CASCADE |
-| equipment_classes | 1 : 0..N | equipment_units | categoriza | RESTRICT | CASCADE |
-| equipment_units | 1 : 1..N | subunits | se compone de | CASCADE | CASCADE |
-| subunits | 1 : 1..N | maintainable_items | contiene | CASCADE | CASCADE |
-| equipment_units | 1 : 0..N | work_requests | genera | RESTRICT | CASCADE |
-| equipment_units | 1 : 0..N | maintenance_plans | posee | RESTRICT | CASCADE |
-| equipment_units | 1 : 0..N | work_orders | mantenido por | RESTRICT | CASCADE |
-| equipment_units | 1 : 0..N | backlog_items | está listado en | RESTRICT | CASCADE |
-| work_requests | 0..1 : 0..1 | work_orders | se convierte en | RESTRICT | CASCADE |
-| maintenance_plans | 1 : 0..N | work_orders | dispara | RESTRICT | CASCADE |
-| work_orders | 1 : 0..N | work_order_histories | registra cambios en | CASCADE | CASCADE |
-| work_orders | 1 : 0..1 | failure_records | reporta | RESTRICT | CASCADE |
-| maintainable_items | 1 : 0..N | failure_records | experimenta | RESTRICT | CASCADE |
-| work_orders | 1 : 0..N | media_attachments | adjunta | CASCADE | CASCADE |
-| work_requests | 1 : 0..1 | backlog_items | prioriza | RESTRICT | CASCADE |
-| suppliers | 1 : 0..N | spare_parts | suministra | RESTRICT | CASCADE |
-| equipment_classes | 1 : 0..N | spare_parts | estandariza | RESTRICT | CASCADE |
-| spare_parts | 1 : 0..N | inventory_transactions | involucrado en | RESTRICT | CASCADE |
-| warehouses | 1 : 0..N | inventory_transactions | almacena | RESTRICT | CASCADE |
-| warehouses | 1 : 0..N | equipment_units | resguarda en stock | SET NULL | CASCADE |
-| work_orders | 1 : 0..N | inventory_transactions | genera | RESTRICT | CASCADE |
-| work_orders | 1 : 1..N | material_requirements | planifica | CASCADE | CASCADE |
-| spare_parts | 1 : 1..N | material_requirements | es consumido en | RESTRICT | CASCADE |
-| maintainable_items | 1 : 1..N | maintainable_item_spare_parts | requiere | CASCADE | CASCADE |
-| spare_parts | 1 : 1..N | maintainable_item_spare_parts | es repuesto para | RESTRICT | CASCADE |
-| equipment_units | 1 : 0..1 | mesh_mappings | representado por | RESTRICT | CASCADE |
-| mesh_mappings | 1 : 1 | spatial_metadata | ubicado en | CASCADE | CASCADE |
-| equipment_units | 1 : 0..N | telemetry_signals | monitoreado por | RESTRICT | CASCADE |
-| equipment_units | 1 : 0..N | work_permits | autoriza intervención en | RESTRICT | CASCADE |
-| equipment_units | 1 : 0..N | isolation_points | contiene | RESTRICT | CASCADE |
-| work_permits | 1 : 0..N | work_orders | valida ejecución de | RESTRICT | CASCADE |
-| work_orders | 1 : 0..N | visual_layers | visualizada en | CASCADE | CASCADE |
-| work_orders | 1 : 1..N | work_order_isolations | requiere | CASCADE | CASCADE |
-| isolation_points | 1 : 1..N | work_order_isolations | bloqueado por | RESTRICT | CASCADE |
-| users | 1 : 1..N | user_roles | asociado a | CASCADE | CASCADE |
-| roles | 1 : 1..N | user_roles | concedido a | CASCADE | CASCADE |
-| roles | 1 : 0..N | role_permissions | contiene | CASCADE | CASCADE |
-| users | 1 : 0..N | auth_tokens | autenticado con | CASCADE | CASCADE |
-| users | 1 : 0..N | work_order_assignments | se le asigna | CASCADE | CASCADE |
-| work_orders | 1 : 0..N | work_order_assignments | asigna personal | CASCADE | CASCADE |
-| users | 1 : 0..N | audit_logs | genera | SET NULL | CASCADE |
+| Entidad Origen (Parent) | Cardinalidad | Entidad Destino (Child)       | Verbo de Negocio           | Acción ON DELETE | Acción ON UPDATE |
+| ----------------------- | ------------ | ----------------------------- | -------------------------- | ---------------- | ---------------- |
+| functional_locations    | 1 : 0..N     | functional_locations          | contiene jerárquicamente a | RESTRICT         | CASCADE          |
+| functional_locations    | 1 : 0..1     | equipment_units               | instala                    | RESTRICT         | CASCADE          |
+| equipment_classes       | 1 : 0..N     | equipment_units               | categoriza                 | RESTRICT         | CASCADE          |
+| equipment_units         | 1 : 1..N     | subunits                      | se compone de              | CASCADE          | CASCADE          |
+| subunits                | 1 : 1..N     | maintainable_items            | contiene                   | CASCADE          | CASCADE          |
+| equipment_units         | 1 : 0..N     | work_requests                 | genera                     | RESTRICT         | CASCADE          |
+| equipment_units         | 1 : 0..N     | maintenance_plans             | posee                      | RESTRICT         | CASCADE          |
+| equipment_units         | 1 : 0..N     | work_orders                   | mantenido por              | RESTRICT         | CASCADE          |
+| equipment_units         | 1 : 0..N     | backlog_items                 | está listado en            | RESTRICT         | CASCADE          |
+| work_requests           | 0..1 : 0..1  | work_orders                   | se convierte en            | RESTRICT         | CASCADE          |
+| maintenance_plans       | 1 : 0..N     | work_orders                   | dispara                    | RESTRICT         | CASCADE          |
+| work_orders             | 1 : 0..N     | work_order_histories          | registra cambios en        | CASCADE          | CASCADE          |
+| work_orders             | 1 : 0..1     | failure_records               | reporta                    | RESTRICT         | CASCADE          |
+| maintainable_items      | 1 : 0..N     | failure_records               | experimenta                | RESTRICT         | CASCADE          |
+| work_orders             | 1 : 0..N     | media_attachments             | adjunta                    | CASCADE          | CASCADE          |
+| work_requests           | 1 : 0..1     | backlog_items                 | prioriza                   | RESTRICT         | CASCADE          |
+| suppliers               | 1 : 0..N     | spare_parts                   | suministra                 | RESTRICT         | CASCADE          |
+| equipment_classes       | 1 : 0..N     | spare_parts                   | estandariza                | RESTRICT         | CASCADE          |
+| spare_parts             | 1 : 0..N     | inventory_transactions        | involucrado en             | RESTRICT         | CASCADE          |
+| warehouses              | 1 : 0..N     | inventory_transactions        | almacena                   | RESTRICT         | CASCADE          |
+| warehouses              | 1 : 0..N     | equipment_units               | resguarda en stock         | SET NULL         | CASCADE          |
+| work_orders             | 1 : 0..N     | inventory_transactions        | genera                     | RESTRICT         | CASCADE          |
+| work_orders             | 1 : 1..N     | material_requirements         | planifica                  | CASCADE          | CASCADE          |
+| spare_parts             | 1 : 1..N     | material_requirements         | es consumido en            | RESTRICT         | CASCADE          |
+| maintainable_items      | 1 : 1..N     | maintainable_item_spare_parts | requiere                   | CASCADE          | CASCADE          |
+| spare_parts             | 1 : 1..N     | maintainable_item_spare_parts | es repuesto para           | RESTRICT         | CASCADE          |
+| equipment_units         | 1 : 0..1     | mesh_mappings                 | representado por           | RESTRICT         | CASCADE          |
+| mesh_mappings           | 1 : 1        | spatial_metadata              | ubicado en                 | CASCADE          | CASCADE          |
+| equipment_units         | 1 : 0..N     | telemetry_signals             | monitoreado por            | RESTRICT         | CASCADE          |
+| equipment_units         | 1 : 0..N     | work_permits                  | autoriza intervención en   | RESTRICT         | CASCADE          |
+| equipment_units         | 1 : 0..N     | isolation_points              | contiene                   | RESTRICT         | CASCADE          |
+| work_permits            | 1 : 0..N     | work_orders                   | valida ejecución de        | RESTRICT         | CASCADE          |
+| work_orders             | 1 : 0..N     | visual_layers                 | visualizada en             | CASCADE          | CASCADE          |
+| work_orders             | 1 : 1..N     | work_order_isolations         | requiere                   | CASCADE          | CASCADE          |
+| isolation_points        | 1 : 1..N     | work_order_isolations         | bloqueado por              | RESTRICT         | CASCADE          |
+| users                   | 1 : 1..N     | user_roles                    | asociado a                 | CASCADE          | CASCADE          |
+| roles                   | 1 : 1..N     | user_roles                    | concedido a                | CASCADE          | CASCADE          |
+| roles                   | 1 : 0..N     | role_permissions              | contiene                   | CASCADE          | CASCADE          |
+| users                   | 1 : 0..N     | auth_tokens                   | autenticado con            | CASCADE          | CASCADE          |
+| users                   | 1 : 0..N     | work_order_assignments        | se le asigna               | CASCADE          | CASCADE          |
+| work_orders             | 1 : 0..N     | work_order_assignments        | asigna personal            | CASCADE          | CASCADE          |
+| users                   | 1 : 0..N     | audit_logs                    | genera                     | SET NULL         | CASCADE          |
 
 ## 5. Matriz de Correspondencia de Tipos de Datos (SQL Estándar vs. PostgreSQL)
 
