@@ -23,3 +23,8 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **Lockout/Tagout (LOTO)** | Bloqueo LOTO / Aislamiento Seguro | The physical safety procedure to ensure zero energy state. |
 
 *(Note: Add terms here as you discover them during your Notion audit)*
+| **Functional Location** | Ubicación Funcional | The logical place or position in the plant where an asset operates. |
+| **Product Master** | Maestro de Productos | Abstract definition of the equipment (Model, Manufacturer). Works as a template. |
+| **Asset Record** | Registro de Activo (Serializado) | The unique physical instance with a Serial Number (SN). |
+| **Kardex** | Kardex / Historial de Movimientos | Detailed and chronological record of each inventory transaction. |
+| **Spare Part Request** | Solicitud de Repuesto | Formal request for a specific inventory component (MRO). |
