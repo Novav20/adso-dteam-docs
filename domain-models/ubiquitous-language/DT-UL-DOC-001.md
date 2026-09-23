@@ -34,3 +34,4 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **HMI (Human-Machine Interface)** | Interfaz Hombre-Máquina | The visual dashboard or software interface used by operators to interact with the Digital Twin. |
 | **Equipment Unit** | Unidad de Equipo | The physical machine as defined by ISO 14224 Level 6 (e.g., a specific Pump). |
 | **Asset** | Activo | A general business term for anything that holds value. **Rule:** When referring to physical machinery in documentation, use **Equipment Unit** or **Maintainable Item** to maintain ISO 14224 precision. |
+| **BOM (Bill of Materials)** | Lista de Materiales | The comprehensive list of parts, items, and materials required to perform a specific maintenance task. |
