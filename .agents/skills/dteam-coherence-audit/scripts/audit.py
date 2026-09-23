@@ -249,23 +249,25 @@ def audit_normative(content: str) -> list[Finding]:
     fm_match = re.search(r"^---\s*\n(.*?)\n---", content, re.DOTALL | re.MULTILINE)
     if fm_match:
         fm = fm_match.group(1)
-        # Extrae estándares listados
-        std_lines = re.findall(r"-\s+([^\n]+)", fm)
-        for std_line in std_lines:
-            # Extrae la sigla antes del paréntesis si lo hay
-            std_name = std_line.split("(")[0].strip()
-            matched = any(
-                approved.lower() in std_name.lower() or std_name.lower() in approved.lower()
-                for approved in APPROVED_STANDARDS
-            )
-            if not matched and len(std_name) > 3:
-                i += 1
-                findings.append(Finding(
-                    "INFO", f"I-NRM{i:02d}",
-                    f"Estándar `{std_name}` en frontmatter no está en el catálogo reconocido. "
-                    f"Verificar pertinencia y agregar al catálogo si es válido.",
-                    None
-                ))
+        # Extrae estándares listados bajo keys específicas
+        std_match = re.search(r"(?:standards|normativa|normas|estandar):\s*\n((?:\s*-\s+[^\n]+\n?)+)", fm, re.IGNORECASE)
+        if std_match:
+            std_lines = re.findall(r"-\s+([^\n]+)", std_match.group(1))
+            for std_line in std_lines:
+                # Extrae la sigla antes del paréntesis si lo hay
+                std_name = std_line.split("(")[0].strip()
+                matched = any(
+                    approved.lower() in std_name.lower() or std_name.lower() in approved.lower()
+                    for approved in APPROVED_STANDARDS
+                )
+                if not matched and len(std_name) > 3:
+                    i += 1
+                    findings.append(Finding(
+                        "INFO", f"I-NRM{i:02d}",
+                        f"Estándar `{std_name}` en frontmatter no está en el catálogo reconocido. "
+                        f"Verificar pertinencia y agregar al catálogo si es válido.",
+                        None
+                    ))
 
     return findings
 
@@ -302,35 +304,52 @@ def audit_scope(content: str) -> list[Finding]:
             ))
 
     # — Roles no definidos en RBAC
-    # Estrategia: extraer solo de columnas de tabla "Roles Autorizados" (pipe-delimited)
-    # para evitar falsos positivos de prose. Candidato debe empezar con mayúscula.
-    role_cells = re.findall(
-        r"\|\s*([A-ZÁÉÍÓÚ][A-ZÁÉÍÓÚa-záéíóúñÑ,\. /]+)\s*\|",
-        content
-    )
-    for cell in role_cells:
-        # Separar múltiples roles por coma
-        for candidate in re.split(r"[,]", cell):
-            candidate = candidate.strip().strip(".").strip()
-            # Ignorar: demasiado corto, título de columna, "Todos los Roles"
-            if len(candidate) < 4:
+    # Estrategia mejorada para evitar falsos positivos: buscar solo en columnas de tablas llamadas "Rol", "Roles" o "Actor"
+    table_pattern = re.compile(r'(^\|.*\|\n(?:\|[-:\s|]+\|\n)(?:\|.*\|\n)*)', re.MULTILINE)
+    for table_match in table_pattern.finditer(content):
+        table_text = table_match.group(1)
+        lines = table_text.strip().split('\n')
+        if len(lines) < 3:
+            continue
+        
+        headers = [h.strip().lower() for h in lines[0].strip('|').split('|')]
+        # Buscar el índice de la columna de roles
+        role_col_idx = -1
+        for i, h in enumerate(headers):
+            if re.search(r'\b(rol|roles|actor|actores)\b', h):
+                role_col_idx = i
+                break
+                
+        if role_col_idx == -1:
+            continue
+            
+        # Extraer los datos de esa columna
+        for row in lines[2:]:
+            # Ignorar filas vacías
+            if not row.strip():
                 continue
-            if re.match(r"^(Todos|Pantalla|Evento|Destino|Nivel|Fuente|Estado|Token|Valor|Aplicación|Símbolo|Tema|Tipo|Capa|Tecnología|Uso|Trazabilidad)", candidate):
-                continue
-            # Solo verificar si parece un nombre de rol (empieza con mayúscula, ≤5 palabras)
-            if len(candidate.split()) > 5:
-                continue
-            if not any(
-                role.lower() in candidate.lower() or candidate.lower() in role.lower()
-                for role in APPROVED_ROLES
-            ):
-                w += 1
-                findings.append(Finding(
-                    "WARNING", f"W-SCP{w:02d}",
-                    f"Posible rol no definido en la Matriz RBAC: `{candidate}`. "
-                    f"Verificar contra SCR-ADM-013 o si es un alias.",
-                    None
-                ))
+            cells = [c.strip() for c in row.strip('|').split('|')]
+            if role_col_idx < len(cells):
+                cell = cells[role_col_idx]
+                for candidate in re.split(r"[,]", cell):
+                    candidate = candidate.strip().strip(".").strip()
+                    if len(candidate) < 4 or len(candidate.split()) > 5:
+                        continue
+                    if re.match(r"^(Todos|Pantalla|Evento|Destino|Nivel|Fuente|Estado|Token|Valor|Aplicación|Símbolo|Tema|Tipo|Capa|Tecnología|Uso|Trazabilidad)", candidate, re.IGNORECASE):
+                        continue
+                    
+                    # Check against approved roles
+                    if not any(
+                        role.lower() in candidate.lower() or candidate.lower() in role.lower()
+                        for role in APPROVED_ROLES
+                    ):
+                        w += 1
+                        findings.append(Finding(
+                            "WARNING", f"W-SCP{w:02d}",
+                            f"Posible rol no definido en la Matriz RBAC: `{candidate}`. "
+                            f"Verificar contra SCR-ADM-013 o si es un alias.",
+                            None
+                        ))
 
     return findings
 
