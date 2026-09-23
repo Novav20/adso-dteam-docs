@@ -35,3 +35,4 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **Equipment Unit** | Unidad de Equipo | The physical machine as defined by ISO 14224 Level 6 (e.g., a specific Pump). |
 | **Asset** | Activo | A general business term for anything that holds value. **Rule:** When referring to physical machinery in documentation, use **Equipment Unit** or **Maintainable Item** to maintain ISO 14224 precision. |
 | **BOM (Bill of Materials)** | Lista de Materiales | The comprehensive list of parts, items, and materials required to perform a specific maintenance task. |
+| **Work Request (WR)** | Solicitud de Trabajo | An unapproved report of an anomaly or request for maintenance work. It must be validated by a Planner before becoming a WO. |
