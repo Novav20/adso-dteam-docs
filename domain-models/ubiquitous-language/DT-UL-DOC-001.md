@@ -29,3 +29,5 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **Spare Part Request**    | Solicitud de Repuesto               | Formal request for a specific inventory component (MRO).                              |
 | **Maintainable Item** | Activo Mantenible / Ítem Mantenible | The lowest level of equipment tracked for maintenance (ISO 14224 Level 8). |
 | **Purchase Order (PO)** | Orden de Compra | Commercial document issued to a supplier indicating types, quantities, and agreed prices. |
+| **Rotable Spare** | Repuesto Rotable | A spare part that can be repaired and reused, often serialized and tracked individually. |
+| **Reorder Point** | Punto de Reorden | The specific inventory level that triggers an automatic replenishment/purchase request. |
