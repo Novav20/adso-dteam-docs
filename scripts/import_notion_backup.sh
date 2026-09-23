@@ -107,6 +107,8 @@ resolve_target_name() {
         echo "actors.csv"
     elif [[ "$filename" == *"Objetos de Datos"* || "$filename" == *"Data Objects"* || "$filename" == *"I/O"* ]]; then
         echo "ios.csv"
+    elif [[ "$filename" == *"Business Processes"* || "$filename" == *"Procesos"* ]]; then
+        echo "processes.csv"
     elif [[ "$filename" == *"SRS"* || "$filename" == *"Requirements"* ]]; then
         echo "srs.csv"
     elif [[ "$filename" == *"Historias de Usuario"* || "$filename" == *"User Stories"* || "$filename" == *"US"* ]]; then
