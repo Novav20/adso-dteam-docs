@@ -2,13 +2,13 @@
 id: SCR-VIS-033
 title: Asset Inspection on the 2D Base Map
 module: VIS
-isa101_level: L1 (COP) | L3 (Detalle Activo)
+isa101_level: L1 (COP) | L3 (Asset Detail)
 platform: Shared Component
-target_device: Tablet Industrial | Desktop
+target_device: Industrial Tablet | Desktop
 roles:
   - Maintenance Supervisor
   - Maintenance Technician
-  - Inspector HSEQ
+  - HSEQ Inspector
   - Reliability Engineer
 user_stories:
   - "[[VIS-033]]"
@@ -59,7 +59,7 @@ status: In Review
 | `CMP-06` | Asset Header Block      | Identification and status | Surface: `--dt-color-surface-card` | Presents `TagNumber` (with `--dt-font-mono-data` typography), criticality, and operational status (`EquipmentUnit.operationalStatus`). |
 | `CMP-07` | Live Telemetry Block    | MAI analog indicators | `--dt-color-mai-*`                                                                                  | Analog bars for critical process variables ([[DT-UI-DS-DOC-001]]). Dynamically updated via SignalR ([[TR-010]]). |
 | `CMP-08` | Safety & Work Badges    | Work and risk indicators | [[DT-UI-DS-DOC-001#6.2. Redundant Coding Matrix for Permits and LOTO\| DT-UI-DS-DOC-001]] | Consumes Permit and LOTO data applying mandatory redundant coding. |
-| `CMP-09` | Quick Action Buttons    | Primary actions button panel | Superficie: `--dt-color-surface-base`<br>Texto: `--dt-color-text-primary`                           | Quick links: `[Locate on Map]`, `[View LOTO Route]` $\to$ SCR-VIS-011, `[View WOs]` $\to$ SCR-MTTO-026, `[Master Card]` $\to$ SCR-INV-005. |
+| `CMP-09` | Quick Action Buttons    | Primary actions button panel | Surface: `--dt-color-surface-base`<br>Text: `--dt-color-text-primary`                           | Quick links: `[Locate on Map]`, `[View LOTO Route]` $\to$ SCR-VIS-011, `[View WOs]` $\to$ SCR-MTTO-026, `[Master Card]` $\to$ SCR-INV-005. |
 
 
 ---
