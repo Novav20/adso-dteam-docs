@@ -120,12 +120,12 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-color-bg-canvas       | --dt-primitive-gray-900     | --dt-primitive-gray-200       | 2D canvas background / Floor plan                                   |
 | --dt-color-surface-base    | --dt-primitive-gray-800     | --dt-primitive-gray-100       | App background / Header                                         |
 | --dt-color-surface-card    | --dt-primitive-gray-700     | --dt-primitive-gray-50        | Asset cards / Table rows                                    |
-| --dt-color-surface-raised  | --dt-primitive-gray-600     | --dt-primitive-white          | Modales / Paneles flotantes                                             |
+| --dt-color-surface-raised  | --dt-primitive-gray-600     | --dt-primitive-white          | Modals / Floating panels                                             |
 | --dt-color-border-subtle   | --dt-primitive-gray-650     | --dt-primitive-gray-300       | Dividing lines / Separators                                         |
 | --dt-color-border-focus    | --dt-primitive-gray-450     | --dt-primitive-gray-550       | Focused input border (Dark Theme adjusted to 3.09:1 WCAG AA)          |
 | --dt-color-text-muted      | --dt-primitive-gray-420     | --dt-primitive-gray-620       | Units of measurement / Timestamps (Dark Theme adjusted to 4.55:1 WCAG AA) |
 | --dt-color-text-body       | --dt-primitive-gray-280     | --dt-primitive-gray-850       | Main text / Table values                                      |
-| --dt-color-text-primary    | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Títulos / Valores críticos                                              |
+| --dt-color-text-primary    | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Titles / Critical values                                              |
 | --dt-color-mai-track       | --dt-primitive-gray-700     | --dt-primitive-gray-100       | Analog MAI indicator track background                              |
 | --dt-color-mai-normal-zone | --dt-primitive-blue-700     | --dt-primitive-blue-200       | Normal operation range strip in MAI                              |
 | --dt-color-mai-pointer     | --dt-primitive-gray-10      | --dt-primitive-gray-980       | MAI current value pointer                                             |
@@ -135,7 +135,7 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 
 | State / Severity | Color Token | Value (Dark Theme) | Value (Light Theme) | Mandatory Symbol                                                 |
 | --------------------------------- | ------------------------- | ------------------------ | ------------------------ | ------------------------------------------------------------------- |
-| **Alarma Crítica / Peligro LOTO** | --dt-color-alarm-critical | --dt-primitive-red-600   | --dt-primitive-red-600   | Cuadrado / Octágono                                                 |
+| **Critical Alarm / LOTO Danger** | --dt-color-alarm-critical | --dt-primitive-red-600   | --dt-primitive-red-600   | Square / Octagon                                                 |
 | **Warning / Approaching Limit**  | --dt-color-alarm-warning  | --dt-primitive-amber-400 | --dt-primitive-amber-600 | Triangle (Adjusted WCAG AA 3.47:1 on light background)                  |
 | **Informational / Selection**       | --dt-color-state-info     | --dt-primitive-blue-450  | --dt-primitive-blue-600  | Circle / Rhombus (Adjusted WCAG AA 3.15:1 on dark background)           |
 | **Documentary Confirmation**       | --dt-color-state-success  | --dt-primitive-teal-400  | --dt-primitive-teal-700  | Checkmark ( $\checkmark$ ) (Adjusted WCAG AA 3.25:1 on light background) |
@@ -146,13 +146,13 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 ## 4. Typographic Tokens
 Typography is defined under a dual model: high-availability native fonts in the design engine (Google Fonts in Penpot) and comprehensive fallback stacks (*System Fallbacks*) for production web stylesheets.
 
-### 4.1. Familias Tipográficas
+### 4.1. Typographic Families
 | Typographic Role | Base Font (Penpot / Design) | Fallback Stack (CSS / Web) | Application Use |
 | :------------------ | :---------------------------- | :------------------------------------------------- | :------------------------------------------------ |
 | Primary Sans-Serif | Inter                         | Segoe UI, Inter, Roboto, -apple-system, sans-serif | Titles, labels, descriptions, and controls     |
 | Monospaced       | Roboto Mono                   | Cascadia Code, SF Mono, Consolas, monospace        | Equipment tags (P-101), hashes, IPs and timestamps |
 
-### 4.2. Escala Tipográfica
+### 4.2. Typographic Scale
 | Typographic Token | Size (px) | Size (rem) | Line Height (px) | Weight (Font-Weight) | Standard Application Use |
 | :------------------ | :---------- | :----------- | :------------------- | :----------------- | :-------------------------------------------------------------- |
 | --dt-font-display   | 28px        | 1.75rem      | 36px                 | Bold (700)         | Executive-level macro KPIs on Dashboard L1                  |
