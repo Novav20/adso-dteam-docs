@@ -1,0 +1,72 @@
+@startuml INV-UseCases
+skinparam packageStyle rectangle
+left to right direction
+
+' --- VISUAL CONFIGURATION ---
+skinparam usecase {
+  BackgroundColor #EBF5FB
+  BorderColor #2E86C1
+  BorderThickness 2
+  FontName Segoe UI
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #1B4F72
+  BorderColor #154360
+  FontName Segoe UI
+  FontSize 11
+}
+skinparam package {
+  BackgroundColor #FDFEFE
+  BorderColor #AED6F1
+  FontName Segoe UI
+  FontSize 13
+  FontStyle bold
+}
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+
+legend top right
+|= Document Control (ISO 9001:2015) |
+| **Code:** DT-UCD-INV-001 |
+| **Version:** 1.2 |
+| **Date:** 2026-08-03 |
+| **Status:** Completed |
+| **Author:** Juan David Julio Serrano |
+endlegend
+
+' --- ACTORS ---
+actor "Warehouse\nManager" as JefeAlmacen #1B4F72
+actor "Project\nEngineer" as IngenieroProyectos #1B4F72
+actor "Reliability\nEngineer" as IngenieroConfiabilidad #1B4F72
+actor "Maintenance\nTechnician" as Tecnico #1B4F72
+
+' --- MAIN PACKAGE ---
+package "Resource Control Module (INV)" {
+
+  usecase "UC-INV-005\nRegister Physical\nAsset Master" as UCINV005 #EBF5FB
+  usecase "UC-INV-006\nProcess Inventory\nTransactions (Kardex)" as UCINV006 #EBF5FB
+  usecase "UC-INV-007\nValidate and Activate\nMaster Asset" as UCINV007 #EBF5FB
+  usecase "UC-INV-021\nMonitor Stock\nReplenishment" as UCINV021 #EBF5FB
+  usecase "UC-INV-025\nRegister Rotable\nAsset Swap" as UCINV025 #EBF5FB
+  usecase "UC-INV-027\nStructure Taxonomy of\nFunctional Locations" as UCINV027 #EBF5FB
+  usecase "UC-INV-031\nManage Spare Part\nMaster Catalog" as UCINV031 #EBF5FB
+}
+
+' --- ACTOR - USE CASE RELATIONSHIPS ---
+IngenieroProyectos --> UCINV005
+IngenieroProyectos --> UCINV027
+IngenieroProyectos --> UCINV025
+
+JefeAlmacen --> UCINV006
+JefeAlmacen --> UCINV021
+JefeAlmacen --> UCINV031
+
+IngenieroConfiabilidad --> UCINV007
+Tecnico --> UCINV006
+
+' --- INTER-USE CASE RELATIONSHIPS (Include/Extend) ---
+UCINV006 ..> UCINV031 : <<include>>
+UCINV021 ..> UCINV031 : <<include>>
+
+@enduml
