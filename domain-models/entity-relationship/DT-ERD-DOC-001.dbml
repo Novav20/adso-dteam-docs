@@ -372,7 +372,6 @@ Table "work_order_assignments" {
 }
 
 // --- RELACIONES ---
-Ref: ":---"."id" < ":---"."parent_id" [delete: :---, update: :---]
 Ref: "equipment_classes"."id" < "equipment_units"."equipment_class_id" [delete: restrict, update: cascade]
 Ref: "functional_locations"."id" < "functional_locations"."parent_id" [delete: restrict, update: cascade]
 Ref: "functional_locations"."id" < "equipment_units"."functional_location_id" [delete: restrict, update: cascade]

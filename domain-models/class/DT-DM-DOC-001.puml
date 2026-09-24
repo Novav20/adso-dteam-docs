@@ -395,7 +395,6 @@ package "`adm`" <<Folder>> #F0F0F0 {
 }
 
 ' Relationships
-:--- "" --> "" :--- : :---
 EquipmentClass "1" --> "0..*" EquipmentUnit : classifies
 FunctionalLocation "1" --> "0..*" FunctionalLocation : contains (Self)
 FunctionalLocation "1" --> "0..*" EquipmentUnit : installs

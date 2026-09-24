@@ -42,7 +42,7 @@ def generate_domain_puml():
             if "| Entidad" in line and "| Estereotipo DDD" in line:
                 in_table = True
                 continue
-            if line.startswith("| ---") or line.startswith("| -"):
+            if line.startswith("| ---") or line.startswith("| -") or line.startswith("| :---") or line.startswith("| :"):
                 continue
             if in_table and line.startswith("|"):
                 parts = [p.strip() for p in line.split("|")[1:-1]]
@@ -92,7 +92,7 @@ def generate_domain_puml():
             in_table = True
             continue
             
-        if line.startswith("| ---"):
+        if line.startswith("| ---") or line.startswith("| :---") or line.startswith("| :"):
             continue
             
         if in_table and line.startswith("|"):

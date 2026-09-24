@@ -33,7 +33,7 @@ if sec3_start != -1 and sec4_start != -1:
                 table_to_schema[current_table] = current_schema
             continue
             
-        if line.startswith('|') and not line.startswith('| Physical') and not line.startswith('| ---'):
+        if line.startswith('|') and not line.startswith('| Physical') and not line.startswith('| ---') and not line.startswith('| :---'):
             parts = [p.strip() for p in line.split('|')]
             if len(parts) >= 7:
                 col = parts[1]
@@ -58,7 +58,7 @@ sec4_end = md_content.find('## 5. Data Type Correspondence Matrix')
 if sec4_start != -1 and sec4_end != -1:
     sec4_content = md_content[sec4_start:sec4_end]
     for line in sec4_content.split('\n'):
-        if line.startswith('|') and not line.startswith('| Parent Table') and not line.startswith('| ---'):
+        if line.startswith('|') and not line.startswith('| Parent Table') and not line.startswith('| ---') and not line.startswith('| :---'):
             parts = [p.strip() for p in line.split('|')]
             if len(parts) > 6:
                 parent = parts[1]
