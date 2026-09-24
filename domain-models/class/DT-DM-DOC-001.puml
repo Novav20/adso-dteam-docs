@@ -1,0 +1,439 @@
+@startuml DT-DM-001-domain-model
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide circle
+
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 80
+
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    ArrowColor #1565C0
+    FontName Arial
+    HeaderFontStyle bold
+}
+
+package "`tax`" <<Folder>> #F0F0F0 {
+    class EquipmentClass <<Entity>> {
+        - Id: UUID
+        - ClassName: String
+        - Description: String
+        - ManufacturerStandard: String
+    }
+    class EquipmentUnit <<Entity>> {
+        - Id: UUID
+        - SerialNumber: String
+        - Manufacturer: String
+        - Model: String
+        - PurchaseDate: DateTime
+        - RejectionReason: String
+        - BoundaryStart: String
+        - BoundaryEnd: String
+        - AcquisitionDate: DateTime
+        - InstallationDate: DateTime?
+        - OperationStartDate: DateTime?
+        - OperatingHours: Integer
+        - SurveillanceHours: Integer
+        - DisposalDate: DateTime?
+        - DisposalReason: String
+        - OperationalStatus: String
+        - LifecycleStatus: String
+        - MaintenanceStatus: String
+        - HealthStatus: String
+        - IsSce: Boolean
+        - FunctionalLocationId: UUID?
+        - EquipmentClassId: UUID
+        - WarehouseId: UUID?
+        --
+        + Activate(): void
+        + ValidateChronology(): void
+        + DefineBoundaries(boundaryStart: String, boundaryEnd: String): void
+        + UpdateOperationalStatus(newStatus: Enum): void
+        + AddSubunit(subunit: Subunit): void
+        + Decommission(reason: String, disposalDate: Date): void
+        + RejectCommissioning(reason: String): void
+        + TransitionToStorage(warehouseId: UUID): void
+        + TransitionToRepair(): void
+    }
+    class FunctionalLocation <<Entity>> {
+        - Id: UUID
+        - TagNumber: String
+        - Name: String
+        - Description: String
+        - Criticality: String
+        - GeographicLocation: String
+        - EnvironmentalExposure: String
+        - HierarchyLevel: Integer
+        - ParentId: UUID?
+        --
+        + AddChild(child: FunctionalLocation): void
+        + RemoveChild(childId: UUID): void
+        + ReorganizeTree(newParentId: UUID): void
+        + InstallEquipment(equipment: EquipmentUnit): void
+        + UninstallEquipment(): EquipmentUnit
+    }
+    class MaintainableItem <<Entity>> {
+        - Id: UUID
+        - SubunitId: UUID
+        - ComponentName: String
+        - SubunitType: String
+        - SparePartType: String
+        - DesignAttributes: JSON
+        - Status: String
+        --
+        + UpdateStatus(newStatus: Enum): void
+    }
+    class Subunit <<Entity>> {
+        - Id: UUID
+        - EquipmentUnitId: UUID
+        - SubunitType: String
+        - Name: String
+        --
+        + AddMaintainableItem(item: MaintainableItem): void
+    }
+}
+
+package "`mtto`" <<Folder>> #F0F0F0 {
+    class BacklogItem <<Entity>> {
+        - Id: UUID
+        - EquipmentUnitId: UUID
+        - WorkRequestId: UUID
+        - PriorityScore: Integer
+        - Status: String
+        --
+        + UpdatePriorityScore(score: int): void
+        + Defer(reason: String): void
+    }
+    class FailureRecord <<Entity>> {
+        - Id: UUID
+        - WorkOrderId: UUID
+        - MaintainableItemId: UUID?
+        - FailureMode: String
+        - FailureMechanism: String
+        - FailureCause: String
+        - DetectionMethod: String
+        - OperationalCondition: String
+        - OperationalImpact: String
+        - Downtime: Decimal
+        - Status: String
+        --
+        + UpdateClassification(mode: Enum, mechanism: Enum, cause: Enum): void
+    }
+    class MaintenancePlan <<Entity>> {
+        - Id: UUID
+        - EquipmentUnitId: UUID
+        - MaintenanceMethod: String
+        - Frequency: String
+        - FrequencyType: String
+        - NextWorkOrderDate: DateTime?
+        - IntervalValue: Decimal?
+        - NextTriggerLimit: Decimal?
+        - EstimatedLaborHours: Decimal
+        - RequiredSpecialty: String
+        - TechnicalDescription: String
+        - Status: String
+        --
+        + GenerateWorkOrder(targetDate: DateTime): WorkOrder
+        + Suspend(reason: String): void
+        + Archive(): void
+        + CalculateNextTriggerLimit(currentUsage: Decimal): void
+    }
+    class MediaAttachment <<Entity>> {
+        - Id: UUID
+        - WorkOrderId: UUID
+        - FileUrl: String
+        - FileType: String
+        - UploadedAt: DateTime
+    }
+    class WorkOrderHistory <<Entity>> {
+        - Id: UUID
+        - WorkOrderId: UUID
+        - OldStatus: String
+        - NewStatus: String
+        - Timestamp: DateTime
+        - DurationSeconds: Integer?
+    }
+    class WorkOrder <<Entity>> {
+        - Id: UUID
+        - EquipmentUnitId: UUID
+        - MaintenancePlanId: UUID?
+        - WorkRequestId: UUID?
+        - WorkPermitId: UUID?
+        - CurrentStatus: String
+        - MaintenanceMethod: String
+        - CreationDate: DateTime
+        - ScheduledDate: DateTime?
+        - ActualStart: DateTime?
+        - ActualFinish: DateTime?
+        - ActualLaborHours: Decimal?
+        - Criticality: String
+        --
+        + Schedule(scheduledDate: DateTime): void
+        + RequireIsolation(isolationPointId: UUID): void
+        + StartExecution(): void
+        + CompleteExecution(actualLaborHours: Decimal): void
+        + CloseAdministratively(): void
+        + ReportFailure(maintainableItemId: UUID, mode: Enum, mechanism: Enum, cause: Enum, detectionMethod: Enum, operationalCondition: Enum, operationalImpact: Enum): void
+        + AddMediaAttachment(fileUrl: String, fileType: Enum): void
+        + SuspendExecution(reason: String): void
+    }
+    class WorkRequest <<Entity>> {
+        - Id: UUID
+        - EquipmentUnitId: UUID
+        - Description: String
+        - Priority: String
+        - RequestDate: DateTime
+        - RequestSource: String
+        - Status: String
+        - WorkClassCode: Integer
+        --
+        + ApproveAsWorkOrder(): WorkOrder
+        + Reject(reason: String): void
+    }
+}
+
+package "`inv`" <<Folder>> #F0F0F0 {
+    class InventoryTransaction <<Entity>> {
+        - Id: UUID
+        - SparePartId: UUID
+        - WarehouseId: UUID
+        - WorkOrderId: UUID?
+        - Quantity: Decimal
+        - TransactionType: String
+        - Timestamp: DateTime
+        - Reason: String
+        - TotalCost: Decimal
+        - AisleShelfLocation: String
+        - SerialNumber: String
+    }
+    class MaintainableItemSparePart <<Entity>> {
+        - MaintainableItemId: UUID
+        - SparePartId: UUID
+    }
+    class MaterialRequirement <<Entity>> {
+        - WorkOrderId: UUID
+        - SparePartId: UUID
+        - PlannedQuantity: Decimal
+        - ActualQuantity: Decimal?
+        - IsReserved: Boolean
+        --
+        + MarkAsReserved(): void
+        + RecordConsumption(actualQuantity: Decimal): void
+    }
+    class SparePart <<Entity>> {
+        - Id: UUID
+        - Sku: String
+        - Description: String
+        - Manufacturer: String
+        - CommodityCode: String
+        - ReorderPoint: Decimal
+        - UnitOfMeasure: String
+        - StockPolicy: String
+        - IsRebuildable: Boolean
+        - QuantityOnHand: Decimal
+        - ReservedQuantity: Decimal
+        - MaxCapacity: Decimal
+        - UnitCost: Decimal
+        - Status: String
+        - SupplierId: UUID
+        - EquipmentClassId: UUID?
+        --
+        + UpdateStockPolicy(policy: Enum, reorderPoint: Decimal, maxCapacity: Decimal): void
+        + ReserveStock(quantity: Decimal): void
+        + ReleaseReservation(quantity: Decimal): void
+        + ReceiveStock(quantity: Decimal): void
+        + IssueStock(quantity: Decimal): void
+    }
+    class Supplier <<Entity>> {
+        - Id: UUID
+        - Name: String
+        - ContactInfo: String
+        - WarrantyTerms: String
+    }
+    class Warehouse <<Entity>> {
+        - Id: UUID
+        - Name: String
+        - Location: String
+        - Capacity: Decimal
+    }
+}
+
+package "`vis`" <<Folder>> #F0F0F0 {
+    class IsolationPoint <<Entity>> {
+        - Id: UUID
+        - EquipmentUnitId: UUID
+        - IsolationTag: String
+        - IsolationType: String
+        - IsVerified: Boolean
+        --
+        + MarkAsVerified(): void
+    }
+    class MeshMapping <<Entity>> {
+        - Id: UUID
+        - EquipmentUnitId: UUID
+        - MeshUuid: String
+        - MappingStatus: String
+        - LastSyncTime: DateTime?
+    }
+    class SpatialMetadata <<Entity>> {
+        - MeshMappingId: UUID
+        - Position: JSON
+        - Rotation: JSON
+        - Scale: JSON
+    }
+    class TelemetrySignal <<Entity>> {
+        - Id: UUID
+        - EquipmentUnitId: UUID
+        - SignalType: String
+        - Value: Decimal
+        - Unit: String
+        - Threshold: Decimal?
+        - Timestamp: DateTime
+        - IsSafetyCritical: Boolean
+    }
+    class VisualLayer <<Entity>> {
+        - Id: UUID
+        - WorkOrderId: UUID
+        - LayerType: String
+        - OpacityLevel: Decimal
+        - Status: String
+    }
+    class WorkOrderIsolation <<Entity>> {
+        - WorkOrderId: UUID
+        - IsolationPointId: UUID
+        - IsIsolated: Boolean
+        - IsolatedAt: DateTime?
+        - PadlockTagId: String
+    }
+    class WorkPermit <<Entity>> {
+        - Id: UUID
+        - EquipmentUnitId: UUID
+        - PermitIdentifier: String
+        - ValidFrom: DateTime
+        - ValidTo: DateTime
+        - Status: String
+        --
+        + Approve(): void
+        + Revoke(reason: String): void
+        + Expire(): void
+        + Close(): void
+    }
+}
+
+package "`adm`" <<Folder>> #F0F0F0 {
+    class AuditLog <<Entity>> {
+        - Id: UUID
+        - UserId: UUID?
+        - EventType: String
+        - EntityType: String
+        - EntityId: UUID
+        - Timestamp: DateTime
+        - PreviousState: JSON
+        - NewState: JSON
+        - IpAddress: String
+        - UserAgent: String
+        - IntegrityHash: String
+        --
+        + VerifyIntegrity(): boolean
+    }
+    class AuthToken <<Entity>> {
+        - Id: UUID
+        - UserId: UUID
+        - TokenHash: String
+        - ExpiresAt: DateTime
+        - IsRevoked: Boolean
+        - Purpose: String
+        --
+        + Revoke(): void
+        + MarkAsUsed(): void
+    }
+    class RolePermission <<Entity>> {
+        - RoleId: UUID
+        - Module: String
+        - Action: String
+    }
+    class Role <<Entity>> {
+        - Id: UUID
+        - Name: String
+        - Description: String
+        --
+        + AddPermission(module: String, action: String): void
+        + RemovePermission(module: String, action: String): void
+        + ValidateSoD(): void
+    }
+    class UserRole <<Entity>> {
+        - UserId: UUID
+        - RoleId: UUID
+    }
+    class User <<Entity>> {
+        - Id: UUID
+        - Username: String
+        - Email: String
+        - PasswordHash: String
+        - FullName: String
+        - IsActive: Boolean
+        - FailedLoginAttempts: Integer
+        - LockoutUntil: DateTime?
+        - LastLoginAt: DateTime?
+        --
+        + AssignRole(roleId: UUID): void
+        + RemoveRole(roleId: UUID): void
+        + RecordFailedLogin(): void
+        + RegisterSuccessfulLogin(): void
+        + UpdatePassword(newPasswordHash: String): void
+        + Deactivate(reason: String): void
+        + Activate(): void
+    }
+    class WorkOrderAssignment <<Entity>> {
+        - WorkOrderId: UUID
+        - UserId: UUID
+        - AssignedRole: String
+        - AssignedAt: DateTime
+    }
+}
+
+' Relationships
+:--- "" --> "" :--- : :---
+EquipmentClass "1" --> "0..*" EquipmentUnit : classifies
+FunctionalLocation "1" --> "0..*" FunctionalLocation : contains (Self)
+FunctionalLocation "1" --> "0..*" EquipmentUnit : installs
+EquipmentUnit "1" *-- "0..*" Subunit : broken down into
+Subunit "1" *-- "0..*" MaintainableItem : built by
+EquipmentUnit "1" *-- "0..*" MaintenancePlan : governed by
+EquipmentUnit "1" *-- "0..*" WorkOrder : generates
+MaintenancePlan "1" o-- "0..*" WorkOrder : instantiates
+EquipmentUnit "1" *-- "0..*" WorkRequest : requires
+WorkRequest "1" *-- "0..1" BacklogItem : prioritized as
+EquipmentUnit "1" *-- "0..*" BacklogItem : pending for
+WorkOrder "1" *-- "0..1" FailureRecord : diagnoses
+MaintainableItem "1" o-- "0..*" FailureRecord : affected by
+WorkOrder "1" *-- "0..*" MediaAttachment : evidenced by
+WorkOrder "1" *-- "0..*" WorkOrderHistory : audited via
+Warehouse "1" --> "0..*" InventoryTransaction : transacts
+SparePart "1" --> "0..*" InventoryTransaction : moves
+WorkOrder "1" o-- "0..*" InventoryTransaction : consumes
+MaintainableItem "1" *-- "0..*" MaintainableItemSparePart : repaired with
+SparePart "1" *-- "0..*" MaintainableItemSparePart : replaces
+WorkOrder "1" *-- "0..*" MaterialRequirement : plans
+SparePart "1" *-- "0..*" MaterialRequirement : fulfills
+Supplier "1" --> "0..*" SparePart : supplies
+EquipmentClass "1" --> "0..*" SparePart : compatible with
+EquipmentUnit "1" *-- "0..1" MeshMapping : visualized as
+MeshMapping "1" *-- "0..*" SpatialMetadata : located via
+EquipmentUnit "1" *-- "0..*" TelemetrySignal : monitored by
+EquipmentUnit "1" --> "0..*" IsolationPoint : contains
+WorkPermit "1" --> "0..*" WorkOrder : validates execution of
+WorkOrder "1" *-- "0..*" VisualLayer : visualized in
+WorkOrder "1" *-- "1..*" WorkOrderIsolation : requires
+IsolationPoint "1" --> "1..*" WorkOrderIsolation : locked by
+User "1" *-- "1..*" UserRole : associated to
+Role "1" *-- "1..*" UserRole : granted to
+Role "1" *-- "0..*" RolePermission : contains
+User "1" *-- "0..*" AuthToken : authenticated with
+User "1" *-- "0..*" WorkOrderAssignment : assigned to
+WorkOrder "1" *-- "0..*" WorkOrderAssignment : assigns personnel
+User "1" o-- "0..*" AuditLog : generates
+
+@enduml

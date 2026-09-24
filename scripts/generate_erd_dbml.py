@@ -2,15 +2,15 @@ import re
 import os
 
 md_file = 'domain-models/entity-relationship/DT-ERD-DOC-001.md'
-dbml_file = 'domain-models/entity-relationship/DT-ERD-LOG-001-logical-model.dbml'
+dbml_file = 'domain-models/entity-relationship/DT-ERD-DOC-001.dbml'
 
 with open(md_file, 'r', encoding='utf-8') as f:
     md_content = f.read()
 
 schemas = {}
 table_to_schema = {}
-sec3_start = md_content.find('## 3. Diccionario de Datos')
-sec4_start = md_content.find('## 4. Matriz de Relaciones')
+sec3_start = md_content.find('## 3. Physical Data Dictionary')
+sec4_start = md_content.find('## 4. Referential Relationships')
 
 if sec3_start != -1 and sec4_start != -1:
     sec3_content = md_content[sec3_start:sec4_start]
@@ -19,7 +19,7 @@ if sec3_start != -1 and sec4_start != -1:
     current_table = None
     
     for line in sec3_content.split('\n'):
-        m_schema = re.match(r'^### 3\.\d+ Esquema \**`?(\w+)`?\**', line)
+        m_schema = re.match(r'^### 3\.\d+ Schema \**`?(\w+)`?\**', line)
         if m_schema:
             current_schema = m_schema.group(1)
             schemas[current_schema] = {}
@@ -33,7 +33,7 @@ if sec3_start != -1 and sec4_start != -1:
                 table_to_schema[current_table] = current_schema
             continue
             
-        if line.startswith('|') and not line.startswith('| Campo') and not line.startswith('| ---'):
+        if line.startswith('|') and not line.startswith('| Physical') and not line.startswith('| ---'):
             parts = [p.strip() for p in line.split('|')]
             if len(parts) >= 7:
                 col = parts[1]
@@ -54,11 +54,11 @@ if sec3_start != -1 and sec4_start != -1:
                     })
 
 relationships = []
-sec4_end = md_content.find('## 5. Matriz de Correspondencia')
+sec4_end = md_content.find('## 5. Data Type Correspondence Matrix')
 if sec4_start != -1 and sec4_end != -1:
     sec4_content = md_content[sec4_start:sec4_end]
     for line in sec4_content.split('\n'):
-        if line.startswith('|') and not line.startswith('| Entidad Origen') and not line.startswith('| ---'):
+        if line.startswith('|') and not line.startswith('| Parent Table') and not line.startswith('| ---'):
             parts = [p.strip() for p in line.split('|')]
             if len(parts) > 6:
                 parent = parts[1]
@@ -79,7 +79,7 @@ if sec4_start != -1 and sec4_end != -1:
 
 dbml_output = "Project DT_ERD {\n"
 dbml_output += "  database_type: 'PostgreSQL'\n"
-dbml_output += "  Note: 'Diccionario de Datos Físico y Relacional (Auto-generado desde Markdown)'\n"
+dbml_output += "  Note: 'Physical Relational and Data Dictionary (Auto-generado desde Markdown)'\n"
 dbml_output += "}\n\n"
 
 for schema, tables in schemas.items():
