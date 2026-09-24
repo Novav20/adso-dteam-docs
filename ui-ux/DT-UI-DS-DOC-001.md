@@ -2,22 +2,22 @@
 code: DT-UI-DS-DOC-001
 version: 1.7
 date: 2026-09-06
-status: Aprobado
+status: APPROVED
 author: Juan David Julio Serrano
 standard:
   - ISA-101.01-2015 (Human Machine Interfaces for Process Automation Systems)
   - The High Performance HMI Handbook (Hollifield et al.)
   - ISO 9241-110:2020 / ISO 9241-210:2019 (Ergonomics of Human-System Interaction and Human-Centered Design)
-  - WCAG 2.1 Nivel AA (Web Content Accessibility Guidelines)
-  - ISO 45001:2018 (Cláusula 8.1 — LOTO & Seguridad Operativa)
+  - WCAG 2.1 Level AA (Web Content Accessibility Guidelines)
+  - ISO 45001:2018 (Clause 8.1 — LOTO & Operational Safety)
 ---
 		
 # Design Tokens Technical Specification
 
-## 1. Alcance
+## 1. Scope
 This document establishes the **Single Source of Truth** for all design tokens applied in prototype design and user interface implementation of the DTEAM platform, covering both mobile clients for field operations and web portals for supervision and administration.
 
-### Principios Obligatorios:
+### Mandatory Principles:
 1. **90/10 HPHMI Rule:** 90% of the interface operates in neutral, low-contrast grayscale to minimize visual fatigue. The remaining 10% of saturated color is reserved exclusively for anomalies, alarms, and hazard conditions.
 2. **Elimination of Green as "Normal" State:** Green is not used to indicate that a motor is running or in normal operation. Normal state is represented using grays and text ("RUNNING" / "UP"). The use of color in documentary confirmations or connection status is restricted to **Teal / Pine** shades (`--dt-primitive-teal-600` or `--dt-primitive-teal-400`), avoiding any confusion with the industrial state green.
 3. **Redundant Coding (WCAG 2.1 AA):** No critical safety or alarm state should be communicated solely by color. Every indicator must combine **Shape + Icon + Color + Text**.
@@ -143,7 +143,7 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 
 ---
 
-## 4. Tokens Tipográficos
+## 4. Typographic Tokens
 Typography is defined under a dual model: high-availability native fonts in the design engine (Google Fonts in Penpot) and comprehensive fallback stacks (*System Fallbacks*) for production web stylesheets.
 
 ### 4.1. Familias Tipográficas
