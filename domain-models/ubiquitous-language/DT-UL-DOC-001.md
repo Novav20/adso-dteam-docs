@@ -61,3 +61,9 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **SKU (Stock Keeping Unit)** | SKU / Código Único | Unique identifier for inventory items within the Part Master. |
 | **Part Master** | Catálogo de Repuestos Maestro | The centralized master catalog defining standardized materials, spare parts, and their technical parameters. |
 | **SCE (Safety Critical Equipment)** | Equipo Crítico de Seguridad (SCE) | Equipment whose failure could cause a severe safety or environmental incident, requiring stricter maintenance controls. |
+| **Zero Energy** | Energía Cero | A strict state where an asset is completely isolated from all active and residual energy sources, validated prior to any intervention. |
+| **SIMOPS (Simultaneous Operations)** | SIMOPS (Operaciones Simultáneas) | Situations where two or more operations occur in the same physical location at the same time, requiring strict visual coordination to mitigate interference risks. |
+| **HPHMI Grayscale** | Escala de Grises HPHMI | High-Performance Human-Machine Interface design philosophy using a neutral grayscale palette with redundant visual coding (Shape + Color) to reduce cognitive fatigue and highlight alarms. |
+| **Semantic Zoom** | Zoom Semántico | A navigation interaction in the Digital Twin where information density (e.g., tags, ports) automatically adjusts based on zoom scale thresholds. |
+| **Geometric Zoom** | Zoom Geométrico | A fluid visual scaling interaction on the digital canvas viewport. |
+| **Try-Out Test** | Prueba de Arranque (Try-Out) | The final physical test performed by a technician to physically verify the absence of tension or energy before beginning maintenance work. |
