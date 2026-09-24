@@ -201,7 +201,7 @@ The following table defines the transition rules between screens, triggering eve
 
 ## 6. Interruption Flows and Safety Guards
 
-To ensure compliance with the Architecturally Significant Requirements ([[DT-ARQ-ASR-001#1. Offline-First Operation and Partition Tolerance|ASR-001]] and [[DT-ARQ-ASR-001#2. Real-Time LOTO Safety and Fail-Safe|ASR-002]]), the frontend client routing module implements two interruptive navigation guards that invalidate standard transitions when anomalous conditions are detected in the field.
+To ensure compliance with the Architecturally Significant Requirements ([[DT-ARQ-ASR-001#1. Offline-First Operation and Partition Tolerance|ASR-001]] and [[DT-ARQ-ASR-001#2. Real-Time LOTO Security and Fail-Safe|ASR-002]]), the frontend client routing module implements two interruptive navigation guards that invalidate standard transitions when anomalous conditions are detected in the field.
 
 ### 6.1. Offline Operation Guard 
 
