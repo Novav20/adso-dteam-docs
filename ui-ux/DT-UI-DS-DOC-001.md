@@ -178,7 +178,7 @@ To comply with the HPHMI philosophy in dark interfaces, depth is not expressed t
 | --dt-radius-xl   | 12px       | Modal windows, LOTO lockout dialogs.                    |
 
 ### 5.2. Layers and Stacking Levels (Z-Index Hierarchy)
-| Token Z-Index          | Valor | Elementos Asignados                                                  |
+| Z-Index Token          | Value | Assigned Elements                                                  |
 | ---------------------- | ----- | -------------------------------------------------------------------- |
 | --dt-z-canvas          | 0     | SVG vector base layer (Floor plan).                           |
 | --dt-z-layer-ptw       | 10    | Work Permits overlapping graphic layer [[VIS-008]].         |

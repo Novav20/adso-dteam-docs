@@ -156,7 +156,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     mai_tokens = table_for(tables, "Dual-Theme Semantic Token Table for MAI", "Semantic CSS")
     typography = table_for(tables, "Typographic Scale", "Typographic Token")
     radii = table_for(tables, "Border Radii", "Token")
-    zindex = table_for(tables, "Layers and Stacking", "Token Z-Index")
+    zindex = table_for(tables, "Layers and Stacking", "Z-Index Token")
     font_base_penpot, font_base_css, font_mono_penpot, font_mono_css = parse_font_families(tables)
 
     # 1. Generación de ui-ux/assets/tokens.css
