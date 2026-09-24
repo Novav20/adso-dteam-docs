@@ -113,15 +113,15 @@ def emit_table_tokens(rows: list[list[str]], value_index: int = 1) -> list[str]:
 
 
 def parse_font_families(tables) -> tuple[str, str, str, str]:
-    rows = table_for(tables, "Familias Tipográficas", "Rol Tipográfico")
+    rows = table_for(tables, "Typographic Families", "Typographic Role")
     primary_penpot, primary_css = "", ""
     mono_penpot, mono_css = "", ""
     for row in rows:
         role = row[0].lower()
-        if "primaria" in role:
+        if "primary" in role:
             primary_penpot = clean_cell(row[1])
             primary_css = clean_cell(row[2])
-        elif "monoespaciada" in role:
+        elif "mono" in role:
             mono_penpot = clean_cell(row[1])
             mono_css = clean_cell(row[2])
     return primary_penpot, primary_css, mono_penpot, mono_css
@@ -147,16 +147,16 @@ def extract_font_weight(raw_weight: str) -> str:
 def generate(source: Path, target: Path, penpot_target: Path) -> None:
     text = source.read_text(encoding="utf-8")
     tables = markdown_tables(text)
-    spacing = table_for(tables, "Escala de Espaciado", "Token CSS")
-    controls = table_for(tables, "Dimensiones de Controles", "Token de Control")
-    breakpoints = table_for(tables, "Puntos de Quiebre", "Token de Breakpoint")
-    primitives = table_for(tables, "Tokens Primitivos", "Token Primitivo")
-    semantic = table_for(tables, "Tokens Semánticos", "Token Semántico")
-    alarms = table_for(tables, "Semántica de Alarmas", "Estado / Severidad")
-    mai_tokens = table_for(tables, "Tabla de Tokens Semánticos Dual-Theme para MAI", "Token Semántico CSS / C#")
-    typography = table_for(tables, "Escala Tipográfica", "Token Tipográfico")
-    radii = table_for(tables, "Radios de Borde", "Token")
-    zindex = table_for(tables, "Capas y Niveles", "Token Z-Index")
+    spacing = table_for(tables, "Spacing Scale", "CSS Token")
+    controls = table_for(tables, "Dimensions of Controls", "Control Token")
+    breakpoints = table_for(tables, "Responsive Breakpoints", "Breakpoint Token")
+    primitives = table_for(tables, "Primitive Palette", "Primitive Token")
+    semantic = table_for(tables, "Semantic Tokens", "Semantic Token")
+    alarms = table_for(tables, "Alarm and Safety Semantics", "State / Severity")
+    mai_tokens = table_for(tables, "Dual-Theme Semantic Token Table for MAI", "Semantic CSS")
+    typography = table_for(tables, "Typographic Scale", "Typographic Token")
+    radii = table_for(tables, "Border Radii", "Token")
+    zindex = table_for(tables, "Layers and Stacking", "Token Z-Index")
     font_base_penpot, font_base_css, font_mono_penpot, font_mono_css = parse_font_families(tables)
 
     # 1. Generación de ui-ux/assets/tokens.css
