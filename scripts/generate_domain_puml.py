@@ -74,7 +74,7 @@ def generate_domain_puml():
         
         # Schema Detection
         if line.startswith("### ") and "Schema" in line:
-            current_schema = line.split("Schema")[-1].strip()
+            current_schema = line.split("Schema")[-1].strip().replace("`", "")
             continue
             
         # Table Detection

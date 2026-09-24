@@ -15,7 +15,7 @@ skinparam class {
     HeaderFontStyle bold
 }
 
-package "`tax`" <<Folder>> #F0F0F0 {
+package "Asset Taxonomy (ISO 14224)" <<Folder>> #F0F0F0 {
     class EquipmentClass <<Entity>> {
         - Id: UUID
         - ClassName: String
@@ -95,7 +95,7 @@ package "`tax`" <<Folder>> #F0F0F0 {
     }
 }
 
-package "`mtto`" <<Folder>> #F0F0F0 {
+package "Maintenance Management (MTTO)" <<Folder>> #F0F0F0 {
     class BacklogItem <<Entity>> {
         - Id: UUID
         - EquipmentUnitId: UUID
@@ -194,7 +194,7 @@ package "`mtto`" <<Folder>> #F0F0F0 {
     }
 }
 
-package "`inv`" <<Folder>> #F0F0F0 {
+package "Resource Control (INV)" <<Folder>> #F0F0F0 {
     class InventoryTransaction <<Entity>> {
         - Id: UUID
         - SparePartId: UUID
@@ -260,7 +260,7 @@ package "`inv`" <<Folder>> #F0F0F0 {
     }
 }
 
-package "`vis`" <<Folder>> #F0F0F0 {
+package "Digital Twin Convergence (VIS)" <<Folder>> #F0F0F0 {
     class IsolationPoint <<Entity>> {
         - Id: UUID
         - EquipmentUnitId: UUID
@@ -322,7 +322,7 @@ package "`vis`" <<Folder>> #F0F0F0 {
     }
 }
 
-package "`adm`" <<Folder>> #F0F0F0 {
+package "Safety and Governance (ADM)" <<Folder>> #F0F0F0 {
     class AuditLog <<Entity>> {
         - Id: UUID
         - UserId: UUID?

@@ -4,60 +4,60 @@ Project DT_ERD {
 }
 
 TableGroup tax {
-  "equipment_classes"
-  "equipment_units"
-  "functional_locations"
-  "maintainable_items"
-  "subunits"
+  "tax"."equipment_classes"
+  "tax"."equipment_units"
+  "tax"."functional_locations"
+  "tax"."maintainable_items"
+  "tax"."subunits"
 }
 
 TableGroup mtto {
-  "backlog_items"
-  "failure_records"
-  "maintenance_plans"
-  "media_attachments"
-  "work_order_histories"
-  "work_orders"
-  "work_requests"
+  "mtto"."backlog_items"
+  "mtto"."failure_records"
+  "mtto"."maintenance_plans"
+  "mtto"."media_attachments"
+  "mtto"."work_order_histories"
+  "mtto"."work_orders"
+  "mtto"."work_requests"
 }
 
 TableGroup inv {
-  "inventory_transactions"
-  "maintainable_item_spare_parts"
-  "material_requirements"
-  "spare_parts"
-  "suppliers"
-  "warehouses"
+  "inv"."inventory_transactions"
+  "inv"."maintainable_item_spare_parts"
+  "inv"."material_requirements"
+  "inv"."spare_parts"
+  "inv"."suppliers"
+  "inv"."warehouses"
 }
 
 TableGroup vis {
-  "isolation_points"
-  "mesh_mappings"
-  "spatial_metadata"
-  "telemetry_signals"
-  "visual_layers"
-  "work_order_isolations"
-  "work_permits"
+  "vis"."isolation_points"
+  "vis"."mesh_mappings"
+  "vis"."spatial_metadata"
+  "vis"."telemetry_signals"
+  "vis"."visual_layers"
+  "vis"."work_order_isolations"
+  "vis"."work_permits"
 }
 
 TableGroup adm {
-  "audit_logs"
-  "auth_tokens"
-  "role_permissions"
-  "roles"
-  "user_roles"
-  "users"
-  "work_order_assignments"
+  "adm"."audit_logs"
+  "adm"."auth_tokens"
+  "adm"."role_permissions"
+  "adm"."roles"
+  "adm"."user_roles"
+  "adm"."users"
+  "adm"."work_order_assignments"
 }
 
-Table "equipment_classes" {
+Table "tax"."equipment_classes" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "class_name" "VARCHAR(120)" [unique, not null, note: 'Master data at the class level.']
   "description" "VARCHAR(255)" [note: 'Class description.']
   "manufacturer_standard" "VARCHAR(120)" [note: 'Standardization reference.']
 }
 
-Table "equipment_units" {
+Table "tax"."equipment_units" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "serial_number" "VARCHAR(100)" [unique, not null, note: 'Asset identification integrity.']
   "manufacturer" "VARCHAR(120)" [not null, note: 'Asset provenance.']
@@ -83,7 +83,7 @@ Table "equipment_units" {
   "warehouse_id" "UUID" [note: 'Foreign key to the related table.']
 }
 
-Table "functional_locations" {
+Table "tax"."functional_locations" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "tag_number" "VARCHAR(50)" [unique, not null, note: 'ISO 14224 tag identity and location traceability.']
   "name" "VARCHAR(150)" [not null, note: 'Human-readable location name.']
@@ -95,7 +95,7 @@ Table "functional_locations" {
   "parent_id" "UUID" [note: 'Foreign key to the related table.']
 }
 
-Table "maintainable_items" {
+Table "tax"."maintainable_items" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "subunit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "component_name" "VARCHAR(120)" [not null, note: 'Identity of the maintainable item.']
@@ -105,14 +105,14 @@ Table "maintainable_items" {
   "status" "VARCHAR(30)" [not null, note: 'Item\'s lifecycle status.']
 }
 
-Table "subunits" {
+Table "tax"."subunits" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "subunit_type" "VARCHAR(80)" [not null, note: 'Subcomponent taxonomy.']
   "name" "VARCHAR(120)" [not null, note: 'Subcomponent label.']
 }
 
-Table "backlog_items" {
+Table "mtto"."backlog_items" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "work_request_id" "UUID" [unique, not null, note: 'Foreign key to the related table.']
@@ -120,7 +120,7 @@ Table "backlog_items" {
   "status" "VARCHAR(20)" [not null, note: 'Backlog lifecycle status (prioritization).']
 }
 
-Table "failure_records" {
+Table "mtto"."failure_records" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identity of the failure event.']
   "work_order_id" "UUID" [unique, not null, note: 'Foreign key to the related table.']
   "maintainable_item_id" "UUID" [note: 'Foreign key to the related table.']
@@ -134,7 +134,7 @@ Table "failure_records" {
   "status" "VARCHAR(20)" [not null, note: 'Status of the failure record.']
 }
 
-Table "maintenance_plans" {
+Table "mtto"."maintenance_plans" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "maintenance_method" "VARCHAR(80)" [not null, note: 'Maintenance strategy (PM, PdM, CBM).']
@@ -149,7 +149,7 @@ Table "maintenance_plans" {
   "status" "VARCHAR(20)" [not null, note: 'Plan (document) lifecycle status.']
 }
 
-Table "media_attachments" {
+Table "mtto"."media_attachments" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "work_order_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "file_url" "VARCHAR(255)" [not null, note: 'Evidence location.']
@@ -157,7 +157,7 @@ Table "media_attachments" {
   "uploaded_at" "TIMESTAMP" [not null, note: 'Upload/ingestion time of the evidence.']
 }
 
-Table "work_order_histories" {
+Table "mtto"."work_order_histories" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "work_order_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "old_status" "VARCHAR(20)" [note: 'Previous lifecycle status (NULL if first status).']
@@ -166,7 +166,7 @@ Table "work_order_histories" {
   "duration_seconds" "BIGINT" [note: 'Time spent in the state (Calculated upon transition).']
 }
 
-Table "work_orders" {
+Table "mtto"."work_orders" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "maintenance_plan_id" "UUID" [note: 'Foreign key to the related table.']
@@ -182,7 +182,7 @@ Table "work_orders" {
   "criticality" "VARCHAR(20)" [not null, note: 'WO criticality / priority label.']
 }
 
-Table "work_requests" {
+Table "mtto"."work_requests" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "description" "VARCHAR(255)" [not null, note: 'Request narrative.']
@@ -193,7 +193,7 @@ Table "work_requests" {
   "work_class_code" "SMALLINT" [not null, note: 'Numeric weight of the selected work class for RIME.']
 }
 
-Table "inventory_transactions" {
+Table "inv"."inventory_transactions" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "spare_part_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "warehouse_id" "UUID" [not null, note: 'Foreign key to the related table.']
@@ -207,12 +207,12 @@ Table "inventory_transactions" {
   "serial_number" "VARCHAR(100)" [note: 'Serial number or Tag of the rotating equipment (Asset Swap).']
 }
 
-Table "maintainable_item_spare_parts" {
+Table "inv"."maintainable_item_spare_parts" {
   "maintainable_item_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "spare_part_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
 }
 
-Table "material_requirements" {
+Table "inv"."material_requirements" {
   "work_order_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "spare_part_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "planned_quantity" "DECIMAL(12,4)" [not null, default: 1, note: 'Planned spare parts before WO execution.']
@@ -220,7 +220,7 @@ Table "material_requirements" {
   "is_reserved" "BOOLEAN" [not null, note: 'Flag indicating if stock was already set aside in warehouse.']
 }
 
-Table "spare_parts" {
+Table "inv"."spare_parts" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "sku" "VARCHAR(80)" [unique, not null, note: 'Part identity.']
   "description" "VARCHAR(255)" [not null, note: 'Human-readable part description.']
@@ -239,21 +239,21 @@ Table "spare_parts" {
   "equipment_class_id" "UUID" [note: 'Foreign key to the related table.']
 }
 
-Table "suppliers" {
+Table "inv"."suppliers" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "name" "VARCHAR(120)" [not null, note: 'Supplier commercial identity.']
   "contact_info" "VARCHAR(255)" [not null, note: 'Phone, email, or contact address.']
   "warranty_terms" "VARCHAR(255)" [not null, note: 'Standard commercial warranty terms.']
 }
 
-Table "warehouses" {
+Table "inv"."warehouses" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "name" "VARCHAR(80)" [not null, note: 'Warehouse identity.']
   "location" "VARCHAR(255)" [not null, note: 'Warehouse address or physical location.']
   "capacity" "DECIMAL(12,4)" [not null, note: 'Maximum volumetric or load capacity of the warehouse.']
 }
 
-Table "isolation_points" {
+Table "vis"."isolation_points" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "isolation_tag" "VARCHAR(80)" [unique, not null, note: 'Identity of the isolation point.']
@@ -261,7 +261,7 @@ Table "isolation_points" {
   "is_verified" "BOOLEAN" [not null, default: false, note: 'Verification status.']
 }
 
-Table "mesh_mappings" {
+Table "vis"."mesh_mappings" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "equipment_unit_id" "UUID" [unique, not null, note: 'Foreign key to the related table.']
   "mesh_uuid" "VARCHAR(80)" [unique, not null, note: 'Identity or path of the asset\'s 3D model.']
@@ -269,14 +269,14 @@ Table "mesh_mappings" {
   "last_sync_time" "TIMESTAMP" [note: 'Last synchronization time.']
 }
 
-Table "spatial_metadata" {
+Table "vis"."spatial_metadata" {
   "mesh_mapping_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "position" "JSONB" [not null, note: 'Spatial vector coordinate (e.g., x,y,z).']
   "rotation" "JSONB" [note: 'Orientation descriptor (e.g., quaternion).']
   "scale" "JSONB" [note: 'Scale descriptor.']
 }
 
-Table "telemetry_signals" {
+Table "vis"."telemetry_signals" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "signal_type" "VARCHAR(80)" [not null, note: 'Sensor signal label.']
@@ -287,7 +287,7 @@ Table "telemetry_signals" {
   "is_safety_critical" "BOOLEAN" [not null, note: 'Safety classification flag.']
 }
 
-Table "visual_layers" {
+Table "vis"."visual_layers" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "work_order_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "layer_type" "VARCHAR(80)" [not null, note: 'Visual representation type.']
@@ -295,7 +295,7 @@ Table "visual_layers" {
   "status" "VARCHAR(20)" [not null, note: 'Visual layer status.']
 }
 
-Table "work_order_isolations" {
+Table "vis"."work_order_isolations" {
   "work_order_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "isolation_point_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "is_isolated" "BOOLEAN" [not null, default: false, note: 'Verified lockout state for the specific work.']
@@ -303,7 +303,7 @@ Table "work_order_isolations" {
   "padlock_tag_id" "VARCHAR(80)" [note: 'Identifier of the physical padlock or tag (Try-Out).']
 }
 
-Table "work_permits" {
+Table "vis"."work_permits" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "permit_identifier" "VARCHAR(80)" [unique, not null, note: 'Permit traceability.']
@@ -312,7 +312,7 @@ Table "work_permits" {
   "status" "VARCHAR(20)" [not null, note: 'Permit status (Active, Revoked, Expired).']
 }
 
-Table "audit_logs" {
+Table "adm"."audit_logs" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "user_id" "UUID" [note: 'Foreign key to the related table.']
   "event_type" "VARCHAR(80)" [not null, note: 'Action executed (e.g., CREATE, UPDATE, DELETE).']
@@ -326,7 +326,7 @@ Table "audit_logs" {
   "integrity_hash" "VARCHAR(255)" [not null, note: 'Cryptographic hash for immutability verification.']
 }
 
-Table "auth_tokens" {
+Table "adm"."auth_tokens" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "user_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "token_hash" "VARCHAR(255)" [unique, not null, note: 'Cryptographic representation of the token.']
@@ -335,24 +335,24 @@ Table "auth_tokens" {
   "purpose" "VARCHAR(20)" [not null, note: 'Context of use (e.g., ACCESS, REFRESH, RESET).']
 }
 
-Table "role_permissions" {
+Table "adm"."role_permissions" {
   "role_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "module" "VARCHAR(80)" [pk, not null, note: 'Application subdomain or module.']
   "action" "VARCHAR(80)" [pk, not null, note: 'Granted behavior (e.g., READ, WRITE, APPROVE).']
 }
 
-Table "roles" {
+Table "adm"."roles" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "name" "VARCHAR(80)" [unique, not null, note: 'Human-readable role identity.']
   "description" "VARCHAR(255)" [note: 'Description of the RBAC role.']
 }
 
-Table "user_roles" {
+Table "adm"."user_roles" {
   "user_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "role_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
 }
 
-Table "users" {
+Table "adm"."users" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "username" "VARCHAR(80)" [unique, not null, note: 'Access identity.']
   "email" "VARCHAR(120)" [unique, not null, note: 'Communication identity.']
@@ -364,7 +364,7 @@ Table "users" {
   "last_login_at" "TIMESTAMP" [note: 'Activity traceability.']
 }
 
-Table "work_order_assignments" {
+Table "adm"."work_order_assignments" {
   "work_order_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "user_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "assigned_role" "VARCHAR(80)" [not null, note: 'Operational role of the technician in the specific WO.']
@@ -372,42 +372,42 @@ Table "work_order_assignments" {
 }
 
 // --- RELACIONES ---
-Ref: "equipment_classes"."id" < "equipment_units"."equipment_class_id" [delete: restrict, update: cascade]
-Ref: "functional_locations"."id" < "functional_locations"."parent_id" [delete: restrict, update: cascade]
-Ref: "functional_locations"."id" < "equipment_units"."functional_location_id" [delete: restrict, update: cascade]
-Ref: "equipment_units"."id" < "subunits"."equipment_unit_id" [delete: cascade, update: cascade]
-Ref: "subunits"."id" < "maintainable_items"."subunit_id" [delete: cascade, update: cascade]
-Ref: "equipment_units"."id" < "maintenance_plans"."equipment_unit_id" [delete: cascade, update: cascade]
-Ref: "equipment_units"."id" < "work_orders"."equipment_unit_id" [delete: cascade, update: cascade]
-Ref: "maintenance_plans"."id" < "work_orders"."maintenance_plan_id" [delete: set null, update: cascade]
-Ref: "equipment_units"."id" < "work_requests"."equipment_unit_id" [delete: cascade, update: cascade]
-Ref: "work_requests"."id" - "backlog_items"."work_request_id" [delete: cascade, update: cascade]
-Ref: "equipment_units"."id" < "backlog_items"."equipment_unit_id" [delete: cascade, update: cascade]
-Ref: "work_orders"."id" - "failure_records"."work_order_id" [delete: cascade, update: cascade]
-Ref: "maintainable_items"."id" < "failure_records"."maintainable_item_id" [delete: set null, update: cascade]
-Ref: "work_orders"."id" < "media_attachments"."work_order_id" [delete: cascade, update: cascade]
-Ref: "work_orders"."id" < "work_order_histories"."work_order_id" [delete: cascade, update: cascade]
-Ref: "warehouses"."id" < "inventory_transactions"."warehouse_id" [delete: restrict, update: cascade]
-Ref: "spare_parts"."id" < "inventory_transactions"."spare_part_id" [delete: restrict, update: cascade]
-Ref: "work_orders"."id" < "inventory_transactions"."work_order_id" [delete: set null, update: cascade]
-Ref: "maintainable_items"."id" < "maintainable_item_spare_parts"."maintainable_item_id" [delete: cascade, update: cascade]
-Ref: "spare_parts"."id" < "maintainable_item_spare_parts"."spare_part_id" [delete: cascade, update: cascade]
-Ref: "work_orders"."id" < "material_requirements"."work_order_id" [delete: cascade, update: cascade]
-Ref: "spare_parts"."id" < "material_requirements"."spare_part_id" [delete: cascade, update: cascade]
-Ref: "suppliers"."id" < "spare_parts"."supplier_id" [delete: restrict, update: cascade]
-Ref: "equipment_classes"."id" < "spare_parts"."equipment_class_id" [delete: restrict, update: cascade]
-Ref: "equipment_units"."id" - "mesh_mappings"."equipment_unit_id" [delete: cascade, update: cascade]
-Ref: "mesh_mappings"."id" < "spatial_metadata"."mesh_mapping_id" [delete: cascade, update: cascade]
-Ref: "equipment_units"."id" < "telemetry_signals"."equipment_unit_id" [delete: cascade, update: cascade]
-Ref: "equipment_units"."id" < "isolation_points"."equipment_unit_id" [delete: restrict, update: cascade]
-Ref: "work_permits"."id" < "work_orders"."work_permit_id" [delete: restrict, update: cascade]
-Ref: "work_orders"."id" < "visual_layers"."work_order_id" [delete: cascade, update: cascade]
-Ref: "work_orders"."id" < "work_order_isolations"."work_order_id" [delete: cascade, update: cascade]
-Ref: "isolation_points"."id" < "work_order_isolations"."isolation_point_id" [delete: restrict, update: cascade]
-Ref: "users"."id" < "user_roles"."user_id" [delete: cascade, update: cascade]
-Ref: "roles"."id" < "user_roles"."role_id" [delete: cascade, update: cascade]
-Ref: "roles"."id" < "role_permissions"."role_id" [delete: cascade, update: cascade]
-Ref: "users"."id" < "auth_tokens"."user_id" [delete: cascade, update: cascade]
-Ref: "users"."id" < "work_order_assignments"."user_id" [delete: cascade, update: cascade]
-Ref: "work_orders"."id" < "work_order_assignments"."work_order_id" [delete: cascade, update: cascade]
-Ref: "users"."id" < "audit_logs"."user_id" [delete: set null, update: cascade]
+Ref: "tax"."equipment_classes"."id" < "tax"."equipment_units"."equipment_class_id" [delete: restrict, update: cascade]
+Ref: "tax"."functional_locations"."id" < "tax"."functional_locations"."parent_id" [delete: restrict, update: cascade]
+Ref: "tax"."functional_locations"."id" < "tax"."equipment_units"."functional_location_id" [delete: restrict, update: cascade]
+Ref: "tax"."equipment_units"."id" < "tax"."subunits"."equipment_unit_id" [delete: cascade, update: cascade]
+Ref: "tax"."subunits"."id" < "tax"."maintainable_items"."subunit_id" [delete: cascade, update: cascade]
+Ref: "tax"."equipment_units"."id" < "mtto"."maintenance_plans"."equipment_unit_id" [delete: cascade, update: cascade]
+Ref: "tax"."equipment_units"."id" < "mtto"."work_orders"."equipment_unit_id" [delete: cascade, update: cascade]
+Ref: "mtto"."maintenance_plans"."id" < "mtto"."work_orders"."maintenance_plan_id" [delete: set null, update: cascade]
+Ref: "tax"."equipment_units"."id" < "mtto"."work_requests"."equipment_unit_id" [delete: cascade, update: cascade]
+Ref: "mtto"."work_requests"."id" - "mtto"."backlog_items"."work_request_id" [delete: cascade, update: cascade]
+Ref: "tax"."equipment_units"."id" < "mtto"."backlog_items"."equipment_unit_id" [delete: cascade, update: cascade]
+Ref: "mtto"."work_orders"."id" - "mtto"."failure_records"."work_order_id" [delete: cascade, update: cascade]
+Ref: "tax"."maintainable_items"."id" < "mtto"."failure_records"."maintainable_item_id" [delete: set null, update: cascade]
+Ref: "mtto"."work_orders"."id" < "mtto"."media_attachments"."work_order_id" [delete: cascade, update: cascade]
+Ref: "mtto"."work_orders"."id" < "mtto"."work_order_histories"."work_order_id" [delete: cascade, update: cascade]
+Ref: "inv"."warehouses"."id" < "inv"."inventory_transactions"."warehouse_id" [delete: restrict, update: cascade]
+Ref: "inv"."spare_parts"."id" < "inv"."inventory_transactions"."spare_part_id" [delete: restrict, update: cascade]
+Ref: "mtto"."work_orders"."id" < "inv"."inventory_transactions"."work_order_id" [delete: set null, update: cascade]
+Ref: "tax"."maintainable_items"."id" < "inv"."maintainable_item_spare_parts"."maintainable_item_id" [delete: cascade, update: cascade]
+Ref: "inv"."spare_parts"."id" < "inv"."maintainable_item_spare_parts"."spare_part_id" [delete: cascade, update: cascade]
+Ref: "mtto"."work_orders"."id" < "inv"."material_requirements"."work_order_id" [delete: cascade, update: cascade]
+Ref: "inv"."spare_parts"."id" < "inv"."material_requirements"."spare_part_id" [delete: cascade, update: cascade]
+Ref: "inv"."suppliers"."id" < "inv"."spare_parts"."supplier_id" [delete: restrict, update: cascade]
+Ref: "tax"."equipment_classes"."id" < "inv"."spare_parts"."equipment_class_id" [delete: restrict, update: cascade]
+Ref: "tax"."equipment_units"."id" - "vis"."mesh_mappings"."equipment_unit_id" [delete: cascade, update: cascade]
+Ref: "vis"."mesh_mappings"."id" < "vis"."spatial_metadata"."mesh_mapping_id" [delete: cascade, update: cascade]
+Ref: "tax"."equipment_units"."id" < "vis"."telemetry_signals"."equipment_unit_id" [delete: cascade, update: cascade]
+Ref: "tax"."equipment_units"."id" < "vis"."isolation_points"."equipment_unit_id" [delete: restrict, update: cascade]
+Ref: "vis"."work_permits"."id" < "mtto"."work_orders"."work_permit_id" [delete: restrict, update: cascade]
+Ref: "mtto"."work_orders"."id" < "vis"."visual_layers"."work_order_id" [delete: cascade, update: cascade]
+Ref: "mtto"."work_orders"."id" < "vis"."work_order_isolations"."work_order_id" [delete: cascade, update: cascade]
+Ref: "vis"."isolation_points"."id" < "vis"."work_order_isolations"."isolation_point_id" [delete: restrict, update: cascade]
+Ref: "adm"."users"."id" < "adm"."user_roles"."user_id" [delete: cascade, update: cascade]
+Ref: "adm"."roles"."id" < "adm"."user_roles"."role_id" [delete: cascade, update: cascade]
+Ref: "adm"."roles"."id" < "adm"."role_permissions"."role_id" [delete: cascade, update: cascade]
+Ref: "adm"."users"."id" < "adm"."auth_tokens"."user_id" [delete: cascade, update: cascade]
+Ref: "adm"."users"."id" < "adm"."work_order_assignments"."user_id" [delete: cascade, update: cascade]
+Ref: "mtto"."work_orders"."id" < "adm"."work_order_assignments"."work_order_id" [delete: cascade, update: cascade]
+Ref: "adm"."users"."id" < "adm"."audit_logs"."user_id" [delete: set null, update: cascade]

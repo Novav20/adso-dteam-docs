@@ -85,12 +85,12 @@ dbml_output += "}\n\n"
 for schema, tables in schemas.items():
     dbml_output += f"TableGroup {schema} {{\n"
     for table in tables:
-        dbml_output += f"  \"{table}\"\n"
+        dbml_output += f"  \"{schema}\".\"{table}\"\n"
     dbml_output += "}\n\n"
 
 for schema, tables in schemas.items():
     for table, cols in tables.items():
-        dbml_output += f"Table \"{table}\" {{\n"
+        dbml_output += f"Table \"{schema}\".\"{table}\" {{\n"
         for c in cols:
             props = []
             if 'PK' in c['constraints']: props.append("pk")
@@ -160,7 +160,9 @@ for r in relationships:
     if actions:
         settings = f" [{', '.join(actions)}]"
         
-    dbml_output += f"Ref: \"{parent}\".\"{parent_pk}\" {symbol} \"{child}\".\"{child_fk}\"{settings}\n"
+    parent_schema = table_to_schema.get(parent, 'public')
+    child_schema = table_to_schema.get(child, 'public')
+    dbml_output += f"Ref: \"{parent_schema}\".\"{parent}\".\"{parent_pk}\" {symbol} \"{child_schema}\".\"{child}\".\"{child_fk}\"{settings}\n"
 
 with open(dbml_file, 'w', encoding='utf-8') as f:
     f.write(dbml_output)
