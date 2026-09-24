@@ -56,3 +56,8 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **P&ID (Piping and Instrumentation Diagram)** | Diagrama de Tubería e Instrumentación (P&ID) | The detailed engineering schematic used as a reference to define the logical and physical boundaries of process equipment. |
 | **Physical Boundaries** | Límites Físicos (Boundaries) | The exact start and end points in a process flow (e.g., specific flanges) that delimit the scope of an Equipment Unit according to ISO 14224. |
 | **Condition-Based Maintenance (CBM)** | Mantenimiento Basado en Condición | Maintenance strategy driven by telemetry or physical condition limits rather than strict calendar schedules. |
+| **Asset Swap** | Rotación de Activo (Asset Swap) | The functional replacement of an Equipment Unit at a Functional Location, typically used for rotable spares. |
+| **Commissioning Gate** | Compuerta de Activación / Validación | A strict validation milestone ensuring all mandatory technical and safety configurations are met before asset activation. |
+| **SKU (Stock Keeping Unit)** | SKU / Código Único | Unique identifier for inventory items within the Part Master. |
+| **Part Master** | Catálogo de Repuestos Maestro | The centralized master catalog defining standardized materials, spare parts, and their technical parameters. |
+| **SCE (Safety Critical Equipment)** | Equipo Crítico de Seguridad (SCE) | Equipment whose failure could cause a severe safety or environmental incident, requiring stricter maintenance controls. |
