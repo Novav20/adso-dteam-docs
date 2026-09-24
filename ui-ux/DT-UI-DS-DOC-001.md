@@ -7,30 +7,30 @@ author: Juan David Julio Serrano
 standard:
   - ISA-101.01-2015 (Human Machine Interfaces for Process Automation Systems)
   - The High Performance HMI Handbook (Hollifield et al.)
-  - ISO 9241-110:2020 / ISO 9241-210:2019 (Ergonomía de Interacción y Diseño Centrado en el Humano)
+  - ISO 9241-110:2020 / ISO 9241-210:2019 (Ergonomics of Human-System Interaction and Human-Centered Design)
   - WCAG 2.1 Nivel AA (Web Content Accessibility Guidelines)
   - ISO 45001:2018 (Cláusula 8.1 — LOTO & Seguridad Operativa)
 ---
 		
-# Especificación Técnica de Tokens de Diseño
+# Design Tokens Technical Specification
 
 ## 1. Alcance
-Este documento establece la **Fuente Única de Verdad** para todos los tokens de diseño aplicados en el diseño de prototipos y en la implementación de las interfaces de usuario de la plataforma DTEAM, abarcando tanto los clientes móviles de operación en campo como los portales web de supervisión y administración.
+This document establishes the **Single Source of Truth** for all design tokens applied in prototype design and user interface implementation of the DTEAM platform, covering both mobile clients for field operations and web portals for supervision and administration.
 
 ### Principios Obligatorios:
-1. **Regla HPHMI del 90/10:** El 90% de la interfaz opera en escala de grises neutra de bajo contraste para minimizar la fatiga visual. El 10% del color saturado se reserva exclusivamente para anomalías, alarmas y condiciones de peligro.
+1. **90/10 HPHMI Rule:** 90% of the interface operates in neutral, low-contrast grayscale to minimize visual fatigue. The remaining 10% of saturated color is reserved exclusively for anomalies, alarms, and hazard conditions.
 2. **Elimination of Green as "Normal" State:** Green is not used to indicate that a motor is running or in normal operation. Normal state is represented using grays and text ("RUNNING" / "UP"). The use of color in documentary confirmations or connection status is restricted to **Teal / Pine** shades (`--dt-primitive-teal-600` or `--dt-primitive-teal-400`), avoiding any confusion with the industrial state green.
 3. **Redundant Coding (WCAG 2.1 AA):** No critical safety or alarm state should be communicated solely by color. Every indicator must combine **Shape + Icon + Color + Text**.
-4. **Ergonomía Industrial Táctil:** Los elementos interactivos en dispositivos móviles y tabletas de campo deben respetar un área de contacto mínima de **$48 \times 48\text{ px}$** para permitir la operación con guantes de seguridad.
+4. **Industrial Tactile Ergonomics:** Interactive elements on mobile devices and field tablets must respect a minimum touch area of **$48 \times 48\text{ px}$** to allow operation with safety gloves.
 
 ---
 
-## 2. Tokens Espaciales y de Layout
+## 2. Spatial and Layout Tokens
 
 Spacing and sizing are governed by an **8px** base grid system (with a 4px sub-frame for micro-adjustments).
 
-> **Escala por Multiplicador de $4\text{px}$ / $0.25\text{rem}$:**  
-> La nomenclatura `--dt-space-N` utiliza una convención de **multiplicador lineal** donde $N$ representa el factor por el cual se multiplica la unidad base de $4\text{px}$ ($N \times 4\text{px}$ o $N \times 0.25\text{rem}$), estándar en la industria (Tailwind CSS / W3C DTCG).  
+> **Multiplier Scale of $4\text{px}$ / $0.25\text{rem}$:**  
+> The `--dt-space-N` naming utilizes a **linear multiplier** convention where $N$ represents the factor by which the $4\text{px}$ base unit is multiplied ($N \times 4\text{px}$ or $N \times 0.25\text{rem}$), an industry standard (Tailwind CSS / W3C DTCG).  
 > From $16\text{px}$, the scale deliberately omits odd/intermediate values like `--dt-space-5` ($20\text{px}$) or `--dt-space-7` ($28\text{px}$) to ensure all larger spacings are **strictly multiples of 8px** ($24\text{px} = 3 \times 8$, $32\text{px} = 4 \times 8$, $48\text{px} = 6 \times 8$, $64\text{px} = 8 \times 8$), preserving visual harmonic alignment of the layout and preventing design decision paralysis.
 
 ### 2.1. Spacing Scale
@@ -99,7 +99,7 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-primitive-gray-50   | #F4F5F7   | Light card surface (Cards in light theme)                      |
 | --dt-primitive-gray-10   | #FDFEFE   | High-contrast off-white for text in dark theme              |
 | --dt-primitive-white     | #FFFFFF   | Pure white (Canvas, elevated backgrounds)                                |
-| --dt-primitive-red-600   | #E63946   | Rojo industrial de alarma                                            |
+| --dt-primitive-red-600   | #E63946   | Industrial alarm red                                            |
 | --dt-primitive-amber-600 | #AC5E04   | Amber / Warning on light background (Adjusted WCAG AA 3.47:1)         |
 | --dt-primitive-amber-500 | #D97706   | Ámbar / Advertencia base                                             |
 | --dt-primitive-amber-400 | #F4A261   | Amber / Warning on dark background                                  |
@@ -112,14 +112,14 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-primitive-teal-600  | #0D9488   | Confirmación documental base                                         |
 | --dt-primitive-teal-400  | #2A9D8F   | Documentary confirmation on dark background                              |
 
-### 3.2. Tokens Semánticos para los Temas Claro y Oscuro
-*Aplicación de la regla HPHMI del 90% de superficies neutras utilizando referencias directas a tokens primitivos*
+### 3.2. Semantic Tokens for Light and Dark Themes
+*Application of the 90% neutral surfaces HPHMI rule using direct references to primitive tokens*
 
 | Semantic Token | Dark Theme (Mobile / Night) | Light Theme (Desktop / Day) | Interface Application                                                  |
 | -------------------------- | --------------------------- | ----------------------------- | ----------------------------------------------------------------------- |
 | --dt-color-bg-canvas       | --dt-primitive-gray-900     | --dt-primitive-gray-200       | 2D canvas background / Floor plan                                   |
 | --dt-color-surface-base    | --dt-primitive-gray-800     | --dt-primitive-gray-100       | App background / Header                                         |
-| --dt-color-surface-card    | --dt-primitive-gray-700     | --dt-primitive-gray-50        | Tarjetas de activos / Filas de tabla                                    |
+| --dt-color-surface-card    | --dt-primitive-gray-700     | --dt-primitive-gray-50        | Asset cards / Table rows                                    |
 | --dt-color-surface-raised  | --dt-primitive-gray-600     | --dt-primitive-white          | Modales / Paneles flotantes                                             |
 | --dt-color-border-subtle   | --dt-primitive-gray-650     | --dt-primitive-gray-300       | Dividing lines / Separators                                         |
 | --dt-color-border-focus    | --dt-primitive-gray-450     | --dt-primitive-gray-550       | Focused input border (Dark Theme adjusted to 3.09:1 WCAG AA)          |
@@ -127,11 +127,11 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-color-text-body       | --dt-primitive-gray-280     | --dt-primitive-gray-850       | Main text / Table values                                      |
 | --dt-color-text-primary    | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Títulos / Valores críticos                                              |
 | --dt-color-mai-track       | --dt-primitive-gray-700     | --dt-primitive-gray-100       | Analog MAI indicator track background                              |
-| --dt-color-mai-normal-zone | --dt-primitive-blue-700     | --dt-primitive-blue-200       | Franja de rango de operación normal en MAI                              |
-| --dt-color-mai-pointer     | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Puntero de valor actual MAI                                             |
-| --dt-color-mai-interlock   | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Marcador de límite de disparo de interbloqueo en MAI                    |
+| --dt-color-mai-normal-zone | --dt-primitive-blue-700     | --dt-primitive-blue-200       | Normal operation range strip in MAI                              |
+| --dt-color-mai-pointer     | --dt-primitive-gray-10      | --dt-primitive-gray-980       | MAI current value pointer                                             |
+| --dt-color-mai-interlock   | --dt-primitive-gray-10      | --dt-primitive-gray-980       | MAI interlock trip limit marker                    |
 
-### 3.3. Semántica de Alarmas y Seguridad (10% Reservado)
+### 3.3. Alarm and Safety Semantics (10% Reserved)
 
 | State / Severity | Color Token | Value (Dark Theme) | Value (Light Theme) | Mandatory Symbol                                                 |
 | --------------------------------- | ------------------------- | ------------------------ | ------------------------ | ------------------------------------------------------------------- |
@@ -144,24 +144,24 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 ---
 
 ## 4. Tokens Tipográficos
-La tipografía se define bajo un modelo dual: fuentes nativas de alta disponibilidad en el motor de diseño (Google Fonts en Penpot) y pilas completas de respaldo (*System Fallbacks*) para las hojas de estilo web en producción.
+Typography is defined under a dual model: high-availability native fonts in the design engine (Google Fonts in Penpot) and comprehensive fallback stacks (*System Fallbacks*) for production web stylesheets.
 
 ### 4.1. Familias Tipográficas
-| Rol Tipográfico     | Fuente Base (Penpot / Diseño) | Pila de Fallback (CSS / Web)                       | Uso en la Aplicación                              |
+| Typographic Role | Base Font (Penpot / Design) | Fallback Stack (CSS / Web) | Application Use |
 | :------------------ | :---------------------------- | :------------------------------------------------- | :------------------------------------------------ |
-| Primaria Sans-Serif | Inter                         | Segoe UI, Inter, Roboto, -apple-system, sans-serif | Títulos, etiquetas, descripciones y controles     |
-| Monoespaciada       | Roboto Mono                   | Cascadia Code, SF Mono, Consolas, monospace        | Tags de equipos (P-101), hashes, IPs y timestamps |
+| Primary Sans-Serif | Inter                         | Segoe UI, Inter, Roboto, -apple-system, sans-serif | Titles, labels, descriptions, and controls     |
+| Monospaced       | Roboto Mono                   | Cascadia Code, SF Mono, Consolas, monospace        | Equipment tags (P-101), hashes, IPs and timestamps |
 
 ### 4.2. Escala Tipográfica
-| Token Tipográfico   | Tamaño (px) | Tamaño (rem) | Altura de Línea (px) | Peso (Font-Weight) | Uso Estándar en la Aplicación                                   |
+| Typographic Token | Size (px) | Size (rem) | Line Height (px) | Weight (Font-Weight) | Standard Application Use |
 | :------------------ | :---------- | :----------- | :------------------- | :----------------- | :-------------------------------------------------------------- |
-| --dt-font-display   | 28px        | 1.75rem      | 36px                 | Bold (700)         | KPIs macros de nivel ejecutivo en Dashboard L1                  |
-| --dt-font-h1        | 22px        | 1.375rem     | 28px                 | SemiBold (600)     | Título principal de la pantalla / Nombre del activo en Ficha L3 |
-| --dt-font-h2        | 18px        | 1.125rem     | 24px                 | SemiBold (600)     | Encabezados de tarjetas, títulos de modales y paneles laterales |
+| --dt-font-display   | 28px        | 1.75rem      | 36px                 | Bold (700)         | Executive-level macro KPIs on Dashboard L1                  |
+| --dt-font-h1        | 22px        | 1.375rem     | 28px                 | SemiBold (600)     | Main screen title / Asset name on L3 Card |
+| --dt-font-h2        | 18px        | 1.125rem     | 24px                 | SemiBold (600)     | Card headers, modal titles, and side panels |
 | --dt-font-body-lg   | 16px        | 1.0rem       | 24px                 | Regular (400)      | Text for input fields on mobile, main reading of WOs   |
 | --dt-font-body-md   | 14px        | 0.875rem     | 20px                 | Regular (400)      | Text for table cells, technical descriptions and menus        |
-| --dt-font-caption   | 12px        | 0.75rem      | 16px                 | Medium (500)       | Etiquetas flotantes de formularios, metadatos, autoría de logs  |
-| --dt-font-mono-data | 13px        | 0.8125rem    | 16px                 | Medium (500)       | Tags industriales (P-101), hashes criptográficos, IP y horas    |
+| --dt-font-caption   | 12px        | 0.75rem      | 16px                 | Medium (500)       | Floating form labels, metadata, log authorship  |
+| --dt-font-mono-data | 13px        | 0.8125rem    | 16px                 | Medium (500)       | Industrial tags (P-101), cryptographic hashes, IPs, and times    |
 
 ---
 
@@ -169,18 +169,18 @@ La tipografía se define bajo un modelo dual: fuentes nativas de alta disponibil
 To comply with the HPHMI philosophy in dark interfaces, depth is not expressed through decorative or diffuse shadows, but through normative **surface color differentiation and subtle borders**.
 
 ### 5.1. Border Radii
-| Token            | Valor (px) | Aplicación en Componentes                                      |
+| Token | Value (px) | Component Application |
 | ---------------- | ---------- | -------------------------------------------------------------- |
-| --dt-radius-none | 0px        | Canvas de mapa 2D, contenedores full-bleed en móvil.           |
-| --dt-radius-sm   | 4px        | Badges de estado, tags de clase de equipo, checkboxes.         |
+| --dt-radius-none | 0px        | 2D map canvas, full-bleed mobile containers.           |
+| --dt-radius-sm   | 4px        | Status badges, equipment class tags, checkboxes.         |
 | --dt-radius-md   | 6px        | Text fields (InputText), selectors, standard buttons.     |
-| --dt-radius-lg   | 8px        | Tarjetas de información (Cards), paneles laterales, dropdowns. |
-| --dt-radius-xl   | 12px       | Ventanas modales, diálogos de bloqueo LOTO.                    |
+| --dt-radius-lg   | 8px        | Information cards (Cards), side panels, dropdowns. |
+| --dt-radius-xl   | 12px       | Modal windows, LOTO lockout dialogs.                    |
 
-### 5.2. Capas y Niveles de Apilamiento (Z-Index Hierarchy)
+### 5.2. Layers and Stacking Levels (Z-Index Hierarchy)
 | Token Z-Index          | Valor | Elementos Asignados                                                  |
 | ---------------------- | ----- | -------------------------------------------------------------------- |
-| --dt-z-canvas          | 0     | Capa base vectorial SVG (Plano de planta).                           |
+| --dt-z-canvas          | 0     | SVG vector base layer (Floor plan).                           |
 | --dt-z-layer-ptw       | 10    | Work Permits overlapping graphic layer [[VIS-008]].         |
 | --dt-z-layer-loto      | 20    | LOTO Traceability graphic layer [[VIS-011]].                       |
 | --dt-z-overlay-card    | 100   | Asset pop-up card (Asset Quick-Card L3 / VIS-033).         |
