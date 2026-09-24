@@ -71,3 +71,10 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **Tamper-Evident** | Evidente de Manipulación / Tamper-Evident | A cryptographic property of the audit log that ensures any external modification or deletion of records instantly breaks the hash chain, raising a critical alert. |
 | **Root Cause Analysis (RCA)** | Análisis de Causa Raíz (RCA) | A systematic engineering process for identifying the fundamental origin of a failure to prevent its recurrence. |
 | **Meta-Audit** | Meta-Auditoría | The action of recording and tracing the queries made by administrators or auditors over the immutable audit log itself. |
+| **Offline Lease** | Arrendamiento Fuera de Línea | A bounded temporary authorization token signed via HMAC-SHA256, issued to a mobile device to perform safety-critical operations (like LOTO) offline within a safe time window. |
+| **Command-Sourced Synchronization** | Sincronización por Comandos de Intención | Architectural pattern where mobile clients synchronize atomic operational commands to a local queue (`SyncOutbox`) instead of final mutated states. |
+| **Cryptographic Manual Override** | Anulación Manual Criptográfica | An exception for areas without network coverage, allowing technicians to manually bypass digital safety blocks after physical verification. |
+| **LOTO Watchdog** | LOTO Watchdog (Perro Guardián) | A native background thread on the mobile device that continually monitors the safety heartbeat over WebSockets to trigger Fail-Safe actions. |
+| **Preventive Security Lockout** | Bloqueo Preventivo de Seguridad | A fail-safe state triggered automatically by the LOTO Watchdog when the grace window expires without receiving a heartbeat. |
+| **Grace Window** | Ventana de Gracia | A defined time threshold (e.g., 30s) used by the LOTO Watchdog to tolerate RF Shadowing and AP roaming without generating false positive safety lockouts. |
+| **Unit of Work** | Unidad de Trabajo | A transactional persistence pattern ensuring multiple database changes succeed or fail as a single atomic operation. |
