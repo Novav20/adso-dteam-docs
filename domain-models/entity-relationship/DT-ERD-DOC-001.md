@@ -43,6 +43,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | description | VARCHAR(255) | NULL | | NULL | Class description. |
 | manufacturer_standard | VARCHAR(120) | NULL | | NULL | Standardization reference. |
 
+#### 3.1.2 equipment_units
+
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
