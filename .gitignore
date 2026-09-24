@@ -22,3 +22,5 @@ ui-ux/assets/tokens.css
 ui-ux/assets/tokens_penpot.json
 *.dsl
 scripts/temp/
+domain-models/class/DT-DM-DOC-001.puml
+domain-models/entity-relationship/DT-ERD-DOC-001.dbml
