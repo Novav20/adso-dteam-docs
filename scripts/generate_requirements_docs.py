@@ -153,7 +153,7 @@ def parse_tr_title(raw_tr: str, tr_id: str) -> str:
 
 
 def normalize_refs(value: str) -> str:
-    raw = (value or "").replace("\r", "").strip()
+    raw = (value or "").replace("\r", "").replace("<br>", "\n").replace("<br/>", "\n").strip()
     if not raw:
         return ""
     parts = [

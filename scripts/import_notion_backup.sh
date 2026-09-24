@@ -109,14 +109,14 @@ resolve_target_name() {
         echo "ios.csv"
     elif [[ "$filename" == *"Business Processes"* || "$filename" == *"Procesos"* ]]; then
         echo "processes.csv"
-    elif [[ "$filename" == *"SRS"* || "$filename" == *"Requirements"* ]]; then
+    elif [[ "$filename" == *"Requisitos Transversales"* || "$filename" == *"Transversal Requirements"* || "$filename" == *"Cross-cutting Requirements"* || "$filename" == *"NFR"* || "$filename" == *"TR"* ]]; then
+        echo "transversal-requirements.csv"
+    elif [[ "$filename" == *"SRS"* || "$filename" == *"Functional Requirements"* || "$filename" == *"Requirements"* ]]; then
         echo "srs.csv"
     elif [[ "$filename" == *"Historias de Usuario"* || "$filename" == *"User Stories"* || "$filename" == *"US"* ]]; then
         echo "user-stories.csv"
     elif [[ "$filename" == *"Criterios de Aceptación"* || "$filename" == *"Acceptance Criteria"* || "$filename" == *"AC"* ]]; then
         echo "gherkin.csv"
-    elif [[ "$filename" == *"Requisitos Transversales"* || "$filename" == *"Cross-cutting Requirements"* || "$filename" == *"NFR"* || "$filename" == *"TR"* ]]; then
-        echo "transversal-requirements.csv"
     else
         echo ""
     fi
