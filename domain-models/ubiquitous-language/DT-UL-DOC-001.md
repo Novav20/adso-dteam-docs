@@ -50,3 +50,9 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **Visual Layer** | Capa Visual | Presentation record associated with a work order and visual state. |
 | **Work Order History** | Historial de Orden de Trabajo | Append-only lifecycle transition record for a work order. |
 | **RIME (Ranking Index for Maintenance Expenditure)** | RIME (Índice de Priorización) | Configurable prioritization strategy for work orders combining asset criticality and work class. |
+| **Wrench Time** | Wrench Time / Horas-Hombre Estimadas | The actual active labor time spent by a technician physically executing a work order, excluding administrative delays. |
+| **Offline-First** | Operación sin Conexión | An architecture pattern ensuring mobile applications remain fully functional without network connectivity by using local databases and delayed sync queues. |
+| **Idempotency Filter** | Filtro de Idempotencia | A mechanism during data synchronization to prevent the same offline transaction from being processed twice in the central database. |
+| **P&ID (Piping and Instrumentation Diagram)** | Diagrama de Tubería e Instrumentación (P&ID) | The detailed engineering schematic used as a reference to define the logical and physical boundaries of process equipment. |
+| **Physical Boundaries** | Límites Físicos (Boundaries) | The exact start and end points in a process flow (e.g., specific flanges) that delimit the scope of an Equipment Unit according to ISO 14224. |
+| **Condition-Based Maintenance (CBM)** | Mantenimiento Basado en Condición | Maintenance strategy driven by telemetry or physical condition limits rather than strict calendar schedules. |
