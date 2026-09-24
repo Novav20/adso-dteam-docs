@@ -1,15 +1,15 @@
 ---
 id: SCR-VIS-033
-title: Inspección de Activos sobre el Plano Base 2D
+title: Asset Inspection on the 2D Base Map
 module: VIS
 isa101_level: L1 (COP) | L3 (Detalle Activo)
 platform: Shared Component
 target_device: Tablet Industrial | Desktop
 roles:
-  - Supervisor de Mantenimiento
-  - Técnico de Mantenimiento
+  - Maintenance Supervisor
+  - Maintenance Technician
   - Inspector HSEQ
-  - Ingeniero de Confiabilidad
+  - Reliability Engineer
 user_stories:
   - "[[VIS-033]]"
 use_cases:
@@ -30,72 +30,72 @@ date: 2026-09-04
 status: In Review
 ---
 
-# SCR-VIS-033: Inspección de Activos sobre el Plano Base 2D
+# SCR-VIS-033: Asset Inspection on the 2D Base Map
 
-## 1. Propósito y Contexto Operacional
-* **Objetivo de la Vista:** Visualización espacial interactiva de la planta o subsistema en 2D, permitiendo la localización de equipos, consulta de condición en tiempo real y despliegue de la ficha contextual de operaciones.
-* **Contexto Operativo:** Desplegada en consolas web de escritorio (Tema Claro) y en tabletas industriales de campo (Tema Oscuro con ergonomía táctil apta para uso con guantes).
-* **Modo de Operación:** Supervisión, diagnóstico visual y navegación contextual pasiva. La interfaz no emite comandos de control industrial (arranque/parada), no altera variables de proceso ni ejecuta maniobras remotas sobre el SCADA.
+## 1. Purpose and Operational Context
+* **View Objective:** Interactive spatial visualization of the plant or subsystem in 2D, allowing equipment localization, real-time condition querying, and deployment of the operations contextual card.
+* **Operational Context:** Deployed on desktop web consoles (Light Theme) and on industrial field tablets (Dark Theme with tactile ergonomics suitable for use with gloves).
+* **Mode of Operation:** Supervision, visual diagnosis, and passive contextual navigation. The interface does not issue industrial control commands (start/stop), does not alter process variables, and does not execute remote maneuvers on the SCADA.
 
 ---
 
-## 2. Artefacto Visual
+## 2. Visual Artifact
 
 ![[SCR-VIS-033-asset-inspection-card.svg]]
 
 ---
 
-## 3. Inventario Funcional de Componentes
+## 3. Functional Component Inventory
 
-> La grilla base, tipografía, paletas neutras y áreas de contacto táctil mínimas se heredan de [[DT-UI-DS-DOC-001]]. Esta tabla define exclusivamente los componentes presentes, sus tokens semánticos y el enlace con el modelo.
+> The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [[DT-UI-DS-DOC-001]]. This table exclusively defines the present components, their semantic tokens, and the link with the model.
 
-| ID       | Control / Componente    | Rol Visual / Contenido           | Token Semántico                                                                                     | Enlace de Datos / Regla de Comportamiento                                                                                                                                |
+| ID | Control / Component | Visual Role / Content | Semantic Token | Data Link / Behavior Rule |
 | :------- | :---------------------- | :------------------------------- | :-------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CMP-01` | Canvas Viewport 2D      | Lienzo vectorial SVG interactivo | `--dt-color-bg-canvas`                                                                              | Renderiza el plano SVG del área. Soporta paneo continuo y zoom dual (geométrico y semántico) según [[UC-VIS-033]].                                                       |
-| `CMP-02` | Viewport Toolbar        | Barra de navegación espacial     | `--dt-color-surface-card`                                                                           | Controles de visor: Restablecer vista, niveles de zoom, selector de capas y badge de nivel contextual.                                                                   |
-| `CMP-03` | Command Palette Trigger | Acceso a búsqueda rápida         | `--dt-color-border-subtle`<br>`--dt-color-text-muted`                                               | Disparador de búsqueda difusa global (`Ctrl + K` / `/`) en escritorio. En móvil se renderiza como botón de acción táctil con icono de lupa.                              |
-| `CMP-04` | Equipment Hotspot       | Símbolo de equipo en SVG         | Borde: `--dt-primitive-gray-500`<br>Fondo: `--dt-color-bg-canvas`                                   | Geometría de Nivel 6 vinculada por `TagNumber`. En condición normal opera con delineado neutro; en alarma adquiere halo y forma de severidad según [[DT-UI-DS-DOC-001]]. |
-| `CMP-05` | Context Container       | Panel contextual de activo       | Superficie: `--dt-color-surface-card`                                                               | Contenedor adaptable (Panel lateral o *Bottom Sheet*). Elevación en Desktop: `--dt-z-overlay-card`. Elevación en Móvil: `--dt-z-drawer-sidebar`.                         |
-| `CMP-06` | Asset Header Block      | Identificación y estado          | Superficie: `--dt-color-surface-card`                                                               | Presenta `TagNumber` (con tipografía `--dt-font-mono-data`), criticidad y estado operativo (`EquipmentUnit.operationalStatus`).                                          |
-| `CMP-07` | Live Telemetry Block    | Indicadores analógicos MAI       | `--dt-color-mai-*`                                                                                  | Barras analógicas para variables de proceso críticas ([[DT-UI-DS-DOC-001]]). Se actualiza dinámicamente vía SignalR ([[TR-010]]).                                        |
-| `CMP-08` | Safety & Work Badges    | Indicadores de trabajo y riesgo  | [[DT-UI-DS-DOC-001#6.2. Matriz de Codificación Redundante para Permisos y LOTO\| DT-UI-DS-DOC-001]] | Consume datos de Permisos y LOTO aplicando codificación redundante obligatoria.                                                                                          |
-| `CMP-09` | Quick Action Buttons    | Botonera de acciones primarias   | Superficie: `--dt-color-surface-base`<br>Texto: `--dt-color-text-primary`                           | Enlaces rápidos: `[Localizar en Plano]`, `[Ver Ruta LOTO]` $\to$ SCR-VIS-011, `[Ver OTs]` $\to$ SCR-MTTO-026, `[Ficha Maestra]` $\to$ SCR-INV-005.                       |
+| `CMP-01` | Canvas Viewport 2D      | Interactive SVG vector canvas | `--dt-color-bg-canvas`                                                                              | Renders the SVG map of the area. Supports continuous panning and dual zoom (geometric and semantic) per [[UC-VIS-033]]. |
+| `CMP-02` | Viewport Toolbar        | Spatial navigation bar | `--dt-color-surface-card`                                                                           | Viewer controls: Reset view, zoom levels, layer selector, and contextual level badge. |
+| `CMP-03` | Command Palette Trigger | Quick search access | `--dt-color-border-subtle`<br>`--dt-color-text-muted`                                               | Global fuzzy search trigger (`Ctrl + K` / `/`) on desktop. On mobile, it renders as a tactile action button with a magnifying glass icon. |
+| `CMP-04` | Equipment Hotspot       | Equipment symbol in SVG | Border: `--dt-primitive-gray-500`<br>Background: `--dt-color-bg-canvas` | Level 6 geometry linked by `TagNumber`. In normal condition, it operates with neutral outlining; in alarm, it acquires a halo and severity shape per [[DT-UI-DS-DOC-001]]. |
+| `CMP-05` | Context Container       | Asset contextual panel | Surface: `--dt-color-surface-card` | Adaptable container (Side panel or *Bottom Sheet*). Desktop Elevation: `--dt-z-overlay-card`. Mobile Elevation: `--dt-z-drawer-sidebar`. |
+| `CMP-06` | Asset Header Block      | Identification and status | Surface: `--dt-color-surface-card` | Presents `TagNumber` (with `--dt-font-mono-data` typography), criticality, and operational status (`EquipmentUnit.operationalStatus`). |
+| `CMP-07` | Live Telemetry Block    | MAI analog indicators | `--dt-color-mai-*`                                                                                  | Analog bars for critical process variables ([[DT-UI-DS-DOC-001]]). Dynamically updated via SignalR ([[TR-010]]). |
+| `CMP-08` | Safety & Work Badges    | Work and risk indicators | [[DT-UI-DS-DOC-001#6.2. Redundant Coding Matrix for Permits and LOTO\| DT-UI-DS-DOC-001]] | Consumes Permit and LOTO data applying mandatory redundant coding. |
+| `CMP-09` | Quick Action Buttons    | Primary actions button panel | Superficie: `--dt-color-surface-base`<br>Texto: `--dt-color-text-primary`                           | Quick links: `[Locate on Map]`, `[View LOTO Route]` $\to$ SCR-VIS-011, `[View WOs]` $\to$ SCR-MTTO-026, `[Master Card]` $\to$ SCR-INV-005. |
 
 
 ---
 
-## 4. Matriz de Estados de la Pantalla
+## 4. Screen State Matrix
 
-| Estado                       | Modificación Visual en la Interfaz                                                                                                                                                           | Condición de Activación                                                                                                  |
+| State | Visual Modification in the Interface | Activation Condition |
 | :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
-| **Normal (Default)**         | Superficies y activos en paleta neutra en escala de grises. Telemetría dentro de rangos operativos normales.                                                                                 | Carga exitosa del área y flujo de datos activo sin alarmas.                                                              |
-| **Cargando (Loading)**       | Indicador de actividad atenuado sobre el lienzo; esqueleto visual (*shimmer*) en el panel contextual.                                                                                        | Transición de área funcional o recuperación inicial del plano SVG.                                                       |
-| **Activo Seleccionado**      | El equipo activo resalta con borde de selección informativo (`--dt-color-state-info`). Se despliega `CMP-05`.                                                                                | Clic / Tap sobre `CMP-04` o selección mediante `CMP-03`.                                                                 |
-| **Alarma Crítica de Activo** | `CMP-04` adquiere borde y símbolo cuadrado en `--dt-color-alarm-critical`. En `CMP-07` el MAI muestra marcador de severidad P1.                                                              | Variable física excediendo umbrales de seguridad o equipo en condición `DOWN`.                                           |
-| **Pérdida de Telemetría**    | Los valores numéricos en `CMP-07` se congelan y conmutan a `--dt-color-state-disabled`; se muestra icono de advertencia ámbar (`--dt-color-alarm-warning`) y marca de tiempo de desconexión. | Interrupción de la conexión en tiempo real con la fuente SCADA ([[UC-VIS-033]], `AF-002`).                               |
-| **Mapeo Pendiente**          | `CMP-05` presenta la información tabular del activo pero deshabilita la acción de localización espacial con badge informativo.                                                               | Consulta de un equipo del catálogo maestro que carece de geometría asociada en el SVG actual ([[UC-VIS-033]], `AF-001`). |
+| **Normal (Default)** | Surfaces and assets in neutral grayscale palette. Telemetry within normal operating ranges. | Successful area load and active data stream without alarms. |
+| **Loading** | Dimmed activity indicator over the canvas; visual skeleton (*shimmer*) in the contextual panel. | Functional area transition or initial SVG map retrieval. |
+| **Selected Asset** | The active equipment highlights with an informational selection border (`--dt-color-state-info`). `CMP-05` is deployed. | Click / Tap on `CMP-04` or selection via `CMP-03`. |
+| **Critical Asset Alarm** | `CMP-04` acquires a border and square symbol in `--dt-color-alarm-critical`. In `CMP-07`, the MAI shows a P1 severity marker. | Physical variable exceeding safety thresholds or equipment in `DOWN` condition. |
+| **Telemetry Loss** | Numeric values in `CMP-07` freeze and switch to `--dt-color-state-disabled`; an amber warning icon (`--dt-color-alarm-warning`) and disconnection timestamp are shown. | Interruption of the real-time connection with the SCADA source ([[UC-VIS-033]], `AF-002`). |
+| **Pending Mapping** | `CMP-05` presents the tabular information of the asset but disables the spatial localization action with an informational badge. | Query of a master catalog equipment that lacks associated geometry in the current SVG ([[UC-VIS-033]], `AF-001`). |
 
 ---
 
-## 5. Reglas de Interacción y Flujo de Datos
+## 5. Interaction Rules and Data Flow
 
-### 5.1. Carga Inicial
-1. El sistema recupera el plano vectorial correspondiente a la ubicación funcional y renderiza el lienzo base.
-2. Se vinculan bidireccionalmente los nodos gráficos interactivos con las entidades de equipo registradas (FR-599).
-3. El plano se inicializa centrado en su vista macro.
+### 5.1. Initial Load
+1. The system retrieves the vector map corresponding to the functional location and renders the base canvas.
+2. Interactive graphic nodes are bidirectionally linked with the registered equipment entities (FR-599).
+3. The map is initialized centered on its macro view.
 
-### 5.2. Navegación Espacial y Ergonomía Móvil
-1. **Desplazamiento y Zoom:** Navegación dual (Geométrica y Semántica) según [[UC-VIS-033]].
-2. **Controlabilidad Táctil:** El contenedor `CMP-05` conmuta sus estados mediante un disparador gráfico superior que hereda el tamaño táctil de `--dt-touch-target-mobile`.
-3. **Responsive Layout:** La transformación del contenedor `CMP-05` (Bottom Sheet $\leftrightarrow$ Lateral Panel) se delega a las reglas de orientación de dispositivo definidas en [[DT-UI-NAV-DOC-001]].
+### 5.2. Spatial Navigation and Mobile Ergonomics
+1. **Panning and Zoom:** Dual navigation (Geometric and Semantic) per [[UC-VIS-033]].
+2. **Tactile Controllability:** The `CMP-05` container toggles its states via an upper graphic trigger that inherits the tactile size of `--dt-touch-target-mobile`.
+3. **Responsive Layout:** The transformation of the `CMP-05` container (Bottom Sheet $\leftrightarrow$ Lateral Panel) is delegated to the device orientation rules defined in [[DT-UI-NAV-DOC-001]].
   
-### 5.3. Inspección y Telemetría
-1. La selección de un activo en el plano invoca la apertura de `CMP-05` y la suscripción en tiempo real al canal de telemetría del equipo.
-2. **Gestión de Suscripción SignalR:** Sujeta a políticas globales de *debouncing* para prevenir colisiones de red por selección rápida múltiple ([[DT-ARQ-CMP-DOC-001]]).
-3. **Resiliencia de Conexión:** Si el componente detecta violación del umbral del *Heartbeat* o recibe un paquete con calidad "Bad" ([[DT-ARQ-DEP-DOC-001]]), transiciona inmediatamente a la visualización de "Pérdida de Telemetría".
+### 5.3. Inspection and Telemetry
+1. Selecting an asset on the map invokes the opening of `CMP-05` and real-time subscription to the equipment's telemetry channel.
+2. **SignalR Subscription Management:** Subject to global *debouncing* policies to prevent network collisions due to rapid multiple selection ([[DT-ARQ-CMP-DOC-001]]).
+3. **Connection Resilience:** If the component detects a violation of the *Heartbeat* threshold or receives a packet with "Bad" quality ([[DT-ARQ-DEP-DOC-001]]), it immediately transitions to the "Telemetry Loss" display.
 ---
 
-## 6. Consideraciones Industriales y de Seguridad
+## 6. Industrial and Safety Considerations
 
-* **Filosofía HPHMI ([[TR-011]]):** Se prohíbe el uso de color verde para denotar funcionamiento normal. La interfaz permanece estrictamente en escala de grises neutra; los colores saturados se reservan para condiciones de alarma y advertencia con codificación de forma redundante.
-* **Resiliencia de Telemetría:** Ninguna variable sin marca de tiempo confirmada puede presentarse como lectura viva. La interfaz distingue explícitamente entre una lectura real de valor cero y la desconexión del instrumento.
+* **HPHMI Philosophy ([[TR-011]]):** The use of the color green to denote normal operation is prohibited. The interface remains strictly in neutral grayscale; saturated colors are reserved for alarm and warning conditions with redundant shape coding.
+* **Telemetry Resilience:** No variable without a confirmed timestamp can be presented as a live reading. The interface explicitly distinguishes between a real zero-value reading and instrument disconnection.
