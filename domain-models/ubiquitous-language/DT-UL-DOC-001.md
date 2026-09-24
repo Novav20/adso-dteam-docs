@@ -78,3 +78,7 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **Preventive Security Lockout** | Bloqueo Preventivo de Seguridad | A fail-safe state triggered automatically by the LOTO Watchdog when the grace window expires without receiving a heartbeat. |
 | **Grace Window** | Ventana de Gracia | A defined time threshold (e.g., 30s) used by the LOTO Watchdog to tolerate RF Shadowing and AP roaming without generating false positive safety lockouts. |
 | **Unit of Work** | Unidad de Trabajo | A transactional persistence pattern ensuring multiple database changes succeed or fail as a single atomic operation. |
+| MAI (Moving Analog Indicator) | Presentation | A visual pattern for continuous process variables (pressure, flow, etc.) that allows rapid condition evaluation without relying solely on numeric digits, conforming to ISA-101.01. |
+| HPHMI | Presentation | High-Performance Human-Machine Interface. Design philosophy prioritizing situational awareness, minimizing cognitive fatigue, and ensuring pre-attentive visibility of safety alarms. |
+| Redundant Coding | Presentation | The practice of communicating critical states using multiple simultaneous channels (Shape + Icon + Color + Text) to guarantee accessibility, especially for color blindness. |
+| Discrete Switching (UI) | Presentation | A UI interaction pattern requiring explicit taps (rather than continuous swipe/drag gestures) to toggle container states, necessary due to the low precision of capacitive sensors operated with industrial gloves. |

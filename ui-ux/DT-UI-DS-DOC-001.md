@@ -19,127 +19,127 @@ Este documento establece la **Fuente Única de Verdad** para todos los tokens de
 
 ### Principios Obligatorios:
 1. **Regla HPHMI del 90/10:** El 90% de la interfaz opera en escala de grises neutra de bajo contraste para minimizar la fatiga visual. El 10% del color saturado se reserva exclusivamente para anomalías, alarmas y condiciones de peligro.
-2. **Eliminación del Verde como Estado "Normal":** No se utiliza verde para indicar que un motor está encendido o en operación normal. El estado normal se representa mediante grises y texto ("RUNNING" / "UP"). El uso del color en confirmaciones documentales o estado de conexión se restringe a tonalidades **Teal / Pino** (`--dt-primitive-teal-600` o `--dt-primitive-teal-400`), evitando cualquier confusión con el verde industrial de estado.
-3. **Codificación Redundante (WCAG 2.1 AA):** Ningún estado crítico de seguridad o alarma debe comunicarse únicamente por color. Todo indicador debe combinar **Forma + Icono + Color + Texto**.
+2. **Elimination of Green as "Normal" State:** Green is not used to indicate that a motor is running or in normal operation. Normal state is represented using grays and text ("RUNNING" / "UP"). The use of color in documentary confirmations or connection status is restricted to **Teal / Pine** shades (`--dt-primitive-teal-600` or `--dt-primitive-teal-400`), avoiding any confusion with the industrial state green.
+3. **Redundant Coding (WCAG 2.1 AA):** No critical safety or alarm state should be communicated solely by color. Every indicator must combine **Shape + Icon + Color + Text**.
 4. **Ergonomía Industrial Táctil:** Los elementos interactivos en dispositivos móviles y tabletas de campo deben respetar un área de contacto mínima de **$48 \times 48\text{ px}$** para permitir la operación con guantes de seguridad.
 
 ---
 
 ## 2. Tokens Espaciales y de Layout
 
-El espaciado y dimensionamiento se rige bajo un sistema de cuadrícula base de **8px** (con un submarco de 4px para micro-ajustes).
+Spacing and sizing are governed by an **8px** base grid system (with a 4px sub-frame for micro-adjustments).
 
 > **Escala por Multiplicador de $4\text{px}$ / $0.25\text{rem}$:**  
 > La nomenclatura `--dt-space-N` utiliza una convención de **multiplicador lineal** donde $N$ representa el factor por el cual se multiplica la unidad base de $4\text{px}$ ($N \times 4\text{px}$ o $N \times 0.25\text{rem}$), estándar en la industria (Tailwind CSS / W3C DTCG).  
-> A partir de $16\text{px}$, la escala omite deliberadamente valores impares/intermedios como `--dt-space-5` ($20\text{px}$) o `--dt-space-7` ($28\text{px}$) para garantizar que todos los espaciados mayores sean **estrictamente múltiplos de 8px** ($24\text{px} = 3 \times 8$, $32\text{px} = 4 \times 8$, $48\text{px} = 6 \times 8$, $64\text{px} = 8 \times 8$), preservando la alineación armónica visual del layout y previniendo la parálisis de decisión en el diseño.
+> From $16\text{px}$, the scale deliberately omits odd/intermediate values like `--dt-space-5` ($20\text{px}$) or `--dt-space-7` ($28\text{px}$) to ensure all larger spacings are **strictly multiples of 8px** ($24\text{px} = 3 \times 8$, $32\text{px} = 4 \times 8$, $48\text{px} = 6 \times 8$, $64\text{px} = 8 \times 8$), preserving visual harmonic alignment of the layout and preventing design decision paralysis.
 
-### 2.1. Escala de Espaciado
+### 2.1. Spacing Scale
 
-| Token CSS     | Valor (px) | Valor (rem) | Uso Primario en Layout y Componentes                                                       |
+| CSS Token | Value (px) | Value (rem) | Primary Use in Layout and Components                                                       |
 | :------------ | :--------: | :---------: | :----------------------------------------------------------------------------------------- |
-| --dt-space-0  |    0px     |    0rem     | Reseteo de márgenes y paddings.                                                            |
-| --dt-space-1  |    4px     |   0.25rem   | Micro-espaciado: separación entre icono y texto en badges, padding interno de tags.        |
-| --dt-space-2  |    8px     |   0.5rem    | Espaciado compacto: gap entre campos de formulario estrechos, padding de celdas de tabla.  |
-| --dt-space-3  |    12px    |   0.75rem   | Espaciado medio: gap en barras de herramientas (toolbars), padding interno de inputs.      |
-| --dt-space-4  |    16px    |   1.0rem    | **Espaciado base:** padding de tarjetas (cards), gap estándar en Auto-Layout.              |
-| --dt-space-6  |    24px    |   1.5rem    | Espaciado amplio: padding perimetral de pantallas, separación entre secciones funcionales. |
-| --dt-space-8  |    32px    |   2.0rem    | Separación de bloques mayores en vistas de escritorio (Dashboards).                        |
-| --dt-space-12 |    48px    |   3.0rem    | Separación entre contenedores de nivel macro o márgenes de visualizador 2D.                |
-| --dt-space-16 |    64px    |   4.0rem    | Márgenes estructurales en monitores de alta resolución (1920x1080).                        |
+| --dt-space-0  |    0px     |    0rem     | Reset margins and paddings.                                                            |
+| --dt-space-1  |    4px     |   0.25rem   | Micro-spacing: gap between icon and text in badges, internal padding of tags.        |
+| --dt-space-2  |    8px     |   0.5rem    | Compact spacing: gap between narrow form fields, table cell padding.  |
+| --dt-space-3  |    12px    |   0.75rem   | Medium spacing: gap in toolbars, internal padding of inputs.      |
+| --dt-space-4  |    16px    |   1.0rem    | **Base spacing:** card padding, standard gap in Auto-Layout.              |
+| --dt-space-6  |    24px    |   1.5rem    | Wide spacing: perimeter screen padding, separation between functional sections. |
+| --dt-space-8  |    32px    |   2.0rem    | Separation of major blocks in desktop views (Dashboards).                        |
+| --dt-space-12 |    48px    |   3.0rem    | Separation between macro-level containers or 2D viewer margins.                |
+| --dt-space-16 |    64px    |   4.0rem    | Structural margins on high-resolution monitors (1920x1080).                        |
 
-### 2.2. Dimensiones de Controles y Áreas Táctiles
-| Token de Control         | Altura Mínima (px) | Ancho Mínimo (px) | Plataforma Objetivo / Justificación                                                                |
+### 2.2. Dimensions of Controls and Touch Areas
+| Control Token | Min Height (px) | Min Width (px) | Target Platform / Justification                                                                |
 | ------------------------ | ------------------ | ----------------- | -------------------------------------------------------------------------------------------------- |
-| --dt-touch-target-mobile | 48px               | 48px              | **Mínimo obligatorio en Tablet/Mobile:** Botones de acción, checkboxes LOTO y selectores en campo. |
-| --dt-control-height-sm   | 32px               | auto              | Desktop Web: Botones compactos en tablas de datos densos y filtros secundarios.                    |
-| --dt-control-height-md   | 40px               | auto              | Desktop Web: Entradas de texto estándar, selectores y botones de formulario.                       |
-| --dt-control-height-lg   | 48px               | auto              | Mobile/Tablet: Altura estándar para todos los campos de entrada (InputText, InputSelect).          |
-| --dt-control-height-xl   | 56px               | 100%              | Mobile: Botón de acción primaria de pie de pantalla (ej. "Completar Orden de Trabajo").            |
+| --dt-touch-target-mobile | 48px               | 48px              | **Mandatory minimum on Tablet/Mobile:** Action buttons, LOTO checkboxes, and field selectors. |
+| --dt-control-height-sm   | 32px               | auto              | Desktop Web: Compact buttons in dense data tables and secondary filters.                    |
+| --dt-control-height-md   | 40px               | auto              | Desktop Web: Standard text inputs, selectors, and form buttons.                       |
+| --dt-control-height-lg   | 48px               | auto              | Mobile/Tablet: Standard height for all input fields (InputText, InputSelect).          |
+| --dt-control-height-xl   | 56px               | 100%              | Mobile: Primary footer action button (e.g., "Complete Work Order").            |
 
-### 2.3. Puntos de Quiebre Responsivos y Marcos de Referencia
+### 2.3. Responsive Breakpoints and Reference Frames
 
-Los diseños y las reglas de adaptación responsive en CSS se calibran contra los siguientes factores de forma y resoluciones de lienzo estándar:
+The designs and responsive adaptation rules in CSS are calibrated against the following form factors and standard canvas resolutions:
 
-| Token de Breakpoint | Ancho Mínimo (px) | Dimensiones Base Lienzo (W x H) | Relación de Aspecto | Dispositivo de Referencia                            | Disposición de Layout y Contenedores           |
+| Breakpoint Token | Min Width (px) | Base Canvas Dimensions (W x H) | Aspect Ratio | Reference Device | Layout and Container Disposition |
 | :------------------ | :---------------: | :-----------------------------: | :-----------------: | :--------------------------------------------------- | :--------------------------------------------- |
-| --dt-breakpoint-sm  |       390px       |          390 x 844 px           |      $9:19.5$       | Smartphone vertical (iOS / Android)                  | 1 columna; navegación por barra inferior.      |
-| --dt-breakpoint-md  |       768px       |          768 x 1024 px          |        $3:4$        | Tablet vertical / Colector industrial                | 1 a 2 columnas; drawer colapsable.             |
-| --dt-breakpoint-lg  |      1280px       |          1280 x 800 px          |       $16:10$       | **Tablet Industrial (Zebra ET51 / Honeywell RT10A)** | 2 columnas (Lienzo SVG + Panel contextual).    |
-| --dt-breakpoint-xl  |      1920px       |         1920 x 1080 px          |       $16:9$        | Estación de Trabajo Desktop (Full HD)                | 3 columnas (Sidebar + Panel Central + Drawer). |
+| --dt-breakpoint-sm  |       390px       |          390 x 844 px           |      $9:19.5$       | Vertical Smartphone (iOS / Android)                  | 1 column; bottom bar navigation.      |
+| --dt-breakpoint-md  |       768px       |          768 x 1024 px          |        $3:4$        | Vertical Tablet / Industrial Collector                | 1 to 2 columns; collapsible drawer.             |
+| --dt-breakpoint-lg  |      1280px       |          1280 x 800 px          |       $16:10$       | **Industrial Tablet (Zebra ET51 / Honeywell RT10A)** | 2 columns (SVG Canvas + Contextual panel).    |
+| --dt-breakpoint-xl  |      1920px       |         1920 x 1080 px          |       $16:9$        | Desktop Workstation (Full HD)                | 3 columns (Sidebar + Central Panel + Drawer). |
 
 ---
 
-## 3. Tokens de Color y Superficies
-La paleta se estructura en dos capas: **Tokens Primitivos** (valores absolutos de paleta, **donde reside la única declaración de códigos HEX en el documento de diseño**) y **Tokens Semánticos** asignados dinámicamente según el contexto de iluminación operativa (Tema Oscuro y Tema Claro), que hacen referencia a las variables primitivas.
+## 3. Color Tokens and Surfaces
+The palette is structured in two layers: **Primitive Tokens** (absolute palette values, **where the only declaration of HEX codes resides in the design document**) and **Semantic Tokens** dynamically assigned based on the operational lighting context (Dark Theme and Light Theme), which reference the primitive variables.
 
-### 3.1. Tokens Primitivos de Paleta
-| Token Primitivo          | Valor Hex | Familia / Uso Base                                                   |
+### 3.1. Primitive Palette Tokens
+| Primitive Token | Hex Value | Family / Base Use                                                   |
 | ------------------------ | --------- | -------------------------------------------------------------------- |
-| --dt-primitive-gray-980  | #111827   | Negro de alto contraste para texto en tema claro (Tailwind gray-900) |
-| --dt-primitive-gray-950  | #11141A   | Tonalidad neutra profunda (Fondo de UI extrema)                      |
-| --dt-primitive-gray-900  | #16191F   | Tonalidad neutra oscura (Lienzo en tema oscuro)                      |
-| --dt-primitive-gray-850  | #1F2937   | Gris carbón para texto base en tema claro                            |
-| --dt-primitive-gray-800  | #1E222B   | Tonalidad neutra base oscura (Fondo de aplicación en oscuro)         |
-| --dt-primitive-gray-700  | #2A2F3D   | Superficie oscura intermedia (Tarjetas en oscuro)                    |
-| --dt-primitive-gray-650  | #3A4154   | Borde sutil oscuro (Diferenciación de capas en oscuro)               |
-| --dt-primitive-gray-620  | #4B5563   | Gris medio para texto secundario en claro (Tailwind gray-600)        |
-| --dt-primitive-gray-600  | #353B4D   | Superficie oscura elevada (Paneles flotantes / Modales en oscuro)    |
-| --dt-primitive-gray-580  | #4A5263   | Gris deshabilitado para fondo oscuro                                 |
-| --dt-primitive-gray-550  | #6B7280   | Borde de input en foco en claro (Tailwind gray-500)                  |
-| --dt-primitive-gray-500  | #5C667A   | Borde y elemento interactivo neutro                                  |
-| --dt-primitive-gray-450  | #6E7A92   | Borde de input en foco en oscuro                                     |
-| --dt-primitive-gray-420  | #8A98AA   | Gris claro para texto secundario en oscuro                           |
-| --dt-primitive-gray-400  | #7E8B9B   | Texto secundario y atenuado general                                  |
-| --dt-primitive-gray-380  | #9CA3AF   | Gris deshabilitado para fondo claro (Tailwind gray-400)              |
-| --dt-primitive-gray-350  | #AAB1BD   | Borde intermedio sutil para controles en tema claro                  |
-| --dt-primitive-gray-300  | #B8C0CC   | Bordes en fondo claro                                                |
-| --dt-primitive-gray-280  | #C2CBD6   | Gris claro para texto base en oscuro                                 |
-| --dt-primitive-gray-200  | #D8DBE0   | Gris neutro claro (Munsell N7.5 / Hollifield / Lienzo en claro)      |
-| --dt-primitive-gray-100  | #E5E8EC   | Superficie clara base (Fondo de aplicación en claro)                 |
-| --dt-primitive-gray-50   | #F4F5F7   | Superficie clara de tarjeta (Tarjetas en claro)                      |
-| --dt-primitive-gray-10   | #FDFEFE   | Blanco roto de alto contraste para texto en tema oscuro              |
-| --dt-primitive-white     | #FFFFFF   | Blanco puro (Lienzo, fondos elevados)                                |
+| --dt-primitive-gray-980  | #111827   | High-contrast black for text in light theme (Tailwind gray-900) |
+| --dt-primitive-gray-950  | #11141A   | Deep neutral tone (Extreme UI background)                      |
+| --dt-primitive-gray-900  | #16191F   | Dark neutral tone (Canvas in dark theme)                      |
+| --dt-primitive-gray-850  | #1F2937   | Charcoal gray for base text in light theme                            |
+| --dt-primitive-gray-800  | #1E222B   | Dark base neutral tone (App background in dark theme)         |
+| --dt-primitive-gray-700  | #2A2F3D   | Intermediate dark surface (Cards in dark theme)                    |
+| --dt-primitive-gray-650  | #3A4154   | Subtle dark border (Layer differentiation in dark theme)               |
+| --dt-primitive-gray-620  | #4B5563   | Medium gray for secondary text in light theme (Tailwind gray-600)        |
+| --dt-primitive-gray-600  | #353B4D   | Elevated dark surface (Floating panels / Modals in dark theme)    |
+| --dt-primitive-gray-580  | #4A5263   | Disabled gray for dark background                                 |
+| --dt-primitive-gray-550  | #6B7280   | Focused input border in light theme (Tailwind gray-500)                  |
+| --dt-primitive-gray-500  | #5C667A   | Neutral border and interactive element                                  |
+| --dt-primitive-gray-450  | #6E7A92   | Focused input border in dark theme                                     |
+| --dt-primitive-gray-420  | #8A98AA   | Light gray for secondary text in dark theme                           |
+| --dt-primitive-gray-400  | #7E8B9B   | Secondary and muted text overall                                  |
+| --dt-primitive-gray-380  | #9CA3AF   | Disabled gray for light background (Tailwind gray-400)              |
+| --dt-primitive-gray-350  | #AAB1BD   | Subtle intermediate border for controls in light theme                  |
+| --dt-primitive-gray-300  | #B8C0CC   | Borders on light background                                                |
+| --dt-primitive-gray-280  | #C2CBD6   | Light gray for base text in dark theme                                 |
+| --dt-primitive-gray-200  | #D8DBE0   | Light neutral gray (Munsell N7.5 / Hollifield / Canvas in light)      |
+| --dt-primitive-gray-100  | #E5E8EC   | Base light surface (App background in light theme)                 |
+| --dt-primitive-gray-50   | #F4F5F7   | Light card surface (Cards in light theme)                      |
+| --dt-primitive-gray-10   | #FDFEFE   | High-contrast off-white for text in dark theme              |
+| --dt-primitive-white     | #FFFFFF   | Pure white (Canvas, elevated backgrounds)                                |
 | --dt-primitive-red-600   | #E63946   | Rojo industrial de alarma                                            |
-| --dt-primitive-amber-600 | #AC5E04   | Ámbar / Advertencia en fondo claro (Ajustado WCAG AA 3.47:1)         |
+| --dt-primitive-amber-600 | #AC5E04   | Amber / Warning on light background (Adjusted WCAG AA 3.47:1)         |
 | --dt-primitive-amber-500 | #D97706   | Ámbar / Advertencia base                                             |
-| --dt-primitive-amber-400 | #F4A261   | Ámbar / Advertencia en fondo oscuro                                  |
-| --dt-primitive-blue-700  | #0369A1   | Zona de operación normal MAI en fondo oscuro                         |
-| --dt-primitive-blue-600  | #2563EB   | Azul informativo en fondo claro                                      |
-| --dt-primitive-blue-450  | #4881A4   | Azul informativo en fondo oscuro (Ajustado WCAG AA 3.15:1)           |
+| --dt-primitive-amber-400 | #F4A261   | Amber / Warning on dark background                                  |
+| --dt-primitive-blue-700  | #0369A1   | Normal MAI operation zone on dark background                         |
+| --dt-primitive-blue-600  | #2563EB   | Informational blue on light background                                      |
+| --dt-primitive-blue-450  | #4881A4   | Informational blue on dark background (Adjusted WCAG AA 3.15:1)           |
 | --dt-primitive-blue-400  | #457B9D   | Azul informativo base                                                |
-| --dt-primitive-blue-200  | #BAE6FD   | Zona de operación normal MAI en fondo claro                          |
-| --dt-primitive-teal-700  | #0B857A   | Confirmación documental en fondo claro (Ajustado WCAG AA 3.25:1)     |
+| --dt-primitive-blue-200  | #BAE6FD   | Normal MAI operation zone on light background                          |
+| --dt-primitive-teal-700  | #0B857A   | Documentary confirmation on light background (Adjusted WCAG AA 3.25:1)     |
 | --dt-primitive-teal-600  | #0D9488   | Confirmación documental base                                         |
-| --dt-primitive-teal-400  | #2A9D8F   | Confirmación documental en fondo oscuro                              |
+| --dt-primitive-teal-400  | #2A9D8F   | Documentary confirmation on dark background                              |
 
 ### 3.2. Tokens Semánticos para los Temas Claro y Oscuro
 *Aplicación de la regla HPHMI del 90% de superficies neutras utilizando referencias directas a tokens primitivos*
 
-| Token Semántico            | Tema Oscuro (Móvil / Noche) | Tema Claro (Escritorio / Día) | Aplicación en Interfaz                                                  |
+| Semantic Token | Dark Theme (Mobile / Night) | Light Theme (Desktop / Day) | Interface Application                                                  |
 | -------------------------- | --------------------------- | ----------------------------- | ----------------------------------------------------------------------- |
-| --dt-color-bg-canvas       | --dt-primitive-gray-900     | --dt-primitive-gray-200       | Fondo del lienzo 2D / Plano de planta                                   |
-| --dt-color-surface-base    | --dt-primitive-gray-800     | --dt-primitive-gray-100       | Fondo de la aplicación / Header                                         |
+| --dt-color-bg-canvas       | --dt-primitive-gray-900     | --dt-primitive-gray-200       | 2D canvas background / Floor plan                                   |
+| --dt-color-surface-base    | --dt-primitive-gray-800     | --dt-primitive-gray-100       | App background / Header                                         |
 | --dt-color-surface-card    | --dt-primitive-gray-700     | --dt-primitive-gray-50        | Tarjetas de activos / Filas de tabla                                    |
 | --dt-color-surface-raised  | --dt-primitive-gray-600     | --dt-primitive-white          | Modales / Paneles flotantes                                             |
-| --dt-color-border-subtle   | --dt-primitive-gray-650     | --dt-primitive-gray-300       | Líneas divisorias / Separadores                                         |
-| --dt-color-border-focus    | --dt-primitive-gray-450     | --dt-primitive-gray-550       | Borde de input en foco (Tema Oscuro ajustado a 3.09:1 WCAG AA)          |
-| --dt-color-text-muted      | --dt-primitive-gray-420     | --dt-primitive-gray-620       | Unidades de medida / Timestamps (Tema Oscuro ajustado a 4.55:1 WCAG AA) |
-| --dt-color-text-body       | --dt-primitive-gray-280     | --dt-primitive-gray-850       | Texto principal / Valores de tabla                                      |
+| --dt-color-border-subtle   | --dt-primitive-gray-650     | --dt-primitive-gray-300       | Dividing lines / Separators                                         |
+| --dt-color-border-focus    | --dt-primitive-gray-450     | --dt-primitive-gray-550       | Focused input border (Dark Theme adjusted to 3.09:1 WCAG AA)          |
+| --dt-color-text-muted      | --dt-primitive-gray-420     | --dt-primitive-gray-620       | Units of measurement / Timestamps (Dark Theme adjusted to 4.55:1 WCAG AA) |
+| --dt-color-text-body       | --dt-primitive-gray-280     | --dt-primitive-gray-850       | Main text / Table values                                      |
 | --dt-color-text-primary    | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Títulos / Valores críticos                                              |
-| --dt-color-mai-track       | --dt-primitive-gray-700     | --dt-primitive-gray-100       | Fondo de pista del indicador analógico MAI                              |
+| --dt-color-mai-track       | --dt-primitive-gray-700     | --dt-primitive-gray-100       | Analog MAI indicator track background                              |
 | --dt-color-mai-normal-zone | --dt-primitive-blue-700     | --dt-primitive-blue-200       | Franja de rango de operación normal en MAI                              |
 | --dt-color-mai-pointer     | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Puntero de valor actual MAI                                             |
 | --dt-color-mai-interlock   | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Marcador de límite de disparo de interbloqueo en MAI                    |
 
 ### 3.3. Semántica de Alarmas y Seguridad (10% Reservado)
 
-| Estado / Severidad                | Token de Color            | Valor (Tema Oscuro)      | Valor (Tema Claro)       | Símbolo Obligatorio                                                 |
+| State / Severity | Color Token | Value (Dark Theme) | Value (Light Theme) | Mandatory Symbol                                                 |
 | --------------------------------- | ------------------------- | ------------------------ | ------------------------ | ------------------------------------------------------------------- |
 | **Alarma Crítica / Peligro LOTO** | --dt-color-alarm-critical | --dt-primitive-red-600   | --dt-primitive-red-600   | Cuadrado / Octágono                                                 |
-| **Advertencia / Límite Próximo**  | --dt-color-alarm-warning  | --dt-primitive-amber-400 | --dt-primitive-amber-600 | Triángulo (Ajustado WCAG AA 3.47:1 en fondo claro)                  |
-| **Informativo / Selección**       | --dt-color-state-info     | --dt-primitive-blue-450  | --dt-primitive-blue-600  | Círculo / Rombo (Ajustado WCAG AA 3.15:1 en fondo oscuro)           |
-| **Confirmación Documental**       | --dt-color-state-success  | --dt-primitive-teal-400  | --dt-primitive-teal-700  | Checkmark ( $\checkmark$ ) (Ajustado WCAG AA 3.25:1 en fondo claro) |
-| **Elemento Deshabilitado**        | --dt-color-state-disabled | --dt-primitive-gray-580  | --dt-primitive-gray-380  | Borde punteado                                                      |
+| **Warning / Approaching Limit**  | --dt-color-alarm-warning  | --dt-primitive-amber-400 | --dt-primitive-amber-600 | Triangle (Adjusted WCAG AA 3.47:1 on light background)                  |
+| **Informational / Selection**       | --dt-color-state-info     | --dt-primitive-blue-450  | --dt-primitive-blue-600  | Circle / Rhombus (Adjusted WCAG AA 3.15:1 on dark background)           |
+| **Documentary Confirmation**       | --dt-color-state-success  | --dt-primitive-teal-400  | --dt-primitive-teal-700  | Checkmark ( $\checkmark$ ) (Adjusted WCAG AA 3.25:1 on light background) |
+| **Disabled Element**        | --dt-color-state-disabled | --dt-primitive-gray-580  | --dt-primitive-gray-380  | Dotted border                                                      |
 
 ---
 
@@ -158,22 +158,22 @@ La tipografía se define bajo un modelo dual: fuentes nativas de alta disponibil
 | --dt-font-display   | 28px        | 1.75rem      | 36px                 | Bold (700)         | KPIs macros de nivel ejecutivo en Dashboard L1                  |
 | --dt-font-h1        | 22px        | 1.375rem     | 28px                 | SemiBold (600)     | Título principal de la pantalla / Nombre del activo en Ficha L3 |
 | --dt-font-h2        | 18px        | 1.125rem     | 24px                 | SemiBold (600)     | Encabezados de tarjetas, títulos de modales y paneles laterales |
-| --dt-font-body-lg   | 16px        | 1.0rem       | 24px                 | Regular (400)      | Texto de campos de entrada en móvil, lectura principal de OTs   |
-| --dt-font-body-md   | 14px        | 0.875rem     | 20px                 | Regular (400)      | Texto de celdas de tabla, descripciones técnicas y menús        |
+| --dt-font-body-lg   | 16px        | 1.0rem       | 24px                 | Regular (400)      | Text for input fields on mobile, main reading of WOs   |
+| --dt-font-body-md   | 14px        | 0.875rem     | 20px                 | Regular (400)      | Text for table cells, technical descriptions and menus        |
 | --dt-font-caption   | 12px        | 0.75rem      | 16px                 | Medium (500)       | Etiquetas flotantes de formularios, metadatos, autoría de logs  |
 | --dt-font-mono-data | 13px        | 0.8125rem    | 16px                 | Medium (500)       | Tags industriales (P-101), hashes criptográficos, IP y horas    |
 
 ---
 
-## 5. Tokens de Elevación, Bordes y Profundidad
-Para cumplir con la filosofía HPHMI en interfaces oscuras, la profundidad no se expresa mediante sombras de tipo decorativo o difusas, sino mediante **diferenciación de color de superficie y bordes sutiles** normativos.
+## 5. Elevation, Borders and Depth Tokens
+To comply with the HPHMI philosophy in dark interfaces, depth is not expressed through decorative or diffuse shadows, but through normative **surface color differentiation and subtle borders**.
 
-### 5.1. Radios de Borde
+### 5.1. Border Radii
 | Token            | Valor (px) | Aplicación en Componentes                                      |
 | ---------------- | ---------- | -------------------------------------------------------------- |
 | --dt-radius-none | 0px        | Canvas de mapa 2D, contenedores full-bleed en móvil.           |
 | --dt-radius-sm   | 4px        | Badges de estado, tags de clase de equipo, checkboxes.         |
-| --dt-radius-md   | 6px        | Campos de texto (InputText), selectores, botones estándar.     |
+| --dt-radius-md   | 6px        | Text fields (InputText), selectors, standard buttons.     |
 | --dt-radius-lg   | 8px        | Tarjetas de información (Cards), paneles laterales, dropdowns. |
 | --dt-radius-xl   | 12px       | Ventanas modales, diálogos de bloqueo LOTO.                    |
 
@@ -181,72 +181,72 @@ Para cumplir con la filosofía HPHMI en interfaces oscuras, la profundidad no se
 | Token Z-Index          | Valor | Elementos Asignados                                                  |
 | ---------------------- | ----- | -------------------------------------------------------------------- |
 | --dt-z-canvas          | 0     | Capa base vectorial SVG (Plano de planta).                           |
-| --dt-z-layer-ptw       | 10    | Capa gráfica superpuesta de Permisos de Trabajo [[VIS-008]].         |
-| --dt-z-layer-loto      | 20    | Capa gráfica de Trazabilidad LOTO [[VIS-011]].                       |
-| --dt-z-overlay-card    | 100   | Tarjeta emergente de activo (Asset Quick-Card L3 / VIS-033).         |
-| --dt-z-header-sticky   | 500   | Barra de navegación superior fija y estado de red.                   |
-| --dt-z-drawer-sidebar  | 800   | Panel lateral de navegación desplegable.                             |
-| --dt-z-modal           | 1000  | Ventanas modales estándar (Creación OT, Asset Swap).                 |
-| --dt-z-modal-fail-safe | 1500  | **Modal crítico de Peligro LOTO / Bloqueo activo (No descartable).** |
-| --dt-z-toast-alert     | 2000  | Alertas de desconexión y notificaciones toast de SignalR.            |
+| --dt-z-layer-ptw       | 10    | Work Permits overlapping graphic layer [[VIS-008]].         |
+| --dt-z-layer-loto      | 20    | LOTO Traceability graphic layer [[VIS-011]].                       |
+| --dt-z-overlay-card    | 100   | Asset pop-up card (Asset Quick-Card L3 / VIS-033).         |
+| --dt-z-header-sticky   | 500   | Fixed top navigation bar and network status.                   |
+| --dt-z-drawer-sidebar  | 800   | Collapsible navigation side panel.                             |
+| --dt-z-modal           | 1000  | Standard modal windows (WO Creation, Asset Swap).                 |
+| --dt-z-modal-fail-safe | 1500  | **Critical LOTO Danger / Active lockout modal (Non-dismissible).** |
+| --dt-z-toast-alert     | 2000  | Disconnection alerts and SignalR toast notifications.            |
 
 ---
 
-## 6. Patrones Visuales Industriales y Codificación Redundante
+## 6. Industrial Visual Patterns and Redundant Coding
 
-### 6.1. Especificación del Indicador Analógico Móvil (MAI)
-En cumplimiento de ISA-101.01 y *The High Performance HMI Handbook* (Hollifield et al., Cap. 7), las variables continuas de proceso (presión, temperatura, flujo, vibración) no deben presentarse únicamente como dígitos numéricos. Deben utilizar el patrón de Indicador Analógico Móvil (MAI) para permitir la evaluación rápida de la condición en menos de 2 segundos.
+### 6.1. Moving Analog Indicator (MAI) Specification
+In compliance with ISA-101.01 and *The High Performance HMI Handbook* (Hollifield et al., Ch. 7), continuous process variables (pressure, temperature, flow, vibration) must not be presented solely as numeric digits. They must use the Moving Analog Indicator (MAI) pattern to allow rapid condition evaluation in under 2 seconds.
 
-#### Tema Claro (Sala de Control / Escritorio - 500 Lux)
+#### Light Theme (Control Room / Desktop - 500 Lux)
 ![[assets/MAI-light.svg]]
-#### Tema Oscuro (Operación de Campo / Tablet / Noche)
+#### Dark Theme (Field Operation / Tablet / Night)
 ![[assets/MAI-dark.svg]]
 
-#### 6.1.1. Tabla de Tokens Semánticos Dual-Theme para MAI
-Para evitar el acoplamiento directo de códigos hexadecimales y garantizar la compatibilidad entre la Sala de Control (Tema Claro) y la Operación de Campo (Tema Oscuro), los componentes de interfaz en el frontend deben consumir la siguiente matriz de tokens:
+#### 6.1.1. Dual-Theme Semantic Token Table for MAI
+To avoid direct coupling of hexadecimal codes and ensure compatibility between the Control Room (Light Theme) and Field Operation (Dark Theme), frontend interface components must consume the following token matrix:
 
-| Elemento Gráfico del MAI                        | Token Semántico CSS / C#          | Tema Claro (Desktop / Día) | Tema Oscuro (Móvil / Noche) | Función Ergonomía HPHMI / ISA-101                                                       |
+| MAI Graphic Element | Semantic CSS / C# Token | Light Theme (Desktop / Day) | Dark Theme (Mobile / Night) | HPHMI / ISA-101 Ergonomic Function                                                       |
 | ----------------------------------------------- | --------------------------------- | -------------------------- | --------------------------- | --------------------------------------------------------------------------------------- |
-| **Pista Base (Track)**                          | --dt-color-mai-track              | --dt-primitive-gray-300    | --dt-primitive-gray-700     | Fondo perimetral del indicador (Alto $8\text{px}$, Radio $4\text{px}$).                 |
-| **Borde de Pista Base**                         | --dt-color-mai-track-border       | --dt-primitive-gray-350    | --dt-primitive-gray-650     | Contorno sutil (`1px`) para definir los límites absolutos de la escala del instrumento. |
-| **Zona Normal de Operación**                    | --dt-color-mai-normal-zone        | --dt-primitive-blue-200    | --dt-primitive-blue-700     | **Franja azul clara** para reconocimiento pre-atentivo del rango seguro.                |
-| **Borde de Zona Normal**                        | --dt-color-mai-normal-zone-border | --dt-primitive-blue-400    | --dt-primitive-blue-450     | Contorno (`0.5px` o `1px`) para mejorar el contraste del bloque azul seguro.            |
-| **Puntero de Valor Actual**                     | --dt-color-mai-pointer            | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Puntero circular móvil. **Mantiene forma y color neutro.** Borde `2px`.                 |
-| **Borde del Puntero**                           | --dt-color-mai-pointer-border     | --dt-primitive-white       | --dt-primitive-gray-980     | Contorno de alto contraste para visibilidad sobre la zona normal.                       |
-| **Indicador de Alarma Alta (P1)**               | --dt-color-alarm-critical         | --dt-primitive-red-600     | --dt-primitive-red-600      | **Elemento separado (Método 3):** Cuadrado rojo + '1' que aparece junto al límite.      |
-| **Texto sobre Alarma Crítica**                  | --dt-color-alarm-text-critical    | --dt-primitive-white       | --dt-primitive-white        | Texto de alto contraste sobre cuadrado rojo ($4.6:1$ WCAG AA).                          |
-| **Indicador de Alarma Baja / Advertencia (P2)** | --dt-color-alarm-warning          | --dt-primitive-amber-600   | --dt-primitive-amber-400    | **Elemento separado (Método 3):** Triángulo ámbar + '2' (Ajustado WCAG AA $3.47:1$).    |
-| **Texto sobre Advertencia Ámbar**               | --dt-color-alarm-text-warning     | --dt-primitive-white       | --dt-primitive-gray-900     | Texto de alto contraste sobre Ámbar ($5.36:1$ en claro, $8.5:1$ en oscuro).             |
-| **Límite de Interbloqueo (Interlock)**          | --dt-color-mai-interlock          | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Bloque sólido en el extremo que señala disparo automático de seguridad.                 |
+| **Base Track**                          | --dt-color-mai-track              | --dt-primitive-gray-300    | --dt-primitive-gray-700     | Indicator perimeter background (Height $8\text{px}$, Radius $4\text{px}$).                 |
+| **Base Track Border**                         | --dt-color-mai-track-border       | --dt-primitive-gray-350    | --dt-primitive-gray-650     | Subtle outline (`1px`) to define the absolute limits of the instrument scale. |
+| **Normal Operating Zone**                    | --dt-color-mai-normal-zone        | --dt-primitive-blue-200    | --dt-primitive-blue-700     | **Light blue strip** for pre-attentive recognition of the safe range.                |
+| **Normal Zone Border**                        | --dt-color-mai-normal-zone-border | --dt-primitive-blue-400    | --dt-primitive-blue-450     | Outline (`0.5px` or `1px`) to improve the contrast of the safe blue block.            |
+| **Current Value Pointer**                     | --dt-color-mai-pointer            | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Moving circular pointer. **Maintains shape and neutral color.** Border `2px`.                 |
+| **Pointer Border**                           | --dt-color-mai-pointer-border     | --dt-primitive-white       | --dt-primitive-gray-980     | High-contrast outline for visibility over the normal zone.                       |
+| **High Alarm Indicator (P1)**               | --dt-color-alarm-critical         | --dt-primitive-red-600     | --dt-primitive-red-600      | **Separate element (Method 3):** Red square + '1' appearing next to the limit.      |
+| **Text on Critical Alarm**                  | --dt-color-alarm-text-critical    | --dt-primitive-white       | --dt-primitive-white        | High contrast text on red square ($4.6:1$ WCAG AA).                          |
+| **Low Alarm / Warning Indicator (P2)** | --dt-color-alarm-warning          | --dt-primitive-amber-600   | --dt-primitive-amber-400    | **Separate element (Method 3):** Amber triangle + '2' (Adjusted WCAG AA $3.47:1$).    |
+| **Text on Amber Warning**               | --dt-color-alarm-text-warning     | --dt-primitive-white       | --dt-primitive-gray-900     | High contrast text on Amber ($5.36:1$ on light, $8.5:1$ on dark).             |
+| **Interlock Limit**          | --dt-color-mai-interlock          | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Solid block at the end indicating automatic safety trip.                 |
 
-#### 6.1.2. Reglas de Comportamiento Dinámico y Alarmas
-1. **Pista de Fondo y Zona Normal:** La pista abarca el $100\%$ de la escala calibrada del instrumento. La Zona de Operación Normal se renderiza como un segmento interno destacado en azul claro (`--dt-color-mai-normal-zone`).
-2. **Invarianza del Puntero:** El puntero de valor actual no altera su forma ni su color neutro al cruzar los umbrales de alarma. Esto conserva el punto de referencia espacial y evita distorsiones cognitivas.
-3. **Presentación de Alarmas (Método 3 de Hollifield):**
-    * **Desviación Alta (High / High-High):** Al cruzar el umbral superior, aparece un **elemento de alarma separado** adyacente a la escala en el punto de infracción. Se presenta un cuadrado rojo (`--dt-color-alarm-critical`) con el número de prioridad 1 para Alarma Crítica.
-    * **Desviación Baja (Low / Low-Low):** Al cruzar el umbral inferior, aparece un **triángulo ámbar** (`--dt-color-alarm-warning`) adyacente con el número de prioridad 2 para Advertencia.
-4. **Límites de Seguridad e Interbloqueo (Safety Interlock):** Los extremos de la escala que activan paradas automáticas (ESD) se marcan con un rectángulo sólido (`--dt-color-mai-interlock`) en el extremo correspondiente.
+#### 6.1.2. Dynamic Behavior and Alarm Rules
+1. **Background Track and Normal Zone:** The track covers $100\%$ of the instrument's calibrated scale. The Normal Operation Zone is rendered as a highlighted inner segment in light blue (`--dt-color-mai-normal-zone`).
+2. **Pointer Invariance:** The current value pointer does not alter its shape or neutral color when crossing alarm thresholds. This preserves the spatial reference point and avoids cognitive distortions.
+3. **Alarm Presentation (Hollifield Method 3):**
+    * **High Deviation (High / High-High):** When crossing the upper threshold, a **separate alarm element** appears adjacent to the scale at the point of infraction. A red square (`--dt-color-alarm-critical`) with priority number 1 for Critical Alarm is presented.
+    * **Low Deviation (Low / Low-Low):** When crossing the lower threshold, an **amber triangle** (`--dt-color-alarm-warning`) appears adjacent with priority number 2 for Warning.
+4. **Safety and Interlock Limits (Safety Interlock):** The ends of the scale that trigger automatic shutdowns (ESD) are marked with a solid rectangle (`--dt-color-mai-interlock`) at the corresponding end.
 
-### 6.2. Matriz de Codificación Redundante para Permisos y LOTO
+### 6.2. Redundant Coding Matrix for Permits and LOTO
 
-| Concepto de Seguridad                 | Color Principal / Token   | Forma Geométrica                      | Icono Asociado             | Texto Obligatorio   |
+| Safety Concept | Main Color / Token | Geometric Shape | Associated Icon | Mandatory Text   |
 | ------------------------------------- | ------------------------- | ------------------------------------- | -------------------------- | ------------------- |
-| **Permiso en Caliente (Hot Work)**    | --dt-color-alarm-critical | Cuadrado ( $24\times24\text{px}$ )    | Llama ( `flame` )          | HOT WORK            |
-| **Permiso en Alturas (Heights)**      | --dt-color-state-info     | Triángulo ( $24\times24\text{px}$ )   | Escalera / Arnés           | HEIGHTS             |
-| **Espacio Confinado (Confined)**      | --dt-color-alarm-warning  | Círculo ( $\varnothing 24\text{px}$ ) | Silueta / Tanque           | CONFINED            |
-| **Punto LOTO Bloqueado (Seguro)**     | --dt-color-state-success  | Candado cerrado                       | Candado ( `lock` )         | ISOLATED - 0 ENERGY |
-| **Punto LOTO Energizado (Peligro)**   | --dt-color-alarm-critical | Candado abierto con halo              | Rayo / Alerta              | DANGER - ENERGIZED  |
-| **Pérdida de Telemetría (Fail-Safe)** | --dt-color-alarm-warning  | Rombo                                 | Desconexión ( `wifi-off` ) | SIGNAL LOST - STALE |
+| **Hot Work Permit**    | --dt-color-alarm-critical | Square ( $24\times24\text{px}$ )    | Flame ( `flame` )          | HOT WORK            |
+| **Heights Permit**      | --dt-color-state-info     | Triangle ( $24\times24\text{px}$ )   | Ladder / Harness           | HEIGHTS             |
+| **Confined Space**      | --dt-color-alarm-warning  | Circle ( $\varnothing 24\text{px}$ ) | Silhouette / Tank           | CONFINED            |
+| **LOTO Point Locked (Safe)**     | --dt-color-state-success  | Closed padlock                       | Padlock ( `lock` )         | ISOLATED - 0 ENERGY |
+| **LOTO Point Energized (Danger)**   | --dt-color-alarm-critical | Open padlock with halo              | Lightning / Alert              | DANGER - ENERGIZED  |
+| **Telemetry Loss (Fail-Safe)** | --dt-color-alarm-warning  | Rhombus                                 | Disconnection ( `wifi-off` ) | SIGNAL LOST - STALE |
 
-### 6.3. Patrón de Contenedores Deslizantes (*Bottom Sheets* y *Drawers*)
-En cumplimiento del principio de **Controlabilidad** (ISO 9241-110:2020, Cláusula 5.5) y para mitigar la baja precisión de sensores capacitivos al operar con guantes industriales o en condiciones húmedas, los contenedores móviles deslizantes deben regirse por las siguientes directrices:
+### 6.3. Sliding Containers Pattern (*Bottom Sheets* and *Drawers*)
+In compliance with the principle of **Controllability** (ISO 9241-110:2020, Clause 5.5) and to mitigate the low precision of capacitive sensors when operating with industrial gloves or in wet conditions, mobile sliding containers must follow these guidelines:
 
-1. **Prohibición de Gesto Exclusivo:** Queda prohibido condicionar el despliegue, colapso o cierre de un contenedor exclusivamente a gestos continuos de arrastre o deslizamiento (*swipe/drag*).
-2. **Disparador Físico Dedicado:** Todo contenedor debe integrar un elemento interactivo explícito (manija o cabecera táctil) cuyas dimensiones de área de contacto hereden el token `--dt-touch-target-mobile`.
-3. **Conmutación Discreta:** La pulsación simple (*tap*) sobre dicho elemento debe alternar secuencialmente entre los estados definidos para el componente (Colapsado, Vista Parcial, Expandido), garantizando la operación sin requerir motricidad fina.
+1. **Exclusive Gesture Prohibition:** It is forbidden to condition the deployment, collapse, or closure of a container exclusively to continuous drag or swipe gestures (*swipe/drag*).
+2. **Dedicated Physical Trigger:** Every container must integrate an explicit interactive element (handle or touch header) whose touch area dimensions inherit the `--dt-touch-target-mobile` token.
+3. **Discrete Switching:** A simple press (*tap*) on this element must sequentially toggle between the defined states for the component (Collapsed, Partial View, Expanded), guaranteeing operation without requiring fine motor skills.
 ---
 
-## 7. Archivo de Variables CSS del Sistema de Diseño
+## 7. Design System CSS Variables File
 
-Para la implementación física en hojas de estilo web o componentes desacoplados, consúltese el archivo canónico:
+For physical implementation in web style sheets or decoupled components, consult the canonical file:
 `ui-ux/assets/tokens.css`
