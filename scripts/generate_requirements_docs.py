@@ -169,7 +169,7 @@ def normalize_refs(value: str) -> str:
 def render_tr_req_table(rows: list[dict], req_type: str) -> str:
     filtered = []
     for row in rows:
-        rtype = clean(row.get("Tipo")).upper()
+        rtype = clean(row.get("Type")).upper()
         req_id = clean(row.get("Req ID")).upper()
         if not rtype:
             rtype = "FR" if "-FR-" in req_id else "NFR" if "-NFR-" in req_id else ""
@@ -186,11 +186,11 @@ def render_tr_req_table(rows: list[dict], req_type: str) -> str:
     ]
     for row in filtered:
         req_id = clean(row.get("Req ID"))
-        desc = md_escape(clean(row.get("Descripción")))
+        desc = md_escape(clean(row.get("Description")))
         if desc.startswith(f"{req_id}:"):
             desc = desc[len(req_id) + 1:].strip()
-        cat = md_escape(clean(row.get("Categoría ISO 25010")))
-        prio = md_escape(clean(row.get("Prioridad")))
+        cat = md_escape(clean(row.get("ISO 25010:2023 Category")))
+        prio = md_escape(clean(row.get("Priority")))
         lines.append(f"| {req_id} | {desc} | {cat} | {prio} |")
     return "\n".join(lines) + "\n"
 
@@ -210,8 +210,8 @@ def build_tr_markdown(
     refs = meta.get("refs", "")
 
     total = len(rows_sorted)
-    fr_total = sum(1 for r in rows_sorted if clean(r.get("Tipo")).upper() == "FR" or "-FR-" in clean(r.get("Req ID")).upper())
-    nfr_total = sum(1 for r in rows_sorted if clean(r.get("Tipo")).upper() == "NFR" or "-NFR-" in clean(r.get("Req ID")).upper())
+    fr_total = sum(1 for r in rows_sorted if clean(r.get("Type")).upper() == "FR" or "-FR-" in clean(r.get("Req ID")).upper())
+    nfr_total = sum(1 for r in rows_sorted if clean(r.get("Type")).upper() == "NFR" or "-NFR-" in clean(r.get("Req ID")).upper())
 
     parts = [
         "---",
@@ -232,15 +232,15 @@ def build_tr_markdown(
         "| --- | --- | --- |",
         f"| {md_escape(desc)} | {md_escape(scope)} | {refs} |",
         "",
-        "## Requisitos Funcionales (FR)",
+        "## Functional Requirements (FR)",
         "",
         render_tr_req_table(rows_sorted, "FR").rstrip(),
         "",
-        "## Requisitos No Funcionales (NFR)",
+        "## Non-Functional Requirements (NFR)",
         "",
         render_tr_req_table(rows_sorted, "NFR").rstrip(),
         "",
-        "## Fuente",
+        "## Source",
         "- Generado automáticamente desde `srs.csv`.",
         "",
     ]
@@ -266,8 +266,8 @@ def build_tr_index_markdown(grouped: dict[str, list[dict]], metadata: dict[str, 
         rows = grouped[tr_id]
         meta = metadata.get(tr_id, {})
         title = meta.get("name") or parse_tr_title(clean(rows[0].get("TR")), tr_id)
-        fr_total = sum(1 for r in rows if clean(r.get("Tipo")).upper() == "FR" or "-FR-" in clean(r.get("Req ID")).upper())
-        nfr_total = sum(1 for r in rows if clean(r.get("Tipo")).upper() == "NFR" or "-NFR-" in clean(r.get("Req ID")).upper())
+        fr_total = sum(1 for r in rows if clean(r.get("Type")).upper() == "FR" or "-FR-" in clean(r.get("Req ID")).upper())
+        nfr_total = sum(1 for r in rows if clean(r.get("Type")).upper() == "NFR" or "-NFR-" in clean(r.get("Req ID")).upper())
         total = len(rows)
         lines.append(f"| **{tr_id}** | {md_escape(title)} | {fr_total} | {nfr_total} | {total} | [[{tr_id}]] |")
     lines.append("")
@@ -282,13 +282,13 @@ def extract_us_id(row: dict[str, str]) -> str:
     direct = clean(row.get("US ID"))
     if re.match(r"^[A-Z]+-\d+$", direct):
         return direct
-    name = clean(row.get("Nombre"))
+    name = clean(row.get("Name"))
     m = re.match(r"^([A-Z]+-\d+):", name)
     return m.group(1) if m else ""
 
 
 def parse_us_title(row: dict[str, str], us_id: str) -> str:
-    name = clean(row.get("Nombre"))
+    name = clean(row.get("Name"))
     if not name:
         return us_id
     return re.sub(r"^[A-Z]+-\d+:\s*", "", name) or us_id
@@ -310,13 +310,13 @@ def build_acceptance_table(criteria: list[dict[str, str]]) -> str:
     if not criteria:
         return "_Sin criterios de aceptación en gherkin.csv para esta US._\n"
     lines = [
-        "| Escenario | Dado (Contexto) | Cuando (Acción) | Entonces (Resultado) |",
+        "| Scenario | Given (Context) | When (Action) | Then (Result) |",
         "|---|---|---|---|",
     ]
     for row in sorted(criteria, key=lambda r: req_num_sort_key(clean(r.get("AC ID")))):
         lines.append(
-            f"| {md_escape(row.get('Escenario', ''))} | {md_escape(row.get('Contexto', ''))} | "
-            f"{md_escape(row.get('Acción', ''))} | {md_escape(row.get('Resultado', ''))} |"
+            f"| {md_escape(row.get('Scenario', ''))} | {md_escape(row.get('Given (Context)', ''))} | "
+            f"{md_escape(row.get('When (Action)', ''))} | {md_escape(row.get('Then (Result)', ''))} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -325,7 +325,7 @@ def build_us_reqs_table(rows: list[dict[str, str]], req_type: str) -> str:
     reqs = []
     for row in rows:
         rid = clean(row.get("Req ID")).upper()
-        rtype = clean(row.get("Tipo")).upper()
+        rtype = clean(row.get("Type")).upper()
         if not rtype:
             rtype = "FR" if rid.startswith("FR-") else "NFR" if rid.startswith("NFR-") else ""
         if rtype == req_type:
@@ -341,11 +341,11 @@ def build_us_reqs_table(rows: list[dict[str, str]], req_type: str) -> str:
     ]
     for row in reqs:
         rid = md_escape(clean(row.get("Req ID")))
-        desc_raw = clean(row.get("Descripción"))
+        desc_raw = clean(row.get("Description"))
         desc = md_escape(re.sub(r"^(?:FR|NFR)-\d+:\s*", "", desc_raw, flags=re.IGNORECASE))
-        cat = md_escape(clean(row.get("Categoría ISO 25010")))
-        prio = md_escape(clean(row.get("Prioridad")))
-        fuente = md_escape(clean(row.get("Fuente")) or clean(row.get("Historia Relacionada")))
+        cat = md_escape(clean(row.get("ISO 25010:2023 Category")))
+        prio = md_escape(clean(row.get("Priority")))
+        fuente = md_escape(clean(row.get("Normative Reference")) or clean(row.get("Related Story")))
         lines.append(f"| {rid} | {desc} | {cat} | {prio} | {fuente} |")
     return "\n".join(lines) + "\n"
 
@@ -362,43 +362,43 @@ def render_us_markdown(
         "---",
         f"id: {us_id}",
         f'nombre: "{title}"',
-        f"prioridad: {us['moscow']}",
-        f"puntos: {us['points']}",
-        f"rol: {us['role']}",
+        f"priority: {us['moscow']}",
+        f"points: {us['points']}",
+        f"role: {us['role']}",
         f"epic: {us['epic']}",
-        f"observaciones: {us['obs']}",
+        f"observations: {us['obs']}",
     ]
 
     transversales = us.get("transversales", [])
     if transversales:
-        frontmatter.append("transversales_aplicables:")
+        frontmatter.append("applicable_trs:")
         for tr_id in transversales:
             frontmatter.append(f'  - "[[{tr_id}]]"')
     else:
-        frontmatter.append("transversales_aplicables: []")
+        frontmatter.append("applicable_trs: []")
 
     frontmatter.append("---")
 
     body = [
         f"# {us_id}: {title}",
         "",
-        "## Descripción de la Historia",
+        "## Story Description",
         "",
-        "| Rol | Acción | Beneficio |",
+        "| Role | Action | Benefit |",
         "|---|---|---|",
-        f"| {md_escape('Como ' + us['role'])} | {md_escape('Quiero ' + us['quiero'])} | {md_escape('Para ' + us['para'])} |",
+        f"| {md_escape(us['role'])} | {md_escape(us['quiero'])} | {md_escape(us['para'])} |",
         "",
-        "## Criterios de Aceptación",
+        "## Acceptance Criteria",
         build_acceptance_table(acceptance).rstrip(),
         "",
-        "## Requisitos Funcionales (FR)",
+        "## Functional Requirements (FR)",
         build_us_reqs_table(srs_rows, "FR").rstrip(),
         "",
-        "## Requisitos No Funcionales (NFR)",
+        "## Non-Functional Requirements (NFR)",
         build_us_reqs_table(srs_rows, "NFR").rstrip(),
         "",
-        "## Fuente",
-        "- Generado automáticamente desde `user_stories.csv`, `gherkin.csv` y `srs.csv`.",
+        "## Source",
+        "- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.",
         "",
     ]
     return "\n".join(frontmatter + [""] + body)
@@ -523,12 +523,23 @@ def main() -> None:
         gherkin_rows_raw = read_csv_safe(gherkin_csv)
 
         # Indexar SRS y Gherkin
+        us_name_to_id: dict[str, str] = {}
+        for row in us_rows_raw:
+            uid = extract_us_id(row).upper()
+            name = clean(row.get("Name"))
+            if uid and name:
+                us_name_to_id[name] = uid
+
         srs_by_us: dict[str, list[dict]] = defaultdict(list)
         for r in srs_rows:
-            rel = clean(r.get("Historia Relacionada"))
+            rel = clean(r.get("Related Story"))
+            rel_name = re.sub(r"\s*\(https?://[^)]+\)\s*$", "", rel).strip()
+            
             m = re.match(r"^([A-Z]+-\d+):", rel)
             if m:
                 srs_by_us[m.group(1)].append(r)
+            elif rel_name in us_name_to_id:
+                srs_by_us[us_name_to_id[rel_name]].append(r)
 
         gherkin_by_us: dict[str, list[dict]] = defaultdict(list)
         for r in gherkin_rows_raw:
@@ -552,9 +563,9 @@ def main() -> None:
             target_module_dir.mkdir(parents=True, exist_ok=True)
             target_file = target_module_dir / f"{us_id}.md"
 
-            quiero = clean(row.get("Quiero")) or clean(row.get("Acción"))
-            para = clean(row.get("Para")) or clean(row.get("Beneficio"))
-            role = clean(row.get("Como")) or re.sub(r"\s*\(https?://[^)]+\)\s*$", "", clean(row.get("Rol (Como ...)")))
+            quiero = clean(row.get("Action"))
+            para = clean(row.get("Benefit"))
+            role = re.sub(r"\s*\(https?://[^)]+\)\s*$", "", clean(row.get("Role (As a ..)")))
 
             us_dict = {
                 "us_id": us_id,
@@ -564,9 +575,9 @@ def main() -> None:
                 "quiero": re.sub(r"^Quiero\s+", "", quiero, flags=re.IGNORECASE),
                 "para": re.sub(r"^Para\s+", "", para, flags=re.IGNORECASE),
                 "moscow": clean(row.get("MoSCoW")) or "N/A",
-                "points": clean(row.get("Puntos Fibonacci")) or "0",
+                "points": clean(row.get("Effort Points")) or "0",
                 "epic": module,
-                "obs": clean(row.get("Observaciones")),
+                "obs": clean(row.get("Observations")),
                 "transversales": get_transversales_ids(row),
             }
 
