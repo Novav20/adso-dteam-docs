@@ -2,7 +2,7 @@
 code: DT-ERD-DOC-001
 version: 1.1
 date: 2026-09-18
-status: Vigente
+status: Active
 author: Juan David Julio Serrano
 standard:
   - ISO 9001:2015
@@ -14,486 +14,474 @@ linked_to:
   - DT-ARQ-DB-DOC-001
 ---
 	
-# Diccionario de Datos Físico y Relacional
+# Physical Relational and Data Dictionary
 
-## 1. Alcance y Propósito
+## 1. Scope and Purpose
 
-Este documento actúa como el Diccionario de Datos oficial y especificación de mapeo relacional físico para PostgreSQL 18, complementando el diagrama Entidad-Relación (DT-ERD-LOG-001). Define de manera estricta los esquemas, nombres de tablas, columnas físicas y tipos de datos nativos.
+This document acts as the official Data Dictionary and physical relational mapping specification for PostgreSQL 18, complementing the Entity-Relationship diagram (DT-ERD-LOG-001). It strictly defines schemas, table names, physical columns, and native data types.
 
-## 2. Convenciones y Estructura de Esquemas
+## 2. Conventions and Schema Structure
 
-Todas las tablas y columnas siguen el estándar de nombrado snake_case. La base de datos está organizada en 5 esquemas impulsados por el diseño (DDD) para aislar contextos:
+All tables and columns follow the `snake_case` naming standard. The database is organized into 5 design-driven (DDD) schemas to isolate contexts:
 
-- tax: Taxonomía y activos conforme a ISO 14224.
-- mtto: Gestión de mantenimiento y confiabilidad.
-- inv: Control de recursos y suministros.
-- vis: Gemelo digital y capas de seguridad operativa.
-- adm: Seguridad perimetral, IAM y auditoría inmutable.
+- `tax`: Taxonomy and assets according to ISO 14224.
+- `mtto`: Maintenance and reliability management.
+- `inv`: Resource and supply control.
+- `vis`: Digital twin and operational safety layers.
+- `adm`: Perimeter security, IAM, and immutable audit.
 
-## 3. Diccionario de Datos Físico por Esquema
+## 3. Physical Data Dictionary by Schema
 
-### 3.1 Esquema tax
+### 3.1 Schema `tax`
 
 #### 3.1.1 equipment_classes
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| class_name | VARCHAR(120) | NOT NULL | UNIQUE | - | Datos maestros a nivel de clase. |
-| description | VARCHAR(255) | NULL |  | NULL | Descripción de la clase. |
-| manufacturer_standard | VARCHAR(120) | NULL |  | NULL | Referencia de estandarización. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| class_name | VARCHAR(120) | NOT NULL | UNIQUE | - | Master data at the class level. |
+| description | VARCHAR(255) | NULL | | NULL | Class description. |
+| manufacturer_standard | VARCHAR(120) | NULL | | NULL | Standardization reference. |
 
-#### 3.1.2 equipment_units
-
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| serial_number | VARCHAR(100) | NOT NULL | UNIQUE | - | Integridad de la identificación del activo. |
-| manufacturer | VARCHAR(120) | NOT NULL |  | - | Procedencia del activo. |
-| model | VARCHAR(120) | NOT NULL |  | - | Identificación del tipo de activo. |
-| purchase_date | DATE | NOT NULL |  | - | Cronología de adquisiciones. |
-| rejection_reason | VARCHAR(255) | NULL |  | NULL | Solo está presente cuando se rechaza la adquisición. |
-| boundary_start | VARCHAR(150) | NOT NULL |  | - | Punto de inicio de la definición del límite. |
-| boundary_end | VARCHAR(150) | NOT NULL |  | - | Punto final de la definición del límite. |
-| acquisition_date | DATE | NOT NULL |  | - | Trazabilidad de la adquisición del activo. |
-| installation_date | DATE | NULL |  | NULL | La instalación puede estar pendiente. |
-| operation_start_date | DATE | NULL |  | NULL | El inicio operativo puede estar pendiente. |
-| operating_hours | BIGINT | NOT NULL |  | 0 | Seguimiento de confiabilidad y uso. |
-| surveillance_hours | BIGINT | NOT NULL |  | 0 | Tiempo de vigilancia/standby para cálculo preciso de fallas (ISO 14224). |
-| disposal_date | DATE | NULL |  | NULL | Registro de fin de vida para trazabilidad de pasivos (ISO 55000). |
-| disposal_reason | VARCHAR(255) | NULL |  | NULL | Razón del retiro o desmantelamiento del activo. |
-| operational_status | VARCHAR(20) | NOT NULL | CHECK | - | Vocabulario de estado operativo controlado. |
-| lifecycle_status | VARCHAR(20) | NOT NULL | CHECK | - | Vocabulario de ciclo de vida controlado. |
-| maintenance_status | VARCHAR(30) | NOT NULL | CHECK | - | Vocabulario de estado de mantenimiento controlado. |
-| health_status | VARCHAR(30) | NULL | CHECK | NULL | Vocabulario de estado de salud general (ISO 13374-4). |
-| is_sce | BOOLEAN | NOT NULL |  | FALSE | Indicador de Equipo Crítico de Seguridad (Safety Critical Element). |
-| functional_location_id | UUID | NULL | FK, UNIQUE | NULL | Llave foránea hacia la tabla relacionada. |
-| equipment_class_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| warehouse_id | UUID | NULL | FK | NULL | Llave foránea hacia la tabla relacionada. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| serial_number | VARCHAR(100) | NOT NULL | UNIQUE | - | Asset identification integrity. |
+| manufacturer | VARCHAR(120) | NOT NULL | | - | Asset provenance. |
+| model | VARCHAR(120) | NOT NULL | | - | Asset type identification. |
+| purchase_date | DATE | NOT NULL | | - | Procurement chronology. |
+| rejection_reason | VARCHAR(255) | NULL | | NULL | Only present when commissioning is rejected. |
+| boundary_start | VARCHAR(150) | NOT NULL | | - | Starting point of the boundary definition. |
+| boundary_end | VARCHAR(150) | NOT NULL | | - | Ending point of the boundary definition. |
+| acquisition_date | DATE | NOT NULL | | - | Asset acquisition traceability. |
+| installation_date | DATE | NULL | | NULL | Installation may be pending. |
+| operation_start_date | DATE | NULL | | NULL | Operational start may be pending. |
+| operating_hours | BIGINT | NOT NULL | | 0 | Reliability and usage tracking. |
+| surveillance_hours | BIGINT | NOT NULL | | 0 | Surveillance/standby time for accurate failure calculation (ISO 14224). |
+| disposal_date | DATE | NULL | | NULL | End-of-life record for liability traceability (ISO 55000). |
+| disposal_reason | VARCHAR(255) | NULL | | NULL | Reason for asset retirement or decommissioning. |
+| operational_status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled operational status vocabulary. |
+| lifecycle_status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled lifecycle vocabulary. |
+| maintenance_status | VARCHAR(30) | NOT NULL | CHECK | - | Controlled maintenance status vocabulary. |
+| health_status | VARCHAR(30) | NULL | CHECK | NULL | Controlled overall health status vocabulary (ISO 13374-4). |
+| is_sce | BOOLEAN | NOT NULL | | FALSE | Safety Critical Element indicator. |
+| functional_location_id | UUID | NULL | FK, UNIQUE | NULL | Foreign key to the related table. |
+| equipment_class_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| warehouse_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 
 #### 3.1.3 functional_locations
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| tag_number | VARCHAR(50) | NOT NULL | UNIQUE | - | Identidad del tag de la ISO 14224 y trazabilidad de la ubicación. |
-| name | VARCHAR(150) | NOT NULL |  | - | Nombre de la ubicación legible por humanos. |
-| description | VARCHAR(255) | NULL |  | NULL | Texto explicativo opcional. |
-| criticality | VARCHAR(30) | NOT NULL |  | - | Vocabulario de prioridad controlado. |
-| geographic_location | VARCHAR(150) | NULL |  | NULL | Contexto físico de la ubicación. |
-| environmental_exposure | VARCHAR(150) | NULL | CHECK | NULL | Condiciones ambientales para cálculos de confiabilidad (ISO 14224). |
-| hierarchy_level | SMALLINT | NOT NULL |  | - | Niveles 1 al 5 de la taxonomía ISO 14224 (las Ubicaciones Funcionales gobiernan la estructura espacial de planta hasta el proceso, mientras que L6 a L8 corresponden a equipos y componentes físicos). |
-| parent_id | UUID | NULL | FK | NULL | Llave foránea hacia la tabla relacionada. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| tag_number | VARCHAR(50) | NOT NULL | UNIQUE | - | ISO 14224 tag identity and location traceability. |
+| name | VARCHAR(150) | NOT NULL | | - | Human-readable location name. |
+| description | VARCHAR(255) | NULL | | NULL | Optional explanatory text. |
+| criticality | VARCHAR(30) | NOT NULL | | - | Controlled priority vocabulary. |
+| geographic_location | VARCHAR(150) | NULL | | NULL | Physical context of the location. |
+| environmental_exposure | VARCHAR(150) | NULL | CHECK | NULL | Environmental conditions for reliability calculations (ISO 14224). |
+| hierarchy_level | SMALLINT | NOT NULL | | - | Levels 1 to 5 of the ISO 14224 taxonomy (Functional Locations govern the plant's spatial structure down to the process, while L6 to L8 correspond to physical equipment and components). |
+| parent_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 
 #### 3.1.4 maintainable_items
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| subunit_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| component_name | VARCHAR(120) | NOT NULL |  | - | Identidad del ítem mantenible. |
-| subunit_type | VARCHAR(80) | NOT NULL |  | - | Clasificación taxonómica. |
-| spare_part_type | VARCHAR(80) | NULL |  | NULL | Correspondencia opcional de partes de repuesto. |
-| design_attributes | JSONB | NULL |  | NULL | Propiedades estáticas de diseño estructuradas (ISO 14224 Anexo A). |
-| status | VARCHAR(30) | NOT NULL | CHECK | - | Estado del ciclo de vida del ítem. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| subunit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| component_name | VARCHAR(120) | NOT NULL | | - | Identity of the maintainable item. |
+| subunit_type | VARCHAR(80) | NOT NULL | | - | Taxonomic classification. |
+| spare_part_type | VARCHAR(80) | NULL | | NULL | Optional spare parts correspondence. |
+| design_attributes | JSONB | NULL | | NULL | Structured static design properties (ISO 14224 Annex A). |
+| status | VARCHAR(30) | NOT NULL | CHECK | - | Item's lifecycle status. |
 
 #### 3.1.5 subunits
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| subunit_type | VARCHAR(80) | NOT NULL |  | - | Taxonomía del subcomponente. |
-| name | VARCHAR(120) | NOT NULL |  | - | Etiqueta del subcomponente. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| subunit_type | VARCHAR(80) | NOT NULL | | - | Subcomponent taxonomy. |
+| name | VARCHAR(120) | NOT NULL | | - | Subcomponent label. |
 
-### 3.2 Esquema mtto
+### 3.2 Schema `mtto`
 
 #### 3.2.1 backlog_items
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| work_request_id | UUID | NOT NULL | FK, UNIQUE | - | Llave foránea hacia la tabla relacionada. |
-| priority_score | INT | NOT NULL |  | - | Puntaje del backlog derivado de RIME (Calculado). |
-| status | VARCHAR(20) | NOT NULL | CHECK | - | Estado del ciclo de vida del backlog (priorización). |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| work_request_id | UUID | NOT NULL | FK, UNIQUE | - | Foreign key to the related table. |
+| priority_score | INT | NOT NULL | | - | Backlog score derived from RIME (Calculated). |
+| status | VARCHAR(20) | NOT NULL | CHECK | - | Backlog lifecycle status (prioritization). |
 
 #### 3.2.2 failure_records
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identidad del evento de falla. |
-| work_order_id | UUID | NOT NULL | FK, UNIQUE | - | Llave foránea hacia la tabla relacionada. |
-| maintainable_item_id | UUID | NULL | FK | NULL | Llave foránea hacia la tabla relacionada. |
-| failure_mode | VARCHAR(120) | NOT NULL |  | - | Codificación de fallas de la ISO 14224. |
-| failure_mechanism | VARCHAR(120) | NOT NULL |  | - | Codificación de fallas de la ISO 14224. |
-| failure_cause | VARCHAR(120) | NOT NULL |  | - | Codificación de fallas de la ISO 14224. |
-| detection_method | VARCHAR(120) | NOT NULL | CHECK | - | Método de detección de la falla (ISO 14224). |
-| operational_condition | VARCHAR(120) | NOT NULL | CHECK | - | Condición operativa al momento de la falla (ISO 14224). |
-| operational_impact | VARCHAR(120) | NOT NULL | CHECK | - | Impacto operacional de la falla (ISO 14224). |
-| downtime | DECIMAL(10,2) | NOT NULL |  | - | Métrica de análisis de confiabilidad (Calculada). |
-| status | VARCHAR(20) | NOT NULL |  | - | Estado del registro de fallas. |
+| id | UUID | NOT NULL | PK | uuidv7() | Identity of the failure event. |
+| work_order_id | UUID | NOT NULL | FK, UNIQUE | - | Foreign key to the related table. |
+| maintainable_item_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
+| failure_mode | VARCHAR(120) | NOT NULL | | - | ISO 14224 failure coding. |
+| failure_mechanism | VARCHAR(120) | NOT NULL | | - | ISO 14224 failure coding. |
+| failure_cause | VARCHAR(120) | NOT NULL | | - | ISO 14224 failure coding. |
+| detection_method | VARCHAR(120) | NOT NULL | CHECK | - | Failure detection method (ISO 14224). |
+| operational_condition | VARCHAR(120) | NOT NULL | CHECK | - | Operational condition at the time of failure (ISO 14224). |
+| operational_impact | VARCHAR(120) | NOT NULL | CHECK | - | Operational impact of the failure (ISO 14224). |
+| downtime | DECIMAL(10,2) | NOT NULL | | - | Reliability analysis metric (Calculated). |
+| status | VARCHAR(20) | NOT NULL | | - | Status of the failure record. |
 
 #### 3.2.3 maintenance_plans
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| maintenance_method | VARCHAR(80) | NOT NULL | CHECK | - | Estrategia de mantenimiento (PM, PdM, CBM). |
-| frequency | VARCHAR(50) | NOT NULL |  | - | Descripción de la frecuencia legible por humanos. |
-| frequency_type | VARCHAR(20) | NOT NULL | CHECK | - | Cadencia controlada del plan. |
-| next_work_order_date | DATE | NULL |  | NULL | Fecha de ejecución programada (Calculada). |
-| interval_value | DECIMAL(12,2) | NULL |  | NULL | Valor numérico del intervalo para telemetría (ej. 500 horas). |
-| next_trigger_limit | DECIMAL(12,2) | NULL |  | NULL | Límite acumulado calculado para el próximo disparo. |
-| estimated_labor_hours | DECIMAL(10,2) | NOT NULL |  | - | Horas-Hombre estimadas (Wrench Time) para planificación. |
-| required_specialty | VARCHAR(80) | NOT NULL | CHECK | - | Especialidad técnica requerida (ej. Mecánica, Eléctrica). |
-| technical_description | VARCHAR(255) | NOT NULL |  | - | Descripción técnica del alcance de las tareas. |
-| status | VARCHAR(20) | NOT NULL | CHECK | - | Estado del ciclo de vida del plan (documento). |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| maintenance_method | VARCHAR(80) | NOT NULL | CHECK | - | Maintenance strategy (PM, PdM, CBM). |
+| frequency | VARCHAR(50) | NOT NULL | | - | Human-readable frequency description. |
+| frequency_type | VARCHAR(20) | NOT NULL | CHECK | - | Controlled cadence of the plan. |
+| next_work_order_date | DATE | NULL | | NULL | Scheduled execution date (Calculated). |
+| interval_value | DECIMAL(12,2) | NULL | | NULL | Numeric value of the interval for telemetry (e.g., 500 hours). |
+| next_trigger_limit | DECIMAL(12,2) | NULL | | NULL | Accumulated limit calculated for the next trigger. |
+| estimated_labor_hours | DECIMAL(10,2) | NOT NULL | | - | Estimated Man-Hours (Wrench Time) for planning. |
+| required_specialty | VARCHAR(80) | NOT NULL | CHECK | - | Required technical specialty (e.g., Mechanical, Electrical). |
+| technical_description | VARCHAR(255) | NOT NULL | | - | Technical description of the task scope. |
+| status | VARCHAR(20) | NOT NULL | CHECK | - | Plan (document) lifecycle status. |
 
 #### 3.2.4 media_attachments
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| work_order_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| file_url | VARCHAR(255) | NOT NULL |  | - | Ubicación de la evidencia. |
-| file_type | VARCHAR(20) | NOT NULL | CHECK | - | Formato de archivo adjunto controlado. |
-| uploaded_at | TIMESTAMP | NOT NULL |  | - | Tiempo de subida/ingesta de la evidencia. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| work_order_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| file_url | VARCHAR(255) | NOT NULL | | - | Evidence location. |
+| file_type | VARCHAR(20) | NOT NULL | CHECK | - | Controlled attachment file format. |
+| uploaded_at | TIMESTAMP | NOT NULL | | - | Upload/ingestion time of the evidence. |
 
 #### 3.2.5 work_order_histories
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| work_order_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| old_status | VARCHAR(20) | NULL |  | NULL | Estado anterior del ciclo de vida (NULL si es primer estado). |
-| new_status | VARCHAR(20) | NOT NULL |  | - | Nuevo estado del ciclo de vida. |
-| timestamp | TIMESTAMP | NOT NULL |  | clock_timestamp() | Tiempo de transición. |
-| duration_seconds | BIGINT | NULL |  | NULL | Tiempo empleado en el estado (Calculado al transicionar). |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| work_order_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| old_status | VARCHAR(20) | NULL | | NULL | Previous lifecycle status (NULL if first status). |
+| new_status | VARCHAR(20) | NOT NULL | | - | New lifecycle status. |
+| timestamp | TIMESTAMP | NOT NULL | | clock_timestamp() | Transition time. |
+| duration_seconds | BIGINT | NULL | | NULL | Time spent in the state (Calculated upon transition). |
 
 #### 3.2.6 work_orders
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| maintenance_plan_id | UUID | NULL | FK | NULL | Llave foránea hacia la tabla relacionada. |
-| work_request_id | UUID | NULL | FK, UNIQUE | NULL | Llave foránea hacia la tabla relacionada. |
-| work_permit_id | UUID | NULL | FK | NULL | Llave foránea hacia la tabla relacionada. |
-| current_status | VARCHAR(20) | NOT NULL | CHECK | - | Estado del ciclo de vida de ejecución (FSM). |
-| maintenance_method | VARCHAR(80) | NOT NULL | CHECK | - | Método de mantenimiento (Correctivo, Preventivo, etc.). |
-| creation_date | TIMESTAMP | NOT NULL |  | - | Marca de tiempo (timestamp) de creación de la orden. |
-| scheduled_date | TIMESTAMP | NULL |  | NULL | Inicio planeado. |
-| actual_start | TIMESTAMP | NULL |  | NULL | Inicio real de la ejecución. |
-| actual_finish | TIMESTAMP | NULL |  | NULL | Finalización real de la ejecución. |
-| actual_labor_hours | DECIMAL(10,2) | NULL |  | NULL | Duración laboral real (Calculada). |
-| criticality | VARCHAR(20) | NOT NULL | CHECK | - | Etiqueta de criticidad / prioridad de la OT. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| maintenance_plan_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
+| work_request_id | UUID | NULL | FK, UNIQUE | NULL | Foreign key to the related table. |
+| work_permit_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
+| current_status | VARCHAR(20) | NOT NULL | CHECK | - | Execution lifecycle status (FSM). |
+| maintenance_method | VARCHAR(80) | NOT NULL | CHECK | - | Maintenance method (Corrective, Preventive, etc.). |
+| creation_date | TIMESTAMP | NOT NULL | | - | Timestamp of order creation. |
+| scheduled_date | TIMESTAMP | NULL | | NULL | Planned start. |
+| actual_start | TIMESTAMP | NULL | | NULL | Actual execution start. |
+| actual_finish | TIMESTAMP | NULL | | NULL | Actual execution finish. |
+| actual_labor_hours | DECIMAL(10,2) | NULL | | NULL | Actual labor duration (Calculated). |
+| criticality | VARCHAR(20) | NOT NULL | CHECK | - | WO criticality / priority label. |
 
 #### 3.2.7 work_requests
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| description | VARCHAR(255) | NOT NULL |  | - | Narrativa de la solicitud. |
-| priority | VARCHAR(20) | NOT NULL |  | - | Etiqueta de prioridad de la solicitud. |
-| request_date | TIMESTAMP | NOT NULL |  | - | Línea de tiempo para auditoría. |
-| request_source | VARCHAR(80) | NOT NULL |  | - | Origen de la solicitud. |
-| status | VARCHAR(20) | NOT NULL | CHECK | - | Estado del ciclo de vida de la solicitud. |
-| work_class_code | SMALLINT | NOT NULL | CHECK | - | Peso numérico de la clase de trabajo seleccionada para el RIME. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| description | VARCHAR(255) | NOT NULL | | - | Request narrative. |
+| priority | VARCHAR(20) | NOT NULL | | - | Request priority label. |
+| request_date | TIMESTAMP | NOT NULL | | - | Timeline for audit. |
+| request_source | VARCHAR(80) | NOT NULL | | - | Origin of the request. |
+| status | VARCHAR(20) | NOT NULL | CHECK | - | Request lifecycle status. |
+| work_class_code | SMALLINT | NOT NULL | CHECK | - | Numeric weight of the selected work class for RIME. |
 
-### 3.3 Esquema inv
+### 3.3 Schema `inv`
 
 #### 3.3.1 inventory_transactions
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| spare_part_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| warehouse_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| work_order_id | UUID | NULL | FK | NULL | Llave foránea hacia la tabla relacionada. |
-| quantity | DECIMAL(12,4) | NOT NULL |  | 1 | Cantidad transada (positiva para entradas, negativa para salidas). |
-| transaction_type | VARCHAR(20) | NOT NULL | CHECK | - | Tipo de movimiento (RECEIPT, ISSUE, ADJUSTMENT). |
-| timestamp | TIMESTAMP | NOT NULL |  | clock_timestamp() | Registro temporal preciso del movimiento. |
-| reason | VARCHAR(255) | NOT NULL |  | - | Razón del movimiento o referencia a documentos externos. |
-| total_cost | DECIMAL(12,2) | NOT NULL |  | - | Costo total de la transacción (Cantidad \* Costo). |
-| aisle_shelf_location | VARCHAR(150) | NULL |  | NULL | Ubicación física específica de la transacción (pasillo/estante). |
-| serial_number | VARCHAR(100) | NULL |  | NULL | Número de serie o Tag del equipo rotativo (Asset Swap). |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| spare_part_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| warehouse_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| work_order_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
+| quantity | DECIMAL(12,4) | NOT NULL | | 1 | Transacted quantity (positive for receipts, negative for issues). |
+| transaction_type | VARCHAR(20) | NOT NULL | CHECK | - | Movement type (RECEIPT, ISSUE, ADJUSTMENT). |
+| timestamp | TIMESTAMP | NOT NULL | | clock_timestamp() | Precise temporal record of the movement. |
+| reason | VARCHAR(255) | NOT NULL | | - | Reason for movement or reference to external documents. |
+| total_cost | DECIMAL(12,2) | NOT NULL | | - | Total cost of the transaction (Quantity \* Cost). |
+| aisle_shelf_location | VARCHAR(150) | NULL | | NULL | Specific physical location of the transaction (aisle/shelf). |
+| serial_number | VARCHAR(100) | NULL | | NULL | Serial number or Tag of the rotating equipment (Asset Swap). |
 
 #### 3.3.2 maintainable_item_spare_parts
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| maintainable_item_id | UUID | NOT NULL | PK, FK | - | Llave foránea hacia la tabla relacionada. |
-| spare_part_id | UUID | NOT NULL | PK, FK | - | Llave foránea hacia la tabla relacionada. |
+| maintainable_item_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| spare_part_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
 
 #### 3.3.3 material_requirements
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| work_order_id | UUID | NOT NULL | PK, FK | - | Llave foránea hacia la tabla relacionada. |
-| spare_part_id | UUID | NOT NULL | PK, FK | - | Llave foránea hacia la tabla relacionada. |
-| planned_quantity | DECIMAL(12,4) | NOT NULL |  | 1 | Repuestos planificados antes de la ejecución de la OT. |
-| actual_quantity | DECIMAL(12,4) | NULL |  | NULL | Repuestos realmente consumidos durante la ejecución de la OT. |
-| is_reserved | BOOLEAN | NOT NULL |  | - | Bandera que indica si el stock ya fue apartado en almacén. |
+| work_order_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| spare_part_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| planned_quantity | DECIMAL(12,4) | NOT NULL | | 1 | Planned spare parts before WO execution. |
+| actual_quantity | DECIMAL(12,4) | NULL | | NULL | Spare parts actually consumed during WO execution. |
+| is_reserved | BOOLEAN | NOT NULL | | - | Flag indicating if stock was already set aside in warehouse. |
 
 #### 3.3.4 spare_parts
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| sku | VARCHAR(80) | NOT NULL | UNIQUE | - | Identidad de la parte. |
-| description | VARCHAR(255) | NOT NULL |  | - | Descripción de la parte legible por humanos. |
-| manufacturer | VARCHAR(120) | NOT NULL |  | - | Identidad del proveedor/fabricante. |
-| commodity_code | VARCHAR(80) | NULL |  | NULL | Código de clasificación. |
-| reorder_point | DECIMAL(12,4) | NOT NULL |  | - | Umbral mínimo de activación de compra. |
-| unit_of_measure | VARCHAR(20) | NOT NULL |  | - | Unidad de medida estándar (UoM). |
-| stock_policy | VARCHAR(20) | NOT NULL | CHECK | - | Política de reabastecimiento (Min/Max, Reorder Point, JIT). |
-| is_rebuildable | BOOLEAN | NOT NULL |  | FALSE | Indica si la parte se desecha o se envía a taller para reparación. |
-| quantity_on_hand | DECIMAL(12,4) | NOT NULL |  | - | Cantidad actualmente en inventario físico. |
-| reserved_quantity | DECIMAL(12,4) | NOT NULL |  | - | Stock comprometido para órdenes planificadas. |
-| max_capacity | DECIMAL(12,4) | NOT NULL |  | - | Límite físico del almacén para la parte. |
-| unit_cost | DECIMAL(12,2) | NOT NULL |  | - | Costo unitario estándar de adquisición. |
-| status | VARCHAR(20) | NOT NULL | CHECK | - | Estado de disponibilidad del repuesto. |
-| supplier_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| equipment_class_id | UUID | NULL | FK | NULL | Llave foránea hacia la tabla relacionada. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| sku | VARCHAR(80) | NOT NULL | UNIQUE | - | Part identity. |
+| description | VARCHAR(255) | NOT NULL | | - | Human-readable part description. |
+| manufacturer | VARCHAR(120) | NOT NULL | | - | Supplier/manufacturer identity. |
+| commodity_code | VARCHAR(80) | NULL | | NULL | Classification code. |
+| reorder_point | DECIMAL(12,4) | NOT NULL | | - | Minimum purchase activation threshold. |
+| unit_of_measure | VARCHAR(20) | NOT NULL | | - | Standard Unit of Measure (UoM). |
+| stock_policy | VARCHAR(20) | NOT NULL | CHECK | - | Replenishment policy (Min/Max, Reorder Point, JIT). |
+| is_rebuildable | BOOLEAN | NOT NULL | | FALSE | Indicates whether the part is discarded or sent to the workshop for repair. |
+| quantity_on_hand | DECIMAL(12,4) | NOT NULL | | - | Quantity currently in physical inventory. |
+| reserved_quantity | DECIMAL(12,4) | NOT NULL | | - | Committed stock for planned orders. |
+| max_capacity | DECIMAL(12,4) | NOT NULL | | - | Physical warehouse limit for the part. |
+| unit_cost | DECIMAL(12,2) | NOT NULL | | - | Standard unit acquisition cost. |
+| status | VARCHAR(20) | NOT NULL | CHECK | - | Spare part availability status. |
+| supplier_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| equipment_class_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 
 #### 3.3.5 suppliers
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| name | VARCHAR(120) | NOT NULL |  | - | Identidad comercial del proveedor. |
-| contact_info | VARCHAR(255) | NOT NULL |  | - | Teléfono, correo o dirección de contacto. |
-| warranty_terms | VARCHAR(255) | NOT NULL |  | - | Términos estándar de garantía comercial. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| name | VARCHAR(120) | NOT NULL | | - | Supplier commercial identity. |
+| contact_info | VARCHAR(255) | NOT NULL | | - | Phone, email, or contact address. |
+| warranty_terms | VARCHAR(255) | NOT NULL | | - | Standard commercial warranty terms. |
 
 #### 3.3.6 warehouses
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| name | VARCHAR(80) | NOT NULL |  | - | Identidad del almacén. |
-| location | VARCHAR(255) | NOT NULL |  | - | Dirección o ubicación física del almacén. |
-| capacity | DECIMAL(12,4) | NOT NULL |  | - | Capacidad máxima volumétrica o de carga del almacén. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| name | VARCHAR(80) | NOT NULL | | - | Warehouse identity. |
+| location | VARCHAR(255) | NOT NULL | | - | Warehouse address or physical location. |
+| capacity | DECIMAL(12,4) | NOT NULL | | - | Maximum volumetric or load capacity of the warehouse. |
 
-### 3.4 Esquema vis
+### 3.4 Schema `vis`
 
 #### 3.4.1 isolation_points
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| isolation_tag | VARCHAR(80) | NOT NULL | UNIQUE | - | Identidad del punto de aislamiento. |
-| isolation_type | VARCHAR(20) | NOT NULL | CHECK | - | Vocabulario de aislamiento. |
-| is_verified | BOOLEAN | NOT NULL |  | FALSE | Estado de verificación. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| isolation_tag | VARCHAR(80) | NOT NULL | UNIQUE | - | Identity of the isolation point. |
+| isolation_type | VARCHAR(20) | NOT NULL | CHECK | - | Isolation vocabulary. |
+| is_verified | BOOLEAN | NOT NULL | | FALSE | Verification status. |
 
 #### 3.4.2 mesh_mappings
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK, UNIQUE | - | Llave foránea hacia la tabla relacionada. |
-| mesh_uuid | VARCHAR(80) | NOT NULL | UNIQUE | - | Identidad o ruta del modelo 3D del activo. |
-| mapping_status | VARCHAR(20) | NOT NULL | CHECK | - | Estado de vinculación del gemelo digital. |
-| last_sync_time | TIMESTAMP | NULL |  | NULL | Tiempo de la última sincronización. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| equipment_unit_id | UUID | NOT NULL | FK, UNIQUE | - | Foreign key to the related table. |
+| mesh_uuid | VARCHAR(80) | NOT NULL | UNIQUE | - | Identity or path of the asset's 3D model. |
+| mapping_status | VARCHAR(20) | NOT NULL | CHECK | - | Digital twin mapping status. |
+| last_sync_time | TIMESTAMP | NULL | | NULL | Last synchronization time. |
 
 #### 3.4.3 spatial_metadata
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| mesh_mapping_id | UUID | NOT NULL | PK, FK | - | Llave foránea hacia la tabla relacionada. |
-| position | JSONB | NOT NULL |  | - | Coordenada espacial vectorial (ej. x,y,z). |
-| rotation | JSONB | NULL |  | NULL | Descriptor de orientación (ej. cuaternión). |
-| scale | JSONB | NULL |  | NULL | Descriptor de escala. |
+| mesh_mapping_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| position | JSONB | NOT NULL | | - | Spatial vector coordinate (e.g., x,y,z). |
+| rotation | JSONB | NULL | | NULL | Orientation descriptor (e.g., quaternion). |
+| scale | JSONB | NULL | | NULL | Scale descriptor. |
 
 #### 3.4.4 telemetry_signals
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| signal_type | VARCHAR(80) | NOT NULL | CHECK | - | Etiqueta de la señal del sensor. |
-| value | DECIMAL(18,6) | NOT NULL |  | - | Valor de la medición cruda. |
-| unit | VARCHAR(20) | NOT NULL |  | - | Unidad de medición. |
-| threshold | DECIMAL(18,6) | NULL |  | NULL | Umbral de alerta. |
-| timestamp | TIMESTAMP | NOT NULL |  | clock_timestamp() | Tiempo de medición. |
-| is_safety_critical | BOOLEAN | NOT NULL |  | - | Bandera de clasificación de seguridad. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| signal_type | VARCHAR(80) | NOT NULL | CHECK | - | Sensor signal label. |
+| value | DECIMAL(18,6) | NOT NULL | | - | Raw measurement value. |
+| unit | VARCHAR(20) | NOT NULL | | - | Measurement unit. |
+| threshold | DECIMAL(18,6) | NULL | | NULL | Alert threshold. |
+| timestamp | TIMESTAMP | NOT NULL | | clock_timestamp() | Measurement time. |
+| is_safety_critical | BOOLEAN | NOT NULL | | - | Safety classification flag. |
 
 #### 3.4.5 visual_layers
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| work_order_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| layer_type | VARCHAR(80) | NOT NULL |  | - | Tipo de representación visual. |
-| opacity_level | DECIMAL(5,2) | NOT NULL |  | - | Control de renderizado. |
-| status | VARCHAR(20) | NOT NULL | CHECK | - | Estado de la capa visual. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| work_order_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| layer_type | VARCHAR(80) | NOT NULL | | - | Visual representation type. |
+| opacity_level | DECIMAL(5,2) | NOT NULL | | - | Rendering control. |
+| status | VARCHAR(20) | NOT NULL | CHECK | - | Visual layer status. |
 
 #### 3.4.6 work_order_isolations
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| work_order_id | UUID | NOT NULL | PK, FK | - | Llave foránea hacia la tabla relacionada. |
-| isolation_point_id | UUID | NOT NULL | PK, FK | - | Llave foránea hacia la tabla relacionada. |
-| is_isolated | BOOLEAN | NOT NULL |  | FALSE | Estado de bloqueo verificado para el trabajo específico. |
-| isolated_at | TIMESTAMP | NULL |  | NULL | Marca de tiempo en que se ejecutó el bloqueo. |
-| padlock_tag_id | VARCHAR(80) | NULL |  | NULL | Identificador del candado o etiqueta física (Try-Out). |
+| work_order_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| isolation_point_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| is_isolated | BOOLEAN | NOT NULL | | FALSE | Verified lockout state for the specific work. |
+| isolated_at | TIMESTAMP | NULL | | NULL | Timestamp when the lockout was executed. |
+| padlock_tag_id | VARCHAR(80) | NULL | | NULL | Identifier of the physical padlock or tag (Try-Out). |
 
 #### 3.4.7 work_permits
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| permit_identifier | VARCHAR(80) | NOT NULL | UNIQUE | - | Trazabilidad del permiso. |
-| permit_type | VARCHAR(30) | NOT NULL | CHECK | - | Vocabulario de permisos. |
-| contractor_name | VARCHAR(150) | NOT NULL |  | - | Identificación del contratista. |
-| status | VARCHAR(20) | NOT NULL | CHECK | - | Estado del ciclo de vida del permiso. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| permit_identifier | VARCHAR(80) | NOT NULL | UNIQUE | - | Permit traceability. |
+| valid_from | TIMESTAMP | NOT NULL | | clock_timestamp() | Timeline start. |
+| valid_to | TIMESTAMP | NOT NULL | | - | Timeline end. |
+| status | VARCHAR(20) | NOT NULL | CHECK | - | Permit status (Active, Revoked, Expired). |
 
-### 3.5 Esquema adm
+### 3.5 Schema `adm`
 
 #### 3.5.1 audit_logs
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| user_id | UUID | NULL | FK | NULL | Llave foránea hacia la tabla relacionada. |
-| entity_type | VARCHAR(80) | NOT NULL |  | - | Nombre de la tabla/entidad auditada. |
-| entity_identifier | VARCHAR(80) | NOT NULL |  | - | Identificador UUID de la fila modificada. |
-| action_type | VARCHAR(20) | NOT NULL | CHECK | - | Tipo de operación DML (CREATE, UPDATE, DELETE). |
-| timestamp | TIMESTAMP | NOT NULL |  | clock_timestamp() | Registro temporal preciso del evento de cambio. |
-| previous_state | JSONB | NULL |  | NULL | Representación JSON descompuesta binaria antes de la acción. |
-| new_state | JSONB | NULL |  | NULL | Representación JSON descompuesta binaria después de la acción. |
-| integrity_hash | VARCHAR(255) | NOT NULL |  | - | Hash SHA-256 encadenado para detectar manipulación del log. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| user_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
+| event_type | VARCHAR(80) | NOT NULL | | - | Action executed (e.g., CREATE, UPDATE, DELETE). |
+| entity_type | VARCHAR(80) | NOT NULL | | - | Affected table or domain entity. |
+| entity_id | UUID | NOT NULL | | - | Identifier of the affected record. |
+| timestamp | TIMESTAMP | NOT NULL | | clock_timestamp() | Exact moment of the mutation. |
+| previous_state | JSONB | NULL | | NULL | Snapshot of the data before the change. |
+| new_state | JSONB | NULL | | NULL | Snapshot of the data after the change. |
+| ip_address | VARCHAR(45) | NULL | | NULL | Network traceability (IPv4 or IPv6). |
+| user_agent | VARCHAR(255) | NULL | | NULL | Client traceability. |
+| integrity_hash | VARCHAR(255) | NOT NULL | | - | Cryptographic hash for immutability verification. |
 
 #### 3.5.2 auth_tokens
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| user_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| token_hash | VARCHAR(255) | NOT NULL | UNIQUE | - | Hash del token de autenticación API / sesión. |
-| expires_at | TIMESTAMP | NOT NULL |  | - | Fecha y hora de expiración del token. |
-| is_used | BOOLEAN | NOT NULL |  | FALSE | Indica si el token ya fue consumido (uso único). |
-| ip_address | VARCHAR(45) | NULL |  | NULL | Dirección IP desde la que se emitió el token (IPv4/IPv6). |
-| user_agent | VARCHAR(255) | NULL |  | NULL | Identificador del cliente/navegador para fingerprinting. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| user_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| token_hash | VARCHAR(255) | NOT NULL | UNIQUE | - | Cryptographic representation of the token. |
+| expires_at | TIMESTAMP | NOT NULL | | - | Temporal validity limit. |
+| is_revoked | BOOLEAN | NOT NULL | | FALSE | Pre-expiration manual revocation flag. |
+| purpose | VARCHAR(20) | NOT NULL | CHECK | - | Context of use (e.g., ACCESS, REFRESH, RESET). |
 
 #### 3.5.3 role_permissions
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| role_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| module | VARCHAR(80) | NOT NULL | CHECK | - | Módulo del sistema (ej. MTTO, INV, VIS). |
-| action | VARCHAR(80) | NOT NULL |  | - | Acción permitida (ej. READ, CREATE, UPDATE, SIGN_OFF). |
+| role_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| module | VARCHAR(80) | NOT NULL | PK | - | Application subdomain or module. |
+| action | VARCHAR(80) | NOT NULL | PK | - | Granted behavior (e.g., READ, WRITE, APPROVE). |
 
 #### 3.5.4 roles
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| role_name | VARCHAR(80) | NOT NULL | UNIQUE | - | Identificador del rol de usuario (ej. Planner, Technician). |
-| description | VARCHAR(255) | NULL |  | NULL | Descripción del alcance del rol. |
-| is_system_role | BOOLEAN | NOT NULL |  | - | Bandera para roles inmutables del sistema. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| name | VARCHAR(80) | NOT NULL | UNIQUE | - | Human-readable role identity. |
+| description | VARCHAR(255) | NULL | | NULL | Description of the RBAC role. |
 
 #### 3.5.5 user_roles
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| user_id | UUID | NOT NULL | PK, FK | - | Llave foránea hacia la tabla relacionada. |
-| role_id | UUID | NOT NULL | PK, FK | - | Llave foránea hacia la tabla relacionada. |
+| user_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| role_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
 
 #### 3.5.6 users
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| username | VARCHAR(80) | NOT NULL | UNIQUE | - | Identidad de la cuenta de usuario. |
-| full_name | VARCHAR(150) | NOT NULL |  | - | Nombre completo o institucional del usuario. |
-| email | VARCHAR(150) | NOT NULL | UNIQUE | - | Correo electrónico institucional y de contacto. |
-| status | VARCHAR(20) | NOT NULL | CHECK | - | Estado de la cuenta (ACTIVE, INACTIVE, LOCKED). |
-| password_hash | VARCHAR(255) | NOT NULL |  | - | Hash de la contraseña de acceso (PBKDF2/BCrypt). |
-| failed_login_attempts | INT | NOT NULL |  | 0 | Contador de intentos fallidos de autenticación. |
-| lockout_until | TIMESTAMP | NULL |  | NULL | Fin del periodo de bloqueo temporal. |
-| mfa_enabled | BOOLEAN | NOT NULL |  | FALSE | Bandera que indica si la autenticación multifactor está activa. |
-| totp_secret | VARCHAR(255) | NULL |  | NULL | Secreto compartido para autenticación TOTP (Autenticador). |
-| deactivation_reason | VARCHAR(255) | NULL |  | NULL | Justificación administrativa para el borrado lógico (ISO 27001). |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| username | VARCHAR(80) | NOT NULL | UNIQUE | - | Access identity. |
+| email | VARCHAR(120) | NOT NULL | UNIQUE | - | Communication identity. |
+| password_hash | VARCHAR(255) | NOT NULL | | - | Secure credential. |
+| full_name | VARCHAR(150) | NOT NULL | | - | Real identity. |
+| is_active | BOOLEAN | NOT NULL | | TRUE | Access control flag. |
+| failed_login_attempts | INT | NOT NULL | | 0 | Brute force defense counter. |
+| lockout_until | TIMESTAMP | NULL | | NULL | Temporary block time window. |
+| last_login_at | TIMESTAMP | NULL | | NULL | Activity traceability. |
 
 #### 3.5.7 work_order_assignments
 
-| Campo Físico | Tipo PostgreSQL | Nulabilidad | Restricciones / Llaves | Valor por Defecto | Justificación |
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Identificador único de la entidad (PK). |
-| work_order_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| user_id | UUID | NOT NULL | FK | - | Llave foránea hacia la tabla relacionada. |
-| role_in_work | VARCHAR(50) | NOT NULL | CHECK | - | Rol funcional en la orden de trabajo (TECHNICIAN, SUPERVISOR). |
-| assigned_at | TIMESTAMP | NOT NULL |  | clock_timestamp() | Registro temporal de la asignación. |
+| work_order_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| user_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| assigned_role | VARCHAR(80) | NOT NULL | CHECK | - | Operational role of the technician in the specific WO. |
+| assigned_at | TIMESTAMP | NOT NULL | | clock_timestamp() | Moment of assignment. |
 
-## 4. Matriz de Relaciones y Cardinalidad (Foreign Keys)
+## 4. Referential Relationships and Cascading (FKs)
 
-Esta matriz especifica cómo interactúan las entidades entre sí, definiendo explícitamente las reglas de integridad referencial para autogenerar el diagrama.
+| Parent Table | Cardinality | Child Table | Verb / Meaning | ON DELETE | ON UPDATE |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| equipment_classes | 1 : 0..N | equipment_units | classifies | RESTRICT | CASCADE |
+| functional_locations| 1 : 0..N | functional_locations | contains (Self) | RESTRICT | CASCADE |
+| functional_locations| 1 : 0..N | equipment_units | installs | RESTRICT | CASCADE |
+| equipment_units | 1 : 0..N | subunits | broken down into | CASCADE | CASCADE |
+| subunits | 1 : 0..N | maintainable_items | built by | CASCADE | CASCADE |
+| equipment_units | 1 : 0..N | maintenance_plans | governed by | CASCADE | CASCADE |
+| equipment_units | 1 : 0..N | work_orders | generates | CASCADE | CASCADE |
+| maintenance_plans | 1 : 0..N | work_orders | instantiates | SET NULL | CASCADE |
+| equipment_units | 1 : 0..N | work_requests | requires | CASCADE | CASCADE |
+| work_requests | 1 : 0..1 | backlog_items | prioritized as | CASCADE | CASCADE |
+| equipment_units | 1 : 0..N | backlog_items | pending for | CASCADE | CASCADE |
+| work_orders | 1 : 0..1 | failure_records | diagnoses | CASCADE | CASCADE |
+| maintainable_items | 1 : 0..N | failure_records | affected by | SET NULL | CASCADE |
+| work_orders | 1 : 0..N | media_attachments | evidenced by | CASCADE | CASCADE |
+| work_orders | 1 : 0..N | work_order_histories| audited via | CASCADE | CASCADE |
+| warehouses | 1 : 0..N | inventory_transactions| transacts | RESTRICT | CASCADE |
+| spare_parts | 1 : 0..N | inventory_transactions| moves | RESTRICT | CASCADE |
+| work_orders | 1 : 0..N | inventory_transactions| consumes | SET NULL | CASCADE |
+| maintainable_items | 1 : 0..N | maintainable_item_spare_parts | repaired with | CASCADE | CASCADE |
+| spare_parts | 1 : 0..N | maintainable_item_spare_parts | replaces | CASCADE | CASCADE |
+| work_orders | 1 : 0..N | material_requirements | plans | CASCADE | CASCADE |
+| spare_parts | 1 : 0..N | material_requirements | fulfills | CASCADE | CASCADE |
+| suppliers | 1 : 0..N | spare_parts | supplies | RESTRICT | CASCADE |
+| equipment_classes | 1 : 0..N | spare_parts | compatible with | RESTRICT | CASCADE |
+| equipment_units | 1 : 0..1 | mesh_mappings | visualized as | CASCADE | CASCADE |
+| mesh_mappings | 1 : 0..N | spatial_metadata | located via | CASCADE | CASCADE |
+| equipment_units | 1 : 0..N | telemetry_signals | monitored by | CASCADE | CASCADE |
+| equipment_units | 1 : 0..N | isolation_points | contains | RESTRICT | CASCADE |
+| work_permits | 1 : 0..N | work_orders | validates execution of | RESTRICT | CASCADE |
+| work_orders | 1 : 0..N | visual_layers | visualized in | CASCADE | CASCADE |
+| work_orders | 1 : 1..N | work_order_isolations | requires | CASCADE | CASCADE |
+| isolation_points | 1 : 1..N | work_order_isolations | locked by | RESTRICT | CASCADE |
+| users | 1 : 1..N | user_roles | associated to | CASCADE | CASCADE |
+| roles | 1 : 1..N | user_roles | granted to | CASCADE | CASCADE |
+| roles | 1 : 0..N | role_permissions | contains | CASCADE | CASCADE |
+| users | 1 : 0..N | auth_tokens | authenticated with | CASCADE | CASCADE |
+| users | 1 : 0..N | work_order_assignments| assigned to | CASCADE | CASCADE |
+| work_orders | 1 : 0..N | work_order_assignments| assigns personnel | CASCADE | CASCADE |
+| users | 1 : 0..N | audit_logs | generates | SET NULL | CASCADE |
 
-| Entidad Origen (Parent) | Cardinalidad | Entidad Destino (Child)       | Verbo de Negocio           | Acción ON DELETE | Acción ON UPDATE |
-| ----------------------- | ------------ | ----------------------------- | -------------------------- | ---------------- | ---------------- |
-| functional_locations    | 1 : 0..N     | functional_locations          | contiene jerárquicamente a | RESTRICT         | CASCADE          |
-| functional_locations    | 1 : 0..1     | equipment_units               | instala                    | RESTRICT         | CASCADE          |
-| equipment_classes       | 1 : 0..N     | equipment_units               | categoriza                 | RESTRICT         | CASCADE          |
-| equipment_units         | 1 : 1..N     | subunits                      | se compone de              | CASCADE          | CASCADE          |
-| subunits                | 1 : 1..N     | maintainable_items            | contiene                   | CASCADE          | CASCADE          |
-| equipment_units         | 1 : 0..N     | work_requests                 | genera                     | RESTRICT         | CASCADE          |
-| equipment_units         | 1 : 0..N     | maintenance_plans             | posee                      | RESTRICT         | CASCADE          |
-| equipment_units         | 1 : 0..N     | work_orders                   | mantenido por              | RESTRICT         | CASCADE          |
-| equipment_units         | 1 : 0..N     | backlog_items                 | está listado en            | RESTRICT         | CASCADE          |
-| work_requests           | 0..1 : 0..1  | work_orders                   | se convierte en            | RESTRICT         | CASCADE          |
-| maintenance_plans       | 1 : 0..N     | work_orders                   | dispara                    | RESTRICT         | CASCADE          |
-| work_orders             | 1 : 0..N     | work_order_histories          | registra cambios en        | CASCADE          | CASCADE          |
-| work_orders             | 1 : 0..1     | failure_records               | reporta                    | RESTRICT         | CASCADE          |
-| maintainable_items      | 1 : 0..N     | failure_records               | experimenta                | RESTRICT         | CASCADE          |
-| work_orders             | 1 : 0..N     | media_attachments             | adjunta                    | CASCADE          | CASCADE          |
-| work_requests           | 1 : 0..1     | backlog_items                 | prioriza                   | RESTRICT         | CASCADE          |
-| suppliers               | 1 : 0..N     | spare_parts                   | suministra                 | RESTRICT         | CASCADE          |
-| equipment_classes       | 1 : 0..N     | spare_parts                   | estandariza                | RESTRICT         | CASCADE          |
-| spare_parts             | 1 : 0..N     | inventory_transactions        | involucrado en             | RESTRICT         | CASCADE          |
-| warehouses              | 1 : 0..N     | inventory_transactions        | almacena                   | RESTRICT         | CASCADE          |
-| warehouses              | 1 : 0..N     | equipment_units               | resguarda en stock         | SET NULL         | CASCADE          |
-| work_orders             | 1 : 0..N     | inventory_transactions        | genera                     | RESTRICT         | CASCADE          |
-| work_orders             | 1 : 1..N     | material_requirements         | planifica                  | CASCADE          | CASCADE          |
-| spare_parts             | 1 : 1..N     | material_requirements         | es consumido en            | RESTRICT         | CASCADE          |
-| maintainable_items      | 1 : 1..N     | maintainable_item_spare_parts | requiere                   | CASCADE          | CASCADE          |
-| spare_parts             | 1 : 1..N     | maintainable_item_spare_parts | es repuesto para           | RESTRICT         | CASCADE          |
-| equipment_units         | 1 : 0..1     | mesh_mappings                 | representado por           | RESTRICT         | CASCADE          |
-| mesh_mappings           | 1 : 1        | spatial_metadata              | ubicado en                 | CASCADE          | CASCADE          |
-| equipment_units         | 1 : 0..N     | telemetry_signals             | monitoreado por            | RESTRICT         | CASCADE          |
-| equipment_units         | 1 : 0..N     | work_permits                  | autoriza intervención en   | RESTRICT         | CASCADE          |
-| equipment_units         | 1 : 0..N     | isolation_points              | contiene                   | RESTRICT         | CASCADE          |
-| work_permits            | 1 : 0..N     | work_orders                   | valida ejecución de        | RESTRICT         | CASCADE          |
-| work_orders             | 1 : 0..N     | visual_layers                 | visualizada en             | CASCADE          | CASCADE          |
-| work_orders             | 1 : 1..N     | work_order_isolations         | requiere                   | CASCADE          | CASCADE          |
-| isolation_points        | 1 : 1..N     | work_order_isolations         | bloqueado por              | RESTRICT         | CASCADE          |
-| users                   | 1 : 1..N     | user_roles                    | asociado a                 | CASCADE          | CASCADE          |
-| roles                   | 1 : 1..N     | user_roles                    | concedido a                | CASCADE          | CASCADE          |
-| roles                   | 1 : 0..N     | role_permissions              | contiene                   | CASCADE          | CASCADE          |
-| users                   | 1 : 0..N     | auth_tokens                   | autenticado con            | CASCADE          | CASCADE          |
-| users                   | 1 : 0..N     | work_order_assignments        | se le asigna               | CASCADE          | CASCADE          |
-| work_orders             | 1 : 0..N     | work_order_assignments        | asigna personal            | CASCADE          | CASCADE          |
-| users                   | 1 : 0..N     | audit_logs                    | genera                     | SET NULL         | CASCADE          |
+## 5. Data Type Correspondence Matrix (Standard SQL vs. PostgreSQL)
 
-## 5. Matriz de Correspondencia de Tipos de Datos (SQL Estándar vs. PostgreSQL)
+To guarantee the physical viability of the logical model and its correct implementation in the selected database engine (**PostgreSQL**), each proposed physical data type has been formally validated and mapped:
 
-Para garantizar la viabilidad física del modelo lógico y su correcta implementación en el motor de base de datos seleccionado (**PostgreSQL**), se ha validado y mapeado formalmente cada tipo de datos físico propuesto:
-
-| Tipo Físico (Estándar SQL) | Tipo Nativo en PostgreSQL             | Equivalente Técnico Alternativo | Impacto Técnico / Justificación en PostgreSQL                                                                                                                                                                                                                                                                                                                                                                  |
-| :------------------------- | :------------------------------------ | :------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| VARCHAR(N)               | VARCHAR(N) o CHARACTER VARYING(N) | TEXT                          | PostgreSQL maneja cadenas de longitud variable eficientemente. TEXT no tiene penalización de rendimiento y se prefiere cuando no se requiere un límite estricto de longitud de caracteres.                                                                                                                                                                                                                   |
-| SMALLINT                 | SMALLINT o INT2                   | Ninguno                         | Entero con signo de 2 bytes (rango -32,768 a 32,767). Óptimo para cardinalidades y niveles taxonómicos (como hierarchyLevel).                                                                                                                                                                                                                                                                                |
-| INT                      | INTEGER o INT4                    | Ninguno                         | Entero con signo de 4 bytes (rango -2,147,483,648 a 2,147,483,647). Estándar para contadores simples (como failedLoginAttempts).                                                                                                                                                                                                                                                                             |
-| BIGINT                   | BIGINT o INT8                     | Ninguno                         | Entero con signo de 8 bytes. Usado para métricas acumuladas grandes como horas operativas (operatingHours) y duraciones de transición.                                                                                                                                                                                                                                                                       |
-| DATE                     | DATE                                | Ninguno                         | Tipo de datos de 4 bytes para almacenar fechas de calendario sin zona horaria (año, mes, día).                                                                                                                                                                                                                                                                                                                 |
-| TIMESTAMP                | TIMESTAMP                           | TIMESTAMPTZ                   | TIMESTAMP almacena fecha y hora sin zona horaria. Se recomienda TIMESTAMPTZ (Timestamp con zona horaria) para logs de auditoría, marcas de creación e inicio de órdenes de trabajo para evitar discrepancias por husos horarios.                                                                                                                                                                           |
-| DECIMAL(P,S)             | DECIMAL(P,S) o NUMERIC(P,S)       | Ninguno                         | Tipo de precisión exacta con escala de usuario. Esencial para valores monetarios (unitCost), dimensiones de sensores (value, threshold) y porcentajes exactos (opacityLevel).                                                                                                                                                                                                                          |
-| UUID                     | UUID                                | Ninguno                         | Tipo de datos nativo de 128 bits. En PostgreSQL 18 se utilizará la función nativa uuidv7() como valor por defecto para llaves primarias. A diferencia de UUIDv4 (aleatorio), UUIDv7 incluye un prefijo temporal de 48 bits ordenado cronológicamente, lo que previene la fragmentación de páginas en los índices B-Tree y maximiza el rendimiento de inserción en series de tiempo y registros de auditoría. |
-| BOOLEAN                  | BOOLEAN o BOOL                    | Ninguno                         | Tipo lógico que almacena TRUE o FALSE.                                                                                                                                                                                                                                                                                                                                                                     |
-| JSON                     | JSON                                | JSONB                         | JSON almacena el texto literal, lo cual requiere parseo en cada consulta. Se recomienda usar JSONB (JSON Binario Descompuesto) porque almacena el contenido en formato binario, soporta indexación rápida (índices GIN) y es mucho más eficiente para consultas de auditoría (previousState y newState).                                                                                               |
-
+| Physical Type (SQL Standard) | Native Type in PostgreSQL | Alternative Technical Equivalent | Technical Impact / Justification in PostgreSQL |
+| :--- | :--- | :--- | :--- |
+| VARCHAR(N) | VARCHAR(N) or CHARACTER VARYING(N) | TEXT | PostgreSQL handles variable-length strings efficiently. TEXT has no performance penalty and is preferred when a strict character length limit is not required. |
+| SMALLINT | SMALLINT or INT2 | None | 2-byte signed integer (range -32,768 to 32,767). Optimal for cardinalities and taxonomic levels (like hierarchyLevel). |
+| INT | INTEGER or INT4 | None | 4-byte signed integer (range -2,147,483,648 to 2,147,483,647). Standard for simple counters (like failedLoginAttempts). |
+| BIGINT | BIGINT or INT8 | None | 8-byte signed integer. Used for large accumulated metrics like operational hours (operatingHours) and transition durations. |
+| DATE | DATE | None | 4-byte data type for storing calendar dates without time zone (year, month, day). |
+| TIMESTAMP | TIMESTAMP | TIMESTAMPTZ | TIMESTAMP stores date and time without time zone. TIMESTAMPTZ (Timestamp with time zone) is recommended for audit logs, creation marks, and work order starts to avoid discrepancies due to time zones. |
+| DECIMAL(P,S) | DECIMAL(P,S) or NUMERIC(P,S) | None | Exact precision type with user scale. Essential for monetary values (unitCost), sensor dimensions (value, threshold), and exact percentages (opacityLevel). |
+| UUID | UUID | None | Native 128-bit data type. In PostgreSQL 18, the native function uuidv7() will be used as the default value for primary keys. Unlike UUIDv4 (random), UUIDv7 includes a 48-bit chronologically ordered time prefix, which prevents page fragmentation in B-Tree indexes and maximizes insertion performance in time series and audit logs. |
+| BOOLEAN | BOOLEAN or BOOL | None | Logical type that stores TRUE or FALSE. |
+| JSON | JSON | JSONB | JSON stores the literal text, which requires parsing on each query. It is recommended to use JSONB (Binary Decomposed JSON) because it stores the content in binary format, supports fast indexing (GIN indexes), and is much more efficient for audit queries (previousState and newState). |
