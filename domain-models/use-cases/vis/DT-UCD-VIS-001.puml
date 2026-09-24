@@ -1,0 +1,71 @@
+@startuml VIS-UseCases
+skinparam packageStyle rectangle
+left to right direction
+
+' --- VISUAL CONFIGURATION ---
+skinparam usecase {
+  BackgroundColor #EBF5FB
+  BorderColor #2E86C1
+  BorderThickness 2
+  FontName Segoe UI
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #1B4F72
+  BorderColor #154360
+  FontName Segoe UI
+  FontSize 11
+}
+skinparam package {
+  BackgroundColor #FDFEFE
+  BorderColor #AED6F1
+  FontName Segoe UI
+  FontSize 13
+  FontStyle bold
+}
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+
+legend top right
+|= Document Control (ISO 9001:2015) |
+| **Code:** DT-UCD-VIS-001 |
+| **Version:** 1.3 |
+| **Date:** 2026-08-03 |
+| **Status:** Completed |
+| **Author:** Juan David Julio Serrano |
+endlegend
+
+' --- ACTORS ---
+actor "HSEQ\nInspector" as HSEQ #1B4F72
+actor "Maintenance\nTechnician" as Tecnico #1B4F72
+actor "Maintenance\nSupervisor" as Supervisor #1B4F72
+actor "Project\nEngineer" as Ingeniero #1B4F72
+
+' --- MAIN PACKAGE ---
+package "Digital Twin Convergence Module (VIS)" {
+
+  usecase "UC-VIS-008\nVisualize Work Permits\nOverlay" as UCVIS008 #EBF5FB
+  usecase "UC-VIS-009\nNavigate Hierarchically\nwith Semantic Zoom" as UCVIS009 #EBF5FB
+  usecase "UC-VIS-010\nVisualize 3D Exploded\nView (Teardown)" as UCVIS010 #EBF5FB
+  usecase "UC-VIS-011\nVerify Isolation Routes\n(LOTO) and Active Lockout" as UCVIS011 #EBF5FB
+  usecase "UC-VIS-012\nConfigure 3D Component\nHierarchy" as UCVIS012 #EBF5FB
+  usecase "UC-VIS-033\nInspect Assets on the\n2D Base Schematic" as UCVIS033 #EBF5FB
+
+}
+
+' --- ACTOR - USE CASE RELATIONSHIPS ---
+HSEQ --> UCVIS008
+Supervisor --> UCVIS033
+Supervisor --> UCVIS009
+Tecnico --> UCVIS010
+Tecnico --> UCVIS011
+Tecnico --> UCVIS033
+Ingeniero --> UCVIS012
+
+' --- INTER-USE CASE RELATIONSHIPS (Include/Extend) ---
+UCVIS011 ..> UCVIS009 : <<extend>>
+UCVIS008 ..> UCVIS009 : <<include>>
+UCVIS008 ..> UCVIS033 : <<include>>
+UCVIS011 ..> UCVIS033 : <<include>>
+
+@enduml
