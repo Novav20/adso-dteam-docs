@@ -67,3 +67,7 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **Semantic Zoom** | Zoom Semántico | A navigation interaction in the Digital Twin where information density (e.g., tags, ports) automatically adjusts based on zoom scale thresholds. |
 | **Geometric Zoom** | Zoom Geométrico | A fluid visual scaling interaction on the digital canvas viewport. |
 | **Try-Out Test** | Prueba de Arranque (Try-Out) | The final physical test performed by a technician to physically verify the absence of tension or energy before beginning maintenance work. |
+| **Segregation of Duties (SoD)** | Segregación de Funciones (SoD) | A critical security principle preventing a single user role from having enough privileges to both execute and approve a sensitive transaction autonomously. |
+| **Tamper-Evident** | Evidente de Manipulación / Tamper-Evident | A cryptographic property of the audit log that ensures any external modification or deletion of records instantly breaks the hash chain, raising a critical alert. |
+| **Root Cause Analysis (RCA)** | Análisis de Causa Raíz (RCA) | A systematic engineering process for identifying the fundamental origin of a failure to prevent its recurrence. |
+| **Meta-Audit** | Meta-Auditoría | The action of recording and tracing the queries made by administrators or auditors over the immutable audit log itself. |
