@@ -1,9 +1,9 @@
 import re
 
 def extract_tables(md_text):
-    sec2_start = md_text.find("## 2. Matriz Jerárquica de Nodos")
-    sec3_start = md_text.find("## 3. Matriz de Conectividad")
-    sec4_start = md_text.find("## 4. Mecanismo de Seguridad")
+    sec2_start = md_text.find("## 2. Hierarchical Node")
+    sec3_start = md_text.find("## 3. Connectivity")
+    sec4_start = md_text.find("## 4. Perimeter Security")
     
     sec2_text = md_text[sec2_start:sec3_start]
     sec3_text = md_text[sec3_start:sec4_start]
@@ -21,7 +21,7 @@ def parse_deployment_structurizr(md_path, out_dsl_path):
     
     for line in sec2_text.split("\n"):
         line = line.strip()
-        if line.startswith("|") and not line.startswith("| ID Nodo") and not line.startswith("| :---"):
+        if line.startswith("|") and not line.startswith("| Parent Node") and not line.startswith("| :---"):
             parts = [p.strip() for p in line.split("|")[1:-1]]
             if len(parts) >= 8:
                 parent_id = parts[0]
@@ -77,7 +77,7 @@ def parse_deployment_structurizr(md_path, out_dsl_path):
     connections = []
     for line in sec3_text.split("\n"):
         line = line.strip()
-        if line.startswith("|") and not line.startswith("| Componente Origen") and not line.startswith("| :---"):
+        if line.startswith("|") and not line.startswith("| Source Component") and not line.startswith("| :---"):
             parts = [p.strip() for p in line.split("|")[1:-1]]
             if len(parts) >= 8:
                 src_comp = parts[0]

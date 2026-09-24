@@ -56,7 +56,7 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     }
     
     for c in components:
-        stereo = c.get('Capa Arquitectónica / Estereotipo')
+        stereo = c.get('Architectural Layer / Stereotype')
         if stereo in boundaries:
             boundaries[stereo].append(c)
         else:
@@ -72,14 +72,14 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     dsl.append("        # External Systems and Clients")
     
     for c in boundaries["Client Application"]:
-        c_id = c['ID Componente']
+        c_id = c['Component ID']
         tag = "Mobile" if "mobile" in c_id.lower() else "WebBrowser" if "web" in c_id.lower() else "Client"
-        dsl.append(f"        {c_id} = softwareSystem \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"{tag}\"")
+        dsl.append(f"        {c_id} = softwareSystem \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{tag}\"")
         
     for c in boundaries["External System"]:
-        c_id = c['ID Componente']
+        c_id = c['Component ID']
         tag = "Database" if "db" in c_id.lower() or "redis" in c_id.lower() else "Broker" if "iot" in c_id.lower() else "External"
-        dsl.append(f"        {c_id} = softwareSystem \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"{tag}\"")
+        dsl.append(f"        {c_id} = softwareSystem \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{tag}\"")
         
     dsl.append("")
     dsl.append("        monolith = softwareSystem \"Modular Monolith\" \"Sistema Central de Mantenimiento y LOTO (.NET 10)\" {")
@@ -89,22 +89,22 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     
     dsl.append("                group \"Driving Adapters\" {")
     for c in boundaries["Driving Adapter"]:
-        dsl.append(f"                    {c['ID Componente']} = component \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"{c['Puerto / Interfaz']}\" \"ComponentShape\"")
+        dsl.append(f"                    {c['Component ID']} = component \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{c['Port / Interface']}\" \"ComponentShape\"")
     dsl.append("                }")
     
     dsl.append("                group \"Application Core\" {")
     for c in boundaries["Primary Port (In)"]:
-        dsl.append(f"                    {c['ID Componente']} = component \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"{c['Puerto / Interfaz']}\" \"ComponentShape\"")
+        dsl.append(f"                    {c['Component ID']} = component \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{c['Port / Interface']}\" \"ComponentShape\"")
     for c in boundaries["Domain Service"]:
-        tag = "Broker" if "event" in c['ID Componente'].lower() else "ComponentShape"
-        dsl.append(f"                    {c['ID Componente']} = component \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"{c['Puerto / Interfaz']}\" \"{tag}\"")
+        tag = "Broker" if "event" in c['Component ID'].lower() else "ComponentShape"
+        dsl.append(f"                    {c['Component ID']} = component \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{c['Port / Interface']}\" \"{tag}\"")
     for c in boundaries["Secondary Port (Out)"]:
-        dsl.append(f"                    {c['ID Componente']} = component \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"{c['Puerto / Interfaz']}\" \"ComponentShape\"")
+        dsl.append(f"                    {c['Component ID']} = component \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{c['Port / Interface']}\" \"ComponentShape\"")
     dsl.append("                }")
     
     dsl.append("                group \"Driven Adapters\" {")
     for c in boundaries["Driven Adapter"]:
-        dsl.append(f"                    {c['ID Componente']} = component \"{c['Componente o Puerto Funcional']}\" \"{c['Responsabilidad Técnica']}\" \"{c['Puerto / Interfaz']}\" \"ComponentShape\"")
+        dsl.append(f"                    {c['Component ID']} = component \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{c['Port / Interface']}\" \"ComponentShape\"")
     dsl.append("                }")
     
     dsl.append("            }")
@@ -113,10 +113,10 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     
     dsl.append("        # Relationships")
     for r in relationships:
-        src = r['Origen']
-        dest = r['Destino']
-        tech = r['Protocolo / Interfaz']
-        desc = r['Propósito y Descripción']
+        src = r['Caller ID']
+        dest = r['Callee ID']
+        tech = r['Protocol / Technology']
+        desc = r['Technical Description']
         dsl.append(f"        {src} -> {dest} \"{desc}\" \"{tech}\"")
         
     dsl.append("    }")
@@ -125,9 +125,9 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     dsl.append("        component appContainer \"ComponentDiagram\" {")
     dsl.append("            include *")
     for c in boundaries["Client Application"]:
-        dsl.append(f"            include {c['ID Componente']}")
+        dsl.append(f"            include {c['Component ID']}")
     for c in boundaries["External System"]:
-        dsl.append(f"            include {c['ID Componente']}")
+        dsl.append(f"            include {c['Component ID']}")
     dsl.append("            autoLayout tb")
     dsl.append("        }")
     dsl.append("        styles {")
