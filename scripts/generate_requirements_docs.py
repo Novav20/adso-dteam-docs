@@ -252,14 +252,14 @@ def build_tr_index_markdown(grouped: dict[str, list[dict]], metadata: dict[str, 
     lines = [
         "---",
         "id: INDEX-COMMON",
-        'title: "Requisitos Transversales — Índice Maestro"',
+        'title: "Transversal Requirements — Master Index"',
         "---",
         "",
-        "# INDEX — COMMON (Requisitos Transversales)",
+        "# INDEX — COMMON (Transversal Requirements)",
         "",
-        "Consolidado de patrones arquitectónicos transversales aplicables a los módulos MTTO, INV, VIS y ADM.",
+        "Consolidated transversal architectural patterns applicable to MTTO, INV, VIS, and ADM modules.",
         "",
-        "| ID | Nombre | FR | NFR | Total | Archivo |",
+        "| ID | Name | FR | NFR | Total | File |",
         "|---|---|---:|---:|---:|---|",
     ]
     for tr_id in tr_ids:
