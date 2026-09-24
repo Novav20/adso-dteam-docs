@@ -1,0 +1,86 @@
+@startuml MTTO-UseCases
+skinparam packageStyle rectangle
+left to right direction
+
+' --- VISUAL CONFIGURATION ---
+skinparam usecase {
+  BackgroundColor #EBF5FB
+  BorderColor #2E86C1
+  BorderThickness 2
+  FontName Segoe UI
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #1B4F72
+  BorderColor #154360
+  FontName Segoe UI
+  FontSize 11
+}
+skinparam package {
+  BackgroundColor #FDFEFE
+  BorderColor #AED6F1
+  FontName Segoe UI
+  FontSize 13
+  FontStyle bold
+}
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+
+legend top right
+|= Document Control (ISO 9001:2015) |
+| **Code:** DT-UCD-MTTO-001 |
+| **Version:** 1.2 |
+| **Date:** 2026-08-03 |
+| **Status:** Completed |
+| **Author:** Juan David Julio Serrano |
+endlegend
+
+' --- ACTORS ---
+actor "Maintenance\nTechnician" as Tecnico #1B4F72
+actor "Maintenance\nPlanner" as Planificador #1B4F72
+actor "Reliability\nEngineer" as Ingeniero #1B4F72
+actor "Maintenance\nSupervisor" as Supervisor #1B4F72
+actor "Contractor" as Contratista #1B4F72
+
+' --- MAIN PACKAGE ---
+package "Maintenance Operations Module (MTTO)" {
+
+  ' Use Cases - Planning and Prioritization
+  usecase "UC-MTTO-001\nSchedule Preventive\nMaintenance (Time)" as UCMTTO001 #EBF5FB
+  usecase "UC-MTTO-023\nSchedule Predictive\nMaintenance (Telemetry)" as UCMTTO023 #EBF5FB
+  usecase "UC-MTTO-026\nCalculate RIME Priority\nof Work Requests" as UCMTTO026 #EBF5FB
+
+  ' Use Cases - Field Execution
+  usecase "UC-MTTO-002\nExecute and Finalize Work Order\nwith ISO 14224 Taxonomy" as UCMTTO002 #EBF5FB
+  usecase "UC-MTTO-003\nUpload Contractor\nReport (PDF)" as UCMTTO003 #EBF5FB
+  usecase "UC-MTTO-004\nExtract Report\nData with AI" as UCMTTO004 #EBF5FB
+
+  ' Use Cases - Consultation and Support
+  usecase "UC-MTTO-020\nView Mobile\nDocumentation" as UCMTTO020 #EBF5FB
+  usecase "UC-MTTO-028\nConsult Technical\nRAG Chatbot" as UCMTTO028 #EBF5FB
+
+  ' Use Cases - Engineering and Reliability
+  usecase "UC-MTTO-029\nDefine Asset\nPhysical Boundaries" as UCMTTO029 #EBF5FB
+  usecase "UC-MTTO-030\nManage Asset\nWarranties" as UCMTTO030 #EBF5FB
+}
+
+' --- ACTOR - USE CASE RELATIONSHIPS ---
+Planificador --> UCMTTO001
+Planificador --> UCMTTO023
+Planificador --> UCMTTO026
+Planificador --> UCMTTO030
+
+Tecnico --> UCMTTO002
+Tecnico --> UCMTTO020
+Tecnico --> UCMTTO028
+
+Contratista --> UCMTTO003
+Supervisor --> UCMTTO004
+Ingeniero --> UCMTTO029
+
+' --- INTER-USE CASE RELATIONSHIPS (Include/Extend) ---
+UCMTTO003 ..> UCMTTO002 : <<extend>>
+UCMTTO004 ..> UCMTTO003 : <<extend>>
+UCMTTO028 ..> UCMTTO020 : <<extend>>
+
+@enduml
