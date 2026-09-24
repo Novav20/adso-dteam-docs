@@ -2,7 +2,7 @@
 code: DT-DM-DOC-001
 version: 1.3
 date: 2026-09-14
-status: Aprobado — Especificación Conceptual de Dominio
+status: Approved — Domain Conceptual Specification
 author: Juan David Julio Serrano
 standard:
   - ISO 9001:2015
@@ -12,440 +12,439 @@ standard:
   - ISO 27001:2022
 ---
 
-# Especificación del Modelo de Dominio
+# Domain Model Specification
 
-## 1. Propósito
+## 1. Purpose
 
-Este documento es el complemento de negocio para el modelo de dominio de la solución del Gemelo Digital. Actúa como la Única Fuente de Verdad (SSoT) para el significado del dominio, los límites tácticos de DDD, los vocabularios de enumeradores (enums) y las reglas preliminares de persistencia antes de generar el ERD físico.
+This document is the business complement to the Digital Twin solution's domain model. It acts as the Single Source of Truth (SSoT) for domain meaning, DDD tactical boundaries, enumerator (enum) vocabularies, and preliminary persistence rules before generating the physical ERD.
 
-El documento se enfoca en las reglas de negocio y la trazabilidad del almacenamiento en lugar de los detalles de implementación. El modelo UML define la estructura; este documento explica por qué existe cada elemento, cómo debe interpretarse y cómo debe restringirse en la capa de base de datos.
+The document focuses on business rules and storage traceability rather than implementation details. The UML model defines the structure; this document explains why each element exists, how it should be interpreted, and how it must be constrained in the database layer.
 
-## 2. Decisiones Críticas de Síntesis
+## 2. Critical Synthesis Decisions
 
-### 2.1 División del Estado en EquipmentUnit
+### 2.1 State Division in EquipmentUnit
 
-El campo status se descompone en cuatro dimensiones independientes y especializadas:
+The `status` field is decomposed into four independent and specialized dimensions:
 
-- operationalStatus: captura la condición operativa real del activo, como el estado de actividad (uptime), inactividad (downtime) o espera (standby), en línea con la lógica de confiabilidad y estado operativo de la ISO 14224.
-- lifecycleStatus: captura la fase contable y de negocio del activo, como almacenamiento, instalación, puesta en marcha (commissioning) o desmantelamiento (decommissioning), lo cual está más alineado con la gobernanza del ciclo de vida en la gestión de activos (ISO 55000).
-- maintenanceStatus: captura el contexto actual de mantenimiento, como si el activo está operativo, bajo mantenimiento o bajo prueba.
-- healthStatus: captura la salud física y mecánica consolidada (Undetermined, Good, Fair, Serious, Critical, etc.) basada en telemetría de monitoreo de condición (ISO 13374).
+- `operationalStatus`: captures the actual operating condition of the Equipment Unit, such as uptime, downtime, or standby, in line with ISO 14224 reliability and operational state logic.
+- `lifecycleStatus`: captures the accounting and business phase of the Equipment Unit, such as storage, installation, commissioning, or decommissioning, which is more aligned with lifecycle governance in asset management (ISO 55000).
+- `maintenanceStatus`: captures the current maintenance context, such as whether the Equipment Unit is operational, under maintenance, or under test.
+- `healthStatus`: captures the consolidated physical and mechanical health (Undetermined, Good, Fair, Serious, Critical, etc.) based on condition monitoring telemetry (ISO 13374).
 
-Esta división reduce el acoplamiento, evita sobrecargar la lógica de negocio y previene almacenar significados no relacionados en un solo campo. También facilita la validación transaccional porque cada dimensión puede restringirse de forma independiente.
+This division reduces coupling, avoids overloading business logic, and prevents storing unrelated meanings in a single field. It also facilitates transactional validation because each dimension can be constrained independently.
 
-### 2.2 Priorización RIME Configurable
+### 2.2 Configurable RIME Prioritization
 
-Para cumplir con la gestión de riesgos exigida por la norma ISO 55001 y las mejores prácticas de la ingeniería de mantenimiento, el sistema adopta el estándar RIME (Ranking Index for Maintenance Expenditure).
+To comply with the risk management required by the ISO 55001 standard and best practices in maintenance engineering, the system adopts the RIME (Ranking Index for Maintenance Expenditure) standard.
 
-De acuerdo con [[ADR-002]], el cálculo del puntaje de prioridad se encapsula bajo el patrón *Strategy* a través de un servicio de dominio. La arquitectura desacopla este algoritmo del la orden de trabajo, permitiendo incorporar a futuro estrategias adaptadas a factores económicos o de inventario sin alterar las entidades del núcleo.
+According to [[ADR-002]], the calculation of the priority score is encapsulated under the *Strategy* pattern through a domain service. The architecture decouples this algorithm from the Work Order, allowing future strategies adapted to economic or inventory factors to be incorporated without altering the core entities.
 
-### 2.3 Aislamiento Multi-Fuente y Extensibilidad de Seguridad
+### 2.3 Multi-Source Isolation and Safety Extensibility
 
-El modelo soporta intencionalmente tipos de aislamiento de seguridad más allá de la energía eléctrica o mecánica únicamente. Las intervenciones industriales pueden involucrar riesgos térmicos, químicos o gravitacionales dependiendo del activo y del alcance del trabajo. Por lo tanto, el modelo de permisos necesita valores extensibles y una alternativa controlada (fallback) como OTHER.
+The model intentionally supports safety isolation types beyond merely electrical or mechanical energy. Industrial interventions can involve thermal, chemical, or gravitational risks depending on the Equipment Unit and the scope of work. Therefore, the permit model needs extensible values and a controlled alternative (fallback) such as `OTHER`.
 
-### 2.4 Nota de Modelado sobre el Conjunto de Estándares
+### 2.4 Modeling Note on the Standard Suite
 
-El conjunto de cápsulas aprobadas proporciona una fuerte orientación para LOTO, competencias y gobernanza de seguridad, pero no incluye una cápsula dedicada a la taxonomía de permisos OSHA. Por esa razón, los vocabularios de permisos y aislamientos a continuación son vocabularios de proyecto normalizados y alineados con las referencias aprobadas en lugar de códigos literales extraídos de un solo estándar. Esto es deliberado y debe preservarse en el diseño del ERD como datos de búsqueda controlados (lookup data).
+The approved capsules set provides strong guidance for LOTO, competencies, and safety governance, but does not include a capsule dedicated to the OSHA permit taxonomy. For that reason, the permit and isolation vocabularies below are normalized project vocabularies aligned with the approved references rather than literal codes extracted from a single standard. This is deliberate and must be preserved in the ERD design as controlled lookup data.
 
-### 2.5 Nota de Modelado sobre MediaAttachment
+### 2.5 Modeling Note on MediaAttachment
 
-MediaAttachment está modelado como un Value Object en la capa de dominio porque su significado de negocio es puramente evidencial. Sin embargo, una implementación relacional aún podría asignarle una llave subrogada técnica si el motor de almacenamiento requiere direccionamiento de filas independiente. Ese detalle de persistencia no cambia la clasificación en el dominio.
+`MediaAttachment` is modeled as a Value Object in the domain layer because its business meaning is purely evidential. However, a relational implementation could still assign it a technical surrogate key if the storage engine requires independent row addressing. That persistence detail does not change the classification in the domain.
 
-### 2.6 Aislamiento de Módulos mediante Esquemas de Base de Datos
+### 2.6 Module Isolation via Database Schemas
 
-Para reflejar la arquitectura de Monolito Modular en la capa de persistencia y evitar la saturación del esquema predeterminado (public), las tablas del sistema se distribuyen en esquemas dedicados correspondientes a los contextos delimitados (*Bounded Contexts*) de DDD:
+To reflect the Modular Monolith architecture in the persistence layer and avoid saturating the default schema (`public`), the system tables are distributed into dedicated schemas corresponding to the DDD Bounded Contexts:
 
-- tax: Taxonomía y activos conforme a ISO 14224 (functional_locations, equipment_units, subunits, maintainable_items, equipment_classes).
-- mtto: Gestión de mantenimiento y confiabilidad (work_requests, work_orders, maintenance_plans, failure_records, backlog_items).
-- inv: Control de recursos y suministros (spare_parts, inventory_transactions, material_requirements, warehouses, suppliers).
-- vis: Gemelo digital y capas de seguridad operativa (mesh_mappings, spatial_metadata, telemetry_signals, work_permits, isolation_points).
-- adm: Seguridad perimetral, IAM y auditoría inmutable (users, roles, role_permissions, auth_tokens, audit_logs).
+- `tax`: Taxonomy and assets according to ISO 14224 (`functional_locations`, `equipment_units`, `subunits`, `maintainable_items`, `equipment_classes`).
+- `mtto`: Maintenance and reliability management (`work_requests`, `work_orders`, `maintenance_plans`, `failure_records`, `backlog_items`).
+- `inv`: Resource and supply control (`spare_parts`, `inventory_transactions`, `material_requirements`, `warehouses`, `suppliers`).
+- `vis`: Digital twin and operational safety layers (`mesh_mappings`, `spatial_metadata`, `telemetry_signals`, `work_permits`, `isolation_points`).
+- `adm`: Perimeter security, IAM, and immutable audit (`users`, `roles`, `role_permissions`, `auth_tokens`, `audit_logs`).
 
-Esta segregación permite:
-1. **Defensa en profundidad:** Asignación granular de privilegios SQL (GRANT/REVOKE) por módulo para prevenir accesos cruzados no autorizados.
-2. **Claridad de consultas:** Eliminación de prefijos redundantes en nombres de tablas (ej. mtto.work_orders en lugar de public.mtto_work_orders).
-3. **Mantenibilidad y evolución:** Facilita la futura extracción de un módulo hacia su propio microservicio o base de datos independiente si los requisitos de escalabilidad lo demandan.
+This segregation allows for:
+1. **Defense in Depth:** Granular assignment of SQL privileges (GRANT/REVOKE) per module to prevent unauthorized cross-access.
+2. **Query Clarity:** Elimination of redundant prefixes in table names (e.g., `mtto.work_orders` instead of `public.mtto_work_orders`).
+3. **Maintainability and Evolution:** Facilitates the future extraction of a module into its own microservice or independent database if scalability requirements demand it.
 
-## 3. Tabla de Mapeo de Estereotipos
+## 3. Stereotype Mapping Table
 
-| Entidad                | Estereotipo DDD  | Justificación                                                                                                                                                                                                        | Estándar de Referencia                                                |
-| ---------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| FunctionalLocation   | Aggregate Root | Posee la jerarquía de ubicación del activo y la definición del límite.                                                                                                                                               | ISO 14224 Capítulos 8.1 y 8.2                                         |
-| EquipmentClass       | Aggregate Root | Posee la taxonomía de la clase del activo y la semántica de los límites específicos de la clase.                                                                                                                     | ISO 14224 Anexo A                                                     |
-| EquipmentUnit        | Aggregate Root | Posee el registro de inventario y la división de estado de tres vías para un activo físico.                                                                                                                          | ISO 14224 Capítulo 9.1 y Tabla 5                                      |
-| Subunit              | Entity         | Depende del ciclo de vida del activo padre y del contexto de la taxonomía.                                                                                                                                           | ISO 14224 Taxonomía Niveles 6–9                                       |
-| MaintainableItem     | Entity         | Representa el nivel reparable más bajo utilizado para mantenimiento y análisis de fallas.                                                                                                                            | ISO 14224 Taxonomía Niveles 8–9                                       |
-| WorkRequest          | Aggregate Root | Inicia el flujo de admisión de mantenimiento y posee los factores de priorización RIME.                                                                                                                              | ISO 55000 orientación de riesgos y decisiones; ADR 002                |
-| MaintenancePlan      | Aggregate Root | Posee un cronograma de mantenimiento planificado y su cadencia.                                                                                                                                                      | ISO 14224 orientación de datos de mantenimiento                       |
-| WorkOrder            | Aggregate Root | Posee la ejecución, el historial, los adjuntos y los registros de trabajo descendentes.                                                                                                                              | ISO 14224 datos de eventos; ISO 9000 control de registros             |
-| MediaAttachment      | Value Object   | Carga útil (payload) de evidencia pura sin identidad de negocio independiente.                                                                                                                                       | ISO 9000 información documentada y registros                          |
-| WorkOrderHistory     | Entity         | Registro de transición del ciclo de vida de solo adición (append-only) para una orden de trabajo.                                                                                                                    | ISO 9000 inmutabilidad de registros                                   |
-| FailureRecord        | Entity           | Evento de falla histórico vinculado directamente al ítem mantenible (MaintainableItem) que lo experimenta.                                                                                                         | ISO 14224 lógica de fallas                                            |
-| BacklogItem          | Entity         | Registro de priorización derivado vinculado a la admisión de mantenimiento y al contexto del activo.                                                                                                                 | ISO 55000 orientación de clasificación de riesgos                     |
-| SparePart            | Aggregate Root | Registro maestro de inventario para una familia de partes con política de stock y datos de costos.                                                                                                                   | ISO 14224 datos de inventario; ISO 55000 orientación de planificación |
-| InventoryTransaction | Entity         | Registro de movimiento rastreable vinculado a partes, órdenes de trabajo y almacenes.                                                                                                                                | ISO 14224 datos de transacciones; ISO 9000 trazabilidad               |
-| Warehouse            | Aggregate Root | Representa un límite de ubicación de stock con reglas de capacidad.                                                                                                                                                  | ISO 55000 orientación de planificación de recursos                    |
-| Supplier             | Aggregate Root | Posee la identidad de adquisiciones, el contexto comercial y la lógica de garantías.                                                                                                                                 | ISO 9000 información documentada                                      |
-| MeshMapping          | Entity         | Proyección gráfica del patrón Sidecar que vincula unívocamente la geometría (SVG o malla 3D) con el Nivel 6 (EquipmentUnit). Los niveles 7 y 8 no poseen coordenadas geométricas individuales en el plano general. | ISO 9000 separación de datos vs. información                          |
-| TelemetrySignal      | Entity         | Registro de medición cruda con marca de tiempo utilizado para trazabilidad y analítica de seguridad.                                                                                                                 | ISO 9000 seguimiento y medición                                       |
-| WorkPermit           | Aggregate Root   | Límite de autorización de seguridad que valida la ejecución de órdenes de trabajo específicas en campo.                                                                                                              | ISO 55000 orientación de competencias y LOTO                          |
-| IsolationPoint       | Entity           | Punto de bloqueo permanente perteneciente a un equipo (EquipmentUnit), requerido aislar en órdenes de trabajo.                                                                                                     | ISO 55000 orientación LOTO; ISO 14224 gobernanza                      |
-| VisualLayer          | Entity         | Registro de presentación asociado con una orden de trabajo y estado visual.                                                                                                                                          | ISO 9000 comportamiento de registros                                  |
-| SpatialMetadata      | Value Object   | Descriptor inmutable de ubicación y geometría para un artefacto visual.                                                                                                                                              | ISO 9000 separación de datos vs. información                          |
-| User                 | Aggregate Root | Raíz del ciclo de vida de cuenta, contraseña, bloqueo (lockout) y token.                                                                                                                                             | ISO 55000 gobernanza de auditorías; ISO 9000 control de auditorías    |
-| WorkOrderIsolation   | Entity         | Representa el estado y registro temporal del bloqueo de seguridad de un punto de aislamiento para una OT.                                                                                                            | ISO 55000 orientación LOTO; ISO 14224                                 |
-| Role                 | Aggregate Root | Raíz de la semántica de autorización y agrupación de permisos.                                                                                                                                                       | ISO 55000 orientación de competencias y roles                         |
-| Permission           | Value Object   | Regla de autorización atómica sin ciclo de vida independiente.                                                                                                                                                       | ISO 9000 flujo de trabajo controlado                                  |
-| AuthToken            | Entity         | Tiene ciclo de vida de emisión, uso y caducidad, y debe permanecer rastreable hasta su propietario.                                                                                                                  | ISO 9000 trazabilidad                                                 |
-| WorkOrderAssignment  | Entity         | Relación auditable entre un usuario/rol y una orden de trabajo.                                                                                                                                                      | ISO 55000 control de competencias                                     |
-| AuditLog             | Entity         | Registro de auditoría de solo adición que contiene el estado antes y después (before/after).                                                                                                                         | ISO 9000 evidencia de auditoría e inmutabilidad de registros          |
-| MaterialRequirement  | Entity           | Representa la planificación futura y reserva de consumo de un repuesto para una orden de trabajo específica.                                                                                                         | ISO 55000 planificación de recursos                                   |
+| Entity | DDD Stereotype | Justification | Reference Standard |
+| --- | --- | --- | --- |
+| FunctionalLocation | Aggregate Root | Owns the asset's location hierarchy and boundary definition. | ISO 14224 Chapters 8.1 and 8.2 |
+| EquipmentClass | Aggregate Root | Owns the asset class taxonomy and class-specific boundary semantics. | ISO 14224 Annex A |
+| EquipmentUnit | Aggregate Root | Owns the inventory record and the three-way status split for a physical asset. | ISO 14224 Chapter 9.1 and Table 5 |
+| Subunit | Entity | Depends on the parent asset's lifecycle and taxonomy context. | ISO 14224 Taxonomy Levels 6–9 |
+| MaintainableItem | Entity | Represents the lowest repairable level used for maintenance and failure analysis. | ISO 14224 Taxonomy Levels 8–9 |
+| WorkRequest | Aggregate Root | Initiates the maintenance intake flow and owns the RIME prioritization factors. | ISO 55000 risk and decision guidance; ADR 002 |
+| MaintenancePlan | Aggregate Root | Owns a planned maintenance schedule and its cadence. | ISO 14224 maintenance data guidance |
+| WorkOrder | Aggregate Root | Owns execution, history, attachments, and downstream work records. | ISO 14224 event data; ISO 9000 record control |
+| MediaAttachment | Value Object | Pure evidence payload with no independent business identity. | ISO 9000 documented information and records |
+| WorkOrderHistory | Entity | Append-only lifecycle transition record for a work order. | ISO 9000 record immutability |
+| FailureRecord | Entity | Historical failure event directly linked to the MaintainableItem that experiences it. | ISO 14224 failure logic |
+| BacklogItem | Entity | Derived prioritization record linked to maintenance intake and asset context. | ISO 55000 risk classification guidance |
+| SparePart | Aggregate Root | Inventory master record for a part family with stock policy and cost data. | ISO 14224 inventory data; ISO 55000 planning guidance |
+| InventoryTransaction | Entity | Traceable movement record linked to parts, work orders, and warehouses. | ISO 14224 transaction data; ISO 9000 traceability |
+| Warehouse | Aggregate Root | Represents a stock location boundary with capacity rules. | ISO 55000 resource planning guidance |
+| Supplier | Aggregate Root | Owns procurement identity, commercial context, and warranty logic. | ISO 9000 documented information |
+| MeshMapping | Entity | Graphical projection of the Sidecar pattern that uniquely links geometry (SVG or 3D mesh) with Level 6 (EquipmentUnit). Levels 7 and 8 do not possess individual geometric coordinates on the general blueprint. | ISO 9000 data vs. information separation |
+| TelemetrySignal | Entity | Raw measurement record with a timestamp used for traceability and safety analytics. | ISO 9000 monitoring and measurement |
+| WorkPermit | Aggregate Root | Safety authorization boundary that validates the execution of specific work orders in the field. | ISO 55000 competence and LOTO guidance |
+| IsolationPoint | Entity | Permanent lockout point belonging to an EquipmentUnit, required to be isolated during work orders. | ISO 55000 LOTO guidance; ISO 14224 governance |
+| VisualLayer | Entity | Presentation record associated with a work order and visual state. | ISO 9000 record behavior |
+| SpatialMetadata | Value Object | Immutable descriptor of location and geometry for a visual artifact. | ISO 9000 data vs. information separation |
+| User | Aggregate Root | Root of the account, password, lockout, and token lifecycle. | ISO 55000 audit governance; ISO 9000 audit control |
+| WorkOrderIsolation | Entity | Represents the state and temporal record of a safety lockout on an isolation point for a Work Order. | ISO 55000 LOTO guidance; ISO 14224 |
+| Role | Aggregate Root | Root of authorization semantics and permission grouping. | ISO 55000 competence and role guidance |
+| Permission | Value Object | Atomic authorization rule without an independent lifecycle. | ISO 9000 controlled workflow |
+| AuthToken | Entity | Has a lifecycle of issuance, usage, and expiration, and must remain traceable back to its owner. | ISO 9000 traceability |
+| WorkOrderAssignment | Entity | Auditable relationship between a user/role and a work order. | ISO 55000 competence control |
+| AuditLog | Entity | Append-only audit record containing the before/after state. | ISO 9000 audit evidence and record immutability |
+| MaterialRequirement | Entity | Represents future planning and consumption reservation of a spare part for a specific work order. | ISO 55000 resource planning |
 
-## 4. Vocabulario Controlado
+## 4. Controlled Vocabulary
 
-### Esquema: TAX
+### Schema: TAX
 
 #### 4.1 EquipmentUnit.healthStatus
 
-| Valor                 | Significado                                               | Norma / Concepto              |
-| --------------------- | --------------------------------------------------------- | ----------------------------- |
-| UNDETERMINED        | Estado de salud desconocido.                              | ISO 13374-4 Health Assessment |
-| GOOD                | Todos los indicadores dentro de límites normales.         | ISO 13374-4 Health Assessment |
-| FAIR                | Algunas anomalías leves detectadas, sin riesgo inmediato. | ISO 13374-4 Health Assessment |
-| SERIOUS_BUT_STABLE  | Anomalías serias pero sin empeoramiento progresivo.       | ISO 13374-4 Health Assessment |
-| SERIOUS             | Anomalías serias en deterioro.                            | ISO 13374-4 Health Assessment |
-| CRITICAL_BUT_STABLE | Condición crítica que no empeora a corto plazo.           | ISO 13374-4 Health Assessment |
-| CRITICAL            | Falla inminente, intervención inmediata requerida.        | ISO 13374-4 Health Assessment |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| UNDETERMINED | Unknown health status. | ISO 13374-4 Health Assessment |
+| GOOD | All indicators within normal limits. | ISO 13374-4 Health Assessment |
+| FAIR | Some minor anomalies detected, no immediate risk. | ISO 13374-4 Health Assessment |
+| SERIOUS_BUT_STABLE | Serious anomalies but without progressive worsening. | ISO 13374-4 Health Assessment |
+| SERIOUS | Serious anomalies deteriorating. | ISO 13374-4 Health Assessment |
+| CRITICAL_BUT_STABLE | Critical condition that does not worsen in the short term. | ISO 13374-4 Health Assessment |
+| CRITICAL | Imminent failure, immediate intervention required. | ISO 13374-4 Health Assessment |
 
 #### 4.2 EquipmentUnit.lifecycleStatus
 
-| Valor          | Significado                                                     |
-| -------------- | --------------------------------------------------------------- |
-| IN_STORAGE     | El activo existe como inventario pero no está instalado.        |
-| INSTALLED      | El activo está instalado físicamente en su ubicación funcional. |
-| COMMISSIONING  | El activo está siendo puesto en servicio.                       |
-| DECOMMISSIONED | El activo ha sido retirado permanentemente del servicio.        |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| IN_STORAGE | The asset exists as inventory but is not installed. | |
+| INSTALLED | The asset is physically installed in its functional location. | |
+| COMMISSIONING | The asset is being commissioned / put into service. | |
+| DECOMMISSIONED | The asset has been permanently retired from service. | |
 
 #### 4.3 EquipmentUnit.maintenanceStatus
 
-| Valor               | Significado                                                               |
-| ------------------- | ------------------------------------------------------------------------- |
-| OPERATIONAL       | El activo no se encuentra actualmente bajo intervención de mantenimiento. |
-| UNDER_MAINTENANCE | El activo está siendo reparado o atendido activamente.                    |
-| UNDER_TEST        | El activo está bajo verificación o prueba funcional.                      |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| OPERATIONAL | The asset is not currently under maintenance intervention. | |
+| UNDER_MAINTENANCE | The asset is actively being repaired or serviced. | |
+| UNDER_TEST | The asset is under functional testing or verification. | |
 
 #### 4.4 EquipmentUnit.operationalStatus
 
-| Valor     | Significado                                                       |
-| --------- | ----------------------------------------------------------------- |
-| UP      | El activo está en funcionamiento o listo en un sentido operativo. |
-| DOWN    | El activo no está disponible debido a una falla o interrupción.   |
-| STANDBY | El activo está listo pero no está produciendo activamente.        |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| UP | The asset is running or ready in an operational sense. | |
+| DOWN | The asset is unavailable due to failure or outage. | |
+| STANDBY | The asset is ready but not actively producing. | |
 
 #### 4.5 FunctionalLocation.environmentalExposure
 
-| Valor      | Significado                                                                                 | Norma de Referencia       |
-| ---------- | ------------------------------------------------------------------------------------------- | ------------------------- |
-| SEVERE   | Instalaciones no cerradas o a la intemperie; expuestas a vibración, calor, polvo o salitre. | ISO 14224:2016 Tabla A.70 |
-| MODERATE | Instalaciones parcialmente cerradas o moderadamente expuestas; ventilación natural.         | ISO 14224:2016 Tabla A.70 |
-| LOW      | Instalaciones cerradas o en interiores (indoor); exposición mínima; ventilación mecánica.   | ISO 14224:2016 Tabla A.70 |
-| UNKNOWN  | No se dispone de información sobre la exposición ambiental.                                 | ISO 14224:2016 Tabla A.70 |
+| Value | Meaning | Reference Norm |
+| --- | --- | --- |
+| SEVERE | Facilities not enclosed or outdoors; exposed to vibration, heat, dust, or salt spray. | ISO 14224:2016 Table A.70 |
+| MODERATE | Partially enclosed or moderately exposed facilities; natural ventilation. | ISO 14224:2016 Table A.70 |
+| LOW | Enclosed or indoor facilities; minimal exposure; mechanical ventilation. | ISO 14224:2016 Table A.70 |
+| UNKNOWN | Information on environmental exposure is not available. | ISO 14224:2016 Table A.70 |
 
 #### 4.6 MaintainableItem.status
 
-| Valor          | Significado                                                                               | Norma de Referencia                             |
-| -------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| OPERATIONAL  | Saludable y operando dentro de los parámetros de diseño.                                  | ISO 13374 (Normal)                              |
-| DEGRADED     | Falla parcial o advertencia de condición; requiere monitoreo o intervención planificada.  | ISO 14224 (Partial Failure) / ISO 13374 (Alert) |
-| FAILED       | Falla funcional completa; el ítem ya no puede realizar su función requerida.              | ISO 14224 (Complete Failure)                    |
-| UNDER_REPAIR | El componente está siendo mantenido, reparado o reemplazado activamente.                  | Estado transaccional EAM                        |
-| REPLACED     | Fin del ciclo de vida del componente en esa ubicación; conservado para historial de MTBF. | Historial de Confiabilidad                      |
+| Value | Meaning | Reference Norm |
+| --- | --- | --- |
+| OPERATIONAL | Healthy and operating within design parameters. | ISO 13374 (Normal) |
+| DEGRADED | Partial failure or condition warning; requires monitoring or planned intervention. | ISO 14224 (Partial Failure) / ISO 13374 (Alert) |
+| FAILED | Complete functional failure; the item can no longer perform its required function. | ISO 14224 (Complete Failure) |
+| UNDER_REPAIR | The component is actively being maintained, repaired, or replaced. | EAM Transactional State |
+| REPLACED | End of the component's lifecycle in that location; preserved for MTBF history. | Reliability History |
 
-### Esquema: MTTO
+### Schema: MTTO
 
 #### 4.7 BacklogItem.status
 
-| Valor      | Significado                                                        | Norma / Concepto      |
-| ---------- | ------------------------------------------------------------------ | --------------------- |
-| PENDING  | En espera de análisis técnico o definición de materiales.          | Cola de planificación |
-| READY    | Planificado completamente y listo para ser calendarizado.          | Listo para programar  |
-| DEFERRED | Aplazado intencionalmente (falta de presupuesto o parada general). | Suspensión en cola    |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| PENDING | Awaiting technical analysis or material definition. | Planning Queue |
+| READY | Fully planned and ready to be scheduled. | Ready to Schedule |
+| DEFERRED | Intentionally postponed (lack of budget or plant turnaround). | Queue Suspension |
 
 #### 4.8 FailureRecord.detectionMethod
 
-| Valor                     | Significado                                                                             | Norma de Referencia      |
-| ------------------------- | --------------------------------------------------------------------------------------- | ------------------------ |
-| PERIODIC_MAINTENANCE    | Descubierto durante actividades programadas del plan preventivo.                        | ISO 14224:2016 Tabla B.4 |
-| FUNCTIONAL_TESTING      | Descubierto al activar una función y comparar contra estándar.                          | ISO 14224:2016 Tabla B.4 |
-| INSPECTION              | Descubierto durante inspección visual planificada o ensayos NDT.                        | ISO 14224:2016 Tabla B.4 |
-| PERIODIC_CBM            | Revelado durante rondas de medición programadas (vibración, termografía offline).       | ISO 14224:2016 Tabla B.4 |
-| PRESSURE_TESTING        | Observado específicamente durante ensayo de presión.                                    | ISO 14224:2016 Tabla B.4 |
-| CONTINUOUS_CBM          | Revelado por alarmas o lecturas de instrumentos en línea (SCADA).                       | ISO 14224:2016 Tabla B.4 |
-| PRODUCTION_INTERFERENCE | Descubierto por interrupción o reducción inesperada de producción.                      | ISO 14224:2016 Tabla B.4 |
-| CASUAL_OBSERVATION      | Descubierto por los sentidos (ruido, olor, fuga) en rutinas normales.                   | ISO 14224:2016 Tabla B.4 |
-| CORRECTIVE_MAINTENANCE  | Observado mientras se reparaba otra falla distinta.                                     | ISO 14224:2016 Tabla B.4 |
-| ON_DEMAND               | Descubierto durante un intento real de activación (ej. falla de cierre de válvula ESD). | ISO 14224:2016 Tabla B.4 |
-| OTHER                   | Otro método de detección no clasificado.                                                | ISO 14224:2016 Tabla B.4 |
+| Value | Meaning | Reference Norm |
+| --- | --- | --- |
+| PERIODIC_MAINTENANCE | Discovered during scheduled activities of the preventive plan. | ISO 14224:2016 Table B.4 |
+| FUNCTIONAL_TESTING | Discovered when activating a function and comparing against standard. | ISO 14224:2016 Table B.4 |
+| INSPECTION | Discovered during planned visual inspection or NDT testing. | ISO 14224:2016 Table B.4 |
+| PERIODIC_CBM | Revealed during scheduled measurement rounds (vibration, offline thermography). | ISO 14224:2016 Table B.4 |
+| PRESSURE_TESTING | Observed specifically during pressure testing. | ISO 14224:2016 Table B.4 |
+| CONTINUOUS_CBM | Revealed by alarms or online instrument readings (SCADA). | ISO 14224:2016 Table B.4 |
+| PRODUCTION_INTERFERENCE | Discovered by unexpected interruption or reduction in production. | ISO 14224:2016 Table B.4 |
+| CASUAL_OBSERVATION | Discovered by senses (noise, smell, leak) during normal routines. | ISO 14224:2016 Table B.4 |
+| CORRECTIVE_MAINTENANCE | Observed while repairing a different failure. | ISO 14224:2016 Table B.4 |
+| ON_DEMAND | Discovered during an actual attempt to activate (e.g., failure of an ESD valve to close). | ISO 14224:2016 Table B.4 |
+| OTHER | Other unclassified detection method. | ISO 14224:2016 Table B.4 |
 
 #### 4.9 FailureRecord.operationalCondition
 
-| Valor          | Significado                                                | Norma de Referencia    |
-| -------------- | ---------------------------------------------------------- | ---------------------- |
-| RUNNING      | En operación normal de proceso al momento del evento.      | ISO 14224:2016 Tabla 6 |
-| START_UP     | Ocurrido durante el proceso de puesta en marcha.           | ISO 14224:2016 Tabla 6 |
-| RUN_DOWN     | Ocurrido durante el proceso de parada/salida de servicio.  | ISO 14224:2016 Tabla 6 |
-| HOT_STANDBY  | En reserva activa (listo para operar de inmediato).        | ISO 14224:2016 Tabla 6 |
-| COLD_STANDBY | En reserva pasiva (requiere acciones previas para operar). | ISO 14224:2016 Tabla 6 |
-| IDLE         | Disponible pero no requerido por el proceso.               | ISO 14224:2016 Tabla 6 |
-| TESTING      | Ocurrido durante la ejecución de una prueba funcional.     | ISO 14224:2016 Tabla 6 |
+| Value | Meaning | Reference Norm |
+| --- | --- | --- |
+| RUNNING | In normal process operation at the time of the event. | ISO 14224:2016 Table 6 |
+| START_UP | Occurred during the start-up process. | ISO 14224:2016 Table 6 |
+| RUN_DOWN | Occurred during the shutdown/take-out-of-service process. | ISO 14224:2016 Table 6 |
+| HOT_STANDBY | In active standby (ready to operate immediately). | ISO 14224:2016 Table 6 |
+| COLD_STANDBY | In passive standby (requires prior actions to operate). | ISO 14224:2016 Table 6 |
+| IDLE | Available but not required by the process. | ISO 14224:2016 Table 6 |
+| TESTING | Occurred during the execution of a functional test. | ISO 14224:2016 Table 6 |
 
 #### 4.10 FailureRecord.operationalImpact
 
-| Valor                   | Significado                                                     | Norma de Referencia      |
-| ----------------------- | --------------------------------------------------------------- | ------------------------ |
-| EXTENSIVE_STOP        | Parada extensa catastrófica de la producción o instalación.     | ISO 14224:2016 Tabla C.2 |
-| STOP_ABOVE_ACCEPTABLE | Parada de producción por encima del límite aceptable de planta. | ISO 14224:2016 Tabla C.2 |
-| STOP_BELOW_ACCEPTABLE | Parada de producción por debajo del límite aceptable.           | ISO 14224:2016 Tabla C.2 |
-| STOP_MINOR            | Impacto de producción menor o despreciable.                     | ISO 14224:2016 Tabla C.2 |
+| Value | Meaning | Reference Norm |
+| --- | --- | --- |
+| EXTENSIVE_STOP | Extensive catastrophic shutdown of production or facility. | ISO 14224:2016 Table C.2 |
+| STOP_ABOVE_ACCEPTABLE | Production shutdown above the acceptable plant limit. | ISO 14224:2016 Table C.2 |
+| STOP_BELOW_ACCEPTABLE | Production shutdown below the acceptable limit. | ISO 14224:2016 Table C.2 |
+| STOP_MINOR | Minor or negligible production impact. | ISO 14224:2016 Table C.2 |
 
 #### 4.11 MaintenancePlan.frequencyType
 
-| Valor             | Significado                                                      |
-| ----------------- | ---------------------------------------------------------------- |
-| CALENDAR_TIME   | El plan es impulsado por el tiempo calendario transcurrido.      |
-| OPERATING_HOURS | El plan es impulsado por las horas de funcionamiento acumuladas. |
-| CYCLES          | El plan es impulsado por ciclos o arranques.                     |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| CALENDAR_TIME | The plan is driven by elapsed calendar time. | |
+| OPERATING_HOURS | The plan is driven by accumulated operating hours. | |
+| CYCLES | The plan is driven by cycles or starts. | |
 
 #### 4.12 MaintenancePlan.maintenanceMethod
 
-| Valor             | Significado                                                         | Norma / Concepto            |
-| ----------------- | ------------------------------------------------------------------- | --------------------------- |
-| PREVENTIVE      | Mantenimiento preventivo sistemático (basado en tiempo/uso).        | ISO 14224 (Preventative)    |
-| PREDICTIVE      | Monitoreo predictivo (análisis de vibraciones, termografía, etc.).  | ISO 14224 (Condition-based) |
-| CONDITION_BASED | Acciones directas disparadas por límites de sensores en telemetría. | ISO 13374 / CBM             |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| PREVENTIVE | Systematic preventive maintenance (time/usage-based). | ISO 14224 (Preventative) |
+| PREDICTIVE | Predictive monitoring (vibration analysis, thermography, etc.). | ISO 14224 (Condition-based) |
+| CONDITION_BASED | Direct actions triggered by sensor limits in telemetry. | ISO 13374 / CBM |
 
 #### 4.13 MaintenancePlan.requiredSpecialty
 
-| Valor                         | Significado                                                              | Referencia / Marco                       |
-| ----------------------------- | ------------------------------------------------------------------------ | ---------------------------------------- |
-| MECHANICAL                  | Intervenciones mecánicas, ajuste de transmisión, alineación y bombas.    | Vocabulario Interno (Prácticas SMRP)     |
-| ELECTRICAL                  | Sistemas de potencia, motores eléctricos, tableros y subestaciones.      | Vocabulario Interno (Prácticas SMRP)     |
-| INSTRUMENTATION_AND_CONTROL | Calibración de instrumentos, lazos de control y automatización/PLCs.     | Vocabulario Interno (Prácticas SMRP)     |
-| LUBRICATION                 | Rutas de lubricación, cambio de aceites y engrase especializado.         | Vocabulario Interno (ISO 18436-4 / SMRP) |
-| CONDITION_MONITORING        | Rutas de monitoreo predictivo (vibraciones, termografía, ultrasonido).   | Vocabulario Interno (ISO 18436-2 / SMRP) |
-| ELECTRONICS                 | Tarjetas electrónicas, variadores de frecuencia y componentes digitales. | Vocabulario Interno (Prácticas SMRP)     |
-| WELDING_FABRICATION         | Soldadura, pailería, calderería y reparaciones estructurales.            | Vocabulario Interno (Prácticas SMRP)     |
-| FACILITIES                  | Infraestructura civil, estructuras, iluminación y servicios generales.   | Vocabulario Interno (Prácticas EAM)      |
+| Value | Meaning | Reference / Framework |
+| --- | --- | --- |
+| MECHANICAL | Mechanical interventions, transmission adjustment, alignment, and pumps. | Internal Vocabulary (SMRP Practices) |
+| ELECTRICAL | Power systems, electric motors, switchboards, and substations. | Internal Vocabulary (SMRP Practices) |
+| INSTRUMENTATION_AND_CONTROL | Instrument calibration, control loops, and automation/PLCs. | Internal Vocabulary (SMRP Practices) |
+| LUBRICATION | Lubrication routes, oil changes, and specialized greasing. | Internal Vocabulary (ISO 18436-4 / SMRP) |
+| CONDITION_MONITORING | Predictive monitoring routes (vibrations, thermography, ultrasound). | Internal Vocabulary (ISO 18436-2 / SMRP) |
+| ELECTRONICS | Electronic boards, variable frequency drives, and digital components. | Internal Vocabulary (SMRP Practices) |
+| WELDING_FABRICATION | Welding, boilermaking, pipefitting, and structural repairs. | Internal Vocabulary (SMRP Practices) |
+| FACILITIES | Civil infrastructure, structures, lighting, and general services. | Internal Vocabulary (EAM Practices) |
 
 #### 4.14 MaintenancePlan.status
 
-| Valor      | Significado                                                     | Norma / Concepto        |
-| ---------- | --------------------------------------------------------------- | ----------------------- |
-| DRAFT    | Plan en fase de diseño o revisión técnica, inactivo.            | Control documental      |
-| ACTIVE   | Activo y disparando órdenes de trabajo según su ciclo.          | Operativo               |
-| INACTIVE | Desactivado temporalmente por parada o cambio operativo.        | Suspensión de ciclos    |
-| ARCHIVED | Obsoleto o reemplazado; conservado para historial de auditoría. | ISO 55001 Ciclo de Vida |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| DRAFT | Plan in design or technical review phase, inactive. | Document control |
+| ACTIVE | Active and triggering work orders according to its cycle. | Operational |
+| INACTIVE | Temporarily deactivated due to outage or operational change. | Cycle suspension |
+| ARCHIVED | Obsolete or replaced; retained for audit history. | ISO 55001 Lifecycle |
 
 #### 4.15 MediaAttachment.fileType
 
-| Valor | Significado                                               |
-| ----- | --------------------------------------------------------- |
-| PDF | Portable Document Format (Formato de Documento Portátil). |
-| JPG | Archivo de imagen JPEG.                                   |
-| PNG | Archivo de imagen Portable Network Graphics.              |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| PDF | Portable Document Format. | |
+| JPG | JPEG image file. | |
+| PNG | Portable Network Graphics image file. | |
 
 #### 4.16 WorkOrder.criticality
 
-| Valor       | Significado                                                           | Norma / Concepto  |
-| ----------- | --------------------------------------------------------------------- | ----------------- |
-| EMERGENCY | Detención total de planta, riesgo de seguridad o ambiental inminente. | Criticidad Máxima |
-| URGENT    | Falla con impacto operativo inmediato; reparar en menos de 24-48h.    | Prioridad Alta    |
-| NORMAL    | Planificable dentro de los ciclos y ventanas semanales.               | Prioridad Media   |
-| LOW       | Tareas estéticas o menores de conveniencia operativa.                 | Prioridad Baja    |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| EMERGENCY | Total plant shutdown, imminent safety or environmental risk. | Maximum Criticality |
+| URGENT | Failure with immediate operational impact; repair in under 24-48h. | High Priority |
+| NORMAL | Plannable within weekly cycles and windows. | Medium Priority |
+| LOW | Aesthetic tasks or minor operational convenience. | Low Priority |
 
 #### 4.17 WorkOrder.currentStatus
 
-| Valor           | Significado                                                    | Norma / Concepto                  |
-| --------------- | -------------------------------------------------------------- | --------------------------------- |
-| PLANNING      | Definición de repuestos, permisos LOTO y recursos.             | FSM - Planificación               |
-| WAITING_PARTS | Espera activa de repuestos en almacén/compras.                 | FSM - Cuello de botella logístico |
-| SCHEDULED     | Asignado con técnico y fecha de ejecución programada.          | FSM - Programación                |
-| IN_PROGRESS   | El técnico está ejecutando la labor (clock-in activo).         | FSM - Ejecución ("Wrench Time")   |
-| COMPLETE      | Trabajo técnico finalizado, en espera de revisión.             | FSM - Pre-cierre técnico          |
-| CLOSED        | Cerrada administrativamente e ingresados los códigos de falla. | FSM - QA / Auditoría ISO 14224    |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| PLANNING | Definition of spare parts, LOTO permits, and resources. | FSM - Planning |
+| WAITING_PARTS | Active waiting for spare parts in warehouse/purchasing. | FSM - Logistics Bottleneck |
+| SCHEDULED | Assigned with technician and scheduled execution date. | FSM - Scheduling |
+| IN_PROGRESS | The technician is executing the labor (clock-in active). | FSM - Execution ("Wrench Time") |
+| COMPLETE | Technical work finished, pending review. | FSM - Technical Pre-closure |
+| CLOSED | Administratively closed and failure codes entered. | FSM - QA / ISO 14224 Audit |
 
-**Restricciones de Transición FSM (Seguridad Industrial & LOTO):**
+**FSM Transition Constraints (Industrial Safety & LOTO):**
 
-- Para transicionar de cualquier estado previo (PLANNING, SCHEDULED, WAITING_PARTS) a **IN_PROGRESS**, el sistema debe verificar programáticamente las siguientes precondiciones:
-  1.  **Permiso de Trabajo (WorkPermit):** Debe existir un permiso de trabajo asociado y su estado (status) debe ser estrictamente APPROVED.
-  2.  **Bloqueo y Etiquetado (LOTO):** Todos los puntos de aislamiento declarados para la orden de trabajo en la tabla intermedia work_order_isolations deben tener su estado de bloqueo verificado (is_isolated = TRUE e isolated_at no nulo).
+- To transition from any previous state (`PLANNING`, `SCHEDULED`, `WAITING_PARTS`) to **`IN_PROGRESS`**, the system must programmatically verify the following preconditions:
+  1. **Work Permit (`WorkPermit`):** An associated work permit must exist and its `status` must be strictly `APPROVED`.
+  2. **Lockout/Tagout (LOTO):** All isolation points declared for the work order in the intermediate `work_order_isolations` table must have their lockout status verified (`is_isolated = TRUE` and `isolated_at` not null).
 
 #### 4.18 WorkOrder.maintenanceMethod
 
-| Valor         | Significado                                                | Norma / Concepto                |
-| ------------- | ---------------------------------------------------------- | ------------------------------- |
-| CORRECTIVE  | Mantenimiento correctivo reactivo (reparación tras falla). | ISO 14224 (Corrective)          |
-| PREVENTIVE  | Preventivo sistemático programado (derivado de plan).      | ISO 14224 (Preventative)        |
-| PREDICTIVE  | Monitoreo o inspección predictiva programada.              | ISO 14224 (Condition-based)     |
-| IMPROVEMENT | Modificación, rediseño o mejora técnica (CAPEX/OPEX).      | Gestión de Cambios / Ingeniería |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| CORRECTIVE | Reactive corrective maintenance (repair after failure). | ISO 14224 (Corrective) |
+| PREVENTIVE | Systematic scheduled preventive (derived from plan). | ISO 14224 (Preventative) |
+| PREDICTIVE | Scheduled predictive monitoring or inspection. | ISO 14224 (Condition-based) |
+| IMPROVEMENT | Modification, redesign, or technical improvement (CAPEX/OPEX). | Change Management / Engineering |
 
 #### 4.19 WorkRequest.status
 
-| Valor      | Significado                                            | Norma / Concepto                 |
-| ---------- | ------------------------------------------------------ | -------------------------------- |
-| NEW      | Solicitud recién creada y pendiente de evaluación.     | Admisión básica de CMMS          |
-| APPROVED | Aprobada y promovida a Orden de Trabajo (WorkOrder). | Transición a planificación       |
-| REJECTED | Rechazada por ser inválida, duplicada o falsa alarma.  | Trazabilidad de falsos positivos |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| NEW | Newly created request pending evaluation. | Basic CMMS Intake |
+| APPROVED | Approved and promoted to Work Order (`WorkOrder`). | Transition to planning |
+| REJECTED | Rejected for being invalid, duplicated, or a false alarm. | False positive traceability |
 
 #### 4.20 WorkRequest.workClassCode (Work Class RIME)
 
-| Código (Peso) | Clase de Trabajo                           | Ejemplo Industrial                                                 |
-| ------------- | ------------------------------------------ | ------------------------------------------------------------------ |
-| 10            | Emergencia de Seguridad o Ambiental        | Fuga de hidrocarburos, falla de aislamiento de seguridad crítica.  |
-| 9             | Parada de Producción (Downtime Directo)    | Falla funcional catastrófica en un activo crítico (Bomba Nivel 6). |
-| 8             | Trabajo de Alta Prioridad de Proceso       | Degradación de rendimiento con riesgo inminente de detención.      |
-| 7             | Mantenimiento Preventivo (PM) Regulado     | Calibraciones de seguridad instrumentada exigidas por ley.         |
-| 6             | Mantenimiento Preventivo Sistemático       | Planes cíclicos calendario o por telemetría.                       |
-| 5             | Mantenimiento Predictivo (Análisis / Ruta) | Inspección de vibraciones, termografía planificada.                |
-| 4             | Trabajo Correctivo No Crítico              | Reparación de fallas con redundancia activa en el sistema.         |
-| 3             | Modificaciones de Ingeniería (Mejoras)     | Proyectos de optimización CAPEX (No urgentes).                     |
-| 2             | Trabajos Estéticos / Orden y Aseo          | Pintura de estructuras, barandas, limpieza general.                |
-| 1             | Trabajo por Conveniencia Operativa         | Ajustes menores de confort o soporte administrativo.               |
+| Code (Weight) | Work Class | Industrial Example |
+| --- | --- | --- |
+| 10 | Safety or Environmental Emergency | Hydrocarbon leak, critical safety isolation failure. |
+| 9 | Production Shutdown (Direct Downtime) | Catastrophic functional failure in a critical asset (Level 6 Pump). |
+| 8 | High Priority Process Work | Performance degradation with imminent risk of shutdown. |
+| 7 | Regulated Preventive Maintenance (PM) | Instrumented safety calibrations required by law. |
+| 6 | Systematic Preventive Maintenance | Calendar or telemetry-based cyclical plans. |
+| 5 | Predictive Maintenance (Analysis / Route) | Vibration inspection, planned thermography. |
+| 4 | Non-Critical Corrective Work | Repair of failures with active redundancy in the system. |
+| 3 | Engineering Modifications (Improvements) | CAPEX optimization projects (Non-urgent). |
+| 2 | Aesthetic Work / Order and Cleanliness | Painting structures, handrails, general cleaning. |
+| 1 | Work for Operational Convenience | Minor comfort adjustments or administrative support. |
 
-### Esquema: INV
+### Schema: INV
 
 #### 4.21 InventoryTransaction.transactionType
 
-| Valor        | Significado                                                 | Norma / Concepto           |
-| ------------ | ----------------------------------------------------------- | -------------------------- |
-| RECEIPT    | Entrada de inventario (compra, devolución, transferencia).  | Ingesta de Stock           |
-| ISSUE      | Salida de inventario (consumo en Orden de Trabajo).         | Carga a Costos de OT       |
-| ADJUSTMENT | Ajuste manual/automático por discrepancia en conteo físico. | Conciliación de Inventario |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| RECEIPT | Inventory input (purchase, return, transfer). | Stock Intake |
+| ISSUE | Inventory output (consumption in Work Order). | Charge to WO Costs |
+| ADJUSTMENT | Manual/automatic adjustment due to physical count discrepancy. | Inventory Reconciliation |
 
 #### 4.22 SparePart.status
 
-| Valor       | Significado                                                               | Norma / Concepto        |
-| ----------- | ------------------------------------------------------------------------- | ----------------------- |
-| ACTIVE    | Activo y disponible para consumo y compras.                               | Gestión de Stock        |
-| OBSOLETE  | Obsoleto, no se permite nueva compra (se mantiene para historial).        | ISO 55001 Ciclo de Vida |
-| SUSPENDED | Temporalmente bloqueado por control de calidad o problemas del proveedor. | Control de Calidad      |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| ACTIVE | Active and available for consumption and purchases. | Stock Management |
+| OBSOLETE | Obsolete, no new purchase allowed (kept for history). | ISO 55001 Lifecycle |
+| SUSPENDED | Temporarily blocked due to quality control or supplier issues. | Quality Control |
 
 #### 4.23 SparePart.stockPolicy
 
-| Valor           | Significado                                                                 |
-| --------------- | --------------------------------------------------------------------------- |
-| REORDER_POINT | Reabastecer cuando el inventario alcance un umbral de activación (trigger). |
-| MIN_MAX       | Mantener el stock entre niveles mínimo y máximo.                            |
-| JUST_IN_TIME  | Reabastecer solo cuando se espere demanda.                                  |
-
-### Esquema: VIS
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| REORDER_POINT | Replenish when inventory reaches an activation threshold (trigger). | |
+| MIN_MAX | Maintain stock between minimum and maximum levels. | |
+| JUST_IN_TIME | Replenish only when demand is expected. | |
+### Schema: VIS
 
 #### 4.24 IsolationPoint.isolationType
 
-| Valor           | Significado                                                 | Norma / Concepto       |
-| --------------- | ----------------------------------------------------------- | ---------------------- |
-| ELECTRICAL    | Apertura de disyuntores, breakers o desconexión física.     | LOTO Eléctrico (OSHA)  |
-| MECHANICAL    | Bloqueos mecánicos, pasadores o trabas físicas.             | LOTO Mecánico          |
-| PNEUMATIC     | Purga y bloqueo de líneas de aire o gases comprimidos.      | LOTO Neumático         |
-| HYDRAULIC     | Cierre de válvulas de fluido y purga de acumuladores.       | LOTO Hidráulico        |
-| CHEMICAL      | Cierre de doble válvula y purga (Double Block and Bleed).   | LOTO Químico / Proceso |
-| THERMAL       | Aislamiento térmico de superficies calientes o criogénicas. | LOTO Térmico           |
-| GRAVITATIONAL | Bloques físicos para prevenir caída de masas suspendidas.   | LOTO de Gravedad       |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| ELECTRICAL | Opening of circuit breakers or physical disconnection. | Electrical LOTO (OSHA) |
+| MECHANICAL | Mechanical locks, pins, or physical blocks. | Mechanical LOTO |
+| PNEUMATIC | Bleeding and locking of compressed air or gas lines. | Pneumatic LOTO |
+| HYDRAULIC | Closing of fluid valves and accumulator bleeding. | Hydraulic LOTO |
+| CHEMICAL | Double Block and Bleed. | Chemical / Process LOTO |
+| THERMAL | Thermal isolation of hot or cryogenic surfaces. | Thermal LOTO |
+| GRAVITATIONAL | Physical blocks to prevent suspended masses from falling. | Gravitational LOTO |
 
 #### 4.25 MeshMapping.mappingStatus
 
-| Valor        | Significado                                                                 | Norma / Concepto        |
-| ------------ | --------------------------------------------------------------------------- | ----------------------- |
-| MAPPED     | El activo está correctamente vinculado a su representación 3D en el gemelo. | Vinculación Digital     |
-| UNMAPPED   | Falta cargar o posicionar la malla 3D del activo.                           | Gemelo Incompleto       |
-| SYNC_ERROR | Error de consistencia o carga entre el motor gráfico y la DB.               | Error de Sincronización |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| MAPPED | The asset is correctly linked to its 3D representation in the twin. | Digital Linking |
+| UNMAPPED | The asset's 3D mesh is missing or unpositioned. | Incomplete Twin |
+| SYNC_ERROR | Consistency or loading error between the graphics engine and the DB. | Synchronization Error |
 
 #### 4.26 TelemetrySignal.signalType
 
-| Valor         | Significado                           | Norma / Concepto        |
-| ------------- | ------------------------------------- | ----------------------- |
-| TEMPERATURE | Medición térmica.                     | Sensor de Temperatura   |
-| PRESSURE    | Medición de presión de fluidos/gases. | Sensor de Presión       |
-| VIBRATION   | Medición de oscilaciones mecánicas.   | Análisis de Vibraciones |
-| FLOW_RATE   | Medición de caudal o flujo.           | Caudalímetro            |
-| VOLTAGE     | Medición de tensión eléctrica.        | Sensor de Tensión       |
-| RPM         | Medición de velocidad angular.        | Tacómetro               |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| TEMPERATURE | Thermal measurement. | Temperature Sensor |
+| PRESSURE | Fluid/gas pressure measurement. | Pressure Sensor |
+| VIBRATION | Mechanical oscillation measurement. | Vibration Analysis |
+| FLOW_RATE | Flow rate measurement. | Flowmeter |
+| VOLTAGE | Electrical voltage measurement. | Voltage Sensor |
+| RPM | Angular velocity measurement. | Tachometer |
 
 #### 4.27 VisualLayer.status
 
-| Valor     | Significado                                             | Norma / Concepto   |
-| --------- | ------------------------------------------------------- | ------------------ |
-| VISIBLE | Capa visualizada activamente en el visor 3D.            | Estado Renderizado |
-| HIDDEN  | Capa oculta temporalmente.                              | Estado Renderizado |
-| GHOSTED | Capa visible con transparencia para revelar interiores. | Estado Renderizado |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| VISIBLE | Layer actively displayed in the 3D viewer. | Rendered State |
+| HIDDEN | Layer temporarily hidden. | Rendered State |
+| GHOSTED | Layer visible with transparency to reveal interiors. | Rendered State |
 
 #### 4.28 WorkPermit.permitType
 
-| Valor            | Significado                                                          | Norma / Concepto                |
-| ---------------- | -------------------------------------------------------------------- | ------------------------------- |
-| HOT_WORK       | Trabajo con fuentes de ignición o llama abierta (requiere extintor). | Seguridad Industrial (OSHA)     |
-| COLD_WORK      | Trabajo estándar sin peligro de chispa (mecánico, limpieza).         | Seguridad Industrial (OSHA)     |
-| CONFINED_SPACE | Entrada a tanques, ductos o áreas con ventilación limitada.          | Espacio Confinado (Alto Riesgo) |
-| ELECTRICAL     | Intervención en líneas de alta o media tensión (requiere LOTO).      | Riesgo Eléctrico                |
-| WORK_AT_HEIGHT | Trabajo a más de 1.5m de altura con riesgo de caída.                 | Alturas (OSHA / Res. 4272)      |
-| EXCAVATION     | Excavaciones, zanjas o movimientos de tierra profundos.              | Excavación (OSHA)               |
-| CHEMICAL       | Manejo o exposición a químicos peligrosos o gases nocivos.           | Riesgo Químico                  |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| HOT_WORK | Work with ignition sources or open flame (requires extinguisher). | Industrial Safety (OSHA) |
+| COLD_WORK | Standard work without spark hazards (mechanical, cleaning). | Industrial Safety (OSHA) |
+| CONFINED_SPACE | Entry into tanks, ducts, or areas with limited ventilation. | Confined Space (High Risk) |
+| ELECTRICAL | Intervention in high or medium voltage lines (requires LOTO). | Electrical Risk |
+| WORK_AT_HEIGHT | Work above 1.5m in height with fall risk. | Heights (OSHA / Res. 4272) |
+| EXCAVATION | Excavations, trenches, or deep earthworks. | Excavation (OSHA) |
+| CHEMICAL | Handling or exposure to hazardous chemicals or noxious gases. | Chemical Risk |
 
 #### 4.29 WorkPermit.status
 
-| Valor      | Significado                                                          | Norma / Concepto             |
-| ---------- | -------------------------------------------------------------------- | ---------------------------- |
-| DRAFT    | Permiso preparado por el ejecutor pero aún no radicado.              | Ciclo de Autorización        |
-| PENDING  | Radicado y en proceso de evaluación y firma por el supervisor.       | Ciclo de Autorización        |
-| APPROVED | Autorizado formalmente (habilita la orden de trabajo).               | Permiso Activo / FSM Trigger |
-| EXPIRED  | Vencido automáticamente (se superó la ventana horaria de vigencia).  | Control de Riesgos           |
-| REVOKED  | Cancelado inmediatamente por condiciones inseguras en campo.         | Intervención de Emergencia   |
-| CLOSED   | Finalizado formalmente tras concluir la intervención y retirar LOTO. | Cierre de Operación          |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| DRAFT | Permit prepared by the executor but not yet submitted. | Authorization Cycle |
+| PENDING | Submitted and in the process of evaluation and signature by the supervisor. | Authorization Cycle |
+| APPROVED | Formally authorized (enables the work order). | Active Permit / FSM Trigger |
+| EXPIRED | Automatically expired (the valid time window was exceeded). | Risk Control |
+| REVOKED | Immediately canceled due to unsafe conditions in the field. | Emergency Intervention |
+| CLOSED | Formally finished after concluding the intervention and removing LOTO. | Operation Closure |
 
-### Esquema: ADM
+### Schema: ADM
 
 #### 4.30 AuditLog.actionType
 
-| Valor    | Significado                                                | Norma / Concepto   |
-| -------- | ---------------------------------------------------------- | ------------------ |
-| CREATE | Registro inicial de un nuevo objeto en el sistema.         | Auditoría ISO 9001 |
-| UPDATE | Modificación de campos existentes (rastrea estado previo). | Auditoría ISO 9001 |
-| DELETE | Eliminación lógica o física de una entidad crítica.        | Auditoría ISO 9001 |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| CREATE | Initial record of a new object in the system. | ISO 9001 Audit |
+| UPDATE | Modification of existing fields (tracks previous state). | ISO 9001 Audit |
+| DELETE | Logical or physical deletion of a critical entity. | ISO 9001 Audit |
 
 #### 4.31 RolePermission.module
 
-| Valor         | Significado                                          | Norma / Concepto         |
-| ------------- | ---------------------------------------------------- | ------------------------ |
-| ASSETS      | Gestión de taxonomía, equipos y planes.              | Dominio de Activos       |
-| MAINTENANCE | Gestión de solicitudes, backlog e historial.         | Dominio de Mantenimiento |
-| INVENTORY   | Gestión de repuestos, almacenes y movimientos.       | Dominio de Inventario    |
-| SAFETY      | Gestión de telemetría, permisos LOTO y aislamientos. | Dominio de Seguridad     |
-| SYSTEM      | Gobernanza, usuarios, roles y logs de auditoría.     | Dominio IAM              |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| ASSETS | Management of taxonomy, equipment, and plans. | Assets Domain |
+| MAINTENANCE | Management of requests, backlog, and history. | Maintenance Domain |
+| INVENTORY | Management of spare parts, warehouses, and movements. | Inventory Domain |
+| SAFETY | Management of telemetry, LOTO permits, and isolations. | Safety Domain |
+| SYSTEM | Governance, users, roles, and audit logs. | IAM Domain |
 
 #### 4.32 User.status
 
-| Valor      | Significado                                                           | Norma / Concepto           |
-| ---------- | --------------------------------------------------------------------- | -------------------------- |
-| ACTIVE   | Cuenta activa y autorizada para interactuar con la plataforma.        | Ciclo de Vida de Cuenta    |
-| INACTIVE | Cuenta desactivada temporal o permanentemente (historial preservado). | Ciclo de Vida de Cuenta    |
-| LOCKED   | Bloqueada automáticamente tras exceder intentos fallidos de login.    | Mitigación de Fuerza Bruta |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| ACTIVE | Active account authorized to interact with the platform. | Account Lifecycle |
+| INACTIVE | Account deactivated temporarily or permanently (history preserved). | Account Lifecycle |
+| LOCKED | Automatically locked after exceeding failed login attempts. | Brute Force Mitigation |
 
 #### 4.33 WorkOrderAssignment.roleInWork
 
-| Valor        | Significado                                                   | Norma / Concepto            |
-| ------------ | ------------------------------------------------------------- | --------------------------- |
-| TECHNICIAN | Técnico ejecutor que realiza la labor y registra wrench time. | Ejecución Técnica           |
-| SUPERVISOR | Supervisor que firma el cierre técnico y aprueba LOTO.        | Responsable de Línea        |
-| PLANNER    | Planificador que diseña la orden, asigna repuestos y tiempos. | Ingeniería de Mantenimiento |
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| TECHNICIAN | Executing technician who performs the labor and logs wrench time. | Technical Execution |
+| SUPERVISOR | Supervisor who signs the technical closure and approves LOTO. | Line Manager |
+| PLANNER | Planner who designs the order, assigns spare parts, and times. | Maintenance Engineering |
 
-## 5. Mapeo Físico y Diccionario de Datos
+## 5. Physical Mapping and Data Dictionary
 
-Para detalles sobre el mapeo físico y el esquema relacional consulte [[DT-ERD-DOC-001]]. 
+For details on the physical mapping and the relational schema, see [[DT-ERD-DOC-001]].
 
-## 6. Notas Finales
+## 6. Final Notes
 
-- El modelo de dominio debe seguir siendo la fuente de verdad del negocio hasta que se genere el ERD físico.
-- Los vocabularios controlados que son estables y de baja cardinalidad pueden hacerse cumplir mediante restricciones CHECK.
-- Los vocabularios que probablemente cambiarán o crecerán deben trasladarse a tablas de búsqueda (lookup tables).
-- Los registros de fallas y auditorías deben permanecer de solo adición (append-only) y rastreables.
-- El vocabulario relacionado con la seguridad para permisos y puntos de aislamiento debe tratarse como datos de cumplimiento controlados, no como texto libre.
+- The domain model must remain the business source of truth until the physical ERD is generated.
+- Controlled vocabularies that are stable and of low cardinality can be enforced via CHECK constraints.
+- Vocabularies that are likely to change or grow must be moved to lookup tables.
+- Failure and audit logs must remain append-only and traceable.
+- Safety-related vocabulary for permits and isolation points must be treated as controlled compliance data, not as free text.

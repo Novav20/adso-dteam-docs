@@ -37,3 +37,16 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **BOM (Bill of Materials)** | Lista de Materiales | The comprehensive list of parts, items, and materials required to perform a specific maintenance task. |
 | **Work Request (WR)** | Solicitud de Trabajo | An unapproved report of an anomaly or request for maintenance work. It must be validated by a Planner before becoming a WO. |
 | **RUL (Remaining Useful Life)** | Vida Útil Restante | The estimated time an Equipment Unit can continue to operate before it fails, typically calculated via ML/predictive models. |
+| **Subunit** | Subunidad | A major structural or functional part of an Equipment Unit (ISO 14224 Level 7). |
+| **Maintenance Plan** | Plan de Mantenimiento | Owns a planned maintenance schedule and its cadence. |
+| **Failure Record** | Registro de Falla | Historical failure event directly linked to a Maintainable Item. |
+| **Backlog Item** | Ítem de Backlog | Derived prioritization record linked to maintenance intake. |
+| **Inventory Transaction** | Transacción de Inventario | Traceable movement record linked to parts, WOs, and warehouses. |
+| **Warehouse** | Almacén / Bodega | Represents a stock location boundary with capacity rules. |
+| **Supplier** | Proveedor | Owns procurement identity, commercial context, and warranty logic. |
+| **Mesh Mapping** | Mapeo de Malla (Mesh) | Graphical projection linking a 3D mesh or SVG with an Equipment Unit. |
+| **Telemetry Signal** | Señal de Telemetría | Raw measurement record with a timestamp used for traceability. |
+| **Isolation Point** | Punto de Aislamiento | Permanent lockout point on an equipment required to be isolated during WOs. |
+| **Visual Layer** | Capa Visual | Presentation record associated with a work order and visual state. |
+| **Work Order History** | Historial de Orden de Trabajo | Append-only lifecycle transition record for a work order. |
+| **RIME (Ranking Index for Maintenance Expenditure)** | RIME (Índice de Priorización) | Configurable prioritization strategy for work orders combining asset criticality and work class. |
