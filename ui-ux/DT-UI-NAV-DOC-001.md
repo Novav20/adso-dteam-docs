@@ -2,7 +2,7 @@
 code: DT-UI-NAV-DOC-001
 version: 1.1
 date: 2026-09-04
-status: Borrador
+status: DRAFT
 author: Juan David Julio Serrano
 standard:
   - ANSI/ISA-101.01-2015 (Human Machine Interfaces for Process Automation Systems)
@@ -118,21 +118,21 @@ skinparam defaultFontSize 12
 skinparam nodesep 20
 skinparam ranksep 30
 
-* **Cliente Móvil (MAUI)**
-** 1.0 Planta (L1)\n[[SCR-VIS-008]]
-*** Ficha Contextual Activo (L3)\n[[SCR-VIS-033]]
-*** Rutas Aislamiento LOTO (L4)\n[[SCR-VIS-011]]
-** 2.0 Mis Órdenes (L2)
+* **Mobile Client (MAUI)**
+** 1.0 Plant (L1)\n[[SCR-VIS-008]]
+*** Asset Contextual Card (L3)\n[[SCR-VIS-033]]
+*** LOTO Isolation Routes (L4)\n[[SCR-VIS-011]]
+** 2.0 My Orders (L2)
 *** Mobile WO Closing (L4)\n[[SCR-MTTO-002]]
-*** Rutas Aislamiento LOTO (L4)\n[[SCR-VIS-011]]
-** 3.0 Activos (L2)
-*** Ficha Maestro Equipos (L3)\n[[SCR-INV-005]]
+*** LOTO Isolation Routes (L4)\n[[SCR-VIS-011]]
+** 3.0 Assets (L2)
+*** Equipment Master Data (L3)\n[[SCR-INV-005]]
 *** Modal Asset Swap (L4)\n[[SCR-INV-025]]
-** 4.0 Sincronización (L2)
-*** Cola Transaccional Offline
-** 5.0 Drawer Lateral
+** 4.0 Synchronization (L2)
+*** Offline Transactional Queue
+** 5.0 Side Drawer
 *** Boundary Limits Card (L3)\n[[SCR-MTTO-029]]
-*** Historial Kardex (L3)\n[[SCR-INV-006]]
+*** Kardex History (L3)\n[[SCR-INV-006]]
 *** Profile and License
 @endmindmap
 ```
@@ -146,17 +146,17 @@ skinparam defaultFontSize 12
 skinparam nodesep 20
 skinparam ranksep 30
 
-* **Portal Web (Blazor)**
-** 1.0 Gemelo Digital
+* **Web Portal (Blazor)**
+** 1.0 Digital Twin
 *** 2D Plant Map (L1)\n[[SCR-VIS-008]]
-*** Ficha Contextual Activo (L3)\n[[SCR-VIS-033]]
-*** Rutas Aislamiento LOTO (L4)\n[[SCR-VIS-011]]
-** 2.0 Mantenimiento
-*** Tablero Backlog RIME (L2)\n[[SCR-MTTO-026]]
-*** Programación Preventiva (L3)\n[[SCR-MTTO-001]]
-*** Programación Telemetría (L3)\n[[SCR-MTTO-023]]
+*** Asset Contextual Card (L3)\n[[SCR-VIS-033]]
+*** LOTO Isolation Routes (L4)\n[[SCR-VIS-011]]
+** 2.0 Maintenance
+*** RIME Backlog Dashboard (L2)\n[[SCR-MTTO-026]]
+*** Preventive Scheduling (L3)\n[[SCR-MTTO-001]]
+*** Telemetry Scheduling (L3)\n[[SCR-MTTO-023]]
 *** Boundary Limits Card (L3)\n[[SCR-MTTO-029]]
-*** Registro Histórico OT (L4)\n[[SCR-MTTO-002]]
+*** WO Historical Record (L4)\n[[SCR-MTTO-002]]
 ** 3.0 Inventory
 *** Functional Locations Tree (L2)\n[[SCR-INV-027]]
 *** Equipment Master Data (L3)\n[[SCR-INV-005]]
