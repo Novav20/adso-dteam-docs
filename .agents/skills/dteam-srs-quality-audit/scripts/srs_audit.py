@@ -107,7 +107,7 @@ def run_audit():
         print(f"❌ Error: srs.csv not found in {SRS_PATH}")
         sys.exit(1)
 
-    print(f"🔍 Auditando {SRS_PATH.relative_to(REPO_ROOT)}...\n")
+    print(f"🔍 Auditing {SRS_PATH.relative_to(REPO_ROOT)}...\n")
     
     findings = {
         "BLOCKER": [],
