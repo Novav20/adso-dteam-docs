@@ -134,7 +134,15 @@ Additionally, the document justifies the existence of each method under the prin
 | Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
 | :--- | :--- | :--- | :--- |
 | `UpdateCapacity(newMaxWeight: Decimal, newMaxVolume: Decimal): void` | Updates the physical storage constraints of the facility. | Master Data CRUD | **Physical Reality Sync:** Warehouses can be expanded or remodeled; the system model must mutate to reflect physical reality. |
+| `AddLocator(aisle: String, rack: String, shelf: String, barcode: String): UUID` | Spawns a physical sub-location within the warehouse boundaries. | Master Data CRUD | **Aggregate Root Factory:** The Warehouse controls the creation and validation of its internal physical spaces. |
 | `SetStatus(newStatus: Enum): void` | Changes operational status (e.g., OPERATIONAL, UNDER_MAINTENANCE). | Master Data CRUD | **Operational Control:** Allows temporarily blocking material receptions. |
+
+### 4.5. `Locator` (`<<Entity>>`)
+
+| Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
+| :--- | :--- | :--- | :--- |
+| `UpdateBarcode(newCode: String): void` | Assigns or updates the physical scanning tag for the bin. | Master Data CRUD | **Physical Tracking:** Allows integration with mobile scanning devices. |
+| `Deactivate(): void` | Changes status to INACTIVE. | Master Data CRUD | **State Control:** Disables a bin (e.g. if damaged) preventing new stock placements without deleting history. |
 
 ## 5. Layer 4: Digital Twin Convergence (VIS)
 

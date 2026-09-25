@@ -219,7 +219,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | timestamp | TIMESTAMP | NOT NULL | | clock_timestamp() | Precise temporal record of the movement. |
 | reason | VARCHAR(255) | NOT NULL | | - | Reason for movement or reference to external documents. |
 | total_cost | DECIMAL(12,2) | NOT NULL | | - | Total cost of the transaction (Quantity \* Cost). |
-| aisle_shelf_location | VARCHAR(150) | NULL | | NULL | Specific physical location of the transaction (aisle/shelf). |
+| locator_id | UUID | NULL | FK | NULL | Specific physical storage bin of the transaction. |
 | serial_number | VARCHAR(100) | NULL | | NULL | Serial number or Tag of the rotating equipment (Asset Swap). |
 
 #### 3.3.2 maintainable_item_spare_parts
@@ -269,7 +269,19 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | contact_info | VARCHAR(255) | NOT NULL | | - | Phone, email, or contact address. |
 | warranty_terms | VARCHAR(255) | NOT NULL | | - | Standard commercial warranty terms. |
 
-#### 3.3.6 warehouses
+#### 3.3.6 locators
+
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
+| --- | --- | --- | --- | --- | --- |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| warehouse_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| aisle | VARCHAR(50) | NOT NULL | | - | Physical aisle identifier. |
+| rack | VARCHAR(50) | NULL | | NULL | Physical rack identifier. |
+| shelf | VARCHAR(50) | NULL | | NULL | Physical shelf identifier. |
+| barcode | VARCHAR(100) | NULL | UNIQUE | NULL | Scannable code for mobile operations. |
+| is_active | BOOLEAN | NOT NULL | | TRUE | Active status for storage. |
+
+#### 3.3.7 warehouses
 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
@@ -459,7 +471,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | maintainable_items | 1 : 0..N | failure_records | affected by | SET NULL | CASCADE |
 | work_orders | 1 : 0..N | media_attachments | evidenced by | CASCADE | CASCADE |
 | work_orders | 1 : 0..N | work_order_histories| audited via | CASCADE | CASCADE |
-| warehouses | 1 : 0..N | inventory_transactions| transacts | RESTRICT | CASCADE |
+| locators | 1 : 0..N | inventory_transactions| transacts | RESTRICT | CASCADE |
+| warehouses | 1 : 0..N | locators | contains | CASCADE | CASCADE |
 | spare_parts | 1 : 0..N | inventory_transactions| moves | RESTRICT | CASCADE |
 | work_orders | 1 : 0..N | inventory_transactions| consumes | SET NULL | CASCADE |
 | maintainable_items | 1 : 0..N | maintainable_item_spare_parts | repaired with | CASCADE | CASCADE |

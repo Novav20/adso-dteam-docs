@@ -85,6 +85,7 @@ This segregation allows for:
 | SparePart | Aggregate Root | Inventory master record for a part family with stock policy and cost data. | ISO 14224 inventory data; ISO 55000 planning guidance |
 | InventoryTransaction | Entity | Traceable movement record linked to parts, work orders, and warehouses. | ISO 14224 transaction data; ISO 9000 traceability |
 | Warehouse | Aggregate Root | Represents a stock location boundary with capacity rules. | ISO 55000 resource planning guidance |
+| Locator | Entity | Physical storage subdivision (Aisle/Rack/Bin) belonging to a Warehouse. | Warehouse Management best practice |
 | Supplier | Aggregate Root | Owns procurement identity, commercial context, and warranty logic. | ISO 9000 documented information |
 | MeshMapping | Entity | Graphical projection of the Sidecar pattern that uniquely links geometry (SVG or 3D mesh) with Level 6 (EquipmentUnit). Levels 7 and 8 do not possess individual geometric coordinates on the general blueprint. | ISO 9000 data vs. information separation |
 | TelemetrySignal | Entity | Raw measurement record with a timestamp used for traceability and safety analytics. | ISO 9000 monitoring and measurement |
