@@ -473,8 +473,8 @@ def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
 
     # Determinar ruta de salida
     now = datetime.datetime.now()
-    out_dir = repo_root.parent / "sena-evidence" / "00-Overview" / "Audits"
-    out_dir.mkdir(exist_ok=True)
+    out_dir = repo_root.parent / "sena-evidence" / "00-Overview" / "Audits" / "Compliance"
+    out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / f"AUD-COHERENCE-{now.strftime('%Y%m%d')}-{artifact_path.stem[:30]}.md"
     out_file.write_text(report_text, encoding="utf-8")
 
@@ -483,7 +483,7 @@ def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
     infos    = [f for f in findings if f.severity == "INFO"]
 
     print(f"[INFO] Findings: {len(blockers)} BLOCKER | {len(warnings)} WARNING | {len(infos)} INFO")
-    print(f"[INFO] Report generated at: {out_file.relative_to(repo_root)}")
+    print(f"[INFO] Report generated at: {out_file}")
 
     return 2 if blockers else 0
 
@@ -582,10 +582,10 @@ def cmd_audit_all(args: argparse.Namespace, repo_root: Path) -> int:
 
     report_text = "\n".join(lines)
 
-    out_path = (repo_root / args.output) if args.output else (repo_root.parent / "sena-evidence" / "00-Overview" / "Audits" / f"AUD-FULL-REPO-{now.strftime('%Y%m%d')}.md")
-    out_path.parent.mkdir(exist_ok=True)
+    out_path = (repo_root / args.output) if args.output else (repo_root.parent / "sena-evidence" / "00-Overview" / "Audits" / "Compliance" / f"AUD-FULL-REPO-{now.strftime('%Y%m%d')}.md")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(report_text, encoding="utf-8")
-    print(f"[INFO] Full report generated at: {out_path.relative_to(repo_root)}")
+    print(f"[INFO] Full report generated at: {out_path}")
     return 2 if total_blockers > 0 else 0
 
 # ---------------------------------------------------------------------------

@@ -16,8 +16,9 @@ from pathlib import Path
 # Constantes de configuración
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 SRS_PATH = REPO_ROOT / "requirements" / "data" / "srs.csv"
-REPORT_DIR = REPO_ROOT.parent / "sena-evidence" / "00-Overview" / "Audits"
-REPORT_PATH = REPORT_DIR / "AUD-SRS-QUALITY.md"
+import datetime as _dt
+REPORT_DIR = REPO_ROOT.parent / "sena-evidence" / "00-Overview" / "Audits" / "SRS"
+REPORT_PATH = REPORT_DIR / f"AUD-SRS-QUALITY-{_dt.datetime.now().strftime('%Y%m%d')}.md"
 
 ISO_25010_2023_CATEGORIES = {
     "Functional Suitability",
@@ -141,42 +142,42 @@ def run_audit():
                     
                 total_rows += 1
                 
-                # 1. Validar ISO 25010:2023
+                # 1. Validate ISO 25010:2023
                 if cat and cat not in ISO_25010_2023_CATEGORIES:
-                    findings["BLOCKER"].append(f"**[{req_id}]** Categoría Inválida: `{cat}` no es estándar ISO 25010:2023.")
+                    findings["BLOCKER"].append(f"**[{req_id}]** Invalid Category: `{cat}` is not a valid ISO 25010:2023 standard.")
                 
-                # 2. Validar Lenguaje de Dominio (Descripción)
+                # 2. Validate Domain Language (Description)
                 desc_lower = desc.lower()
                 for pattern, recommendation in FORBIDDEN_WORDS.items():
                     if re.search(pattern, desc_lower):
                         word_found = pattern.replace(r'\b', '')
-                        findings["WARNING"].append(f"**[{req_id}]** Violación DDD: Se detectó `{word_found}` en la descripción. Debería ser `{recommendation}`.")
+                        findings["WARNING"].append(f"**[{req_id}]** DDD Violation: `{word_found}` detected in description. Should be `{recommendation}`.")
                 
-                # 3. Validar Referencia Normativa
+                # 3. Validate Normative Reference
                 if ref:
                     if not re.search(VALID_REFS_REGEX, ref, re.IGNORECASE):
-                        findings["WARNING"].append(f"**[{req_id}]** Referencia Débil: `{ref}` no parece ser un estándar riguroso (ISO, NIST, OWASP, etc.).")
+                        findings["WARNING"].append(f"**[{req_id}]** Weak Reference: `{ref}` does not appear to be a rigorous standard (ISO, NIST, OWASP, etc.).")
                 else:
                     if "-FR-" in req_id or "-NFR-" in req_id or req_id.startswith("TR-"):
-                        findings["BLOCKER"].append(f"**[{req_id}]** Referencia Faltante: Los Technical Requirements (TR) exigen 'Normative Reference'.")
+                        findings["BLOCKER"].append(f"**[{req_id}]** Missing Reference: Technical Requirements (TR) require a 'Normative Reference'.")
                     else:
-                        findings["INFO"].append(f"**[{req_id}]** Referencia Faltante: Se recomienda añadir un estándar.")
+                        findings["INFO"].append(f"**[{req_id}]** Missing Reference: Adding a standard is recommended.")
                         
     except Exception as e:
-        print(f"❌ Error leyendo CSV: {e}")
+        print(f"❌ Error reading CSV: {e}")
         sys.exit(1)
         
     report_file = generate_markdown_report(findings, total_rows)
-    print(f"📄 Reporte generado exitosamente en:\n  {report_file.relative_to(REPO_ROOT.parent)}\n")
+    print(f"📄 Report generated at:\n  {report_file.relative_to(REPO_ROOT.parent)}\n")
     
     if findings["BLOCKER"]:
-        print("🔴 Estado: BLOCKER (Requiere acción inmediata)")
+        print("🔴 Status: BLOCKER (Immediate action required)")
         sys.exit(2)
     elif findings["WARNING"]:
-        print("🟠 Estado: PASSED WITH WARNINGS (Se recomiendan correcciones)")
+        print("🟠 Status: PASSED WITH WARNINGS (Corrections recommended)")
         sys.exit(0)
     else:
-        print("✅ Estado: PASSED (El dataset cumple con todos los estándares)")
+        print("✅ Status: PASSED (Dataset complies with all standards)")
         sys.exit(0)
 
 if __name__ == "__main__":
