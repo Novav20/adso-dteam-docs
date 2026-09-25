@@ -114,7 +114,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
 | equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
-| work_request_id | UUID | NOT NULL | FK, UNIQUE | - | Foreign key to the related table. |
+| work_request_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | priority_score | INT | NOT NULL | | - | Backlog score derived from RIME (Calculated). |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Backlog lifecycle status (prioritization). |
 
@@ -180,7 +180,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
 | equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | maintenance_plan_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
-| work_request_id | UUID | NULL | FK, UNIQUE | NULL | Foreign key to the related table. |
+| work_request_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 | work_permit_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 | current_status | VARCHAR(20) | NOT NULL | CHECK | - | Execution lifecycle status (FSM). |
 | maintenance_method | VARCHAR(80) | NOT NULL | CHECK | - | Maintenance method (Corrective, Preventive, etc.). |
@@ -451,8 +451,9 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | equipment_units | 1 : 0..N | maintenance_plans | governed by | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | work_orders | generates | CASCADE | CASCADE |
 | maintenance_plans | 1 : 0..N | work_orders | instantiates | SET NULL | CASCADE |
+| work_requests | 1 : 0..N | work_orders | originates | SET NULL | CASCADE |
 | equipment_units | 1 : 0..N | work_requests | requires | CASCADE | CASCADE |
-| work_requests | 1 : 0..1 | backlog_items | prioritized as | CASCADE | CASCADE |
+| work_requests | 1 : 0..N | backlog_items | prioritized as | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | backlog_items | pending for | CASCADE | CASCADE |
 | work_orders | 1 : 0..1 | failure_records | diagnoses | CASCADE | CASCADE |
 | maintainable_items | 1 : 0..N | failure_records | affected by | SET NULL | CASCADE |
