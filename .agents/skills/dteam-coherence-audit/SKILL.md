@@ -25,7 +25,7 @@ before it is formally integrated into the `adso-dteam-docs` repository:
 
 The skill **never modifies** the audited artifact. It only reports findings
 with BLOCKER / WARNING / INFO severities and generates a Markdown report in
-`compliance/`.
+`../sena-evidence/00-Overview/Audits/`.
 
 ---
 
@@ -62,7 +62,7 @@ cd /home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs
 uv run .agents/skills/dteam-coherence-audit/scripts/audit.py audit --file <ruta-relativa>
 ```
 
-The script automatically generates the report in `compliance/`.
+The script automatically generates the report in `../sena-evidence/00-Overview/Audits/`.
 
 ### Step 3 — Present Results to the User
 
@@ -79,7 +79,7 @@ If the user asks to "audit the whole repository" or "CI mode":
 ```bash
 cd /home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs
 uv run .agents/skills/dteam-coherence-audit/scripts/audit.py audit-all \
-  --output compliance/AUD-FULL-REPO.md
+  --output ../sena-evidence/00-Overview/Audits/AUD-FULL-REPO.md
 ```
 
 ---

@@ -473,7 +473,7 @@ def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
 
     # Determinar ruta de salida
     now = datetime.datetime.now()
-    out_dir = repo_root / "compliance"
+    out_dir = repo_root.parent / "sena-evidence" / "00-Overview" / "Audits"
     out_dir.mkdir(exist_ok=True)
     out_file = out_dir / f"AUD-COHERENCE-{now.strftime('%Y%m%d')}-{artifact_path.stem[:30]}.md"
     out_file.write_text(report_text, encoding="utf-8")
@@ -582,7 +582,7 @@ def cmd_audit_all(args: argparse.Namespace, repo_root: Path) -> int:
 
     report_text = "\n".join(lines)
 
-    out_path = (repo_root / args.output) if args.output else (repo_root / "compliance" / f"AUD-FULL-REPO-{now.strftime('%Y%m%d')}.md")
+    out_path = (repo_root / args.output) if args.output else (repo_root.parent / "sena-evidence" / "00-Overview" / "Audits" / f"AUD-FULL-REPO-{now.strftime('%Y%m%d')}.md")
     out_path.parent.mkdir(exist_ok=True)
     out_path.write_text(report_text, encoding="utf-8")
     print(f"[INFO] Full report generated at: {out_path.relative_to(repo_root)}")
