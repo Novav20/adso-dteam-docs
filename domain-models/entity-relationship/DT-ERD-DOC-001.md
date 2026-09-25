@@ -201,7 +201,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | request_date | TIMESTAMP | NOT NULL | | - | Timeline for audit. |
 | request_source | VARCHAR(80) | NOT NULL | | - | Origin of the request. |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Request lifecycle status. |
-| work_class_code | SMALLINT | NOT NULL | CHECK | - | Numeric weight of the selected work class for RIME. |
+| work_class | SMALLINT | NOT NULL | CHECK | - | Numeric weight of the selected work class for RIME. |
 
 ### 3.3 Schema `inv`
 

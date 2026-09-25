@@ -28,6 +28,8 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | Component ID | Component or Functional Port | Architectural Layer / Stereotype | Port / Interface | Technical Responsibility |
 | :--- | :--- | :--- | :--- | :--- |
 | **mobile_app** | Mobile App | Client Application | .NET MAUI Blazor | Offline-first field client for touch execution. |
+| **local_db** | SQLite Offline DB | Persistence | sqlite-net-pcl | Offline-first relational store (SQLCipher encrypted). |
+| **loto_watchdog** | LOTO Safety Watchdog | Component | C# Background Service | Real-time verification of Zero Energy thresholds on the mobile client. |
 | **web_admin** | Web Admin Portal | Client Application | Blazor Web App | HSEQ supervision, planning, and dashboards. |
 | **idempotency_filter** | Idempotency Filter | Driving Adapter | IActionFilter | Intercepts requests with the Idempotency-Key header; prevents reprocessing critical transitions resent after reconnection (TR-007). |
 | **api_controllers** | REST API Controllers | Driving Adapter | Minimal APIs | Exposes HTTPS endpoints; handles optimistic concurrency control using row version marks (RowVersion/ETag). |
@@ -47,7 +49,10 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **sec_repo** | Audit Repository Port | Secondary Port (Out) | ISecurityRepository | Persistence interface for user accounts, security roles, sessions, and AuditLog. |
 | **notify_port** | Notification Port | Secondary Port (Out) | INotificationPort | Synchronous broadcast of safety alerts and LOTO status to the outside. |
 | **telemetry_port** | Telemetry Port | Secondary Port (Out) | ITelemetryPort | Interface for subscribing to physical safety telemetry streams asynchronously. |
-| **ef_adapter** | EF Core PostgreSQL Adapter | Driven Adapter | PostgresDbContext | Unit of Work; persists the AuditLog to an append-only table with Row-Level Security. |
+| **tax_ef_adapter** | Taxonomy EF Adapter | Driven Adapter | TaxonomyDbContext | Unit of Work for Taxonomy domain schema. |
+| **mtto_ef_adapter** | Maintenance EF Adapter | Driven Adapter | MaintenanceDbContext | Unit of Work for Maintenance domain schema. |
+| **inv_ef_adapter** | Inventory EF Adapter | Driven Adapter | InventoryDbContext | Unit of Work for Inventory domain schema. |
+| **sec_ef_adapter** | Security EF Adapter | Driven Adapter | SecurityDbContext | Unit of Work; persists AuditLog to append-only table. |
 | **signalr_broadcaster**| SignalR Broadcaster | Driven Adapter | IHubContext<T> | Broadcasts data to SignalR channels filtering by authorized role. |
 | **db_postgres** | PostgreSQL Master | External System | Relational Database | Master relational store (PostgreSQL 18 + TimescaleDB). |
 | **azure_iot** | Azure IoT Hub | External System | Cloud Broker | Managed broker for asynchronous telemetry ingestion. |
@@ -74,12 +79,15 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **inv_port** | **inv_repo** | C# Interface (DI) | Abstraction for inventory transactions and stock levels. |
 | **sec_port** | **sec_repo** | C# Interface (DI) | Abstraction for identity management and chained hash audit logging. |
 | **loto_port** | **notify_port** | C# Interface (DI) | Abstraction for broadcasting critical safety alerts. |
-| **asset_repo** | **ef_adapter** | C# Class Inheritance | Implements persistence via EF Core DbContext. |
-| **mtto_repo** | **ef_adapter** | C# Class Inheritance | Implements persistence via EF Core DbContext. |
-| **inv_repo** | **ef_adapter** | C# Class Inheritance | Implements persistence via EF Core DbContext. |
-| **sec_repo** | **ef_adapter** | C# Class Inheritance | Implements persistence via EF Core DbContext. |
+| **asset_repo** | **tax_ef_adapter** | C# Class Inheritance | Implements persistence via TaxonomyDbContext. |
+| **mtto_repo** | **mtto_ef_adapter** | C# Class Inheritance | Implements persistence via MaintenanceDbContext. |
+| **inv_repo** | **inv_ef_adapter** | C# Class Inheritance | Implements persistence via InventoryDbContext. |
+| **sec_repo** | **sec_ef_adapter** | C# Class Inheritance | Implements persistence via SecurityDbContext. |
 | **notify_port** | **signalr_broadcaster**| C# Class Inheritance | Implements broadcast via Microsoft.AspNetCore.SignalR. |
-| **ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands under Unit of Work. |
+| **tax_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
+| **mtto_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
+| **inv_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
+| **sec_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
 
 ---
 

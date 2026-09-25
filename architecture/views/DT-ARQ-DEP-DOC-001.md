@@ -35,6 +35,7 @@ This matrix breaks down the physical infrastructure and software artifacts deplo
 | docker_engine | Docker Engine | Container Runtime (Linux VPS) | nginx_proxy | Nginx Reverse Proxy | Container | Nginx (Alpine Linux) | TLS 1.3 termination, reverse routing, and static web delivery. |
 | docker_engine | Docker Engine | Container Runtime (Linux VPS) | backend_api | Backend API Monolith | Container | .NET 10 Web API Monolith | Modular monolith with DDD business logic and domain services. |
 | db_server | Database Server | Database Node (Managed DB / Container) | postgres_db | PostgreSQL Master | ContainerDb | PostgreSQL 18 + TimescaleDB | Relational master store, immutable audit (ADR-003), and time series. |
+| cache_server | Cache Server | In-Memory Node | redis_cache | Redis Cache | ContainerDb | Redis 7.x | Distributed in-memory datastore for idempotency caching keys (ADR-007). |
 
 ---
 
