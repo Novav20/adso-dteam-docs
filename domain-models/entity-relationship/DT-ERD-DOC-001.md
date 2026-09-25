@@ -427,6 +427,17 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | assigned_role | VARCHAR(80) | NOT NULL | CHECK | - | Operational role of the technician in the specific WO. |
 | assigned_at | TIMESTAMP | NOT NULL | | clock_timestamp() | Moment of assignment. |
 
+#### 3.5.8 idempotency_logs
+
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
+| --- | --- | --- | --- | --- | --- |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| idempotency_key | VARCHAR(128) | NOT NULL | UNIQUE | - | Client-provided uniqueness token (ADR-007). |
+| tenant_id | UUID | NOT NULL | | - | Multi-tenant isolation boundary. |
+| request_hash | VARCHAR(64) | NOT NULL | | - | SHA-256 fingerprint to prevent payload mutation. |
+| status | VARCHAR(20) | NOT NULL | | - | State of the transaction (e.g., COMPLETED). |
+| created_at | TIMESTAMP | NOT NULL | | clock_timestamp() | Partitioning key for MVCC cleanup. |
+
 ## 4. Referential Relationships and Cascading (FKs)
 
 | Parent Table | Cardinality | Child Table | Verb / Meaning | ON DELETE | ON UPDATE |
