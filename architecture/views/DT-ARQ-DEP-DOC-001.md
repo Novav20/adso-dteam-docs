@@ -1,7 +1,7 @@
 ---
 code: DT-ARQ-DEP-DOC-001
-version: 1.2
-date: 2026-09-02
+version: 1.3
+date: 2026-09-25
 status: Active
 author: Juan David Julio Serrano
 standard:
@@ -13,7 +13,7 @@ standard:
 
 ## 1. Scope and Objective
 
-This document defines the deployment topology for the Digital Twin MVP. It complements the diagram `DT-ARQ-DEP-001-deployment-model.puml`, specifying the mapping of software containers to execution environments, network protocols, and cryptographic security boundaries.
+This document defines the deployment topology for the Digital Twin MVP. It acts as the source of truth for the auto-generated Structurizr diagram (compiled to `DT-ARQ-DEP-001-deployment-model.dsl` using `scripts/generate_deployment_structurizr.py`), specifying the mapping of software containers to execution environments, network protocols, and cryptographic security boundaries.
 
 > **Note:** The local control station (SCADA) is implemented as an internal Proof of Concept (PoC) to emulate industrial field instrumentation and validate asynchronous telemetry ingestion into Azure IoT Hub.
 
