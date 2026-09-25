@@ -26,7 +26,7 @@ def generate_domain_puml():
     erd_md = "domain-models/entity-relationship/DT-ERD-DOC-001.md"
     dm_doc1 = "domain-models/class/DT-DM-DOC-001.md"
     dm_doc2 = "domain-models/class/DT-DM-DOC-002.md"
-    out_puml = "domain-models/class/DT-DM-DOC-001.puml"
+    out_puml = "domain-models/class/DT-DM-001-domain-model.puml"
     
     classes = {}
     current_schema = "Common"

@@ -122,6 +122,20 @@ Additionally, the document justifies the existence of each method under the prin
 | `MarkAsReserved(): void` | Changes the `IsReserved` flag to `true` once the central inventory confirms material availability. | [[INV-006]]<br>FR-126 | **Transactional Integrity:** Coordinates the status of the WO planning with the actual physical reservation in the `SparePart`. |
 | `RecordConsumption(actualQuantity: Decimal): void` | Records the final quantity of spare parts used during the Work Order execution. | [[INV-006]]<br>FR-127 | **Technical Closure:** Allows capturing the difference between the planned and consumed quantity to adjust inventories and costs (KPIs). |
 
+### 4.3. `Supplier` (`<<Aggregate Root>>`)
+
+| Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
+| :--- | :--- | :--- | :--- |
+| `UpdateContactInfo(phone: String, email: String, address: String): void` | Updates the operational contact data for the supplier. | Master Data CRUD | **Administrative Consistency:** Master Data requires mutation. If a supplier changes address, the entity must be updated to avoid breaking historical foreign keys. |
+| `Deactivate(): void` | Changes the supplier status to INACTIVE. | Master Data CRUD | **Audit Retention:** Prevents new purchase orders without destroying historical references. |
+
+### 4.4. `Warehouse` (`<<Aggregate Root>>`)
+
+| Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
+| :--- | :--- | :--- | :--- |
+| `UpdateCapacity(newMaxWeight: Decimal, newMaxVolume: Decimal): void` | Updates the physical storage constraints of the facility. | Master Data CRUD | **Physical Reality Sync:** Warehouses can be expanded or remodeled; the system model must mutate to reflect physical reality. |
+| `SetStatus(newStatus: Enum): void` | Changes operational status (e.g., OPERATIONAL, UNDER_MAINTENANCE). | Master Data CRUD | **Operational Control:** Allows temporarily blocking material receptions. |
+
 ## 5. Layer 4: Digital Twin Convergence (VIS)
 
 ### 5.1. `WorkPermit` (`<<Aggregate Root>>`)
@@ -178,6 +192,6 @@ Additionally, the document justifies the existence of each method under the prin
 
 ## **Architectural Notes**
 
-- The `EquipmentClass`, `InventoryTransaction`, `Warehouse`, and `Supplier` classes do not expose mutation methods in this model, as they act as immutable historical records (Ledger) and Master Data catalogs (Reference Data) respectively.
+- The `EquipmentClass` and `InventoryTransaction` classes do not expose mutation methods in this model, as they act as immutable historical records (Ledger) and strict taxonomy catalogs respectively.
 - The `MeshMapping`, `TelemetrySignal`, `VisualLayer`, and `SpatialMetadata` classes function as read projections, immutable telemetry reception, or frontend graphical metadata, so they do not expose complex mutating behavior in this MVP model.
 - The `WorkOrderAssignment` class does not expose mutating behavior, as it acts purely as an immutable associative entity that captures the moment and role in which a user was linked to a work order.
