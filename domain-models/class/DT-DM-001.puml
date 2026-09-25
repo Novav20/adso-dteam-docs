@@ -134,11 +134,6 @@ package "Maintenance Management (MTTO)" <<Folder>> #F0F0F0 {
         - RequiredSpecialty: String
         - TechnicalDescription: String
         - Status: String
-        --
-        + GenerateWorkOrder(targetDate: DateTime): WorkOrder
-        + Suspend(reason: String): void
-        + Archive(): void
-        + CalculateNextTriggerLimit(currentUsage: Decimal): void
     }
     class MediaAttachment <<Entity>> {
         - Id: UUID
