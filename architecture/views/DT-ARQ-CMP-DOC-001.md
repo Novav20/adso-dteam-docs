@@ -1,7 +1,7 @@
 ---
 code: DT-ARQ-CMP-DOC-001
-version: 1.3
-date: 2026-09-17
+version: 1.4
+date: 2026-09-25
 status: Active
 author: Juan David Julio Serrano
 standard:
