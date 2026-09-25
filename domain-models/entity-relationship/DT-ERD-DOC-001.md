@@ -131,6 +131,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | detection_method | VARCHAR(120) | NOT NULL | CHECK | - | Failure detection method (ISO 14224). |
 | operational_condition | VARCHAR(120) | NOT NULL | CHECK | - | Operational condition at the time of failure (ISO 14224). |
 | operational_impact | VARCHAR(120) | NOT NULL | CHECK | - | Operational impact of the failure (ISO 14224). |
+| technician_notes | TEXT | NULL | | NULL | Qualitative field diagnosis and observations from the technician. |
 | downtime | DECIMAL(10,2) | NOT NULL | | - | Reliability analysis metric (Calculated). |
 | status | VARCHAR(20) | NOT NULL | | - | Status of the failure record. |
 
