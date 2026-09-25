@@ -100,7 +100,7 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     for c in boundaries["Primary Port (In)"]:
         dsl.append(f"                    {c['Component ID']} = component \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{c['Port / Interface']}\" \"ComponentShape\"")
     for c in boundaries["Domain Service"]:
-        tag = "Broker" if "event" in c['Component ID'].lower() else "ComponentShape"
+        tag = "Broker" if "bus" in c['Component ID'].lower() else "ComponentShape"
         dsl.append(f"                    {c['Component ID']} = component \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{c['Port / Interface']}\" \"{tag}\"")
     for c in boundaries["Secondary Port (Out)"]:
         dsl.append(f"                    {c['Component ID']} = component \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{c['Port / Interface']}\" \"ComponentShape\"")
