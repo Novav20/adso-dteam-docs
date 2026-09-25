@@ -2,38 +2,38 @@
 code: DT-ARQ-DB-DOC-001
 version: 1.0
 date: 2026-09-10
-status: Vigente
+status: Active
 author: Juan David Julio Serrano
 standard:
-  - ISO/IEC 42010:2011 (Arquitectura de Software)
+  - ISO/IEC 42010:2011 (Software Architecture)
   - PostgreSQL 18.x Documentation
   - ISO 14224:2016 / ISO 55001:2014
 ---
 
-# Especificación Técnica de Persistencia y Directrices SQL
+# Technical Persistence Specification and SQL Guidelines
 
-## 1. Alcance y Propósito
-Este documento consolida las directrices técnicas, restricciones físicas y patrones de consulta SQL obligatorios para el motor PostgreSQL 18 en DTEAM. Actúa como el contrato de persistencia para el desarrollo de migraciones en Entity Framework Core y scripts DDL/DML.
+## 1. Scope and Purpose
+This document consolidates the technical guidelines, physical constraints, and mandatory SQL query patterns for the PostgreSQL 18 engine in DTEAM. It acts as the persistence contract for the development of migrations in Entity Framework Core and DDL/DML scripts.
 
 ---
 
-## 2. Invariantes de Integridad Física y Restricciones
+## 2. Physical Integrity Invariants and Constraints
 
-| Regla / Elemento             | Decisión de Implementación                                                                      | Justificación Técnica / Norma                                                                                                                                                                                                                                                                                                        |
-| :--------------------------- | :---------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Identificadores PK**       | `UUID DEFAULT uuidv7()`                                                                         | Identificadores secuenciales en el tiempo que evitan la fragmentación de páginas B-Tree en inserciones masivas de telemetría y auditoría.                                                                                                                                                                                            |
-| **Indexación de FKs**        | `CREATE INDEX` obligatorio en cada columna de clave foránea.                                    | PostgreSQL **no** indexa automáticamente las FK en tablas hijas. Previene *Full Table Scans* durante eliminaciones o actualizaciones del padre.                                                                                                                                                                                      |
-| **Borrado de Activos**       | `ON DELETE RESTRICT` en relaciones con `work_orders`.                                           | **ISO 14224 / ISO 55001:** Prohibición estricta de borrado en cascada sobre órdenes de trabajo e historial de fallas. Los activos se retiran lógicamente (`Decommission`).                                                                                                                                                           |
-| **Gestión de Spares**        | Conservar comportamiento estándar `NULLS DISTINCT` en `equipment_units.functional_location_id`. | Permite que múltiples unidades de equipo en almacén (`IN_STORAGE`) tengan valor `NULL` simultáneamente sin violar la unicidad de slot en planta (Principio de Pauli).                                                                                                                                                                |
-| **Precisión Numérica**       | `DECIMAL(18,6)` estricto en sensores y `DECIMAL(12,2)` en costos.                               | Prohibición de `DOUBLE PRECISION` / `FLOAT` para evitar errores de redondeo IEEE 754 en la validación determinística de Energía Cero (LOTO).                                                                                                                                                                                         |
-| **Esquemas DDD**             | Segregación en 5 esquemas: `tax`, `mtto`, `inv`, `vis`, `adm`.                                  | Aislamiento por *Bounded Context*, eliminación de prefijos en tablas y soporte de defensa en profundidad mediante privilegios `GRANT/REVOKE`.                                                                                                                                                                                        |
-| **Indexación Operativa**     | `CREATE INDEX ... WHERE ...` (Parciales)                                                        | Para optimizar el rendimiento de las consultas en el Tablero de Backlog y validaciones LOTO sin saturar la RAM, se exige el uso de **Índices Parciales** sobre registros activos. Se excluyen los registros en estados terminales (ej. `CLOSED`, `COMPLETE`) del árbol B-Tree del índice activo.                                     |
-| **Vocabularios Controlados** | `CHECK (col IN (...))` en MVP con ruta de evolución a *Lookup Tables*.                          | En el MVP se utilizan restricciones `CHECK` mapeadas a `enum` de C# para maximizar el rendimiento y evitar JOINs innecesarios. En fases posteriores que requieran parametrización dinámica desde la UI (sin despliegues de código), se migrarán a tablas de catálogo dedicadas administradas por Entity Framework Core (`SeedData`). |
+| Rule / Element | Implementation Decision | Technical / Regulatory Justification |
+| :--- | :--- | :--- |
+| **PK Identifiers** | `UUID DEFAULT uuidv7()` | Time-sequential identifiers that prevent B-Tree page fragmentation in massive telemetry and audit insertions. |
+| **FK Indexing** | Mandatory `CREATE INDEX` on each foreign key column. | PostgreSQL **does not** automatically index FKs in child tables. Prevents *Full Table Scans* during parent deletions or updates. |
+| **Asset Deletion** | `ON DELETE RESTRICT` on relations with `work_orders`. | **ISO 14224 / ISO 55001:** Strict prohibition of cascade deletion on work orders and failure history. Assets are logically retired (`Decommission`). |
+| **Spares Management** | Keep standard `NULLS DISTINCT` behavior in `equipment_units.functional_location_id`. | Allows multiple equipment units in the warehouse (`IN_STORAGE`) to have a `NULL` value simultaneously without violating plant slot uniqueness (Pauli Principle). |
+| **Numerical Precision** | Strict `DECIMAL(18,6)` on sensors and `DECIMAL(12,2)` on costs. | Prohibition of `DOUBLE PRECISION` / `FLOAT` to avoid IEEE 754 rounding errors in deterministic Zero Energy (LOTO) validation. |
+| **DDD Schemas** | Segregation into 5 schemas: `tax`, `mtto`, `inv`, `vis`, `adm`. | Isolation by *Bounded Context*, removal of prefixes in tables, and support for defense in depth via `GRANT/REVOKE` privileges. |
+| **Operational Indexing** | `CREATE INDEX ... WHERE ...` (Partial) | To optimize query performance on the Backlog Board and LOTO validations without saturating RAM, the use of **Partial Indexes** on active records is required. Records in terminal states (e.g., `CLOSED`, `COMPLETE`) are excluded from the active index B-Tree. |
+| **Controlled Vocabularies**| `CHECK (col IN (...))` in MVP with evolution path to *Lookup Tables*. | In the MVP, `CHECK` constraints mapped to C# `enum`s are used to maximize performance and avoid unnecessary JOINs. In later phases requiring dynamic parameterization from the UI (without code deployments), they will be migrated to dedicated catalog tables managed by Entity Framework Core (`SeedData`). |
 
-## 3. Directrices de Consulta y Rendimiento DML
+## 3. DML Query and Performance Guidelines
 
-### 3.1. Patrón `LEFT JOIN LATERAL` para Última Telemetría ([[VIS-033]])
-Para recuperar la última lectura de sensor de cada equipo sin incurrir en agregaciones costosas (`MAX`) sobre tablas de series de tiempo masivas, las consultas de lienzo deben utilizar subconsultas correlacionadas `LATERAL`:
+### 3.1. `LEFT JOIN LATERAL` Pattern for Latest Telemetry ([[VIS-033]])
+To retrieve the latest sensor reading for each equipment without incurring costly aggregations (`MAX`) over massive time-series tables, canvas queries must use correlated `LATERAL` subqueries:
 
 ```sql
 SELECT a.tag_number, tel.value AS current_vibration, tel.timestamp
@@ -47,34 +47,34 @@ LEFT JOIN LATERAL (
 ) tel ON TRUE;
 ```
 
-### 3.2. Agregaciones Condicionales con Cláusula `FILTER` ([[MTTO-026]], [[INV-006]])
-Para métricas consolidadas en una sola lectura de tabla, se prohíbe el uso de `SUM(CASE ...)` en favor de la cláusula estándar `FILTER (WHERE ...)`:
+### 3.2. Conditional Aggregations with `FILTER` Clause ([[MTTO-026]], [[INV-006]])
+For consolidated metrics in a single table read, the use of `SUM(CASE ...)` is prohibited in favor of the standard `FILTER (WHERE ...)` clause:
 
 ```sql
--- Ejemplo: Consolidación de Backlog RIME por bandas de severidad en una sola pasada
+-- Example: RIME Backlog consolidation by severity bands in a single pass
 SELECT 
-    COUNT(*) AS total_solicitudes,
-    COUNT(*) FILTER (WHERE priority_score >= 80) AS do_first_emergencia,
-    COUNT(*) FILTER (WHERE priority_score BETWEEN 50 AND 79) AS schedule_alta
+    COUNT(*) AS total_requests,
+    COUNT(*) FILTER (WHERE priority_score >= 80) AS do_first_emergency,
+    COUNT(*) FILTER (WHERE priority_score BETWEEN 50 AND 79) AS schedule_high
 FROM mtto.backlog_items;
 ```
 
-### 3.3. Prohibición de `NOT IN` con Subconsultas
-Para prevenir que la presencia de un valor `NULL` invalide todo el resultado por lógica trivalente (3VL), se prohíbe `NOT IN (SELECT ...)` en consultas de dominio. Se debe utilizar exclusivamente:
+### 3.3. Prohibition of `NOT IN` with Subqueries
+To prevent the presence of a `NULL` value from invalidating the entire result due to three-valued logic (3VL), `NOT IN (SELECT ...)` is prohibited in domain queries. It must be used exclusively:
 * `NOT EXISTS (SELECT 1 FROM ... WHERE ...)`
-* `LEFT JOIN ... WHERE <tabla_derecha>.id IS NULL`
+* `LEFT JOIN ... WHERE <right_table>.id IS NULL`
 
-### 3.4. Evaluación Segura en Cláusulas `WHERE`
-Debido a que PostgreSQL no garantiza cortocircuito estricto de izquierda a derecha en el `WHERE`, cualquier cálculo propenso a división por cero o error aritmético debe encapsularse en una expresión `CASE WHEN <divisor> != 0 THEN ... ELSE NULL END`.
+### 3.4. Safe Evaluation in `WHERE` Clauses
+Because PostgreSQL does not guarantee strict left-to-right short-circuiting in the `WHERE` clause, any calculation prone to division by zero or arithmetic error must be encapsulated in a `CASE WHEN <divisor> != 0 THEN ... ELSE NULL END` expression.
 
-### 3.5. Resolución de Jerarquías ISO 14224 ([[INV-027]])
-Para la navegación y validación del árbol de activos (Ubicaciones Funcionales L1-L5), el modelo relacional implementa un patrón de Lista de Adyacencia (`parent_id`). Las consultas que requieran reconstruir la ruta del activo (breadcrumbs) o validar ciclos de re-parenting deben implementarse utilizando **CTEs Recursivos (`WITH RECURSIVE`)**. Se prohíbe la carga en memoria de toda la tabla para armar el árbol en la capa de aplicación (.NET).
+### 3.5. ISO 14224 Hierarchy Resolution ([[INV-027]])
+For navigation and validation of the asset tree (Functional Locations L1-L5), the relational model implements an Adjacency List pattern (`parent_id`). Queries requiring the reconstruction of the asset path (breadcrumbs) or validation of re-parenting cycles must be implemented using **Recursive CTEs (`WITH RECURSIVE`)**. In-memory loading of the entire table to build the tree in the application layer (.NET) is prohibited.
 
-### 3.6. Ingesta Idempotente para Colas Offline ([[TR-007]])
-Para garantizar la resiliencia en la sincronización desde clientes móviles, las operaciones de escritura diferida (ej. cierre de órdenes o registro de telemetría) que ingresen a través del `Background Sync Worker` deben ejecutarse como operaciones *Upsert* atómicas. Se utilizará la cláusula nativa **`INSERT ... ON CONFLICT (id) DO UPDATE`** para prevenir excepciones de llaves duplicadas si la red móvil retransmite el mismo paquete de datos.
+### 3.6. Idempotent Ingestion for Offline Queues ([[TR-007]])
+To ensure resilience in synchronization from mobile clients, deferred write operations (e.g., closing orders or telemetry registration) entering via the `Background Sync Worker` must be executed as atomic *Upsert* operations. The native **`INSERT ... ON CONFLICT (id) DO UPDATE`** clause will be used to prevent duplicate key exceptions if the mobile network retransmits the same data packet.
 
-### 3.7. Bloqueos Pesimistas para Aislamiento LOTO ([[VIS-011]], [[DT-ARQ-ASR-001#2. Seguridad LOTO en Tiempo Real y Falla Segura|ASR-2]])
-Para garantizar el cumplimiento de la norma de Energía Cero (Falla Segura), la validación de inicio de órdenes de trabajo críticas no debe utilizar lecturas sucias ni control optimista exclusivo. El servicio de dominio debe ejecutar la validación de estados de energía envolviendo las consultas en bloqueos explícitos y no bloqueantes de base de datos (`SELECT ... FOR UPDATE NOWAIT`). Si la fila se encuentra bloqueada por el proceso asíncrono de inyección de telemetría IoT, la transacción debe abortar inmediatamente devolviendo un estado de "Seguridad Indeterminada" al usuario, evitando que el hilo se congele (prevenir thread pool starvation).
+### 3.7. Pessimistic Locking for LOTO Isolation ([[VIS-011]], [[DT-ARQ-ASR-001#2. Real-Time LOTO Security and Fail-Safe|ASR-2]])
+To guarantee compliance with the Zero Energy standard (Fail-Safe), the initiation validation of critical work orders must not use dirty reads or exclusive optimistic control. The domain service must execute energy state validation wrapping queries in explicit, non-blocking database locks (`SELECT ... FOR UPDATE NOWAIT`). If the row is found locked by the asynchronous IoT telemetry injection process, the transaction must abort immediately, returning an "Indeterminate Safety" state to the user, preventing the thread from freezing (prevent thread pool starvation).
 
-### 3.8. Indexación GIN para Auditoría Inmutable JSONB ([[ADM-032]])
-Para garantizar búsquedas eficientes sobre el rastro de auditoría masivo, las columnas `previous_state` y `new_state` (tipo `JSONB`) de la tabla `adm.audit_logs` deben indexarse utilizando la clase de operador **`jsonb_path_ops`** (Índice GIN). Las consultas de búsqueda histórica desde la aplicación .NET se deben implementar utilizando el operador de contención nativo (`@>`) para aprovechar la optimización de la estructura de rutas (hash paths).
+### 3.8. GIN Indexing for JSONB Immutable Audit ([[ADM-032]])
+To guarantee efficient searches over the massive audit trail, the `previous_state` and `new_state` columns (`JSONB` type) of the `adm.audit_logs` table must be indexed using the **`jsonb_path_ops`** operator class (GIN Index). Historical search queries from the .NET application must be implemented using the native containment operator (`@>`) to take advantage of path structure optimization (hash paths).

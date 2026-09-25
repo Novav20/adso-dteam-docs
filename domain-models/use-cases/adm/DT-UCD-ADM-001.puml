@@ -1,0 +1,78 @@
+@startuml ADM-UseCases
+skinparam packageStyle rectangle
+left to right direction
+
+' --- VISUAL CONFIGURATION ---
+skinparam usecase {
+  BackgroundColor #EBF5FB
+  BorderColor #2E86C1
+  BorderThickness 2
+  FontName Segoe UI
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #1B4F72
+  BorderColor #154360
+  FontName Segoe UI
+  FontSize 11
+}
+skinparam package {
+  BackgroundColor #FDFEFE
+  BorderColor #AED6F1
+  FontName Segoe UI
+  FontSize 13
+  FontStyle bold
+}
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+
+legend top right
+|= Document Control (ISO 9001:2015) |
+| **Code:** DT-UCD-ADM-001 |
+| **Version:** 1.1 |
+| **Date:** 2026-07-16 |
+| **Status:** Synchronized Immutable Evident Audit |
+| **Author:** Juan David Julio Serrano |
+endlegend
+
+' --- ACTORS ---
+actor "System\nAdministrator" as Admin #1B4F72
+actor "Plant\nManager" as Gerente #1B4F72
+actor "Auditor" as Auditor #1B4F72
+actor "Reliability\nEngineer" as Confiabilidad #1B4F72
+
+' --- MAIN PACKAGE ---
+package "Security and Governance Module (ADM)" {
+
+  usecase "UC-ADM-013\nManage Roles and Permissions\n(Industrial RBAC)" as UCADM013 #EBF5FB
+  usecase "UC-ADM-014\nManage Users and\nSecure Lifecycle" as UCADM014 #EBF5FB
+  usecase "UC-ADM-015\nConfigure ERP Integration\n(Simulation)" as UCADM015 #EBF5FB
+  usecase "UC-ADM-016\nPublish System\nAnnouncements" as UCADM016 #EBF5FB
+  usecase "UC-ADM-017\nExecutive KPI\nDashboard (MTBF/MTTR)" as UCADM017 #EBF5FB
+  usecase "UC-ADM-018\nGenerate Executive\nReports (PDF/A)" as UCADM018 #EBF5FB
+  usecase "UC-ADM-019\nSynchronize Data\nwith BI Tools" as UCADM019 #EBF5FB
+  usecase "UC-ADM-022\nOptimization Suggestions\n(PMO)" as UCADM022 #EBF5FB
+  usecase "UC-ADM-024\nConfigure General\nSystem Parameters" as UCADM024 #EBF5FB
+  usecase "UC-ADM-032\nImmutable Audit System\n(Hash Chained)" as UCADM032 #EBF5FB
+}
+
+' --- ACTOR - USE CASE RELATIONSHIPS ---
+Admin --> UCADM013
+Admin --> UCADM014
+Admin --> UCADM015
+Admin --> UCADM016
+Admin --> UCADM024
+
+Gerente --> UCADM017
+Gerente --> UCADM018
+Gerente --> UCADM019
+Gerente --> UCADM032
+
+Confiabilidad --> UCADM022
+Auditor --> UCADM032
+
+' --- INTER-USE CASE RELATIONSHIPS (Include/Extend) ---
+UCADM018 ..> UCADM017 : <<include>>
+UCADM019 ..> UCADM017 : <<include>>
+
+@enduml

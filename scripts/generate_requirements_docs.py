@@ -22,7 +22,7 @@ from typing import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# Rutas por defecto relativas a la raíz del repositorio
+# Default paths relative to the repository root
 DEFAULT_DATA_DIR = REPO_ROOT / "requirements" / "data"
 DEFAULT_US_OUT = REPO_ROOT / "requirements" / "user-stories"
 DEFAULT_COMMON_OUT = REPO_ROOT / "requirements" / "common"
@@ -32,7 +32,7 @@ ALLOWED_MODULES = {"ADM", "INV", "VIS", "MTTO"}
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Genera documentación Markdown para US y TR a partir de CSVs maestros."
+        description="Generates Markdown documentation for US and TR from master CSVs."
     )
     parser.add_argument(
         "--data-dir",
@@ -55,22 +55,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--modules",
         nargs="*",
-        help="Filtrar por módulos específicos (ADM, INV, VIS, MTTO).",
+        help="Filter by specific modules (ADM, INV, VIS, MTTO).",
     )
     parser.add_argument(
         "--ids",
         nargs="*",
-        help="Filtrar por IDs específicos (ej. MTTO-001, TR-003).",
+        help="Filter by specific IDs (ej. MTTO-001, TR-003).",
     )
     parser.add_argument(
         "--only-us",
         action="store_true",
-        help="Generar únicamente Historias de Usuario.",
+        help="Generate only User Stories.",
     )
     parser.add_argument(
         "--only-tr",
         action="store_true",
-        help="Generar únicamente Requisitos Transversales.",
+        help="Generate only Transversal Requirements.",
     )
     parser.add_argument(
         "--write",
@@ -121,7 +121,7 @@ def us_sort_key(us_id: str) -> tuple[str, int, str]:
 
 def read_csv_safe(path: Path) -> list[dict[str, str]]:
     if not path.exists():
-        raise FileNotFoundError(f"No se encontró el archivo CSV: {path}")
+        raise FileNotFoundError(f"CSV file not found: {path}")
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         return list(csv.DictReader(handle))
 
@@ -132,12 +132,12 @@ def find_csv_file(data_dir: Path, possible_names: list[str]) -> Path:
         if candidate.exists():
             return candidate
     raise FileNotFoundError(
-        f"No se encontró ninguno de los archivos {possible_names} en {data_dir}"
+        f"None of the files were found {possible_names} en {data_dir}"
     )
 
 
 # ==============================================================================
-# Lógica de Generación: Requisitos Transversales (TR / COMMON)
+# Generation Logic: Requisitos Transversales (TR / COMMON)
 # ==============================================================================
 
 def parse_tr_title(raw_tr: str, tr_id: str) -> str:
@@ -153,7 +153,7 @@ def parse_tr_title(raw_tr: str, tr_id: str) -> str:
 
 
 def normalize_refs(value: str) -> str:
-    raw = (value or "").replace("\r", "").strip()
+    raw = (value or "").replace("\r", "").replace("<br>", "\n").replace("<br/>", "\n").strip()
     if not raw:
         return ""
     parts = [
@@ -169,7 +169,7 @@ def normalize_refs(value: str) -> str:
 def render_tr_req_table(rows: list[dict], req_type: str) -> str:
     filtered = []
     for row in rows:
-        rtype = clean(row.get("Tipo")).upper()
+        rtype = clean(row.get("Type")).upper()
         req_id = clean(row.get("Req ID")).upper()
         if not rtype:
             rtype = "FR" if "-FR-" in req_id else "NFR" if "-NFR-" in req_id else ""
@@ -177,20 +177,20 @@ def render_tr_req_table(rows: list[dict], req_type: str) -> str:
             filtered.append(row)
 
     if not filtered:
-        return "_Sin requisitos en esta categoría._\n"
+        return "_No requirements in this category._\n"
 
     filtered.sort(key=lambda r: req_num_sort_key(clean(r.get("Req ID"))))
     lines = [
-        "| ID | Descripción | Categoría ISO 25010 | Prioridad |",
+        "| ID | Description | ISO 25010 Category | Priority |",
         "|---|---|---|---|",
     ]
     for row in filtered:
         req_id = clean(row.get("Req ID"))
-        desc = md_escape(clean(row.get("Descripción")))
+        desc = md_escape(clean(row.get("Description")))
         if desc.startswith(f"{req_id}:"):
             desc = desc[len(req_id) + 1:].strip()
-        cat = md_escape(clean(row.get("Categoría ISO 25010")))
-        prio = md_escape(clean(row.get("Prioridad")))
+        cat = md_escape(clean(row.get("ISO 25010:2023 Category")))
+        prio = md_escape(clean(row.get("Priority")))
         lines.append(f"| {req_id} | {desc} | {cat} | {prio} |")
     return "\n".join(lines) + "\n"
 
@@ -210,8 +210,8 @@ def build_tr_markdown(
     refs = meta.get("refs", "")
 
     total = len(rows_sorted)
-    fr_total = sum(1 for r in rows_sorted if clean(r.get("Tipo")).upper() == "FR" or "-FR-" in clean(r.get("Req ID")).upper())
-    nfr_total = sum(1 for r in rows_sorted if clean(r.get("Tipo")).upper() == "NFR" or "-NFR-" in clean(r.get("Req ID")).upper())
+    fr_total = sum(1 for r in rows_sorted if clean(r.get("Type")).upper() == "FR" or "-FR-" in clean(r.get("Req ID")).upper())
+    nfr_total = sum(1 for r in rows_sorted if clean(r.get("Type")).upper() == "NFR" or "-NFR-" in clean(r.get("Req ID")).upper())
 
     parts = [
         "---",
@@ -228,20 +228,20 @@ def build_tr_markdown(
         "",
         "## Contexto transversal",
         "",
-        "| Descripción general | Alcance | Referencias normativas |",
+        "| Description general | Scope | Normative References |",
         "| --- | --- | --- |",
         f"| {md_escape(desc)} | {md_escape(scope)} | {refs} |",
         "",
-        "## Requisitos Funcionales (FR)",
+        "## Functional Requirements (FR)",
         "",
         render_tr_req_table(rows_sorted, "FR").rstrip(),
         "",
-        "## Requisitos No Funcionales (NFR)",
+        "## Non-Functional Requirements (NFR)",
         "",
         render_tr_req_table(rows_sorted, "NFR").rstrip(),
         "",
-        "## Fuente",
-        "- Generado automáticamente desde `srs.csv`.",
+        "## Source",
+        "- Automatically generated from `srs.csv`.",
         "",
     ]
     return "\n".join(parts)
@@ -252,22 +252,22 @@ def build_tr_index_markdown(grouped: dict[str, list[dict]], metadata: dict[str, 
     lines = [
         "---",
         "id: INDEX-COMMON",
-        'title: "Requisitos Transversales — Índice Maestro"',
+        'title: "Transversal Requirements — Master Index"',
         "---",
         "",
-        "# INDEX — COMMON (Requisitos Transversales)",
+        "# INDEX — COMMON (Transversal Requirements)",
         "",
-        "Consolidado de patrones arquitectónicos transversales aplicables a los módulos MTTO, INV, VIS y ADM.",
+        "Consolidated transversal architectural patterns applicable to MTTO, INV, VIS, and ADM modules.",
         "",
-        "| ID | Nombre | FR | NFR | Total | Archivo |",
+        "| ID | Name | FR | NFR | Total | File |",
         "|---|---|---:|---:|---:|---|",
     ]
     for tr_id in tr_ids:
         rows = grouped[tr_id]
         meta = metadata.get(tr_id, {})
         title = meta.get("name") or parse_tr_title(clean(rows[0].get("TR")), tr_id)
-        fr_total = sum(1 for r in rows if clean(r.get("Tipo")).upper() == "FR" or "-FR-" in clean(r.get("Req ID")).upper())
-        nfr_total = sum(1 for r in rows if clean(r.get("Tipo")).upper() == "NFR" or "-NFR-" in clean(r.get("Req ID")).upper())
+        fr_total = sum(1 for r in rows if clean(r.get("Type")).upper() == "FR" or "-FR-" in clean(r.get("Req ID")).upper())
+        nfr_total = sum(1 for r in rows if clean(r.get("Type")).upper() == "NFR" or "-NFR-" in clean(r.get("Req ID")).upper())
         total = len(rows)
         lines.append(f"| **{tr_id}** | {md_escape(title)} | {fr_total} | {nfr_total} | {total} | [[{tr_id}]] |")
     lines.append("")
@@ -275,20 +275,20 @@ def build_tr_index_markdown(grouped: dict[str, list[dict]], metadata: dict[str, 
 
 
 # ==============================================================================
-# Lógica de Generación: Historias de Usuario (User Stories)
+# Generation Logic: Historias de Usuario (User Stories)
 # ==============================================================================
 
 def extract_us_id(row: dict[str, str]) -> str:
     direct = clean(row.get("US ID"))
     if re.match(r"^[A-Z]+-\d+$", direct):
         return direct
-    name = clean(row.get("Nombre"))
+    name = clean(row.get("Name"))
     m = re.match(r"^([A-Z]+-\d+):", name)
     return m.group(1) if m else ""
 
 
 def parse_us_title(row: dict[str, str], us_id: str) -> str:
-    name = clean(row.get("Nombre"))
+    name = clean(row.get("Name"))
     if not name:
         return us_id
     return re.sub(r"^[A-Z]+-\d+:\s*", "", name) or us_id
@@ -308,15 +308,15 @@ def get_transversales_ids(row: dict[str, str]) -> list[str]:
 
 def build_acceptance_table(criteria: list[dict[str, str]]) -> str:
     if not criteria:
-        return "_Sin criterios de aceptación en gherkin.csv para esta US._\n"
+        return "_No acceptance criteria in gherkin.csv for this US._\n"
     lines = [
-        "| Escenario | Dado (Contexto) | Cuando (Acción) | Entonces (Resultado) |",
+        "| Scenario | Given (Context) | When (Action) | Then (Result) |",
         "|---|---|---|---|",
     ]
     for row in sorted(criteria, key=lambda r: req_num_sort_key(clean(r.get("AC ID")))):
         lines.append(
-            f"| {md_escape(row.get('Escenario', ''))} | {md_escape(row.get('Contexto', ''))} | "
-            f"{md_escape(row.get('Acción', ''))} | {md_escape(row.get('Resultado', ''))} |"
+            f"| {md_escape(row.get('Scenario', ''))} | {md_escape(row.get('Given (Context)', ''))} | "
+            f"{md_escape(row.get('When (Action)', ''))} | {md_escape(row.get('Then (Result)', ''))} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -325,27 +325,27 @@ def build_us_reqs_table(rows: list[dict[str, str]], req_type: str) -> str:
     reqs = []
     for row in rows:
         rid = clean(row.get("Req ID")).upper()
-        rtype = clean(row.get("Tipo")).upper()
+        rtype = clean(row.get("Type")).upper()
         if not rtype:
             rtype = "FR" if rid.startswith("FR-") else "NFR" if rid.startswith("NFR-") else ""
         if rtype == req_type:
             reqs.append(row)
 
     if not reqs:
-        return "_Sin requisitos en esta categoría._\n"
+        return "_No requirements in this category._\n"
 
     reqs.sort(key=lambda r: req_num_sort_key(clean(r.get("Req ID"))))
     lines = [
-        "| ID | Descripción | Categoría ISO 25010 | Prioridad | Fuente |",
+        "| ID | Description | ISO 25010 Category | Priority | Source |",
         "|---|---|---|---|---|",
     ]
     for row in reqs:
         rid = md_escape(clean(row.get("Req ID")))
-        desc_raw = clean(row.get("Descripción"))
+        desc_raw = clean(row.get("Description"))
         desc = md_escape(re.sub(r"^(?:FR|NFR)-\d+:\s*", "", desc_raw, flags=re.IGNORECASE))
-        cat = md_escape(clean(row.get("Categoría ISO 25010")))
-        prio = md_escape(clean(row.get("Prioridad")))
-        fuente = md_escape(clean(row.get("Fuente")) or clean(row.get("Historia Relacionada")))
+        cat = md_escape(clean(row.get("ISO 25010:2023 Category")))
+        prio = md_escape(clean(row.get("Priority")))
+        fuente = md_escape(clean(row.get("Normative Reference")) or clean(row.get("Related Story")))
         lines.append(f"| {rid} | {desc} | {cat} | {prio} | {fuente} |")
     return "\n".join(lines) + "\n"
 
@@ -362,50 +362,50 @@ def render_us_markdown(
         "---",
         f"id: {us_id}",
         f'nombre: "{title}"',
-        f"prioridad: {us['moscow']}",
-        f"puntos: {us['points']}",
-        f"rol: {us['role']}",
+        f"priority: {us['moscow']}",
+        f"points: {us['points']}",
+        f"role: {us['role']}",
         f"epic: {us['epic']}",
-        f"observaciones: {us['obs']}",
+        f"observations: {us['obs']}",
     ]
 
     transversales = us.get("transversales", [])
     if transversales:
-        frontmatter.append("transversales_aplicables:")
+        frontmatter.append("applicable_trs:")
         for tr_id in transversales:
             frontmatter.append(f'  - "[[{tr_id}]]"')
     else:
-        frontmatter.append("transversales_aplicables: []")
+        frontmatter.append("applicable_trs: []")
 
     frontmatter.append("---")
 
     body = [
         f"# {us_id}: {title}",
         "",
-        "## Descripción de la Historia",
+        "## Story Description",
         "",
-        "| Rol | Acción | Beneficio |",
+        "| Role | Action | Benefit |",
         "|---|---|---|",
-        f"| {md_escape('Como ' + us['role'])} | {md_escape('Quiero ' + us['quiero'])} | {md_escape('Para ' + us['para'])} |",
+        f"| {md_escape(us['role'])} | {md_escape(us['quiero'])} | {md_escape(us['para'])} |",
         "",
-        "## Criterios de Aceptación",
+        "## Acceptance Criteria",
         build_acceptance_table(acceptance).rstrip(),
         "",
-        "## Requisitos Funcionales (FR)",
+        "## Functional Requirements (FR)",
         build_us_reqs_table(srs_rows, "FR").rstrip(),
         "",
-        "## Requisitos No Funcionales (NFR)",
+        "## Non-Functional Requirements (NFR)",
         build_us_reqs_table(srs_rows, "NFR").rstrip(),
         "",
-        "## Fuente",
-        "- Generado automáticamente desde `user_stories.csv`, `gherkin.csv` y `srs.csv`.",
+        "## Source",
+        "- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.",
         "",
     ]
     return "\n".join(frontmatter + [""] + body)
 
 
 # ==============================================================================
-# Controlador de Ejecución y Diff
+# Execution and Diff Controller
 # ==============================================================================
 
 def print_diff(path: Path, old_text: str, new_text: str) -> None:
@@ -460,8 +460,8 @@ def main() -> None:
             if tr_id:
                 tr_meta[tr_id] = {
                     "name": clean(r.get("Name")),
-                    "desc": clean(r.get("Descripción General")),
-                    "scope": clean(r.get("Alcance")),
+                    "desc": clean(r.get("General Description")),
+                    "scope": clean(r.get("Scope")),
                     "refs": normalize_refs(r.get("Referencias Normativas")),
                 }
 
@@ -510,12 +510,12 @@ def main() -> None:
             index_content = build_tr_index_markdown(grouped_tr, tr_meta)
             if is_write:
                 index_file.write_text(index_content, encoding="utf-8")
-                print(f"  🧭 ÍNDICE ESCRITO: {index_file.relative_to(REPO_ROOT)}")
+                print(f"  🧭 INDEX WRITTEN: {index_file.relative_to(REPO_ROOT)}")
             else:
-                print(f"  [DRY-RUN] 🧭 ÍNDICE PROYECTADO: {index_file.relative_to(REPO_ROOT)}")
+                print(f"  [DRY-RUN] 🧭 PROJECTED INDEX: {index_file.relative_to(REPO_ROOT)}")
 
     # --------------------------------------------------------------------------
-    # 2. Procesar Historias de Usuario (US por Módulo)
+    # 2. Process User Stories (US by Module)
     # --------------------------------------------------------------------------
     if not args.only_tr:
         print("\n📋 Procesando Historias de Usuario (User Stories)...")
@@ -523,12 +523,23 @@ def main() -> None:
         gherkin_rows_raw = read_csv_safe(gherkin_csv)
 
         # Indexar SRS y Gherkin
+        us_name_to_id: dict[str, str] = {}
+        for row in us_rows_raw:
+            uid = extract_us_id(row).upper()
+            name = clean(row.get("Name"))
+            if uid and name:
+                us_name_to_id[name] = uid
+
         srs_by_us: dict[str, list[dict]] = defaultdict(list)
         for r in srs_rows:
-            rel = clean(r.get("Historia Relacionada"))
+            rel = clean(r.get("Related Story"))
+            rel_name = re.sub(r"\s*\(https?://[^)]+\)\s*$", "", rel).strip()
+            
             m = re.match(r"^([A-Z]+-\d+):", rel)
             if m:
                 srs_by_us[m.group(1)].append(r)
+            elif rel_name in us_name_to_id:
+                srs_by_us[us_name_to_id[rel_name]].append(r)
 
         gherkin_by_us: dict[str, list[dict]] = defaultdict(list)
         for r in gherkin_rows_raw:
@@ -552,9 +563,9 @@ def main() -> None:
             target_module_dir.mkdir(parents=True, exist_ok=True)
             target_file = target_module_dir / f"{us_id}.md"
 
-            quiero = clean(row.get("Quiero")) or clean(row.get("Acción"))
-            para = clean(row.get("Para")) or clean(row.get("Beneficio"))
-            role = clean(row.get("Como")) or re.sub(r"\s*\(https?://[^)]+\)\s*$", "", clean(row.get("Rol (Como ...)")))
+            quiero = clean(row.get("Action"))
+            para = clean(row.get("Benefit"))
+            role = re.sub(r"\s*\(https?://[^)]+\)\s*$", "", clean(row.get("Role (As a ..)")))
 
             us_dict = {
                 "us_id": us_id,
@@ -564,9 +575,9 @@ def main() -> None:
                 "quiero": re.sub(r"^Quiero\s+", "", quiero, flags=re.IGNORECASE),
                 "para": re.sub(r"^Para\s+", "", para, flags=re.IGNORECASE),
                 "moscow": clean(row.get("MoSCoW")) or "N/A",
-                "points": clean(row.get("Puntos Fibonacci")) or "0",
+                "points": clean(row.get("Effort Points")) or "0",
                 "epic": module,
-                "obs": clean(row.get("Observaciones")),
+                "obs": clean(row.get("Observations")),
                 "transversales": get_transversales_ids(row),
             }
 
@@ -594,12 +605,12 @@ def main() -> None:
     # --------------------------------------------------------------------------
     # Resumen Final
     # --------------------------------------------------------------------------
-    mode_str = "ESCRITURA DIRECTA (--write)" if is_write else "MODO SEGURO / SIMULACIÓN (--dry-run por defecto)"
+    mode_str = "DIRECT WRITE (--write)" if is_write else "SAFE MODE / SIMULATION (--dry-run by default)"
     print("\n" + "=" * 60)
-    print(f"🎯 Resumen de Ejecución [{mode_str}]:")
+    print(f"🎯 Execution Summary [{mode_str}]:")
     print(f"   • Archivos nuevos proyectados:    {total_created}")
     print(f"   • Archivos modificados:          {total_modified}")
-    print(f"   • Archivos al día (sin cambios): {total_unchanged}")
+    print(f"   • Up-to-date files (no changes): {total_unchanged}")
     print("=" * 60)
     if not is_write:
         print("💡 Para aplicar los cambios reales en disco, ejecute con el flag '--write'.")

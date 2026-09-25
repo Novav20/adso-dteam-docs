@@ -26,7 +26,7 @@ def generate_domain_puml():
     erd_md = "domain-models/entity-relationship/DT-ERD-DOC-001.md"
     dm_doc1 = "domain-models/class/DT-DM-DOC-001.md"
     dm_doc2 = "domain-models/class/DT-DM-DOC-002.md"
-    out_puml = "domain-models/class/DT-DM-001-domain-model.puml"
+    out_puml = "domain-models/class/DT-DM-DOC-001.puml"
     
     classes = {}
     current_schema = "Common"
@@ -42,7 +42,7 @@ def generate_domain_puml():
             if "| Entidad" in line and "| Estereotipo DDD" in line:
                 in_table = True
                 continue
-            if line.startswith("| ---") or line.startswith("| -"):
+            if line.startswith("| ---") or line.startswith("| -") or line.startswith("| :---") or line.startswith("| :"):
                 continue
             if in_table and line.startswith("|"):
                 parts = [p.strip() for p in line.split("|")[1:-1]]
@@ -73,8 +73,8 @@ def generate_domain_puml():
         line = line.strip()
         
         # Schema Detection
-        if line.startswith("### ") and "Esquema" in line:
-            current_schema = line.split("Esquema")[-1].strip()
+        if line.startswith("### ") and "Schema" in line:
+            current_schema = line.split("Schema")[-1].strip().replace("`", "")
             continue
             
         # Table Detection
@@ -83,16 +83,16 @@ def generate_domain_puml():
             current_table = m_table.group(1)
             continue
             
-        if line.startswith("## 4. Matriz de Relaciones"):
+        if line.startswith("## 4. Referential Relationships and Cascading (FKs)"):
             in_relations = True
             in_table = False
             continue
             
-        if line.startswith("| Campo Físico |") or line.startswith("| Entidad Origen"):
+        if line.startswith("| Physical Field |") or line.startswith("| Parent Table"):
             in_table = True
             continue
             
-        if line.startswith("| ---"):
+        if line.startswith("| ---") or line.startswith("| :---") or line.startswith("| :"):
             continue
             
         if in_table and line.startswith("|"):
@@ -155,7 +155,7 @@ def generate_domain_puml():
             in_table = False
             for line in lines:
                 line = line.strip()
-                if line.startswith("| Método"):
+                if line.startswith("| Method |"):
                     in_table = True
                     continue
                 if line.startswith("| :---"):
@@ -196,11 +196,11 @@ def generate_domain_puml():
     puml.append("")
     
     schema_titles = {
-        "tax": "Taxonomía de Activos (ISO 14224)",
-        "mtto": "Operaciones de Mantenimiento (MTTO)",
-        "inv": "Control de Recursos (INV)",
-        "vis": "Convergencia Gemelo Digital (VIS)",
-        "adm": "Seguridad y Gobernanza (ADM)"
+        "tax": "Asset Taxonomy (ISO 14224)",
+        "mtto": "Maintenance Management (MTTO)",
+        "inv": "Resource Control (INV)",
+        "vis": "Digital Twin Convergence (VIS)",
+        "adm": "Safety and Governance (ADM)"
     }
     
     schemas_group = {}

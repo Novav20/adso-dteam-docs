@@ -1,22 +1,22 @@
-# 🛠️ Automatizaciones y Generadores Docs-as-Code
+# 🛠️ Docs-as-Code Automation and Generators
 
-Este directorio contiene los scripts de soporte para la sincronización y generación automatizada de documentos Markdown a partir de los datos maestros tabulares (`requirements/data/`).
+This directory contains the support scripts for synchronization and automated generation of Markdown documents from tabular master data (`requirements/data/`).
 
 ## `generate_design_tokens.py`
 
-Genera `ui-ux/assets/tokens.css` y `ui-ux/assets/tokens_penpot.json` a partir de
-las tablas y definiciones de `ui-ux/DT-UI-DS-DOC-001.md`. Ambos son artefactos
-generados; los cambios deben hacerse en el documento Markdown y después
-regenerarse:
+Generates `ui-ux/assets/tokens.css` and `ui-ux/assets/tokens_penpot.json` from
+the tables and definitions in `ui-ux/DT-UI-DS-DOC-001.md`. Both are generated
+artifacts; changes must be made in the Markdown source document and then
+regenerated:
 
 ```bash
 python3 scripts/generate_design_tokens.py
 ```
 
-El archivo JSON usa el formato DTCG/Design Tokens compatible con Penpot, con
-referencias semánticas como `{Primitives.gray-900}`.
+The JSON file uses the DTCG/Design Tokens format compatible with Penpot, with
+semantic references such as `{Primitives.gray-900}`.
 
-También admite rutas explícitas para validaciones o fuentes alternativas:
+It also accepts explicit paths for validations or alternative sources:
 
 ```bash
 python3 scripts/generate_design_tokens.py \
@@ -29,61 +29,62 @@ python3 scripts/generate_design_tokens.py \
 
 ## 📌 `generate_requirements_docs.py`
 
-Script unificado encargado de compilar:
-1. **Requisitos Transversales (`TR-001` a `TR-011` e `INDEX.md`):** Generados en `requirements/common/`.
-2. **Historias de Usuario (US):** Agrupadas por módulo/epic (`adm/`, `inv/`, `mtto/`, `vis/`) en `requirements/user-stories/`.
+Unified script responsible for compiling:
+1. **Transversal Requirements (`TR-001` to `TR-011` and `INDEX.md`):** Generated in `requirements/common/`.
+2. **User Stories:** Grouped by module/epic (`adm/`, `inv/`, `mtto/`, `vis/`) in `requirements/user-stories/`.
 
-### 🛡️ Seguridad por Defecto (Dry-Run)
-El script **nunca sobreescribe archivos por defecto**. Si se ejecuta sin parámetros, opera en modo de simulación (*dry-run*), indicando en consola qué archivos serían creados o modificados.
+### 🛡️ Safe by Default (Dry-Run)
+
+The script **never overwrites files by default**. If executed without parameters, it operates in simulation mode (*dry-run*), printing to the console what files would be created or modified.
 
 ---
 
-## 🚀 Ejemplos de Uso
+## 🚀 Usage Examples
 
-### 1. Simulación General (Verificar qué cambiaría)
+### 1. Simulation (Check what would change)
 ```bash
 python scripts/generate_requirements_docs.py
 ```
 
-### 2. Ver Diferencias Exactas Línea por Línea (Diff)
+### 2. View Exact Line-by-Line Differences (Diff)
 ```bash
 python scripts/generate_requirements_docs.py --diff
 ```
 
-### 3. Aplicar Cambios en Disco (Escritura Real)
+### 3. Apply Changes to Disk (Real Write)
 ```bash
 python scripts/generate_requirements_docs.py --write
 ```
 
-### 4. Generar y Actualizar el `INDEX.md` de Requisitos Transversales
+### 4. Generate and Update the Transversal Requirements `INDEX.md`
 ```bash
 python scripts/generate_requirements_docs.py --write --write-index
 ```
 
-### 5. Filtrar por Módulo Específico (ej. solo Mantenimiento e Inventario)
+### 5. Filter by Specific Module (e.g., only Maintenance and Inventory)
 ```bash
 python scripts/generate_requirements_docs.py --modules MTTO INV --write
 ```
 
-### 6. Filtrar por ID Específico (ej. una sola US o un solo TR)
+### 6. Filter by Specific ID (e.g., a single User Story or a single TR)
 ```bash
 python scripts/generate_requirements_docs.py --ids MTTO-001 TR-003 --write
 ```
 
-### 7. Generar Solo Historias de Usuario o Solo Transversales
+### 7. Generate Only User Stories or Only Transversal Requirements
 ```bash
-# Solo Historias de Usuario
+# Only User Stories
 python scripts/generate_requirements_docs.py --only-us --write
 
-# Solo Requisitos Transversales (COMMON)
+# Only Transversal Requirements (COMMON)
 python scripts/generate_requirements_docs.py --only-tr --write
 ```
 
 ---
 
-## 📂 Mapeo de Rutas Predeterminadas
+## 📂 Default Path Mapping
 
-| Origen (CSV Maestro) | Destino Generado (Markdown) | Formato / Contenido |
+| Source (Master CSV) | Generated Destination (Markdown) | Format / Content |
 | :--- | :--- | :--- |
-| `requirements/data/srs.csv` + `transversal-requirements.csv` | `requirements/common/TR-xxx.md` | Contexto transversal, tablas FR/NFR y referencias normativas. |
-| `requirements/data/srs.csv` + `user-stories.csv` + `gherkin.csv` | `requirements/user-stories/{epic}/{US-ID}.md` | Como/Quiero/Para, Criterios de Aceptación Gherkin, tablas FR/NFR y trazabilidad. |
+| `requirements/data/srs.csv` + `transversal-requirements.csv` | `requirements/common/TR-xxx.md` | Transversal context, FR/NFR tables, and normative references. |
+| `requirements/data/srs.csv` + `user-stories.csv` + `gherkin.csv` | `requirements/user-stories/{epic}/{US-ID}.md` | As/I want/So that, Gherkin acceptance criteria, FR/NFR tables, and traceability. |

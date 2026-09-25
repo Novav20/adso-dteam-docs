@@ -2,28 +2,28 @@
 code: DT-ARQ-ASR-001
 version: 1.2
 date: 2026-09-10
-status: Aprobado
+status: Approved
 author: Juan David Julio Serrano
 ---
 
-# Requisitos Arquitectónicamente Significativos (ASRs)
+# Architecturally Significant Requirements (ASRs)
 
-## 1. Operación Offline-First y Tolerancia a Particiones
-*   **Origen:** [[TR-007]], [[MTTO-002]], [[INV-006]], [[ADR-006]].
-*   **Atributo de Calidad:** Tolerancia a Fallos / Disponibilidad / Integridad Transaccional.
-*   **Impacto Arquitectónico:** Obliga a una topología distribuida con almacenamiento local en el cliente móvil. Se prohíbe la resolución de conflictos mediante sobreescritura ciega por marcas de tiempo (*Last-Write-Wins*). La reconciliación se implementa mediante un pipeline de encolamiento de intenciones operativas (*Command-Sourced Synchronization*) procesadas de forma secuencial e idempotente en el backend .NET, respaldadas por un libro mayor inmutable (Kardex). Para intervenciones de seguridad crítica (LOTO), el riesgo fuera de línea se acota mediante arrendamientos temporales (*Offline Leases*) firmados criptográficamente.
+## 1. Offline-First Operation and Partition Tolerance
+*   **Source:** [[TR-007]], [[MTTO-002]], [[INV-006]], [[ADR-006]].
+*   **Quality Attribute:** Fault Tolerance / Availability / Transactional Integrity.
+*   **Architectural Impact:** Forces a distributed topology with local storage on the mobile client. Blind overwrite conflict resolution via timestamps (*Last-Write-Wins*) is prohibited. Reconciliation is implemented via a queueing pipeline of operational intents (*Command-Sourced Synchronization*) processed sequentially and idempotently on the .NET backend, backed by an immutable ledger (Kardex). For critical safety interventions (LOTO), offline risk is mitigated via cryptographically signed *Offline Leases*.
 
-## 2. Seguridad LOTO en Tiempo Real y Falla Segura
-*   **Origen:** [[TR-010]], [[VIS-011]], NFR-229, NFR-238.
-*   **Atributo de Calidad:** Seguridad Funcional (Safety) / Tiempo Real.
-*   **Impacto Arquitectónico:** Exige una capa de comunicación persistente (WebSockets/PubSub) independiente de las peticiones HTTP estándar, para propagar lecturas de telemetría y revocaciones de permisos en sub-segundos. Incluye la excepción de "Anulación Manual Criptográfica" para zonas sin cobertura de red, garantizando el principio de falla segura sin bloquear la operación crítica que ya ha sido validada físicamente.
+## 2. Real-Time LOTO Security and Fail-Safe
+*   **Source:** [[TR-010]], [[VIS-011]], NFR-229, NFR-238.
+*   **Quality Attribute:** Functional Safety / Real-Time.
+*   **Architectural Impact:** Demands a persistent communication layer (WebSockets/PubSub) independent of standard HTTP requests, to propagate telemetry readings and permission revocations in sub-seconds. It includes the "Cryptographic Manual Override" exception for areas without network coverage, guaranteeing the fail-safe principle without blocking critical operations that have already been physically validated.
 
-## 3. Registro de Auditoría Inmutable
-*   **Origen:** [[TR-001]], [[ADM-032]], FR-347, FR-351.
-*   **Atributo de Calidad:** No Repudio / Auditabilidad.
-*   **Impacto Arquitectónico:** Impide almacenar registros de auditoría en tablas transaccionales estándar con permisos de escritura total. Obliga a establecer un límite de almacenamiento de solo inserción, implementado en el MVP con el aislamiento de roles en PostgreSQL mediante seguridad a nivel de fila (*Row-Level Security*) y la validación de integridad mediante dispersión criptográfica encadenada (SHA-256).
+## 3. Immutable Audit Trail
+*   **Source:** [[TR-001]], [[ADM-032]], FR-347, FR-351.
+*   **Quality Attribute:** Non-Repudiation / Auditability.
+*   **Architectural Impact:** Prevents storing audit logs in standard transactional tables with full write permissions. Forces the establishment of an append-only storage boundary, implemented in the MVP with role isolation in PostgreSQL via Row-Level Security (RLS) and integrity validation via chained cryptographic hashing (SHA-256).
 
-## 4. Núcleo Transaccional de Taxonomía
-*   **Origen:** [[TR-008]], [[INV-027]], [[MTTO-029]], FR-414, FR-417.
-*   **Atributo de Calidad:** Consistencia Estructural.
-*   **Impacto Arquitectónico:** La jerarquía de la norma ISO 14224 abarca 9 niveles distribuidos transversalmente en el modelo de dominio: las Ubicaciones Funcionales gobiernan los Niveles 1 al 5, las Unidades de Equipo el Nivel 6, las Subunidades y los Ítems Mantenibles los Niveles 7 y 8, y el Catálogo de Repuestos el Nivel 9. Esta distribución requiere validaciones de grafos (prevención de ciclos y control de anidamiento jerárquico) en menos de 500 ms. Esto obliga a centralizar la lógica de taxonomía en un contexto delimitado estricto, delegando la validación de grafos y la prevención de ciclos al motor relacional mediante consultas jerárquicas nativas (CTEs recursivos), evitando así que la carga masiva en memoria y las reglas de negocio complejas se dispersen por la capa de aplicación.
+## 4. Taxonomic Transactional Core
+*   **Source:** [[TR-008]], [[INV-027]], [[MTTO-029]], FR-414, FR-417.
+*   **Quality Attribute:** Structural Consistency.
+*   **Architectural Impact:** The ISO 14224 hierarchy spans 9 levels distributed across the domain model: Functional Locations govern Levels 1 to 5, Equipment Units Level 6, Subunits and Maintainable Items Levels 7 and 8, and the Spare Part Master Level 9. This distribution requires graph validations (cycle prevention and hierarchical nesting control) in under 500 ms. This forces the centralization of taxonomy logic into a strict bounded context, delegating graph validation and cycle prevention to the relational engine via native hierarchical queries (Recursive CTEs), thus preventing massive in-memory loading and complex business rules from scattering across the application layer.

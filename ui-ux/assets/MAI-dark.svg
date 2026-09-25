@@ -5,10 +5,10 @@
      role="img"
      aria-labelledby="title desc">
 
-  <title id="title">Esquema del Componente MAI - Tema Oscuro (Móvil / Campo / Noche)</title>
+  <title id="title">MAI Component Schematic - Dark Theme (Mobile / Field / Night)</title>
 
   <desc id="desc">
-    Especificación HPHMI del Indicador Analógico Móvil (MAI) en Tema Oscuro con rango normal azul claro, puntero neutro invariable, presentación de alarmas Método 3 con alto contraste WCAG y límites de interbloqueo.
+    HPHMI Specification of the Moving Analog Indicator (MAI) in Dark Theme with light blue normal range, invariant neutral pointer, Method 3 alarm presentation with high WCAG contrast, and interlock limits.
   </desc>
 
   <style>
@@ -32,18 +32,18 @@
   <rect class="bg" x="0" y="0" width="880" height="680" rx="12" />
 
   <!-- Header -->
-  <text x="440" y="38" text-anchor="middle" class="title">Indicador Analógico Móvil (MAI) — Tema Oscuro (Móvil / Noche)</text>
-  <text x="440" y="58" text-anchor="middle" class="subtitle">Patrón ISA-101 para Dispositivos de Campo: Preservación de Visión Nocturna y Contraste</text>
+  <text x="440" y="38" text-anchor="middle" class="title">Moving Analog Indicator (MAI) — Dark Theme (Mobile / Night)</text>
+  <text x="440" y="58" text-anchor="middle" class="subtitle">ISA-101 Pattern for Field Devices: Night Vision and Contrast Preservation</text>
 
   <!-- Main Container Card -->
   <rect class="card" x="30" y="75" width="820" height="575" rx="8" />
 
-  <!-- GEOMETRÍA DE PISTA VERTICAL (Escala 0 a 150 PSI) -->
+  <!-- VERTICAL TRACK GEOMETRY (0 to 150 PSI Scale) -->
   <rect class="track" x="435" y="120" width="10" height="450" rx="5" ry="5" />
   <rect class="interlock-block" x="433" y="116" width="14" height="8" rx="2" />
   <rect class="normal-zone" x="435" y="210" width="10" height="240" rx="2" />
 
-  <!-- MARCAS Y ETIQUETAS DE ESCALA (Lado Izquierdo) -->
+  <!-- SCALE MARKS AND LABELS (Left Side) -->
   <line class="scale-line" x1="415" y1="120" x2="435" y2="120" />
   <text x="405" y="125" text-anchor="end" class="label-mono">150.0</text>
   
@@ -56,53 +56,53 @@
   <line class="scale-line" x1="415" y1="570" x2="435" y2="570" />
   <text x="405" y="575" text-anchor="end" class="label-mono">0.0</text>
   
-  <text x="390" y="595" text-anchor="end" class="caption">Escala Instrumento (PSI)</text>
+  <text x="390" y="595" text-anchor="end" class="caption">Instrument Scale (PSI)</text>
 
-  <!-- ANOTACIÓN: ZONA DE OPERACIÓN NORMAL -->
+  <!-- ANNOTATION: NORMAL OPERATION ZONE -->
   <line class="guide-line" x1="280" y1="330" x2="430" y2="330" />
   <rect x="120" y="295" width="170" height="70" rx="6" fill="#16191F" stroke="#0369A1" stroke-width="1.5" />
-  <text x="205" y="318" text-anchor="middle" class="label-bold" fill="#38BDF8">Zona Normal (HPHMI)</text>
-  <text x="205" y="338" text-anchor="middle" class="caption">Franja Azul Claro</text>
+  <text x="205" y="318" text-anchor="middle" class="label-bold" fill="#38BDF8">Normal Zone (HPHMI)</text>
+  <text x="205" y="338" text-anchor="middle" class="caption">Light Blue Strip</text>
   <text x="205" y="354" text-anchor="middle" class="label-mono">40.0 – 120.0 PSI</text>
 
-  <!-- ANOTACIÓN: INTERBLOQUEO DE SEGURIDAD (ESD) -->
+  <!-- ANNOTATION: SAFETY INTERLOCK (ESD) -->
   <line class="guide-line" x1="280" y1="120" x2="430" y2="120" />
   <rect x="120" y="95" width="170" height="50" rx="6" fill="#16191F" stroke="#5C667A" stroke-width="1" />
   <text x="205" y="116" text-anchor="middle" class="label-bold">Safety Interlock</text>
-  <text x="205" y="134" text-anchor="middle" class="caption">Disparo Automático ESD</text>
+  <text x="205" y="134" text-anchor="middle" class="caption">ESD Automatic Trip</text>
 
-  <!-- 4. PUNTERO DE VALOR ACTUAL (Neutral e Invariable - 85.3 PSI) -->
+  <!-- 4. CURRENT VALUE POINTER (Neutral and Invariant - 85.3 PSI) -->
   <line class="guide-line" x1="440" y1="314.1" x2="570" y2="314.1" />
   <circle class="pointer-shape" cx="440" cy="314.1" r="8" />
   
   <rect x="570" y="285" width="230" height="60" rx="6" fill="#16191F" stroke="#FDFEFE" stroke-width="1.5" />
-  <text x="585" y="308" class="caption">Lectura Actual (Puntero Neutro):</text>
+  <text x="585" y="308" class="caption">Current Reading (Neutral Pointer):</text>
   <text x="585" y="332" class="label-mono" font-size="18px">85.3 PSI</text>
   <text x="785" y="330" text-anchor="end" class="label" fill="#2A9D8F">NORMAL</text>
 
-  <!-- 5. PRESENTACIÓN DE ALARMAS MÉTODO 3 -->
-  <!-- ALARMA ALTA CRÍTICA (Método 3: Cuadrado Rojo '1' - Texto Blanco sobre Rojo) -->
+  <!-- 5. METHOD 3 ALARM PRESENTATION -->
+  <!-- CRITICAL HIGH ALARM (Method 3: Red Square '1' - White Text on Red) -->
   <line class="guide-line" x1="450" y1="165" x2="570" y2="165" />
   <rect x="460" y="152" width="26" height="26" rx="4" fill="#E63946" stroke="#FFFFFF" stroke-width="1" />
   <text x="473" y="170" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="14px" font-weight="800" fill="#FFFFFF">1</text>
   
   <rect x="570" y="140" width="230" height="50" rx="6" fill="#16191F" stroke="#E63946" stroke-width="1.5" />
-  <text x="585" y="161" class="label-bold" fill="#E63946">Alarma Crítica Alta (P1)</text>
-  <text x="585" y="178" class="caption">Método 3: Elemento [1] separado</text>
+  <text x="585" y="161" class="label-bold" fill="#E63946">High Critical Alarm (P1)</text>
+  <text x="585" y="178" class="caption">Method 3: Separate [1] element</text>
 
-  <!-- ADVERTENCIA BAJA (Método 3: Triángulo Ámbar '2' - Texto Oscuro sobre Ámbar, Contraste 8.5:1 WCAG AAA) -->
+  <!-- LOW WARNING (Method 3: Amber Triangle '2' - Dark Text on Amber, 8.5:1 WCAG AAA Contrast) -->
   <line class="guide-line" x1="450" y1="480" x2="570" y2="480" />
   <polygon points="473,465 487,491 459,491" fill="#F4A261" stroke="#16191F" stroke-width="1" />
   <text x="473" y="487" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="13px" font-weight="900" fill="#16191F">2</text>
 
   <rect x="570" y="455" width="230" height="50" rx="6" fill="#16191F" stroke="#F4A261" stroke-width="1.5" />
-  <text x="585" y="476" class="label-bold" fill="#F4A261">Advertencia Baja (P2)</text>
-  <text x="585" y="493" class="caption">Método 3: Elemento ▲2 separado</text>
+  <text x="585" y="476" class="label-bold" fill="#F4A261">Low Warning (P2)</text>
+  <text x="585" y="493" class="caption">Method 3: Separate ▲2 element</text>
 
   <!-- FOOTER PRINCIPLES & SUMMARY -->
   <rect x="50" y="605" width="780" height="32" rx="4" fill="#16191F" />
-  <text x="65" y="625" class="caption">✓ <tspan font-weight="700">ISA-101.01:</tspan> Rango normal azul claro (--dt-color-mai-normal-zone: #0369A1)</text>
-  <text x="450" y="625" class="caption">✓ <tspan font-weight="700">WCAG 2.1 AA:</tspan> Texto '2' oscuro en Ámbar (8.5:1)</text>
-  <text x="710" y="625" class="caption">✓ <tspan font-weight="700">Tema Oscuro</tspan></text>
+  <text x="65" y="625" class="caption">✓ <tspan font-weight="700">ISA-101.01:</tspan> Light blue normal range (--dt-color-mai-normal-zone: #0369A1)</text>
+  <text x="580" y="625" class="caption">✓ <tspan font-weight="700">WCAG 2.1 AA:</tspan> Dark '2' text on Amber (8.5:1)</text>
+  
 
 </svg>
