@@ -48,7 +48,9 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **inv_repo** | Inventory Repository Port | Secondary Port (Out) | IInventoryRepository | Persistence interface for material control and safety inventories. |
 | **sec_repo** | Audit Repository Port | Secondary Port (Out) | ISecurityRepository | Persistence interface for user accounts, security roles, sessions, and AuditLog. |
 | **notify_port** | Notification Port | Secondary Port (Out) | INotificationPort | Synchronous broadcast of safety alerts and LOTO status to the outside. |
-| **telemetry_port** | Telemetry Port | Secondary Port (Out) | ITelemetryPort | Interface for subscribing to physical safety telemetry streams asynchronously. |
+| **telemetry_bus** | Telemetry Stream Bus | Domain Service | ITelemetryBus | Internal pub/sub channel for high-frequency safety telemetry streams. |
+| **telemetry_repo** | Telemetry Repository Port | Secondary Port (Out) | ITelemetryRepository | Persistence interface for historical time-series data. |
+| **telemetry_ef_adapter**| Telemetry EF Adapter | Driven Adapter | TelemetryDbContext | Unit of Work; optimized bulk-inserts into TimescaleDB. |
 | **tax_ef_adapter** | Taxonomy EF Adapter | Driven Adapter | TaxonomyDbContext | Unit of Work for Taxonomy domain schema. |
 | **mtto_ef_adapter** | Maintenance EF Adapter | Driven Adapter | MaintenanceDbContext | Unit of Work for Maintenance domain schema. |
 | **inv_ef_adapter** | Inventory EF Adapter | Driven Adapter | InventoryDbContext | Unit of Work for Inventory domain schema. |
@@ -94,7 +96,11 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **idempotency_filter** | **redis_cache** | TCP (RESP) | Queries and sets idempotency keys (SETNX) to prevent duplicate transactions. |
 | **sync_worker** | **mtto_port** | In-Process Method Call | Routes dequeued offline work orders to the maintenance domain. |
 | **mtto_port** | **event_bus** | In-Process Method Call | Publishes domain events (e.g., WorkOrderClosed) for cross-module orchestration. |
-| **loto_port** | **telemetry_port** | C# Interface (DI) | Abstraction to subscribe to real-time safety condition streams. |
+| **loto_port** | **telemetry_bus** | In-Process Method Call | Subscribes to real-time safety condition streams. |
+| **telemetry_listener** | **telemetry_bus** | In-Process Method Call | Publishes live sensor readings to the hot path bus. |
+| **telemetry_listener** | **telemetry_repo** | C# Interface (DI) | Dispatches historical sensor readings to the cold path. |
+| **telemetry_repo** | **telemetry_ef_adapter**| C# Class Inheritance | Implements time-series persistence via EF Core. |
+| **telemetry_ef_adapter**| **db_postgres** | TCP/IP (SQL) | Executes optimized bulk inserts into TimescaleDB chunks. |
 | **mobile_app** | **local_db** | SQLite P/Invoke | Persists transactional queue and master data for offline-first execution. |
 | **loto_watchdog** | **local_db** | SQLite P/Invoke | Writes emergency lockout states directly to local storage upon connection loss. |
 | **loto_watchdog** | **signalr_hub** | WSS (WebSockets) | Maintains continuous heartbeat to verify safety perimeter integrity. |
@@ -106,7 +112,7 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 
 | Module / Port | C# Method Signature and Parameters | Requirement / US | Safety Invariant / Business Rule to Validate |
 | :--- | :--- | :--- | :--- |
-| **ITelemetryPort** | `IDisposable SubscribeToSafetyChannel(Guid equipmentUnitId, Action<TelemetryReading> onReading);` | [[VIS-011]]<br>TR-010-FR-431 | **Real-Time Synchronization:** Propagates permit revocations and energy spikes in sub-seconds. **Concurrency Control:** The client must apply a $300	ext{ ms}$ debounce on asset selection to prevent race conditions due to simultaneous multiple subscriptions. |
+| **ITelemetryBus** | `IDisposable SubscribeToSafetyChannel(Guid equipmentUnitId, Action<TelemetryReading> onReading);` | [[VIS-011]]<br>TR-010-FR-431 | **Real-Time Synchronization:** Propagates permit revocations and energy spikes in sub-seconds. **Concurrency Control:** The client must apply a $300	ext{ ms}$ debounce on asset selection to prevent race conditions due to simultaneous multiple subscriptions. |
 | **ITaxonomyService** | `Task InstallEquipment(Guid locationId, Guid equipmentId);` | [[INV-025]]<br>FR-593, FR-594 | Validates that the functional location has no installed asset (cardinality 1 slot = 1 L6 asset) and that the replacement equipment is in `IN_STORAGE` status (INV-025). |
 | **ITaxonomyService** | `Task<EquipmentUnit> UninstallEquipment(Guid locationId, string reason);` | [[INV-025]]<br>FR-591, FR-592 | Unlinks the equipment from its operational position; updates its physical status to "In Repair" or "Stock" in a single-commit database transaction (NFR-596). |
 | **ITaxonomyService** | `Task ReorganizeTree(Guid locationId, Guid newParentId);` | [[INV-027]]<br>FR-162, NFR-167 | Validates that the movement does not generate infinite cycles (a node cannot be its own ancestor, TR-008-FR-417) and remains within the boundaries of Functional Locations (L1 to L5 of the ISO 14224 taxonomy). |
