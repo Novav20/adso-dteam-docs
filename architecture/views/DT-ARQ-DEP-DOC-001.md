@@ -55,6 +55,7 @@ This matrix specifies the point-to-point communication channels between software
 | admin_portal | Workstation | nginx_proxy | Cloud Host Server | WSS | Port 443 | WebSockets TLS 1.3 | Real-time channel for telemetry updates and KPI Dashboard. |
 | nginx_proxy | Cloud Host Server | backend_api | Cloud Host Server | HTTP | Docker Net | Isolated Internal Net | Internal routing of API requests and terminated WebSocket traffic. |
 | backend_api | Cloud Host Server | postgres_db | Database Server | TCP/IP | Port 5432 | SSL / Private Net | Persistence operations via EF Core under Unit of Work pattern. |
+| backend_api | Cloud Host Server | redis_cache | Cache Server | TCP (RESP) | Port 6379 | TLS / Private Net | Millisecond-latency idempotency key validation (SETNX) to prevent duplicate transactions. |
 
 ---
 
