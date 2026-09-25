@@ -142,7 +142,7 @@ Additionally, the document justifies the existence of each method under the prin
 | Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
 | :--- | :--- | :--- | :--- |
 | `UpdateBarcode(newCode: String): void` | Assigns or updates the physical scanning tag for the bin. | Master Data CRUD | **Physical Tracking:** Allows integration with mobile scanning devices. |
-| `Deactivate(): void` | Changes status to INACTIVE. | Master Data CRUD | **State Control:** Disables a bin (e.g. if damaged) preventing new stock placements without deleting history. |
+| `Deactivate(): void` | Sets the `IsActive` boolean flag to false. | Master Data CRUD | **State Control:** Disables a bin (e.g. if damaged) preventing new stock placements without deleting history. |
 
 ## 5. Layer 4: Digital Twin Convergence (VIS)
 
