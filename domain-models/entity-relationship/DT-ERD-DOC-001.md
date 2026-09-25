@@ -158,6 +158,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
 | work_order_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| failure_record_id | UUID | NULL | FK | NULL | Foreign key to the specific failure occurrence. |
 | file_url | VARCHAR(255) | NOT NULL | | - | Evidence location. |
 | file_type | VARCHAR(20) | NOT NULL | CHECK | - | Controlled attachment file format. |
 | uploaded_at | TIMESTAMP | NOT NULL | | - | Upload/ingestion time of the evidence. |
@@ -470,6 +471,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | work_orders | 1 : 0..N | failure_records | diagnoses | CASCADE | CASCADE |
 | maintainable_items | 1 : 0..N | failure_records | affected by | SET NULL | CASCADE |
 | work_orders | 1 : 0..N | media_attachments | evidenced by | CASCADE | CASCADE |
+| failure_records | 1 : 0..N | media_attachments | detailed by | CASCADE | CASCADE |
 | work_orders | 1 : 0..N | work_order_histories| audited via | CASCADE | CASCADE |
 | locators | 1 : 0..N | inventory_transactions| transacts | RESTRICT | CASCADE |
 | warehouses | 1 : 0..N | locators | contains | CASCADE | CASCADE |
