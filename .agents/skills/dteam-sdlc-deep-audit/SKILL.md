@@ -1,56 +1,56 @@
 ---
 name: dteam-sdlc-deep-audit
 description: >-
-  Auditor en profundidad del repositorio docs-as-code del proyecto DTEAM.
-  Realiza un análisis holístico y cronológico de los artefactos (SDLC) para detectar
-  redundancias cross-layer, contradicciones lógicas a lo largo del tiempo,
-  y decisiones arquitectónicas sin un ADR que las justifique.
-  Úsalo cuando se solicite una auditoría completa, profunda o al final de un milestone.
+  In-depth auditor for the DTEAM project's docs-as-code repository.
+  Performs a holistic and chronological analysis of the artifacts (SDLC) to detect
+  cross-layer redundancies, logical contradictions over time,
+  and architectural decisions without a justifying ADR.
+  Use it when a complete, deep audit or an end-of-milestone review is requested.
 ---
 
-# DTEAM Docs-as-Code — Auditor de Ciclo de Vida (SDLC Deep Audit)
+# DTEAM Docs-as-Code — Lifecycle Auditor (SDLC Deep Audit)
 
-## Descripción General
+## General Description
 
-Esta skill ejecuta un análisis exhaustivo e histórico del estado de la documentación en el repositorio `adso-dteam-docs`. A diferencia de `dteam-coherence-audit` (que evalúa un artefacto individual al ser añadido), esta skill evalúa **todo el repositorio** leyendo los artefactos en el orden en que se supone que fueron creados según el SDLC (Software Development Life Cycle).
+This skill executes an exhaustive and historical analysis of the documentation state in the `adso-dteam-docs` repository. Unlike `dteam-coherence-audit` (which evaluates a single artifact when added), this skill evaluates **the entire repository** by reading the artifacts in the order they are supposed to have been created according to the SDLC (Software Development Life Cycle).
 
-Su propósito es identificar:
-1. **Redundancias Inter-capas**: Información repetida innecesariamente entre artefactos (ej. requerimientos vs casos de uso vs pantallas) sin propósito de refinamiento.
-2. **Contradicciones Históricas**: Inconsistencias lógicas entre artefactos (versiones, IDs, roles, tecnologías) que surgen con el tiempo.
-3. **Decisiones Arbitrarias (Falta de ADRs)**: Identificar decisiones arquitectónicas o de diseño clave que carecen de un Architecture Decision Record (ADR) formal que las respalde.
-4. **Desincronización de Terminología**: Incoherencias en el uso de IDs, roles y términos a lo largo del ciclo de vida.
+Its purpose is to identify:
+1. **Inter-layer Redundancies**: Unnecessarily repeated information between artifacts (e.g., requirements vs use cases vs screens) without refinement purpose.
+2. **Historical Contradictions**: Logical inconsistencies between artifacts (versions, IDs, roles, technologies) that arise over time.
+3. **Arbitrary Decisions (Lack of ADRs)**: Identify key architectural or design decisions that lack a formal Architecture Decision Record (ADR) backing them.
+4. **Terminology Desynchronization**: Incoherencies in the use of IDs, roles, and terms throughout the lifecycle.
 
-## Activación desde el Chat
+## Chat Activation
 
-El agente debe activar esta skill cuando el usuario solicite:
-- "Haz un análisis en profundidad de los docs"
-- "Ejecuta una auditoría completa del SDLC"
-- "Audita todo el ciclo de vida"
-- "Busca redundancias y contradicciones en todo el repo"
+The agent must activate this skill when the user requests:
+- "Do an in-depth analysis of the docs"
+- "Execute a full SDLC audit"
+- "Audit the entire lifecycle"
+- "Search for redundancies and contradictions across the whole repo"
 
-**Nota:** Se recomienda sugerir al usuario el uso del comando `/goal` para asegurar que el agente no se detenga antes de terminar de revisar todos los archivos necesarios.
+**Note:** It is recommended to suggest the user to use the `/goal` command to ensure the agent does not stop before finishing reviewing all necessary files.
 
-## Workflow de Ejecución
+## Execution Workflow
 
-### Paso 1 — Reconstruir el Orden Cronológico (SDLC)
-Utiliza comandos como `git log` y la estructura de carpetas (nombres, prefijos lógicos) para determinar el orden de evolución de la documentación.
+### Step 1 — Reconstruct the Chronological Order (SDLC)
+Use commands like `git log` and the folder structure (names, logical prefixes) to determine the evolution order of the documentation.
 
-### Paso 2 — Escaneo Secuencial
-Procede a leer los artefactos clave del repositorio, respetando el orden lógico del SDLC (por ejemplo: Requerimientos -> Modelos de Dominio/Casos de Uso -> Arquitectura -> UI/UX).
+### Step 2 — Sequential Scanning
+Proceed to read the key artifacts of the repository, respecting the logical order of the SDLC (e.g., Requirements -> Domain Models/Use Cases -> Architecture -> UI/UX).
 
-### Paso 3 — Ejecución Cruzada (Opcional)
-Para apalancar herramientas existentes, puedes solicitar una ejecución de la skill de coherencia (`dteam-coherence-audit`) en modo global (`audit-all`) para levantar errores de referencias básicos y enfocarte en el análisis profundo.
+### Step 3 — Cross-Execution (Optional)
+To leverage existing tools, you can request an execution of the coherence skill (`dteam-coherence-audit`) in global mode (`audit-all`) to raise basic reference errors and focus on the deep analysis.
 ```bash
 uv run .agents/skills/dteam-coherence-audit/scripts/audit.py audit-all
 ```
 
-### Paso 4 — Generación del Informe
-Genera un informe detallado con los hallazgos.
-- El informe **NO** debe guardarse en el repositorio de código de la documentación, sino en el repositorio de evidencias (`sena-evidence`), específicamente en la ruta:
+### Step 4 — Report Generation
+Generate a detailed report with the findings.
+- The report **MUST NOT** be saved in the documentation code repository, but in the evidence repository (`sena-evidence`), specifically at the path:
   `/home/novillus/Documents/vscode/SENA-Career/sena-evidence/02-Planning/AP5-Prototyping/Deep-in/Audits/AUD-SDLC-DOCS-IN-DEPTH-ANALYSIS.md`
-- Actualiza la versión del informe existente si ya hay uno.
-- Estructura el informe con:
-  - Hallazgos (con estado: `[RESUELTO]`, `[PENDIENTE: ADR]`, `[PENDIENTE: DECISIÓN]`, etc.)
-  - Redundancias detectadas
-  - Decisiones arbitrarias o falta de ADRs
-  - Contradicciones lógicas
+- Update the existing report version if one already exists.
+- Structure the report with:
+  - Findings (with status: `[RESOLVED]`, `[PENDING: ADR]`, `[PENDING: DECISION]`, etc.)
+  - Detected redundancies
+  - Arbitrary decisions or lack of ADRs
+  - Logical contradictions

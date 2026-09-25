@@ -1,64 +1,64 @@
 ---
 name: dteam-srs-quality-audit
 description: >-
-  Auditor de calidad y DDD (Domain-Driven Design) para la base de datos maestra 
-  de requerimientos (srs.csv) del proyecto DTEAM. Verifica la rigurosidad de 
-  las referencias normativas (ISO, NIST), el uso correcto de ISO 25010:2023, y 
-  la ausencia de términos legacy o genéricos (como "activo" en lugar de 
-  "Equipment Unit"). Úsalo cuando el usuario diga "audita los requerimientos", 
-  "revisa el dataset srs.csv" o "verifica la calidad de los requisitos".
+  Quality and DDD (Domain-Driven Design) auditor for the master database 
+  of requirements (srs.csv) of the DTEAM project. Verifies the rigorousness of 
+  the normative references (ISO, NIST), the correct use of ISO 25010:2023, and 
+  the absence of legacy or generic terms (like "activo" instead of 
+  "Equipment Unit"). Use it when the user says "audit the requirements", 
+  "review the srs.csv dataset" or "verify the quality of the requirements".
 ---
 
-# DTEAM Docs-as-Code — Auditor de Calidad SRS
+# DTEAM Docs-as-Code — SRS Quality Auditor
 
-## Descripción General
+## General Description
 
-Esta skill ejecuta un análisis programático directamente sobre el archivo 
-`requirements/data/srs.csv` para garantizar que la ingeniería de requisitos 
-se mantiene en el estándar más alto exigido por el proyecto DTEAM.
+This skill executes a programmatic analysis directly over the file 
+`requirements/data/srs.csv` to guarantee that the requirements engineering 
+is maintained at the highest standard required by the DTEAM project.
 
-Evalúa tres ejes fundamentales:
-1. **ISO 25010:2023:** Garantiza que no se utilicen categorías depreciadas 
-   (como *Usability* o *Portability*) en favor de las actuales (*Interaction Capability*, *Flexibility*, etc.).
-2. **Domain-Driven Design (DDD):** Escanea las descripciones en busca de 
-   términos genéricos prohibidos (ej. "activo") para forzar el uso del 
-   Lenguaje Ubicuo (ej. "Equipment Unit" / "Maintainable Item" según ISO 14224).
-3. **Referencias Normativas:** Valida con expresiones regulares que la columna 
-   `Normative Reference` cite estándares accionables (ISO, NIST, OWASP, ACID, etc.) 
-   en lugar de texto genérico (como "UX Best Practices").
+It evaluates three fundamental axes:
+1. **ISO 25010:2023:** Guarantees that deprecated categories are not used 
+   (like *Usability* or *Portability*) in favor of current ones (*Interaction Capability*, *Flexibility*, etc.).
+2. **Domain-Driven Design (DDD):** Scans the descriptions looking for 
+   forbidden generic terms (e.g. "activo" / "asset") to force the use of the 
+   Ubiquitous Language (e.g. "Equipment Unit" / "Maintainable Item" per ISO 14224).
+3. **Normative References:** Validates with regular expressions that the column 
+   `Normative Reference` cites actionable standards (ISO, NIST, OWASP, ACID, etc.) 
+   instead of generic text (like "UX Best Practices").
 
-## Activación desde el Chat
+## Chat Activation
 
-El agente debe activar esta skill cuando detecte:
-- "Audita el dataset srs.csv"
-- "Revisa la calidad de los requerimientos"
-- "Verifica si usamos bien el lenguaje de dominio en el CSV"
+The agent must activate this skill when detecting:
+- "Audit the srs.csv dataset"
+- "Review the quality of the requirements"
+- "Verify if we use the domain language correctly in the CSV"
 - "Check SRS quality"
 
 ## Workflow
 
-### Paso 1 — Ejecutar el Script de Auditoría
+### Step 1 — Execute the Audit Script
 
-Desde la raíz del repositorio, ejecuta el script Python que analizará el CSV:
+From the repository root, execute the Python script that will analyze the CSV:
 
 ```bash
 cd /home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs
 uv run .agents/skills/dteam-srs-quality-audit/scripts/srs_audit.py
 ```
 
-### Paso 2 — Presentar Resultados
+### Step 2 — Present Results
 
-El script retornará un resumen con severidades BLOCKER, WARNING e INFO.
-1. Muestra al usuario el veredicto.
-2. Si hay **BLOCKERS** (ej. categorías ISO inválidas o referencias faltantes en TRs), 
-   informa que el CSV debe ser corregido antes de poder regenerar las User Stories.
-3. Si hay **WARNINGS** (violaciones del lenguaje de dominio o referencias débiles), 
-   enuméralas y pregunta al usuario si desea corregirlas.
+The script will return a summary with BLOCKER, WARNING and INFO severities.
+1. Show the user the verdict.
+2. If there are **BLOCKERS** (e.g. invalid ISO categories or missing references in TRs), 
+   report that the CSV must be corrected before being able to regenerate the User Stories.
+3. If there are **WARNINGS** (domain language violations or weak references), 
+   list them and ask the user if they want to correct them.
 
-### Paso 3 — Interpretar Exit Codes
+### Step 3 — Interpret Exit Codes
 
-| Exit Code | Significado |
+| Exit Code | Meaning |
 | :--- | :--- |
-| `0` | Aprobado (puede contener Warnings/Infos pero no rompe el sistema) |
-| `1` | Error catastrófico (no se encontró el CSV o faltan columnas clave) |
-| `2` | BLOCKER encontrado — Categorías inválidas o reglas arquitectónicas rotas |
+| `0` | Approved (may contain Warnings/Infos but does not break the system) |
+| `1` | Catastrophic error (CSV not found or missing key columns) |
+| `2` | BLOCKER found — Invalid categories or broken architectural rules |
