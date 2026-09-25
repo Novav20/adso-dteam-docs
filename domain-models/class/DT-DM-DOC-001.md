@@ -1,7 +1,7 @@
 ---
 code: DT-DM-DOC-001
-version: 1.3
-date: 2026-09-14
+version: 1.4
+date: 2026-09-25
 status: Approved — Domain Conceptual Specification
 author: Juan David Julio Serrano
 standard:

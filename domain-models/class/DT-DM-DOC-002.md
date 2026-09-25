@@ -1,7 +1,7 @@
 ---
 code: DT-DM-DOC-002
 version: 1.2
-date: 2026-08-05
+date: 2026-09-25
 status: Behavioral audit gaps resolved (ISO 14224 / Commissioning Gate)
 author: Juan David Julio Serrano
 standard:

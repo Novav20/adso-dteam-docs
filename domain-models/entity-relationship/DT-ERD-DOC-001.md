@@ -1,7 +1,7 @@
 ---
 code: DT-ERD-DOC-001
-version: 1.1
-date: 2026-09-18
+version: 1.2
+date: 2026-09-25
 status: Active
 author: Juan David Julio Serrano
 standard:
