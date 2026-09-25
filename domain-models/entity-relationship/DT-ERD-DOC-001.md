@@ -123,7 +123,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Identity of the failure event. |
-| work_order_id | UUID | NOT NULL | FK, UNIQUE | - | Foreign key to the related table. |
+| work_order_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | maintainable_item_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 | failure_mode | VARCHAR(120) | NOT NULL | | - | ISO 14224 failure coding. |
 | failure_mechanism | VARCHAR(120) | NOT NULL | | - | ISO 14224 failure coding. |
@@ -467,7 +467,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | equipment_units | 1 : 0..N | work_requests | requires | CASCADE | CASCADE |
 | work_requests | 1 : 0..N | backlog_items | prioritized as | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | backlog_items | pending for | CASCADE | CASCADE |
-| work_orders | 1 : 0..1 | failure_records | diagnoses | CASCADE | CASCADE |
+| work_orders | 1 : 0..N | failure_records | diagnoses | CASCADE | CASCADE |
 | maintainable_items | 1 : 0..N | failure_records | affected by | SET NULL | CASCADE |
 | work_orders | 1 : 0..N | media_attachments | evidenced by | CASCADE | CASCADE |
 | work_orders | 1 : 0..N | work_order_histories| audited via | CASCADE | CASCADE |
