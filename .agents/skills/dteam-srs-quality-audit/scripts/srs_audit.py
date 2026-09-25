@@ -124,7 +124,7 @@ def run_audit():
             required_headers = ["Req ID", "Description", "ISO 25010:2023 Category", "Normative Reference"]
             for h in required_headers:
                 if h not in headers:
-                    findings["BLOCKER"].append(f"Header Missing: La columna '{h}' no existe en el CSV.")
+                    findings["BLOCKER"].append(f"Header Missing: Column '{h}' does not exist in the CSV.")
             
             if findings["BLOCKER"]:
                 generate_markdown_report(findings, 0)
@@ -132,7 +132,7 @@ def run_audit():
                 return 2
 
             for row_num, row in enumerate(reader, start=2):
-                req_id = clean(row.get("Req ID", f"Fila {row_num}"))
+                req_id = clean(row.get("Req ID", f"Row {row_num}"))
                 desc = clean(row.get("Description", ""))
                 cat = clean(row.get("ISO 25010:2023 Category", ""))
                 ref = clean(row.get("Normative Reference", ""))

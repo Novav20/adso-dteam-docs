@@ -96,8 +96,8 @@ FORBIDDEN_TECH_PATTERNS: list[tuple[str, str]] = [
     (r"\bReact\b(?!\s+Native\s+Paper|\s+Native\s+Navigation)", "React (frontend no aprobado — usar Blazor)"),
     (r"\bAngular\b", "Angular (frontend no aprobado — usar Blazor)"),
     (r"\bVue\.?js\b", "Vue.js (frontend no aprobado — usar Blazor)"),
-    (r"\bReact Native\b", "React Native (plataforma no aprobada — usar .NET MAUI)"),
-    (r"\bFlutter\b", "Flutter (plataforma no aprobada — usar .NET MAUI)"),
+    (r"\bReact Native\b", "React Native (unapproved platform — use .NET MAUI)"),
+    (r"\bFlutter\b", "Flutter (unapproved platform — use .NET MAUI)"),
     (r"\bEntity Framework.*mobile\b", "EF Core on mobile (forbidden — use sqlite-net-pcl)"),
     (r"\bREST\s+sin\s+contrato\b", "REST sin contrato (requiere OpenAPI/Swagger)"),
 ]
@@ -178,7 +178,7 @@ def audit_traceability(content: str, repo_root: Path) -> list[Finding]:
                     b += 1
                     findings.append(Finding(
                         "BLOCKER", f"B-TR{b:02d}",
-                        f"{label} `{artifact_id}` referenciado pero no existe en el repositorio.",
+                        f"{label} `{artifact_id}` referenced but does not exist in the repository.",
                         line_num
                     ))
                 else:
@@ -241,7 +241,7 @@ def audit_normative(content: str) -> list[Finding]:
             findings.append(Finding(
                 "WARNING", f"W-NRM{w:02d}",
                 f"Unapproved technology found: {description}. "
-                f"Verificar contra DT-ARQ-TECH-001 y ADR-004.",
+                f"Verify against DT-ARQ-TECH-001 and ADR-004.",
                 line_num
             ))
 
@@ -346,8 +346,8 @@ def audit_scope(content: str) -> list[Finding]:
                         w += 1
                         findings.append(Finding(
                             "WARNING", f"W-SCP{w:02d}",
-                            f"Posible rol no definido en la Matriz RBAC: `{candidate}`. "
-                            f"Verificar contra SCR-ADM-013 o si es un alias.",
+                            f"Possible role not defined in the RBAC Matrix: `{candidate}`. "
+                            f"Verify against SCR-ADM-013 or if it is an alias.",
                             None
                         ))
 
@@ -443,7 +443,7 @@ def generate_report(
     return "\n".join(lines)
 
 # ---------------------------------------------------------------------------
-# Subcomandos
+# Subcommands
 # ---------------------------------------------------------------------------
 
 def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
@@ -460,7 +460,7 @@ def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
     findings += audit_normative(content)
     findings += audit_scope(content)
 
-    # Deduplicar por mensaje
+    # Deduplicate by message
     seen: set[str] = set()
     unique: list[Finding] = []
     for f in findings:
@@ -543,7 +543,7 @@ def cmd_audit_all(args: argparse.Namespace, repo_root: Path) -> int:
         all_artifact_findings[rel] = unique
         total_blockers += sum(1 for f in unique if f.severity == "BLOCKER")
 
-    # Construir informe global
+    # Build global report
     now = datetime.datetime.now()
     lines = [
         f"---",
@@ -602,14 +602,14 @@ def main() -> int:
     p_audit = sub.add_parser("audit", help="Full audit of an artifact")
     p_audit.add_argument("--file", required=True, help="Relative path to the artifact (from repo root)")
 
-    p_refs = sub.add_parser("check-refs", help="Solo verificar trazabilidad de referencias")
-    p_refs.add_argument("--file", required=True, help="Ruta relativa al artefacto")
+    p_refs = sub.add_parser("check-refs", help="Only verify traceability of references")
+    p_refs.add_argument("--file", required=True, help="Relative path to the artifact")
 
-    p_scope = sub.add_parser("check-scope", help="Solo verificar scope guard MVP")
-    p_scope.add_argument("--file", required=True, help="Ruta relativa al artefacto")
+    p_scope = sub.add_parser("check-scope", help="Only verify MVP scope guard")
+    p_scope.add_argument("--file", required=True, help="Relative path to the artifact")
 
-    p_all = sub.add_parser("audit-all", help="Auditar todo el repositorio (modo CI)")
-    p_all.add_argument("--output", default=None, help="Ruta del informe de salida")
+    p_all = sub.add_parser("audit-all", help="Audit the entire repository (CI mode)")
+    p_all.add_argument("--output", default=None, help="Output report path")
 
     args = parser.parse_args()
 
@@ -617,7 +617,7 @@ def main() -> int:
     repo_root = find_repo_root(Path.cwd())
     if repo_root is None:
         print("[ERROR] Git repository root not found. "
-              "Ejecutar desde dentro de adso-dteam-docs/.", file=sys.stderr)
+              "Run from inside adso-dteam-docs/.", file=sys.stderr)
         return 1
 
     dispatch = {
