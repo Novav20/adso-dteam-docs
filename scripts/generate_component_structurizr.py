@@ -56,11 +56,15 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     }
     
     for c in components:
-        stereo = c.get('Architectural Layer / Stereotype')
-        if stereo in boundaries:
+        stereo = c.get('Architectural Layer / Stereotype', '')
+        c_id = c.get('Component ID', '')
+        
+        if c_id in ["local_db", "loto_watchdog"]:
+            boundaries["External System"].append(c)
+        elif stereo in boundaries:
             boundaries[stereo].append(c)
         else:
-            if 'Adapter' in stereo or 'External' in stereo or 'Client' in stereo:
+            if 'Adapter' in stereo or 'External' in stereo or 'Client' in stereo or 'Persistence' in stereo:
                 boundaries["External System"].append(c)
             else:
                 boundaries["Domain Service"].append(c)
@@ -85,7 +89,7 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     dsl.append("        monolith = softwareSystem \"Modular Monolith\" \"Sistema Central de Mantenimiento y LOTO (.NET 10)\" {")
     
     # We map C4 Components to Components within a default Container
-    dsl.append("            appContainer = container \"Application Core\" \"Core services and adapters\" \".NET 10\" {")
+    dsl.append("            appContainer = container \"Backend Web API\" \"Modular Monolith Runtime\" \".NET 10\" {")
     
     dsl.append("                group \"Driving Adapters\" {")
     for c in boundaries["Driving Adapter"]:
@@ -128,7 +132,7 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
         dsl.append(f"            include {c['Component ID']}")
     for c in boundaries["External System"]:
         dsl.append(f"            include {c['Component ID']}")
-    dsl.append("            autoLayout tb")
+    dsl.append("            autoLayout lr")
     dsl.append("        }")
     dsl.append("        styles {")
     dsl.append("            element \"Database\" {")
