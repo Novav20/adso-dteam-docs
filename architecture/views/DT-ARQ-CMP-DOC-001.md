@@ -1,6 +1,6 @@
 ---
 code: DT-ARQ-CMP-DOC-001
-version: 1.4
+version: 1.5
 date: 2026-09-25
 status: Active
 author: Juan David Julio Serrano
@@ -32,6 +32,7 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **loto_watchdog** | LOTO Safety Watchdog | Component | C# Background Service | Real-time verification of Zero Energy thresholds on the mobile client. |
 | **web_admin** | Web Admin Portal | Client Application | Blazor Web App | HSEQ supervision, planning, and dashboards. |
 | **idempotency_filter** | Idempotency Filter | Driving Adapter | IActionFilter | Intercepts requests with the Idempotency-Key header; prevents reprocessing critical transitions resent after reconnection (TR-007). |
+| **idempotency_repo** | Idempotency Repository | Secondary Port (Out) | IIdempotencyRepository | Abstracts relational persistence of the IdempotencyLog to join the Domain's Unit of Work (ADR-007). |
 | **api_controllers** | REST API Controllers | Driving Adapter | Minimal APIs | Exposes HTTPS endpoints; handles optimistic concurrency control using row version marks (RowVersion/ETag). |
 | **signalr_hub** | SignalR Hub | Driving Adapter | SignalR.Hub | Persistent bidirectional channel over WebSockets (WSS); degrades to polling if the industrial network fails. |
 | **telemetry_listener** | Telemetry Listener (IoT) | Driving Adapter | IHostedService | Asynchronous consumer (AMQP) of the Azure IoT Hub broker; injects telemetry to the LOTO port. |
@@ -94,6 +95,8 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **azure_iot** | **telemetry_listener** | AMQP | Pushes high-frequency telemetry events to the backend consumer. |
 | **mobile_app** | **idempotency_filter** | HTTPS | Sends sync payloads containing idempotency keys in headers. |
 | **idempotency_filter** | **redis_cache** | TCP (RESP) | Queries and sets idempotency keys (SETNX) to prevent duplicate transactions. |
+| **idempotency_filter** | **idempotency_repo** | In-Process Method Call | Delegates durable logging (Stage 2) into the domain transaction. |
+| **idempotency_repo** | **db_postgres** | TCP/IP (SQL) | Executes ACID transaction inserting the IdempotencyLog record. |
 | **sync_worker** | **mtto_port** | In-Process Method Call | Routes dequeued offline work orders to the maintenance domain. |
 | **mtto_port** | **event_bus** | In-Process Method Call | Publishes domain events (e.g., WorkOrderClosed) for cross-module orchestration. |
 | **loto_port** | **telemetry_bus** | In-Process Method Call | Subscribes to real-time safety condition streams. |
