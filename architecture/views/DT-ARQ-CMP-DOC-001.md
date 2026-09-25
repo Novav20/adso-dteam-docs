@@ -88,6 +88,17 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **mtto_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
 | **inv_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
 | **sec_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
+| **scada_node** | **azure_iot** | MQTT / AMQP | Transmits raw industrial telemetry to the cloud broker. |
+| **azure_iot** | **telemetry_listener** | AMQP | Pushes high-frequency telemetry events to the backend consumer. |
+| **mobile_app** | **idempotency_filter** | HTTPS | Sends sync payloads containing idempotency keys in headers. |
+| **idempotency_filter** | **redis_cache** | TCP (RESP) | Queries and sets idempotency keys (SETNX) to prevent duplicate transactions. |
+| **sync_worker** | **mtto_port** | In-Process Method Call | Routes dequeued offline work orders to the maintenance domain. |
+| **mtto_port** | **event_bus** | In-Process Method Call | Publishes domain events (e.g., WorkOrderClosed) for cross-module orchestration. |
+| **loto_port** | **telemetry_port** | C# Interface (DI) | Abstraction to subscribe to real-time safety condition streams. |
+| **mobile_app** | **local_db** | SQLite P/Invoke | Persists transactional queue and master data for offline-first execution. |
+| **loto_watchdog** | **local_db** | SQLite P/Invoke | Writes emergency lockout states directly to local storage upon connection loss. |
+| **loto_watchdog** | **signalr_hub** | WSS (WebSockets) | Maintains continuous heartbeat to verify safety perimeter integrity. |
+| **web_admin** | **api_controllers** | HTTPS / JSON | Executes administrative commands and fetches master data. |
 
 ---
 
