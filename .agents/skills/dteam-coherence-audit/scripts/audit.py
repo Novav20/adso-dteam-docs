@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 # ---------------------------------------------------------------------------
-# ÍNDICES MVP APROBADOS — actualizar solo por decisión arquitectónica explícita
+# APPROVED MVP INDICES — update only by explicit architectural decision
 # ---------------------------------------------------------------------------
 
 MVP_APPROVED_UCS: set[str] = {
@@ -59,7 +59,7 @@ APPROVED_COLOR_PALETTE: set[str] = {
     # Alarmas y estados (v1.2 — valores actualizados)
     "#E63946",  # alarm-critical
     "#AC5E04",  # alarm-warning light (AJUSTADO v1.2)
-    "#D97706",  # amber base (primitivo, no semántico)
+    "#D97706",  # amber base (primitive, not semantic)
     "#F4A261",  # alarm-warning dark
     "#2563EB",  # state-info light
     "#4881A4",  # state-info dark (AJUSTADO v1.2)
@@ -98,12 +98,12 @@ FORBIDDEN_TECH_PATTERNS: list[tuple[str, str]] = [
     (r"\bVue\.?js\b", "Vue.js (frontend no aprobado — usar Blazor)"),
     (r"\bReact Native\b", "React Native (plataforma no aprobada — usar .NET MAUI)"),
     (r"\bFlutter\b", "Flutter (plataforma no aprobada — usar .NET MAUI)"),
-    (r"\bEntity Framework.*móvil\b", "EF Core en móvil (prohibido — usar sqlite-net-pcl)"),
+    (r"\bEntity Framework.*mobile\b", "EF Core on mobile (forbidden — use sqlite-net-pcl)"),
     (r"\bREST\s+sin\s+contrato\b", "REST sin contrato (requiere OpenAPI/Swagger)"),
 ]
 
 VALID_ISA_LEVELS: set[str] = {"L1", "L2", "L3", "L4"}
-VALID_CLIENTS: set[str] = {"maui", "web", "both", "móvil", "mobile", "escritorio", "desktop"}
+VALID_CLIENTS: set[str] = {"maui", "web", "both", "mobile", "desktop"}
 
 # ---------------------------------------------------------------------------
 # Modelos de Hallazgo
@@ -116,7 +116,7 @@ class Finding(NamedTuple):
     line: int | None = None
 
 # ---------------------------------------------------------------------------
-# Utilidades de búsqueda en el repositorio
+# Repository search utilities
 # ---------------------------------------------------------------------------
 
 def find_repo_root(start: Path) -> Path | None:
@@ -132,14 +132,14 @@ def find_repo_root(start: Path) -> Path | None:
 
 
 def file_exists_in_repo(repo_root: Path, id_pattern: str) -> bool:
-    """Busca cualquier archivo cuyo nombre contenga el patrón (glob-like)."""
+    """Searches for any file whose name contains the pattern (glob-like)."""
     for p in repo_root.rglob(f"*{id_pattern}*"):
         if p.is_file():
             return True
     return False
 
 # ---------------------------------------------------------------------------
-# Ejes de Auditoría
+# Audit Axes
 # ---------------------------------------------------------------------------
 
 def _counters() -> dict[str, int]:
@@ -155,11 +155,11 @@ def audit_traceability(content: str, repo_root: Path) -> list[Finding]:
     patterns = [
         # (regex, blocker_or_warning, label)
         (r"\bUC-[A-Z]+-\d+\b",   "BLOCKER", "Caso de Uso"),
-        (r"\bSCR-[A-Z]+-\d+\b",  "BLOCKER", "Pantalla"),
-        (r"\bADR-\d+\b",         "BLOCKER", "Registro de Decisión Arquitectónica"),
-        (r"\bASR-\d+\b",         "WARNING", "Requisito Arquitectónicamente Significativo"),
+        (r"\bSCR-[A-Z]+-\d+\b",  "BLOCKER", "Screen"),
+        (r"\bADR-\d+\b",         "BLOCKER", "Architecture Decision Record"),
+        (r"\bASR-\d+\b",         "WARNING", "Architecturally Significant Requirement"),
         (r"\bDT-UI-DS-DOC-\d+\b","WARNING", "Documento Design System"),
-        (r"\bDT-UI-NAV-DOC-\d+\b","WARNING","Documento Navegación"),
+        (r"\bDT-UI-NAV-DOC-\d+\b","WARNING","Navigation Document"),
         (r"\bDT-ARQ-[A-Z-]+-\d+\b","WARNING","Artefacto de Arquitectura"),
         (r"\bDT-DM-DOC-\d+\b",   "WARNING", "Documento Modelo de Dominio"),
         (r"\bDT-UC-TRC-\d+\b",   "WARNING", "Trazabilidad de Casos de Uso"),
@@ -185,14 +185,14 @@ def audit_traceability(content: str, repo_root: Path) -> list[Finding]:
                     w += 1
                     findings.append(Finding(
                         "WARNING", f"W-TR{w:02d}",
-                        f"{label} `{artifact_id}` referenciado pero no se encontró su archivo. Verificar nombre.",
+                        f"{label} `{artifact_id}` referenced but its file was not found. Verify the name.",
                         line_num
                     ))
     return findings
 
 
 def audit_normative(content: str) -> list[Finding]:
-    """Eje 2: Verifica coherencia con estándares, tokens y roles aprobados."""
+    """Axis 2: Verifies coherence with approved standards, tokens, and roles."""
     findings: list[Finding] = []
     b, w, i = 0, 0, 0
 
@@ -206,20 +206,20 @@ def audit_normative(content: str) -> list[Finding]:
                 w += 1
                 findings.append(Finding(
                     "WARNING", f"W-NRM{w:02d}",
-                    f"Color `{color}` es el ámbar base primitivo. El token semántico de advertencia "
+                    f"Color `{color}` is the primitive base amber. The semantic warning token "
                     f"en tema claro fue actualizado a `#AC5E04` en v1.2 (WCAG AA 3.47:1). "
-                    f"Usar el primitivo explícitamente es válido solo en sección de paleta.",
+                    f"Using the primitive explicitly is valid only in the palette section.",
                     line_num
                 ))
             else:
                 w += 1
                 findings.append(Finding(
                     "WARNING", f"W-NRM{w:02d}",
-                    f"Color `{color}` no está en la paleta aprobada de DT-UI-DS-DOC-001 v1.2.",
+                    f"Color `{color}` is not in the approved palette of DT-UI-DS-DOC-001 v1.2.",
                     line_num
                 ))
 
-    # — Niveles ISA-101 inválidos (Lx donde x no es 1-4)
+    # — Invalid ISA-101 Levels (Lx donde x no es 1-4)
     # Excluir ocurrencias dentro de versiones de norma (ej. 9241-110) o URLs
     for match in re.finditer(r"(?<![0-9\-./])L(\d+)\b", content):
         level = f"L{match.group(1)}"
@@ -228,19 +228,19 @@ def audit_normative(content: str) -> list[Finding]:
             b += 1
             findings.append(Finding(
                 "BLOCKER", f"B-NRM{b:02d}",
-                f"Nivel ISA-101 `{level}` no válido. Solo se permiten L1, L2, L3 y L4 "
-                f"según DT-UI-NAV-DOC-001.",
+                f"ISA-101 Level `{level}` invalid. Only L1, L2, L3, and L4 are allowed "
+                f"according to DT-UI-NAV-DOC-001.",
                 line_num
             ))
 
-    # — Tecnologías prohibidas
+    # — Prohibited Technologies
     for pattern, description in FORBIDDEN_TECH_PATTERNS:
         for match in re.finditer(pattern, content, re.IGNORECASE):
             line_num = content[:match.start()].count("\n") + 1
             w += 1
             findings.append(Finding(
                 "WARNING", f"W-NRM{w:02d}",
-                f"Tecnología no aprobada encontrada: {description}. "
+                f"Unapproved technology found: {description}. "
                 f"Verificar contra DT-ARQ-TECH-001 y ADR-004.",
                 line_num
             ))
@@ -249,12 +249,12 @@ def audit_normative(content: str) -> list[Finding]:
     fm_match = re.search(r"^---\s*\n(.*?)\n---", content, re.DOTALL | re.MULTILINE)
     if fm_match:
         fm = fm_match.group(1)
-        # Extrae estándares listados bajo keys específicas
+        # Extracts standards listed under specific keys
         std_match = re.search(r"(?:standards|normativa|normas|estandar):\s*\n((?:\s*-\s+[^\n]+\n?)+)", fm, re.IGNORECASE)
         if std_match:
             std_lines = re.findall(r"-\s+([^\n]+)", std_match.group(1))
             for std_line in std_lines:
-                # Extrae la sigla antes del paréntesis si lo hay
+                # Extracts the acronym before the parenthesis if there is one
                 std_name = std_line.split("(")[0].strip()
                 matched = any(
                     approved.lower() in std_name.lower() or std_name.lower() in approved.lower()
@@ -264,8 +264,8 @@ def audit_normative(content: str) -> list[Finding]:
                     i += 1
                     findings.append(Finding(
                         "INFO", f"I-NRM{i:02d}",
-                        f"Estándar `{std_name}` en frontmatter no está en el catálogo reconocido. "
-                        f"Verificar pertinencia y agregar al catálogo si es válido.",
+                        f"Standard `{std_name}` in frontmatter is not in the recognized catalog. "
+                        f"Verify pertinence and add to catalog if valid.",
                         None
                     ))
 
@@ -273,11 +273,11 @@ def audit_normative(content: str) -> list[Finding]:
 
 
 def audit_scope(content: str) -> list[Finding]:
-    """Eje 3: Detecta expansión silenciosa del alcance MVP."""
+    """Axis 3: Detects silent expansion of the MVP scope."""
     findings: list[Finding] = []
     b, w = 0, 0
 
-    # — Pantallas fuera del índice MVP
+    # — Screens outside the MVP index
     for match in re.finditer(r"\bSCR-([A-Z]+)-(\d+)\b", content):
         screen_id = match.group(0)
         if screen_id not in MVP_APPROVED_SCREENS:
@@ -285,12 +285,12 @@ def audit_scope(content: str) -> list[Finding]:
             b += 1
             findings.append(Finding(
                 "BLOCKER", f"B-SCP{b:02d}",
-                f"Pantalla `{screen_id}` no está en el índice de pantallas MVP aprobado. "
-                f"Si es una pantalla nueva, debe aprobarse mediante una decisión de alcance explícita.",
+                f"Screen `{screen_id}` is not in the approved MVP screen index. "
+                f"If it is a new screen, it must be approved via an explicit scope decision.",
                 line_num
             ))
 
-    # — Casos de uso fuera del índice MVP
+    # — Use cases outside the MVP index
     for match in re.finditer(r"\bUC-([A-Z]+)-(\d+)\b", content):
         uc_id = match.group(0)
         if uc_id not in MVP_APPROVED_UCS:
@@ -298,8 +298,8 @@ def audit_scope(content: str) -> list[Finding]:
             b += 1
             findings.append(Finding(
                 "BLOCKER", f"B-SCP{b:02d}",
-                f"Caso de uso `{uc_id}` no está en el índice de UCs MVP aprobado. "
-                f"Si es un caso de uso nuevo, actualizar el índice con aprobación explícita.",
+                f"Use Case `{uc_id}` is not in the approved MVP UC index. "
+                f"If it is a new use case, update the index with explicit approval.",
                 line_num
             ))
 
@@ -313,7 +313,7 @@ def audit_scope(content: str) -> list[Finding]:
             continue
         
         headers = [h.strip().lower() for h in lines[0].strip('|').split('|')]
-        # Buscar el índice de la columna de roles
+        # Search for the index of the roles column
         role_col_idx = -1
         for i, h in enumerate(headers):
             if re.search(r'\b(rol|roles|actor|actores)\b', h):
@@ -325,7 +325,7 @@ def audit_scope(content: str) -> list[Finding]:
             
         # Extraer los datos de esa columna
         for row in lines[2:]:
-            # Ignorar filas vacías
+            # Ignore empty rows
             if not row.strip():
                 continue
             cells = [c.strip() for c in row.strip('|').split('|')]
@@ -335,7 +335,7 @@ def audit_scope(content: str) -> list[Finding]:
                     candidate = candidate.strip().strip(".").strip()
                     if len(candidate) < 4 or len(candidate.split()) > 5:
                         continue
-                    if re.match(r"^(Todos|Pantalla|Evento|Destino|Nivel|Fuente|Estado|Token|Valor|Aplicación|Símbolo|Tema|Tipo|Capa|Tecnología|Uso|Trazabilidad)", candidate, re.IGNORECASE):
+                    if re.match(r"^(All|Screen|Event|Target|Level|Source|State|Token|Value|Application|Symbol|Theme|Type|Layer|Technology|Use|Traceability)", candidate, re.IGNORECASE):
                         continue
                     
                     # Check against approved roles
@@ -377,7 +377,7 @@ def generate_report(
         verdict_text = "CONDICIONAL — El artefacto puede integrarse tras revisar las advertencias."
     else:
         verdict_icon = "✅"
-        verdict_text = "APROBADO — Sin hallazgos críticos."
+        verdict_text = "APPROVED — No critical findings."
 
     rel_path = artifact_path.relative_to(repo_root) if artifact_path.is_absolute() else artifact_path
 
@@ -407,7 +407,7 @@ def generate_report(
             out.append("*Sin hallazgos.*")
             out.append("")
         for f in findings:
-            loc = f" *(línea {f.line})*" if f.line else ""
+            loc = f" *(line {f.line})*" if f.line else ""
             out.append(f"- **[{f.code}]**{loc} {f.message}")
         out.append("")
         return out
@@ -419,15 +419,15 @@ def generate_report(
     lines += [
         "---",
         "",
-        "## Próximos Steps",
+        "## Next Steps",
         "",
         "| Prioridad | Action |",
         "| :--- | :--- |",
     ]
     if blockers:
-        lines.append("| 1. Crítico | Resolver todos los hallazgos BLOCKER antes de continuar |")
+        lines.append("| 1. Critical | Resolve all BLOCKER findings before continuing |")
     if warnings:
-        lines.append("| 2. Revisar | Evaluar los WARNING con el arquitecto y documentar la decisión |")
+        lines.append("| 2. Review | Evaluate the WARNINGs with the architect and document the decision |")
     if infos:
         lines.append("| 3. Optional | Verify INFOs and update catalogs if applicable |")
     if not all_findings:
@@ -471,7 +471,7 @@ def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
 
     report_text = generate_report(artifact_path, findings, repo_root)
 
-    # Determinar ruta de salida
+    # Determine output path
     now = datetime.datetime.now()
     out_dir = repo_root.parent / "sena-evidence" / "00-Overview" / "Audits" / "Compliance"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -497,7 +497,7 @@ def cmd_check_refs(args: argparse.Namespace, repo_root: Path) -> int:
     findings = audit_traceability(content, repo_root)
     blockers = [f for f in findings if f.severity == "BLOCKER"]
     for f in findings:
-        loc = f" (línea {f.line})" if f.line else ""
+        loc = f" (line {f.line})" if f.line else ""
         print(f"[{f.severity}] [{f.code}]{loc} {f.message}")
     if not findings:
         print("[OK] All references are traceable.")
@@ -513,7 +513,7 @@ def cmd_check_scope(args: argparse.Namespace, repo_root: Path) -> int:
     findings = audit_scope(content)
     blockers = [f for f in findings if f.severity == "BLOCKER"]
     for f in findings:
-        loc = f" (línea {f.line})" if f.line else ""
+        loc = f" (line {f.line})" if f.line else ""
         print(f"[{f.severity}] [{f.code}]{loc} {f.message}")
     if not findings:
         print("[OK] Scope within the approved MVP index.")
@@ -573,7 +573,7 @@ def cmd_audit_all(args: argparse.Namespace, repo_root: Path) -> int:
         lines.append(f"*{len(blockers)} BLOCKER | {len(warnings)} WARNING | {len(infos)} INFO*")
         lines.append("")
         for f in findings:
-            loc = f" *(línea {f.line})*" if f.line else ""
+            loc = f" *(line {f.line})*" if f.line else ""
             lines.append(f"- **[{f.severity}][{f.code}]**{loc} {f.message}")
         lines.append("")
 
@@ -599,8 +599,8 @@ def main() -> int:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    p_audit = sub.add_parser("audit", help="Auditoría completa de un artefacto")
-    p_audit.add_argument("--file", required=True, help="Ruta relativa al artefacto (desde raíz del repo)")
+    p_audit = sub.add_parser("audit", help="Full audit of an artifact")
+    p_audit.add_argument("--file", required=True, help="Relative path to the artifact (from repo root)")
 
     p_refs = sub.add_parser("check-refs", help="Solo verificar trazabilidad de referencias")
     p_refs.add_argument("--file", required=True, help="Ruta relativa al artefacto")
@@ -613,7 +613,7 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    # Buscar raíz del repositorio desde el CWD
+    # Find repository root from CWD
     repo_root = find_repo_root(Path.cwd())
     if repo_root is None:
         print("[ERROR] Git repository root not found. "

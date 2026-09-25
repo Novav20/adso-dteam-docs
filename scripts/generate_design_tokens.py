@@ -72,7 +72,7 @@ def table_for(tables, heading_fragment: str, header_fragment: str) -> list[list[
             header_fragment
         ) in comparable(" ".join(headers)):
             return rows
-    raise ValueError(f"No se encontró tabla: {heading_fragment} / {header_fragment}")
+    raise ValueError(f"Table not found: {heading_fragment} / {header_fragment}")
 
 
 def css_value(value: str) -> str:
@@ -159,7 +159,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     zindex = table_for(tables, "Layers and Stacking", "Z-Index Token")
     font_base_penpot, font_base_css, font_mono_penpot, font_mono_css = parse_font_families(tables)
 
-    # 1. Generación de ui-ux/assets/tokens.css
+    # 1. Generate ui-ux/assets/tokens.css
     lines = [
         "/* GENERATED FILE - Do not edit manually.",
         f" * Source: {source.relative_to(ROOT)}",
@@ -222,7 +222,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             lines.append(f"  {token}: {semantic_value(light)};")
     for row in mai_tokens:
         if row and len(row) > 3 and row[1].startswith("--"):
-            _, token, light, dark = row[:4]  # La tabla MAI tiene Claro en col 2 y Oscuro en col 3
+            _, token, light, dark = row[:4]  # MAI table has Light in col 2 and Dark in col 3
             lines.append(f"  {token}: {semantic_value(light)};")
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--"):
@@ -246,9 +246,9 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
 
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines), encoding="utf-8")
-    print(f"Generado: {target}")
+    print(f"Generated: {target}")
 
-    # 2. Generación de ui-ux/assets/tokens_penpot.json
+    # 2. Generate ui-ux/assets/tokens_penpot.json
     penpot: dict[str, Any] = {
         "Global": {},
         "Primitives": {},
@@ -292,7 +292,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         },
     }
 
-    # Dimensiones y Espaciados
+    # Dimensions and Spacing
     for row in spacing:
         if row and row[0].startswith("--dt-space-"):
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
@@ -309,7 +309,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
                 css_value(row[1]), "borderRadius"
             )
 
-    # Tipografía Compuesta (Penpot W3C standard)
+    # Composite Typography (Penpot W3C standard)
     for row in typography:
         if row and row[0].startswith("--dt-font-"):
             token_id = row[0].removeprefix("--dt-")
@@ -335,14 +335,14 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
                 "$description": description,
             }
 
-    # Primitivos de Color
+    # Color Primitives
     for row in primitives:
         if row and row[0].startswith("--dt-primitive-"):
             penpot["Primitives"][row[0].removeprefix("--dt-primitive-")] = penpot_token(
                 css_value(row[1]), "color"
             )
 
-    # Semánticos de Color
+    # Semantic Color Tokens
     for row in semantic:
         if row and row[0].startswith("--dt-"):
             token, dark, light = row[:3]
@@ -376,7 +376,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
 
     penpot_target.parent.mkdir(parents=True, exist_ok=True)
     penpot_target.write_text(json.dumps(penpot, indent=2) + "\n", encoding="utf-8")
-    print(f"Generado: {penpot_target}")
+    print(f"Generated: {penpot_target}")
 
 
 def main() -> None:

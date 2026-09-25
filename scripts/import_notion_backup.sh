@@ -64,7 +64,7 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         *)
-            echo "❌ Opción desconocida: $1" >&2
+            echo "❌ Unknown option: $1" >&2
             usage >&2
             exit 2
             ;;
@@ -75,7 +75,7 @@ done
 TEMP_DIR="$BACKUP_DIR/_import_tmp"
 
 if $DRY_RUN; then
-    echo "🧪 Modo dry-run: no se copiarán ni borrarán archivos."
+    echo "🧪 Dry-run mode: no files will be copied or deleted."
     echo ""
 fi
 
@@ -115,7 +115,7 @@ resolve_target_name() {
         echo "srs.csv"
     elif [[ "$filename" == *"Historias de Usuario"* || "$filename" == *"User Stories"* || "$filename" == *"US"* ]]; then
         echo "user-stories.csv"
-    elif [[ "$filename" == *"Criterios de Aceptación"* || "$filename" == *"Acceptance Criteria"* || "$filename" == *"AC"* ]]; then
+    elif [[ "$filename" == *"Acceptance Criteria"* || "$filename" == *"Acceptance Criteria"* || "$filename" == *"AC"* ]]; then
         echo "gherkin.csv"
     else
         echo ""
@@ -172,7 +172,7 @@ for outer_zip in "${OUTER_ZIPS[@]}"; do
         echo "  📄 $csv_basename → $target_name"
 
         if $DRY_RUN; then
-            echo "     🧪 (dry-run) Se copiaría a: $target_path"
+            echo "     🧪 (dry-run) Would copy to: $target_path"
         else
             cp "$csv_file" "$target_path"
             echo "     ✅ Copiado a: $target_path"
@@ -182,7 +182,7 @@ for outer_zip in "${OUTER_ZIPS[@]}"; do
     done
 
     if $DRY_RUN; then
-        echo "  🧪 (dry-run) Se conservaría el origen: $outer_zip"
+        echo "  🧪 (dry-run) Would preserve origin: $outer_zip"
     elif [[ $archive_deployed -gt 0 && "$KEEP_SOURCE" == false ]]; then
         rm "$outer_zip"
         echo "  ♻️  Origen eliminado: $outer_name"

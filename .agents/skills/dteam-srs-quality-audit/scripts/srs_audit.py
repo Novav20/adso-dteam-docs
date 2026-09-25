@@ -13,7 +13,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Constantes de configuración
+# Configuration constants
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 SRS_PATH = REPO_ROOT / "requirements" / "data" / "srs.csv"
 import datetime as _dt
@@ -104,7 +104,7 @@ def generate_markdown_report(findings, total_rows):
 
 def run_audit():
     if not SRS_PATH.exists():
-        print(f"❌ Error: No se encontró srs.csv en {SRS_PATH}")
+        print(f"❌ Error: srs.csv not found in {SRS_PATH}")
         sys.exit(1)
 
     print(f"🔍 Auditando {SRS_PATH.relative_to(REPO_ROOT)}...\n")
@@ -128,7 +128,7 @@ def run_audit():
             
             if findings["BLOCKER"]:
                 generate_markdown_report(findings, 0)
-                print(f"❌ Falló validación de estructura. Reporte en: {REPORT_PATH}")
+                print(f"❌ Structure validation failed. Report at: {REPORT_PATH}")
                 return 2
 
             for row_num, row in enumerate(reader, start=2):

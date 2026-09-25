@@ -22,7 +22,7 @@ from typing import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# Rutas por defecto relativas a la raíz del repositorio
+# Default paths relative to the repository root
 DEFAULT_DATA_DIR = REPO_ROOT / "requirements" / "data"
 DEFAULT_US_OUT = REPO_ROOT / "requirements" / "user-stories"
 DEFAULT_COMMON_OUT = REPO_ROOT / "requirements" / "common"
@@ -32,7 +32,7 @@ ALLOWED_MODULES = {"ADM", "INV", "VIS", "MTTO"}
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Genera documentación Markdown para US y TR a partir de CSVs maestros."
+        description="Generates Markdown documentation for US and TR from master CSVs."
     )
     parser.add_argument(
         "--data-dir",
@@ -55,22 +55,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--modules",
         nargs="*",
-        help="Filtrar por módulos específicos (ADM, INV, VIS, MTTO).",
+        help="Filter by specific modules (ADM, INV, VIS, MTTO).",
     )
     parser.add_argument(
         "--ids",
         nargs="*",
-        help="Filtrar por IDs específicos (ej. MTTO-001, TR-003).",
+        help="Filter by specific IDs (ej. MTTO-001, TR-003).",
     )
     parser.add_argument(
         "--only-us",
         action="store_true",
-        help="Generar únicamente Historias de Usuario.",
+        help="Generate only User Stories.",
     )
     parser.add_argument(
         "--only-tr",
         action="store_true",
-        help="Generar únicamente Requisitos Transversales.",
+        help="Generate only Transversal Requirements.",
     )
     parser.add_argument(
         "--write",
@@ -121,7 +121,7 @@ def us_sort_key(us_id: str) -> tuple[str, int, str]:
 
 def read_csv_safe(path: Path) -> list[dict[str, str]]:
     if not path.exists():
-        raise FileNotFoundError(f"No se encontró el archivo CSV: {path}")
+        raise FileNotFoundError(f"CSV file not found: {path}")
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         return list(csv.DictReader(handle))
 
@@ -132,12 +132,12 @@ def find_csv_file(data_dir: Path, possible_names: list[str]) -> Path:
         if candidate.exists():
             return candidate
     raise FileNotFoundError(
-        f"No se encontró ninguno de los archivos {possible_names} en {data_dir}"
+        f"None of the files were found {possible_names} en {data_dir}"
     )
 
 
 # ==============================================================================
-# Lógica de Generación: Requisitos Transversales (TR / COMMON)
+# Generation Logic: Requisitos Transversales (TR / COMMON)
 # ==============================================================================
 
 def parse_tr_title(raw_tr: str, tr_id: str) -> str:
@@ -177,11 +177,11 @@ def render_tr_req_table(rows: list[dict], req_type: str) -> str:
             filtered.append(row)
 
     if not filtered:
-        return "_Sin requisitos en esta categoría._\n"
+        return "_No requirements in this category._\n"
 
     filtered.sort(key=lambda r: req_num_sort_key(clean(r.get("Req ID"))))
     lines = [
-        "| ID | Descripción | Categoría ISO 25010 | Prioridad |",
+        "| ID | Description | ISO 25010 Category | Priority |",
         "|---|---|---|---|",
     ]
     for row in filtered:
@@ -228,7 +228,7 @@ def build_tr_markdown(
         "",
         "## Contexto transversal",
         "",
-        "| Descripción general | Alcance | Referencias normativas |",
+        "| Description general | Scope | Normative References |",
         "| --- | --- | --- |",
         f"| {md_escape(desc)} | {md_escape(scope)} | {refs} |",
         "",
@@ -241,7 +241,7 @@ def build_tr_markdown(
         render_tr_req_table(rows_sorted, "NFR").rstrip(),
         "",
         "## Source",
-        "- Generado automáticamente desde `srs.csv`.",
+        "- Automatically generated from `srs.csv`.",
         "",
     ]
     return "\n".join(parts)
@@ -275,7 +275,7 @@ def build_tr_index_markdown(grouped: dict[str, list[dict]], metadata: dict[str, 
 
 
 # ==============================================================================
-# Lógica de Generación: Historias de Usuario (User Stories)
+# Generation Logic: Historias de Usuario (User Stories)
 # ==============================================================================
 
 def extract_us_id(row: dict[str, str]) -> str:
@@ -308,7 +308,7 @@ def get_transversales_ids(row: dict[str, str]) -> list[str]:
 
 def build_acceptance_table(criteria: list[dict[str, str]]) -> str:
     if not criteria:
-        return "_Sin criterios de aceptación en gherkin.csv para esta US._\n"
+        return "_No acceptance criteria in gherkin.csv for this US._\n"
     lines = [
         "| Scenario | Given (Context) | When (Action) | Then (Result) |",
         "|---|---|---|---|",
@@ -332,11 +332,11 @@ def build_us_reqs_table(rows: list[dict[str, str]], req_type: str) -> str:
             reqs.append(row)
 
     if not reqs:
-        return "_Sin requisitos en esta categoría._\n"
+        return "_No requirements in this category._\n"
 
     reqs.sort(key=lambda r: req_num_sort_key(clean(r.get("Req ID"))))
     lines = [
-        "| ID | Descripción | Categoría ISO 25010 | Prioridad | Fuente |",
+        "| ID | Description | ISO 25010 Category | Priority | Source |",
         "|---|---|---|---|---|",
     ]
     for row in reqs:
@@ -405,7 +405,7 @@ def render_us_markdown(
 
 
 # ==============================================================================
-# Controlador de Ejecución y Diff
+# Execution and Diff Controller
 # ==============================================================================
 
 def print_diff(path: Path, old_text: str, new_text: str) -> None:
@@ -460,8 +460,8 @@ def main() -> None:
             if tr_id:
                 tr_meta[tr_id] = {
                     "name": clean(r.get("Name")),
-                    "desc": clean(r.get("Descripción General")),
-                    "scope": clean(r.get("Alcance")),
+                    "desc": clean(r.get("General Description")),
+                    "scope": clean(r.get("Scope")),
                     "refs": normalize_refs(r.get("Referencias Normativas")),
                 }
 
@@ -510,12 +510,12 @@ def main() -> None:
             index_content = build_tr_index_markdown(grouped_tr, tr_meta)
             if is_write:
                 index_file.write_text(index_content, encoding="utf-8")
-                print(f"  🧭 ÍNDICE ESCRITO: {index_file.relative_to(REPO_ROOT)}")
+                print(f"  🧭 INDEX WRITTEN: {index_file.relative_to(REPO_ROOT)}")
             else:
-                print(f"  [DRY-RUN] 🧭 ÍNDICE PROYECTADO: {index_file.relative_to(REPO_ROOT)}")
+                print(f"  [DRY-RUN] 🧭 PROJECTED INDEX: {index_file.relative_to(REPO_ROOT)}")
 
     # --------------------------------------------------------------------------
-    # 2. Procesar Historias de Usuario (US por Módulo)
+    # 2. Process User Stories (US by Module)
     # --------------------------------------------------------------------------
     if not args.only_tr:
         print("\n📋 Procesando Historias de Usuario (User Stories)...")
@@ -605,12 +605,12 @@ def main() -> None:
     # --------------------------------------------------------------------------
     # Resumen Final
     # --------------------------------------------------------------------------
-    mode_str = "ESCRITURA DIRECTA (--write)" if is_write else "MODO SEGURO / SIMULACIÓN (--dry-run por defecto)"
+    mode_str = "DIRECT WRITE (--write)" if is_write else "SAFE MODE / SIMULATION (--dry-run by default)"
     print("\n" + "=" * 60)
-    print(f"🎯 Resumen de Ejecución [{mode_str}]:")
+    print(f"🎯 Execution Summary [{mode_str}]:")
     print(f"   • Archivos nuevos proyectados:    {total_created}")
     print(f"   • Archivos modificados:          {total_modified}")
-    print(f"   • Archivos al día (sin cambios): {total_unchanged}")
+    print(f"   • Up-to-date files (no changes): {total_unchanged}")
     print("=" * 60)
     if not is_write:
         print("💡 Para aplicar los cambios reales en disco, ejecute con el flag '--write'.")
