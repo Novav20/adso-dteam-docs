@@ -101,7 +101,7 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-primitive-white     | #FFFFFF   | Pure white (Canvas, elevated backgrounds)                                |
 | --dt-primitive-red-600   | #E63946   | Industrial alarm red                                            |
 | --dt-primitive-amber-600 | #AC5E04   | Amber / Warning on light background (Adjusted WCAG AA 3.47:1)         |
-| --dt-primitive-amber-500 | #D97706   | Ámbar / Advertencia base                                             |
+| --dt-primitive-amber-500 | #D97706   | Amber / Base Warning                                             |
 | --dt-primitive-amber-400 | #F4A261   | Amber / Warning on dark background                                  |
 | --dt-primitive-blue-700  | #0369A1   | Normal MAI operation zone on dark background                         |
 | --dt-primitive-blue-600  | #2563EB   | Informational blue on light background                                      |
@@ -109,7 +109,7 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-primitive-blue-400  | #457B9D   | Azul informativo base                                                |
 | --dt-primitive-blue-200  | #BAE6FD   | Normal MAI operation zone on light background                          |
 | --dt-primitive-teal-700  | #0B857A   | Documentary confirmation on light background (Adjusted WCAG AA 3.25:1)     |
-| --dt-primitive-teal-600  | #0D9488   | Confirmación documental base                                         |
+| --dt-primitive-teal-600  | #0D9488   | Base Documentary Confirmation                                         |
 | --dt-primitive-teal-400  | #2A9D8F   | Documentary confirmation on dark background                              |
 
 ### 3.2. Semantic Tokens for Light and Dark Themes

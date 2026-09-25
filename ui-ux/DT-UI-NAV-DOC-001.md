@@ -188,12 +188,12 @@ The following table defines the transition rules between screens, triggering eve
 | [[SCR-MTTO-026]]      | Row Selection in RIME Backlog                        | [[SCR-MTTO-001]]           |  L2 $\to$ L3  | Planner, Supervisor, Reliability Eng.  |
 | [[SCR-MTTO-026]]      | Click on "Schedule by Sensor"                           | [[SCR-MTTO-023]]           |  L2 $\to$ L3  | Planner, Reliability Eng.              |
 | [[SCR-MTTO-001]]      | Click on "Verify Spare Parts"                            | [[SCR-INV-031]]            |  L3 $\to$ L3  | Planner, Warehouse Manager                    |
-| [[SCR-MTTO-002]]      | Click on "Rotate Dismounted Equipment"                        | [[SCR-INV-025]]            |  L4 $\to$ L4  | Technician, Supervisor, Jefe Almacén             |
+| [[SCR-MTTO-002]]      | Click on "Rotate Dismounted Equipment"                        | [[SCR-INV-025]]            |  L4 $\to$ L4  | Technician, Supervisor, Warehouse Manager             |
 | [[SCR-MTTO-002]]      | Technical Closing Confirmation                              | [[SCR-MTTO-026]]           |  L4 $\to$ L2  | Technician, Supervisor                           |
 | [[SCR-INV-027]]       | Location Node Selection                           | [[SCR-INV-005]]            |  L2 $\to$ L3  | All Roles                               |
 | [[SCR-INV-005]]       | Click on "Check Kardex"                               | [[SCR-INV-006]]            |  L3 $\to$ L3  | Warehouse Manager, Planner, Auditor           |
 | [[SCR-INV-005]]       | Click on "Define Boundaries"                              | [[SCR-MTTO-029]]           |  L3 $\to$ L3  | Ing. Confiabilidad, Planificador              |
-| [[SCR-INV-005]]       | Click on "Physical Replacement"                               | [[SCR-INV-025]]            |  L3 $\to$ L4  | Technician, Supervisor, Jefe Almacén             |
+| [[SCR-INV-005]]       | Click on "Physical Replacement"                               | [[SCR-INV-025]]            |  L3 $\to$ L4  | Technician, Supervisor, Warehouse Manager             |
 | [[SCR-ADM-014]]       | Click on "Edit Privileges"                             | [[SCR-ADM-013]]            |  L2 $\to$ L2  | Administrator                                 |
 | [[SCR-ADM-013]]       | Click on "Audit Modification"                           | [[SCR-ADM-032]]            |  L2 $\to$ L2  | Administrator, Auditor, Gerente               |
 
