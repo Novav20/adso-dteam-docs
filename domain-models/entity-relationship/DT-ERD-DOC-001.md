@@ -106,10 +106,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | subunit_type | VARCHAR(80) | NOT NULL | | - | Subcomponent taxonomy. |
 | name | VARCHAR(120) | NOT NULL | | - | Subcomponent label. |
 
-### 3.2 Schema `mtto`
-
-
-#### 3.1.3 asset_installations
+#### 3.1.6 asset_installations
 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
@@ -117,9 +114,11 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | functional_location_id | UUID | NOT NULL | FK | - | The physical position (slot) where the asset is installed. |
 | equipment_unit_id | UUID | NOT NULL | FK | - | The specific serialized asset installed. |
 | installed_at | TIMESTAMP | NOT NULL | | now() | Timestamp of physical installation. |
-| removed_at | TIMESTAMP | NULL | | NULL | Timestamp of physical removal (NULL if currently active). |
+| removed_at | TIMESTAMP | NULL | UNIQUE | NULL | Timestamp of physical removal. Unique constraint pairs with location to ensure 1 active asset. |
 
-*Note:* A unique constraint (functional_location_id, removed_at) ensures only one asset can be actively installed in a specific location at a time (when removed_at is NULL).
+### 3.2 Schema `mtto`
+
+
 
 #### 3.2.1 backlog_items
 
