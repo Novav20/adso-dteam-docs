@@ -30,9 +30,11 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **mobile_app** | Mobile App | Client Application | .NET MAUI Blazor | Offline-first field client for touch execution. |
 | **local_db** | SQLite Offline DB | Persistence | sqlite-net-pcl | Offline-first relational store (SQLCipher encrypted). |
 | **loto_watchdog** | LOTO Safety Watchdog | Component | C# Background Service | Real-time verification of Zero Energy thresholds on the mobile client. |
+| **object_storage** | Azure Blob Storage | External System | Storage Account | Binary evidence persistence for ISO 14224 photographs. |
 | **web_admin** | Web Admin Portal | Client Application | Blazor Web App | HSEQ supervision, planning, and dashboards. |
 | **idempotency_filter** | Idempotency Filter | Driving Adapter | IActionFilter | Intercepts requests with the Idempotency-Key header; prevents reprocessing critical transitions resent after reconnection (TR-007). |
 | **idempotency_repo** | Idempotency Repository | Secondary Port (Out) | IIdempotencyRepository | Abstracts relational persistence of the IdempotencyLog to join the Domain's Unit of Work (ADR-007). |
+| **media_repo** | Media Repository | Secondary Port (Out) | IMediaRepository | Manages SAS token issuance for external evidence storage (ADR-008). |
 | **api_controllers** | REST API Controllers | Driving Adapter | Minimal APIs | Exposes HTTPS endpoints; handles optimistic concurrency control using row version marks (RowVersion/ETag). |
 | **signalr_hub** | SignalR Hub | Driving Adapter | SignalR.Hub | Persistent bidirectional channel over WebSockets (WSS); degrades to polling if the industrial network fails. |
 | **telemetry_listener** | Telemetry Listener (IoT) | Driving Adapter | IHostedService | Asynchronous consumer (AMQP) of the Azure IoT Hub broker; injects telemetry to the LOTO port. |
