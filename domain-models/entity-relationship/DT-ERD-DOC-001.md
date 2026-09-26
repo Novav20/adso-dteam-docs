@@ -471,6 +471,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | equipment_classes | 1 : 0..N | equipment_units | classifies | RESTRICT | CASCADE |
 | functional_locations| 1 : 0..N | functional_locations | contains (Self) | RESTRICT | CASCADE |
 | functional_locations| 1 : 0..N | equipment_units | installs | RESTRICT | CASCADE |
+| functional_locations | 1 : 0..N | asset_installations | tracked via | CASCADE | CASCADE |
+| equipment_units | 1 : 0..N | asset_installations | mounted at | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | subunits | broken down into | CASCADE | CASCADE |
 | subunits | 1 : 0..N | maintainable_items | built by | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | maintenance_plans | governed by | CASCADE | CASCADE |
