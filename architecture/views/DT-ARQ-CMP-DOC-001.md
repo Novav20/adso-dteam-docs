@@ -99,6 +99,9 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **idempotency_filter** | **redis_cache** | TCP (RESP) | Queries and sets idempotency keys (SETNX) to prevent duplicate transactions. |
 | **idempotency_filter** | **idempotency_repo** | In-Process Method Call | Delegates durable logging (Stage 2) into the domain transaction. |
 | **idempotency_repo** | **db_postgres** | TCP/IP (SQL) | Executes ACID transaction inserting the IdempotencyLog record. |
+| **mobile_app** | **object_storage** | HTTPS / REST | Uploads binary failure evidence directly via Valet Key (pre-signed SAS token). |
+| **mtto_port** | **media_repo** | In-Process Method Call | Requests SAS tokens for multimedia persistence. |
+| **media_repo** | **object_storage** | HTTPS / Azure SDK | Authenticates via Managed Identity to generate and issue SAS tokens. |
 | **sync_worker** | **mtto_port** | In-Process Method Call | Routes dequeued offline work orders to the maintenance domain. |
 | **mtto_port** | **event_bus** | In-Process Method Call | Publishes domain events (e.g., WorkOrderClosed) for cross-module orchestration. |
 | **loto_port** | **telemetry_bus** | In-Process Method Call | Subscribes to real-time safety condition streams. |
