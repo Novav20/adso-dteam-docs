@@ -39,7 +39,7 @@ def generate_domain_puml():
         in_table = False
         for line in dm1_lines:
             line = line.strip()
-            if "| Entidad" in line and "| Estereotipo DDD" in line:
+            if ("| Entidad" in line and "| Estereotipo DDD" in line) or ("| Entity" in line and "| DDD Stereotype" in line):
                 in_table = True
                 continue
             if line.startswith("| ---") or line.startswith("| -") or line.startswith("| :---") or line.startswith("| :"):
@@ -155,7 +155,7 @@ def generate_domain_puml():
             in_table = False
             for line in lines:
                 line = line.strip()
-                if line.startswith("| Method |"):
+                if line.startswith("| Method"):
                     in_table = True
                     continue
                 if line.startswith("| :---"):
