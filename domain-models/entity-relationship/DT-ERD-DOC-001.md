@@ -476,14 +476,14 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | equipment_units | 1 : 0..N | subunits | broken down into | CASCADE | CASCADE |
 | subunits | 1 : 0..N | maintainable_items | built by | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | maintenance_plans | governed by | CASCADE | CASCADE |
-| equipment_units | 1 : 0..N | work_orders | generates | CASCADE | CASCADE |
+| equipment_units | 1 : 0..N | work_orders | generates | RESTRICT | CASCADE |
 | maintenance_plans | 1 : 0..N | work_orders | instantiates | SET NULL | CASCADE |
 | work_requests | 1 : 0..N | work_orders | originates | SET NULL | CASCADE |
 | equipment_units | 1 : 0..N | work_requests | requires | CASCADE | CASCADE |
 | work_requests | 1 : 0..N | backlog_items | prioritized as | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | backlog_items | pending for | CASCADE | CASCADE |
 | work_orders | 1 : 0..N | failure_records | diagnoses | CASCADE | CASCADE |
-| maintainable_items | 1 : 0..N | failure_records | affected by | SET NULL | CASCADE |
+| maintainable_items | 1 : 0..N | failure_records | affected by | RESTRICT | CASCADE |
 | work_orders | 1 : 0..N | media_attachments | evidenced by | CASCADE | CASCADE |
 | failure_records | 1 : 0..N | media_attachments | detailed by | CASCADE | CASCADE |
 | work_orders | 1 : 0..N | work_order_histories| audited via | CASCADE | CASCADE |
