@@ -1,7 +1,7 @@
 ---
 code: DT-UI-DS-DOC-001
-version: 1.7
-date: 2026-09-06
+version: 1.9
+date: 2026-10-02
 status: APPROVED
 author: Juan David Julio Serrano
 standard:
@@ -176,6 +176,7 @@ To comply with the HPHMI philosophy in dark interfaces, depth is not expressed t
 | --dt-radius-md   | 6px        | Text fields (InputText), selectors, standard buttons.     |
 | --dt-radius-lg   | 8px        | Information cards (Cards), side panels, dropdowns. |
 | --dt-radius-xl   | 12px       | Modal windows, LOTO lockout dialogs.                    |
+| --dt-radius-full | 9999px     | Pill-shaped controls, floating toolbars, search bars.   |
 
 ### 5.2. Layers and Stacking Levels (Z-Index Hierarchy)
 | Z-Index Token          | Value | Assigned Elements                                                  |
@@ -244,6 +245,33 @@ In compliance with the principle of **Controllability** (ISO 9241-110:2020, Clau
 1. **Exclusive Gesture Prohibition:** It is forbidden to condition the deployment, collapse, or closure of a container exclusively to continuous drag or swipe gestures (*swipe/drag*).
 2. **Dedicated Physical Trigger:** Every container must integrate an explicit interactive element (handle or touch header) whose touch area dimensions inherit the `--dt-touch-target-mobile` token.
 3. **Discrete Switching:** A simple press (*tap*) on this element must sequentially toggle between the defined states for the component (Collapsed, Partial View, Expanded), guaranteeing operation without requiring fine motor skills.
+
+### 6.4. Iconography and Redundant Symbology Standards
+
+To ensure compliance with WCAG 2.1 AA Redundant Coding and [[ASR-001]] (Offline-First field operation without remote network dependencies), all application icons follow a standardized vector grid:
+
+#### 6.4.1. Vector Frame and Optical Padding
+* **Base ViewBox:** Strictly $24 \times 24\text{ px}$ (`viewBox="0 0 24 24"`).
+* **Safe Drawing Area (Live Area):** $20 \times 20\text{ px}$ centered within the frame ($X=2\text{px}, Y=2\text{px}$ offset).
+* **Perimeter Padding:** Mandatory minimum optical padding of $2\text{ px}$ on all four edges ($2\text{px} + 20\text{px} + 2\text{px} = 24\text{px}$) to prevent visual clipping when rendered inside compact badges, action buttons, or table rows.
+* **Stroke & Fill Geometry:**
+  * Base stroke width: $2\text{ px}$ (`stroke-width="2"`) for outline UI and navigation symbols.
+  * Line caps and joins: `stroke-linecap="round"` and `stroke-linejoin="round"`.
+  * Fill: `fill="none"` for outline icons; `fill="currentColor"` for solid indicator glyphs (safety permits, LOTO locks, hazard markers).
+* **Theme Decoupling (`currentColor`):** All monochromatic icons must avoid hardcoded hex colors (`#000000` or `#FFFFFF`). They must declare `fill="currentColor"` or `stroke="currentColor"` so that CSS semantic tokens (`--dt-color-alarm-critical`, `--dt-color-state-success`, etc.) dynamically dictate their color in both Light and Dark themes.
+
+#### 6.4.2. Geometric Shape Calibration for Redundant Coding
+When symbols are encapsulated in the mandatory geometric containers defined in the Redundant Coding Matrix (Section 6.2), the containers are dimensioned as follows:
+* **Square (Hot Work / LOTO):** $20 \times 20\text{ px}$, corner radius $r = 2\text{ px}$ (`--dt-radius-sm`).
+* **Triangle (Heights):** Equilateral triangle inscribed in $20 \times 20\text{ px}$, base width $20\text{ px}$, height $18\text{ px}$, corner radius $r = 1.5\text{ px}$.
+* **Circle (Confined Space):** Diameter $\varnothing = 20\text{ px}$, centered at $(12, 12)$.
+* **Rhombus (Signal Lost):** $20 \times 20\text{ px}$ rotated $45^\circ$, corner radius $r = 2\text{ px}$.
+
+#### 6.4.3. Asset Storage and Distribution Pipeline
+* **Source Vectors:** Authoring master files reside in `adso-dteam-docs/ui-ux/assets/icons-src/` (e.g., thematic files like `safety-ptw-loto.svg` or standalone `icon-*.svg` files).
+* **Automated Compiler:** The script `scripts/build_icons_sprite.py` traverses `icons-src/`, extracts all symbol nodes, strips editor metadata, and compiles them into a unified, zero-dependency SVG sprite sheet.
+* **Runtime Delivery:** Interfaces consume the compiled `ui-ux/assets/icons.svg` via `<svg class="dt-icon"><use href="assets/icons.svg#icon-id"/></svg>`.
+
 ---
 
 ## 7. Design System CSS Variables File

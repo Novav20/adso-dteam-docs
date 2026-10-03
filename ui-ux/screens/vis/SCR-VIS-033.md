@@ -25,8 +25,8 @@ requirements:
   - NFR-605
   - "[[TR-010]]"
   - "[[TR-011]]"
-version: 1.3
-date: 2026-09-04
+version: 1.4
+date: 2026-10-02
 status: In Review
 ---
 
@@ -52,10 +52,10 @@ status: In Review
 | ID | Control / Component | Visual Role / Content | Semantic Token | Data Link / Behavior Rule |
 | :------- | :---------------------- | :------------------------------- | :-------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CMP-01` | Canvas Viewport 2D      | Interactive SVG vector canvas | `--dt-color-bg-canvas`                                                                              | Renders the SVG map of the area. Supports continuous panning and dual zoom (geometric and semantic) per [[UC-VIS-033]]. |
-| `CMP-02` | Viewport Toolbar        | Spatial navigation bar | `--dt-color-surface-card`                                                                           | Viewer controls: Reset view, zoom levels, layer selector, and contextual level badge. |
-| `CMP-03` | Command Palette Trigger | Quick search access | `--dt-color-border-subtle`<br>`--dt-color-text-muted`                                               | Global fuzzy search trigger (`Ctrl + K` / `/`) on desktop. On mobile, it renders as a tactile action button with a magnifying glass icon. |
+| `CMP-02` | Viewport Toolbar        | Spatial navigation bar | Surface: `--dt-color-surface-card`<br>Radius: `--dt-radius-full`                                    | Unified floating pill toolbar centered over `CMP-01`. Integrates `CMP-03`, level badge, and viewer controls: Reset view, zoom levels, and layer selector. |
+| `CMP-03` | Command Palette Trigger | Quick search access | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-full`    | Embedded pill search input within `CMP-02` (`Ctrl + K` / `/`). Supports fuzzy equipment tag search. |
 | `CMP-04` | Equipment Hotspot       | Equipment symbol in SVG | Border: `--dt-primitive-gray-500`<br>Background: `--dt-color-bg-canvas` | Level 6 geometry linked by `TagNumber`. In normal condition, it operates with neutral outlining; in alarm, it acquires a halo and severity shape per [[DT-UI-DS-DOC-001]]. |
-| `CMP-05` | Context Container       | Asset contextual panel | Surface: `--dt-color-surface-card` | Adaptable container (Side panel or *Bottom Sheet*). Desktop Elevation: `--dt-z-overlay-card`. Mobile Elevation: `--dt-z-drawer-sidebar`. |
+| `CMP-05` | Context Container       | Asset contextual panel | Surface: `--dt-color-surface-card` | Adaptable container (Collapsible lateral panel or *Bottom Sheet*). Desktop Elevation: `--dt-z-overlay-card`. Mobile Elevation: `--dt-z-drawer-sidebar`. |
 | `CMP-06` | Asset Header Block      | Identification and status | Surface: `--dt-color-surface-card` | Presents `TagNumber` (with `--dt-font-mono-data` typography), criticality, and operational status (`EquipmentUnit.operationalStatus`). |
 | `CMP-07` | Live Telemetry Block    | MAI analog indicators | `--dt-color-mai-*`                                                                                  | Analog bars for critical process variables ([[DT-UI-DS-DOC-001]]). Dynamically updated via SignalR ([[TR-010]]). |
 | `CMP-08` | Safety & Work Badges    | Work and risk indicators | [[DT-UI-DS-DOC-001#6.2. Redundant Coding Matrix for Permits and LOTO\| DT-UI-DS-DOC-001]] | Consumes Permit and LOTO data applying mandatory redundant coding. |
@@ -88,6 +88,7 @@ status: In Review
 1. **Panning and Zoom:** Dual navigation (Geometric and Semantic) per [[UC-VIS-033]].
 2. **Tactile Controllability:** The `CMP-05` container toggles its states via an upper graphic trigger that inherits the tactile size of `--dt-touch-target-mobile`.
 3. **Responsive Layout:** The transformation of the `CMP-05` container (Bottom Sheet $\leftrightarrow$ Lateral Panel) is delegated to the device orientation rules defined in [[DT-UI-NAV-DOC-001]].
+4. **Collapsible Drawer and Viewport Centering:** In landscape tablet mode, `CMP-05` can be collapsed via a dedicated tactile trigger. When collapsed or expanded, `CMP-01` smoothly resizes, and the unified floating toolbar (`CMP-02` / `CMP-03`) automatically recalibrates its horizontal position to remain strictly centered over the active visible canvas.
   
 ### 5.3. Inspection and Telemetry
 1. Selecting an asset on the map invokes the opening of `CMP-05` and real-time subscription to the equipment's telemetry channel.
