@@ -1,7 +1,7 @@
 ---
 code: DT-ARQ-CMP-DOC-001
-version: 1.3
-date: 2026-09-17
+version: 1.5
+date: 2026-09-25
 status: Active
 author: Juan David Julio Serrano
 standard:
@@ -28,8 +28,13 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | Component ID | Component or Functional Port | Architectural Layer / Stereotype | Port / Interface | Technical Responsibility |
 | :--- | :--- | :--- | :--- | :--- |
 | **mobile_app** | Mobile App | Client Application | .NET MAUI Blazor | Offline-first field client for touch execution. |
+| **local_db** | SQLite Offline DB | Persistence | sqlite-net-pcl | Offline-first relational store (SQLCipher encrypted). |
+| **loto_watchdog** | LOTO Safety Watchdog | Component | C# Background Service | Real-time verification of Zero Energy thresholds on the mobile client. |
+| **object_storage** | Azure Blob Storage | External System | Storage Account | Binary evidence persistence for ISO 14224 photographs. |
 | **web_admin** | Web Admin Portal | Client Application | Blazor Web App | HSEQ supervision, planning, and dashboards. |
 | **idempotency_filter** | Idempotency Filter | Driving Adapter | IActionFilter | Intercepts requests with the Idempotency-Key header; prevents reprocessing critical transitions resent after reconnection (TR-007). |
+| **idempotency_repo** | Idempotency Repository | Secondary Port (Out) | IIdempotencyRepository | Abstracts relational persistence of the IdempotencyLog to join the Domain's Unit of Work (ADR-007). |
+| **media_repo** | Media Repository | Secondary Port (Out) | IMediaRepository | Manages SAS token issuance for external evidence storage (ADR-008). |
 | **api_controllers** | REST API Controllers | Driving Adapter | Minimal APIs | Exposes HTTPS endpoints; handles optimistic concurrency control using row version marks (RowVersion/ETag). |
 | **signalr_hub** | SignalR Hub | Driving Adapter | SignalR.Hub | Persistent bidirectional channel over WebSockets (WSS); degrades to polling if the industrial network fails. |
 | **telemetry_listener** | Telemetry Listener (IoT) | Driving Adapter | IHostedService | Asynchronous consumer (AMQP) of the Azure IoT Hub broker; injects telemetry to the LOTO port. |
@@ -46,8 +51,13 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **inv_repo** | Inventory Repository Port | Secondary Port (Out) | IInventoryRepository | Persistence interface for material control and safety inventories. |
 | **sec_repo** | Audit Repository Port | Secondary Port (Out) | ISecurityRepository | Persistence interface for user accounts, security roles, sessions, and AuditLog. |
 | **notify_port** | Notification Port | Secondary Port (Out) | INotificationPort | Synchronous broadcast of safety alerts and LOTO status to the outside. |
-| **telemetry_port** | Telemetry Port | Secondary Port (Out) | ITelemetryPort | Interface for subscribing to physical safety telemetry streams asynchronously. |
-| **ef_adapter** | EF Core PostgreSQL Adapter | Driven Adapter | PostgresDbContext | Unit of Work; persists the AuditLog to an append-only table with Row-Level Security. |
+| **telemetry_bus** | Telemetry Stream Bus | Domain Service | ITelemetryBus | Internal pub/sub channel for high-frequency safety telemetry streams. |
+| **telemetry_repo** | Telemetry Repository Port | Secondary Port (Out) | ITelemetryRepository | Persistence interface for historical time-series data. |
+| **telemetry_ef_adapter**| Telemetry EF Adapter | Driven Adapter | TelemetryDbContext | Unit of Work; optimized bulk-inserts into TimescaleDB. |
+| **tax_ef_adapter** | Taxonomy EF Adapter | Driven Adapter | TaxonomyDbContext | Unit of Work for Taxonomy domain schema. |
+| **mtto_ef_adapter** | Maintenance EF Adapter | Driven Adapter | MaintenanceDbContext | Unit of Work for Maintenance domain schema. |
+| **inv_ef_adapter** | Inventory EF Adapter | Driven Adapter | InventoryDbContext | Unit of Work for Inventory domain schema. |
+| **sec_ef_adapter** | Security EF Adapter | Driven Adapter | SecurityDbContext | Unit of Work; persists AuditLog to append-only table. |
 | **signalr_broadcaster**| SignalR Broadcaster | Driven Adapter | IHubContext<T> | Broadcasts data to SignalR channels filtering by authorized role. |
 | **db_postgres** | PostgreSQL Master | External System | Relational Database | Master relational store (PostgreSQL 18 + TimescaleDB). |
 | **azure_iot** | Azure IoT Hub | External System | Cloud Broker | Managed broker for asynchronous telemetry ingestion. |
@@ -74,12 +84,35 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **inv_port** | **inv_repo** | C# Interface (DI) | Abstraction for inventory transactions and stock levels. |
 | **sec_port** | **sec_repo** | C# Interface (DI) | Abstraction for identity management and chained hash audit logging. |
 | **loto_port** | **notify_port** | C# Interface (DI) | Abstraction for broadcasting critical safety alerts. |
-| **asset_repo** | **ef_adapter** | C# Class Inheritance | Implements persistence via EF Core DbContext. |
-| **mtto_repo** | **ef_adapter** | C# Class Inheritance | Implements persistence via EF Core DbContext. |
-| **inv_repo** | **ef_adapter** | C# Class Inheritance | Implements persistence via EF Core DbContext. |
-| **sec_repo** | **ef_adapter** | C# Class Inheritance | Implements persistence via EF Core DbContext. |
+| **asset_repo** | **tax_ef_adapter** | C# Class Inheritance | Implements persistence via TaxonomyDbContext. |
+| **mtto_repo** | **mtto_ef_adapter** | C# Class Inheritance | Implements persistence via MaintenanceDbContext. |
+| **inv_repo** | **inv_ef_adapter** | C# Class Inheritance | Implements persistence via InventoryDbContext. |
+| **sec_repo** | **sec_ef_adapter** | C# Class Inheritance | Implements persistence via SecurityDbContext. |
 | **notify_port** | **signalr_broadcaster**| C# Class Inheritance | Implements broadcast via Microsoft.AspNetCore.SignalR. |
-| **ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands under Unit of Work. |
+| **tax_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
+| **mtto_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
+| **inv_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
+| **sec_ef_adapter** | **db_postgres** | TCP/IP (SQL) | Executes transactional relational commands. |
+| **scada_node** | **azure_iot** | MQTT / AMQP | Transmits raw industrial telemetry to the cloud broker. |
+| **azure_iot** | **telemetry_listener** | AMQP | Pushes high-frequency telemetry events to the backend consumer. |
+| **mobile_app** | **idempotency_filter** | HTTPS | Sends sync payloads containing idempotency keys in headers. |
+| **idempotency_filter** | **redis_cache** | TCP (RESP) | Queries and sets idempotency keys (SETNX) to prevent duplicate transactions. |
+| **idempotency_filter** | **idempotency_repo** | In-Process Method Call | Delegates durable logging (Stage 2) into the domain transaction. |
+| **idempotency_repo** | **db_postgres** | TCP/IP (SQL) | Executes ACID transaction inserting the IdempotencyLog record. |
+| **mobile_app** | **object_storage** | HTTPS / REST | Uploads binary failure evidence directly via Valet Key (pre-signed SAS token). |
+| **mtto_port** | **media_repo** | In-Process Method Call | Requests SAS tokens for multimedia persistence. |
+| **media_repo** | **object_storage** | HTTPS / Azure SDK | Authenticates via Managed Identity to generate and issue SAS tokens. |
+| **sync_worker** | **mtto_port** | In-Process Method Call | Routes dequeued offline work orders to the maintenance domain. |
+| **mtto_port** | **event_bus** | In-Process Method Call | Publishes domain events (e.g., WorkOrderClosed) for cross-module orchestration. |
+| **loto_port** | **telemetry_bus** | In-Process Method Call | Subscribes to real-time safety condition streams. |
+| **telemetry_listener** | **telemetry_bus** | In-Process Method Call | Publishes live sensor readings to the hot path bus. |
+| **telemetry_listener** | **telemetry_repo** | C# Interface (DI) | Dispatches historical sensor readings to the cold path. |
+| **telemetry_repo** | **telemetry_ef_adapter**| C# Class Inheritance | Implements time-series persistence via EF Core. |
+| **telemetry_ef_adapter**| **db_postgres** | TCP/IP (SQL) | Executes optimized bulk inserts into TimescaleDB chunks. |
+| **mobile_app** | **local_db** | SQLite P/Invoke | Persists transactional queue and master data for offline-first execution. |
+| **loto_watchdog** | **local_db** | SQLite P/Invoke | Writes emergency lockout states directly to local storage upon connection loss. |
+| **loto_watchdog** | **signalr_hub** | WSS (WebSockets) | Maintains continuous heartbeat to verify safety perimeter integrity. |
+| **web_admin** | **api_controllers** | HTTPS / JSON | Executes administrative commands and fetches master data. |
 
 ---
 
@@ -87,7 +120,7 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 
 | Module / Port | C# Method Signature and Parameters | Requirement / US | Safety Invariant / Business Rule to Validate |
 | :--- | :--- | :--- | :--- |
-| **ITelemetryPort** | `IDisposable SubscribeToSafetyChannel(Guid equipmentUnitId, Action<TelemetryReading> onReading);` | [[VIS-011]]<br>TR-010-FR-431 | **Real-Time Synchronization:** Propagates permit revocations and energy spikes in sub-seconds. **Concurrency Control:** The client must apply a $300	ext{ ms}$ debounce on asset selection to prevent race conditions due to simultaneous multiple subscriptions. |
+| **ITelemetryBus** | `IDisposable SubscribeToSafetyChannel(Guid equipmentUnitId, Action<TelemetryReading> onReading);` | [[VIS-011]]<br>TR-010-FR-431 | **Real-Time Synchronization:** Propagates permit revocations and energy spikes in sub-seconds. **Concurrency Control:** The client must apply a $300	ext{ ms}$ debounce on asset selection to prevent race conditions due to simultaneous multiple subscriptions. |
 | **ITaxonomyService** | `Task InstallEquipment(Guid locationId, Guid equipmentId);` | [[INV-025]]<br>FR-593, FR-594 | Validates that the functional location has no installed asset (cardinality 1 slot = 1 L6 asset) and that the replacement equipment is in `IN_STORAGE` status (INV-025). |
 | **ITaxonomyService** | `Task<EquipmentUnit> UninstallEquipment(Guid locationId, string reason);` | [[INV-025]]<br>FR-591, FR-592 | Unlinks the equipment from its operational position; updates its physical status to "In Repair" or "Stock" in a single-commit database transaction (NFR-596). |
 | **ITaxonomyService** | `Task ReorganizeTree(Guid locationId, Guid newParentId);` | [[INV-027]]<br>FR-162, NFR-167 | Validates that the movement does not generate infinite cycles (a node cannot be its own ancestor, TR-008-FR-417) and remains within the boundaries of Functional Locations (L1 to L5 of the ISO 14224 taxonomy). |

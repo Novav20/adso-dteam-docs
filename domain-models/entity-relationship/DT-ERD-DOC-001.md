@@ -1,7 +1,7 @@
 ---
 code: DT-ERD-DOC-001
-version: 1.1
-date: 2026-09-18
+version: 1.2
+date: 2026-09-25
 status: Active
 author: Juan David Julio Serrano
 standard:
@@ -106,7 +106,19 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | subunit_type | VARCHAR(80) | NOT NULL | | - | Subcomponent taxonomy. |
 | name | VARCHAR(120) | NOT NULL | | - | Subcomponent label. |
 
+#### 3.1.6 asset_installations
+
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
+| --- | --- | --- | --- | --- | --- |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the installation record. |
+| functional_location_id | UUID | NOT NULL | FK | - | The physical position (slot) where the asset is installed. |
+| equipment_unit_id | UUID | NOT NULL | FK | - | The specific serialized asset installed. |
+| installed_at | TIMESTAMP | NOT NULL | | now() | Timestamp of physical installation. |
+| removed_at | TIMESTAMP | NULL | UNIQUE | NULL | Timestamp of physical removal. Unique constraint pairs with location to ensure 1 active asset. |
+
 ### 3.2 Schema `mtto`
+
+
 
 #### 3.2.1 backlog_items
 
@@ -114,7 +126,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
 | equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
-| work_request_id | UUID | NOT NULL | FK, UNIQUE | - | Foreign key to the related table. |
+| work_request_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | priority_score | INT | NOT NULL | | - | Backlog score derived from RIME (Calculated). |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Backlog lifecycle status (prioritization). |
 
@@ -123,7 +135,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Identity of the failure event. |
-| work_order_id | UUID | NOT NULL | FK, UNIQUE | - | Foreign key to the related table. |
+| work_order_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | maintainable_item_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 | failure_mode | VARCHAR(120) | NOT NULL | | - | ISO 14224 failure coding. |
 | failure_mechanism | VARCHAR(120) | NOT NULL | | - | ISO 14224 failure coding. |
@@ -131,6 +143,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | detection_method | VARCHAR(120) | NOT NULL | CHECK | - | Failure detection method (ISO 14224). |
 | operational_condition | VARCHAR(120) | NOT NULL | CHECK | - | Operational condition at the time of failure (ISO 14224). |
 | operational_impact | VARCHAR(120) | NOT NULL | CHECK | - | Operational impact of the failure (ISO 14224). |
+| technician_notes | TEXT | NULL | | NULL | Qualitative field diagnosis and observations from the technician. |
 | downtime | DECIMAL(10,2) | NOT NULL | | - | Reliability analysis metric (Calculated). |
 | status | VARCHAR(20) | NOT NULL | | - | Status of the failure record. |
 
@@ -157,6 +170,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
 | work_order_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| failure_record_id | UUID | NULL | FK | NULL | Foreign key to the specific failure occurrence. |
 | file_url | VARCHAR(255) | NOT NULL | | - | Evidence location. |
 | file_type | VARCHAR(20) | NOT NULL | CHECK | - | Controlled attachment file format. |
 | uploaded_at | TIMESTAMP | NOT NULL | | - | Upload/ingestion time of the evidence. |
@@ -179,7 +193,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
 | equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | maintenance_plan_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
-| work_request_id | UUID | NULL | FK, UNIQUE | NULL | Foreign key to the related table. |
+| work_request_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 | work_permit_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 | current_status | VARCHAR(20) | NOT NULL | CHECK | - | Execution lifecycle status (FSM). |
 | maintenance_method | VARCHAR(80) | NOT NULL | CHECK | - | Maintenance method (Corrective, Preventive, etc.). |
@@ -201,7 +215,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | request_date | TIMESTAMP | NOT NULL | | - | Timeline for audit. |
 | request_source | VARCHAR(80) | NOT NULL | | - | Origin of the request. |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Request lifecycle status. |
-| work_class_code | SMALLINT | NOT NULL | CHECK | - | Numeric weight of the selected work class for RIME. |
+| work_class | SMALLINT | NOT NULL | CHECK | - | Numeric weight of the selected work class for RIME. |
 
 ### 3.3 Schema `inv`
 
@@ -218,7 +232,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | timestamp | TIMESTAMP | NOT NULL | | clock_timestamp() | Precise temporal record of the movement. |
 | reason | VARCHAR(255) | NOT NULL | | - | Reason for movement or reference to external documents. |
 | total_cost | DECIMAL(12,2) | NOT NULL | | - | Total cost of the transaction (Quantity \* Cost). |
-| aisle_shelf_location | VARCHAR(150) | NULL | | NULL | Specific physical location of the transaction (aisle/shelf). |
+| locator_id | UUID | NULL | FK | NULL | Specific physical storage bin of the transaction. |
 | serial_number | VARCHAR(100) | NULL | | NULL | Serial number or Tag of the rotating equipment (Asset Swap). |
 
 #### 3.3.2 maintainable_item_spare_parts
@@ -268,7 +282,19 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | contact_info | VARCHAR(255) | NOT NULL | | - | Phone, email, or contact address. |
 | warranty_terms | VARCHAR(255) | NOT NULL | | - | Standard commercial warranty terms. |
 
-#### 3.3.6 warehouses
+#### 3.3.6 locators
+
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
+| --- | --- | --- | --- | --- | --- |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| warehouse_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| aisle | VARCHAR(50) | NOT NULL | | - | Physical aisle identifier. |
+| rack | VARCHAR(50) | NULL | | NULL | Physical rack identifier. |
+| shelf | VARCHAR(50) | NULL | | NULL | Physical shelf identifier. |
+| barcode | VARCHAR(100) | NULL | UNIQUE | NULL | Scannable code for mobile operations. |
+| is_active | BOOLEAN | NOT NULL | | TRUE | Active status for storage. |
+
+#### 3.3.7 warehouses
 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
@@ -427,6 +453,17 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | assigned_role | VARCHAR(80) | NOT NULL | CHECK | - | Operational role of the technician in the specific WO. |
 | assigned_at | TIMESTAMP | NOT NULL | | clock_timestamp() | Moment of assignment. |
 
+#### 3.5.8 idempotency_logs
+
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
+| --- | --- | --- | --- | --- | --- |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| idempotency_key | VARCHAR(128) | NOT NULL | UNIQUE | - | Client-provided uniqueness token (ADR-007). |
+| tenant_id | UUID | NOT NULL | | - | Multi-tenant isolation boundary. |
+| request_hash | VARCHAR(64) | NOT NULL | | - | SHA-256 fingerprint to prevent payload mutation. |
+| status | VARCHAR(20) | NOT NULL | | - | State of the transaction (e.g., COMPLETED). |
+| created_at | TIMESTAMP | NOT NULL | | clock_timestamp() | Partitioning key for MVCC cleanup. |
+
 ## 4. Referential Relationships and Cascading (FKs)
 
 | Parent Table | Cardinality | Child Table | Verb / Meaning | ON DELETE | ON UPDATE |
@@ -434,19 +471,24 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | equipment_classes | 1 : 0..N | equipment_units | classifies | RESTRICT | CASCADE |
 | functional_locations| 1 : 0..N | functional_locations | contains (Self) | RESTRICT | CASCADE |
 | functional_locations| 1 : 0..N | equipment_units | installs | RESTRICT | CASCADE |
+| functional_locations | 1 : 0..N | asset_installations | tracked via | CASCADE | CASCADE |
+| equipment_units | 1 : 0..N | asset_installations | mounted at | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | subunits | broken down into | CASCADE | CASCADE |
 | subunits | 1 : 0..N | maintainable_items | built by | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | maintenance_plans | governed by | CASCADE | CASCADE |
-| equipment_units | 1 : 0..N | work_orders | generates | CASCADE | CASCADE |
+| equipment_units | 1 : 0..N | work_orders | generates | RESTRICT | CASCADE |
 | maintenance_plans | 1 : 0..N | work_orders | instantiates | SET NULL | CASCADE |
+| work_requests | 1 : 0..N | work_orders | originates | SET NULL | CASCADE |
 | equipment_units | 1 : 0..N | work_requests | requires | CASCADE | CASCADE |
-| work_requests | 1 : 0..1 | backlog_items | prioritized as | CASCADE | CASCADE |
+| work_requests | 1 : 0..N | backlog_items | prioritized as | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | backlog_items | pending for | CASCADE | CASCADE |
-| work_orders | 1 : 0..1 | failure_records | diagnoses | CASCADE | CASCADE |
-| maintainable_items | 1 : 0..N | failure_records | affected by | SET NULL | CASCADE |
+| work_orders | 1 : 0..N | failure_records | diagnoses | CASCADE | CASCADE |
+| maintainable_items | 1 : 0..N | failure_records | affected by | RESTRICT | CASCADE |
 | work_orders | 1 : 0..N | media_attachments | evidenced by | CASCADE | CASCADE |
+| failure_records | 1 : 0..N | media_attachments | detailed by | CASCADE | CASCADE |
 | work_orders | 1 : 0..N | work_order_histories| audited via | CASCADE | CASCADE |
-| warehouses | 1 : 0..N | inventory_transactions| transacts | RESTRICT | CASCADE |
+| locators | 1 : 0..N | inventory_transactions| transacts | RESTRICT | CASCADE |
+| warehouses | 1 : 0..N | locators | contains | CASCADE | CASCADE |
 | spare_parts | 1 : 0..N | inventory_transactions| moves | RESTRICT | CASCADE |
 | work_orders | 1 : 0..N | inventory_transactions| consumes | SET NULL | CASCADE |
 | maintainable_items | 1 : 0..N | maintainable_item_spare_parts | repaired with | CASCADE | CASCADE |

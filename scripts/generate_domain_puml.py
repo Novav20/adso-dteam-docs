@@ -26,7 +26,7 @@ def generate_domain_puml():
     erd_md = "domain-models/entity-relationship/DT-ERD-DOC-001.md"
     dm_doc1 = "domain-models/class/DT-DM-DOC-001.md"
     dm_doc2 = "domain-models/class/DT-DM-DOC-002.md"
-    out_puml = "domain-models/class/DT-DM-DOC-001.puml"
+    out_puml = "domain-models/class/DT-DM-001.puml"
     
     classes = {}
     current_schema = "Common"
@@ -39,7 +39,7 @@ def generate_domain_puml():
         in_table = False
         for line in dm1_lines:
             line = line.strip()
-            if "| Entidad" in line and "| Estereotipo DDD" in line:
+            if ("| Entidad" in line and "| Estereotipo DDD" in line) or ("| Entity" in line and "| DDD Stereotype" in line):
                 in_table = True
                 continue
             if line.startswith("| ---") or line.startswith("| -") or line.startswith("| :---") or line.startswith("| :"):
@@ -155,7 +155,7 @@ def generate_domain_puml():
             in_table = False
             for line in lines:
                 line = line.strip()
-                if line.startswith("| Method |"):
+                if line.startswith("| Method"):
                     in_table = True
                     continue
                 if line.startswith("| :---"):

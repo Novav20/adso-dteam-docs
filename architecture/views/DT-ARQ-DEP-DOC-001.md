@@ -1,7 +1,7 @@
 ---
 code: DT-ARQ-DEP-DOC-001
-version: 1.2
-date: 2026-09-02
+version: 1.3
+date: 2026-09-25
 status: Active
 author: Juan David Julio Serrano
 standard:
@@ -13,7 +13,7 @@ standard:
 
 ## 1. Scope and Objective
 
-This document defines the deployment topology for the Digital Twin MVP. It complements the diagram `DT-ARQ-DEP-001-deployment-model.puml`, specifying the mapping of software containers to execution environments, network protocols, and cryptographic security boundaries.
+This document defines the deployment topology for the Digital Twin MVP. It acts as the source of truth for the auto-generated Structurizr diagram (compiled to `DT-ARQ-DEP-001-deployment-model.dsl` using `scripts/generate_deployment_structurizr.py`), specifying the mapping of software containers to execution environments, network protocols, and cryptographic security boundaries.
 
 > **Note:** The local control station (SCADA) is implemented as an internal Proof of Concept (PoC) to emulate industrial field instrumentation and validate asynchronous telemetry ingestion into Azure IoT Hub.
 
@@ -35,6 +35,7 @@ This matrix breaks down the physical infrastructure and software artifacts deplo
 | docker_engine | Docker Engine | Container Runtime (Linux VPS) | nginx_proxy | Nginx Reverse Proxy | Container | Nginx (Alpine Linux) | TLS 1.3 termination, reverse routing, and static web delivery. |
 | docker_engine | Docker Engine | Container Runtime (Linux VPS) | backend_api | Backend API Monolith | Container | .NET 10 Web API Monolith | Modular monolith with DDD business logic and domain services. |
 | db_server | Database Server | Database Node (Managed DB / Container) | postgres_db | PostgreSQL Master | ContainerDb | PostgreSQL 18 + TimescaleDB | Relational master store, immutable audit (ADR-003), and time series. |
+| cache_server | Cache Server | In-Memory Node | redis_cache | Redis Cache | ContainerDb | Redis 7.x | Distributed in-memory datastore for idempotency caching keys (ADR-007). |
 
 ---
 
@@ -54,6 +55,7 @@ This matrix specifies the point-to-point communication channels between software
 | admin_portal | Workstation | nginx_proxy | Cloud Host Server | WSS | Port 443 | WebSockets TLS 1.3 | Real-time channel for telemetry updates and KPI Dashboard. |
 | nginx_proxy | Cloud Host Server | backend_api | Cloud Host Server | HTTP | Docker Net | Isolated Internal Net | Internal routing of API requests and terminated WebSocket traffic. |
 | backend_api | Cloud Host Server | postgres_db | Database Server | TCP/IP | Port 5432 | SSL / Private Net | Persistence operations via EF Core under Unit of Work pattern. |
+| backend_api | Cloud Host Server | redis_cache | Cache Server | TCP (RESP) | Port 6379 | TLS / Private Net | Millisecond-latency idempotency key validation (SETNX) to prevent duplicate transactions. |
 
 ---
 

@@ -294,16 +294,37 @@ def parse_us_title(row: dict[str, str], us_id: str) -> str:
     return re.sub(r"^[A-Z]+-\d+:\s*", "", name) or us_id
 
 
-def get_transversales_ids(row: dict[str, str]) -> list[str]:
-    raw = clean(row.get("Transversales Aplicables")) or clean(row.get("Req IDs"))
-    ids = re.findall(r"\bTR-\d+\b", raw.upper())
-    unique: list[str] = []
+def get_transversales_ids(row: dict[str, str], tr_name_to_id: dict[str, str] | None = None) -> list[str]:
+    raw = ""
+    for col in ["Applicable TRs ", "Applicable TRs", "Transversales Aplicables", "Req IDs"]:
+        val = clean(row.get(col))
+        if val:
+            raw = val
+            break
+
+    found: list[str] = []
     seen = set()
-    for tr_id in ids:
-        if tr_id not in seen:
-            seen.add(tr_id)
-            unique.append(tr_id)
-    return unique
+    tr_name_to_id = tr_name_to_id or {}
+
+    for chunk in raw.split(","):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        clean_name = re.sub(r"\(https?://[^)]+\)", "", chunk).strip()
+
+        for tid in re.findall(r"\bTR-\d+\b", clean_name.upper()):
+            if tid not in seen:
+                seen.add(tid)
+                found.append(tid)
+
+        name_key = clean_name.lower()
+        if name_key in tr_name_to_id:
+            tid = tr_name_to_id[name_key]
+            if tid not in seen:
+                seen.add(tid)
+                found.append(tid)
+
+    return sorted(found, key=tr_sort_key)
 
 
 def build_acceptance_table(criteria: list[dict[str, str]]) -> str:
@@ -441,6 +462,14 @@ def main() -> None:
     print(f"📂 Leyendo datos maestros desde: {data_dir.relative_to(REPO_ROOT)}")
 
     srs_rows = read_csv_safe(srs_csv)
+    tr_rows_raw = read_csv_safe(tr_csv)
+    tr_name_to_id: dict[str, str] = {}
+    for r in tr_rows_raw:
+        tid = clean(r.get("TR ID")).upper()
+        name = clean(r.get("Name")).lower()
+        if tid and name:
+            tr_name_to_id[name] = tid
+
     modules_filter = {m.upper() for m in (args.modules or []) if m.upper() in ALLOWED_MODULES}
     ids_filter = {i.upper() for i in (args.ids or [])}
 
@@ -453,7 +482,6 @@ def main() -> None:
     # --------------------------------------------------------------------------
     if not args.only_us:
         print("\n🔧 Procesando Requisitos Transversales (COMMON)...")
-        tr_rows_raw = read_csv_safe(tr_csv)
         tr_meta = {}
         for r in tr_rows_raw:
             tr_id = clean(r.get("TR ID")).upper()
@@ -578,7 +606,7 @@ def main() -> None:
                 "points": clean(row.get("Effort Points")) or "0",
                 "epic": module,
                 "obs": clean(row.get("Observations")),
-                "transversales": get_transversales_ids(row),
+                "transversales": get_transversales_ids(row, tr_name_to_id),
             }
 
             content = render_us_markdown(us_dict, gherkin_by_us.get(us_id, []), srs_by_us.get(us_id, []))
