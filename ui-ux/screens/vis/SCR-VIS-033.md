@@ -129,21 +129,21 @@ Pages/
         └── QuickActionButtons.razor          # CMP-09: Drill-down actions
 ```
 
-### 7.2. Physical Component Parameters & DTO Contracts
+### 7.2. Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)
 
 #### 7.2.1. `CanvasViewport2D.razor` (`CMP-01`)
 ```csharp
-[Parameter, EditorRequired]
-public string FunctionalLocationCode { get; set; } = default!;
+[Parameter]
+public required string FunctionalLocationCode { get; set; }
 
-[Parameter, EditorRequired]
-public string SvgContent { get; set; } = default!;
+[Parameter]
+public required string SvgContent { get; set; }
 
 [Parameter]
 public string? SelectedEquipmentTag { get; set; }
 
 [Parameter]
-public IReadOnlyDictionary<string, OperationalStatus> EquipmentStatuses { get; set; } = new Dictionary<string, OperationalStatus>();
+public IReadOnlyDictionary<string, OperationalStatus> EquipmentStatuses { get; set; } = [];
 
 [Parameter]
 public EventCallback<string> OnEquipmentSelected { get; set; }
@@ -151,8 +151,8 @@ public EventCallback<string> OnEquipmentSelected { get; set; }
 
 #### 7.2.2. `AssetTaskFaceplate.razor` (`CMP-05`)
 ```csharp
-[Parameter, EditorRequired]
-public EquipmentFaceplateDto FaceplateData { get; set; } = default!;
+[Parameter]
+public required EquipmentFaceplateDto FaceplateData { get; set; }
 
 [Parameter]
 public bool IsCollapsed { get; set; }
@@ -164,51 +164,82 @@ public EventCallback<bool> OnCollapseToggled { get; set; }
 public EventCallback<string> OnDrillDownRequested { get; set; }
 ```
 
-#### 7.2.3. Data Transfer Objects (DTOs)
+#### 7.2.3. Subcomponent Parameters (`CMP-06` to `CMP-10`)
+```csharp
+// CMP-06: AssetHeaderBlock.razor
+[Parameter]
+public required EquipmentHeaderDto Header { get; set; }
+
+// CMP-07: MovingAnalogIndicator.razor
+[Parameter]
+public required MovingAnalogIndicatorDto Telemetry { get; set; }
+
+// CMP-08: SafetyContextSummary.razor
+[Parameter]
+public required SafetyContextSummaryDto SafetyContext { get; set; }
+
+// CMP-10: ActiveWorkOrdersList.razor
+[Parameter]
+public IReadOnlyList<ActiveWorkOrderSummaryDto> WorkOrders { get; set; } = [];
+
+// CMP-09: QuickActionButtons.razor
+[Parameter]
+public required string TagNumber { get; set; }
+
+[Parameter]
+public EventCallback<string> OnActionTriggered { get; set; }
+```
+
+#### 7.2.4. Data Transfer Objects (DTOs)
 ```csharp
 namespace DTeam.DigitalTwin.Contracts.Inspection;
 
-public record EquipmentFaceplateDto(
-    EquipmentHeaderDto Header,
-    IReadOnlyList<MovingAnalogIndicatorDto> Telemetry,
-    SafetyContextSummaryDto SafetyContext,
-    IReadOnlyList<ActiveWorkOrderSummaryDto> ActiveWorkOrders
-);
+public record EquipmentFaceplateDto
+{
+    public required EquipmentHeaderDto Header { get; init; }
+    public IReadOnlyList<MovingAnalogIndicatorDto> Telemetry { get; init; } = [];
+    public required SafetyContextSummaryDto SafetyContext { get; init; }
+    public IReadOnlyList<ActiveWorkOrderSummaryDto> ActiveWorkOrders { get; init; } = [];
+}
 
-public record EquipmentHeaderDto(
-    string TagNumber,
-    string Description,
-    Criticality Criticality,
-    OperationalStatus OperationalStatus
-);
+public record EquipmentHeaderDto
+{
+    public required string TagNumber { get; init; }
+    public required string Description { get; init; }
+    public required Criticality Criticality { get; init; }
+    public required OperationalStatus OperationalStatus { get; init; }
+}
 
-public record MovingAnalogIndicatorDto(
-    string VariableCode,
-    string VariableName,
-    double CurrentValue,
-    string EngineeringUnit,
-    double ScaleMin,
-    double ScaleMax,
-    double NormalMin,
-    double NormalMax,
-    double? TripLow,
-    double? TripHigh,
-    bool IsStale,
-    DateTimeOffset Timestamp
-);
+public record MovingAnalogIndicatorDto
+{
+    public required string VariableCode { get; init; }
+    public required string VariableName { get; init; }
+    public required double CurrentValue { get; init; }
+    public required string EngineeringUnit { get; init; }
+    public required double ScaleMin { get; init; }
+    public required double ScaleMax { get; init; }
+    public required double NormalMin { get; init; }
+    public required double NormalMax { get; init; }
+    public double? TripLow { get; init; }
+    public double? TripHigh { get; init; }
+    public bool IsStale { get; init; }
+    public required DateTimeOffset Timestamp { get; init; }
+}
 
-public record SafetyContextSummaryDto(
-    string? ActivePtwNumber,
-    string? PermitType,
-    LotoLockoutState LotoState
-);
+public record SafetyContextSummaryDto
+{
+    public string? ActivePtwNumber { get; init; }
+    public string? PermitType { get; init; }
+    public required LotoLockoutState LotoState { get; init; }
+}
 
-public record ActiveWorkOrderSummaryDto(
-    string OrderNumber,
-    WorkOrderType OrderType,
-    WorkOrderStatus Status,
-    int RimePriorityScore
-);
+public record ActiveWorkOrderSummaryDto
+{
+    public required string OrderNumber { get; init; }
+    public required WorkOrderType OrderType { get; init; }
+    public required WorkOrderStatus Status { get; init; }
+    public required int RimePriorityScore { get; init; }
+}
 ```
 
 ### 7.3. SVG DOM Interaction Bridge
