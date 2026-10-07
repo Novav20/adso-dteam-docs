@@ -74,15 +74,17 @@ When invoked to audit a specific screen (e.g., `SCR-VIS-033`, `SCR-VIS-011`, or 
 ### Step 4: Audit Report Generation & Persistence
 
 The agent **must persist** the complete audit report to the evidence repository at:
-`/home/novillus/Documents/vscode/SENA-Career/sena-evidence/00-Overview/Audits/UI/AUD-UI-<SCREEN_ID>-<YYYYMMDD>.md`
+`/home/novillus/Documents/vscode/SENA-Career/sena-evidence/00-Overview/Audits/UI/AUD-UI-<SCREEN_ID>-<YYYYMMDD-HHMMSS>.md`
+
+*(Note: `<YYYYMMDD-HHMMSS>` represents the execution timestamp, e.g., `20261007-153520`, ensuring multiple audit runs and fix iterations are preserved without overwriting history).*
 
 The generated report must include the following structure:
 1. **Frontmatter:**
    ```yaml
    ---
-   id: AUD-UI-<SCREEN_ID>-<YYYYMMDD>
+   id: AUD-UI-<SCREEN_ID>-<YYYYMMDD-HHMMSS>
    screen_audited: <SCREEN_ID>
-   date: <YYYY-MM-DD>
+   date: <YYYY-MM-DD HH:MM:SS>
    verdict: PASSED | PASSED_WITH_OBSERVATIONS | BLOCKED
    auditor: dteam-ui-coherence-audit
    ---
