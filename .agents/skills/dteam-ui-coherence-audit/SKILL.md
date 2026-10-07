@@ -68,6 +68,12 @@ When invoked to audit a specific screen (e.g., `SCR-VIS-033`, `SCR-VIS-011`, or 
    * For controls targeted at tablets or mobile (`target_device: Industrial Tablet`), ensure action buttons and container triggers inherit `--dt-touch-target-mobile` ($\ge 48\text{px}$) to support gloved operation.
 3. **Screen State Matrix Completeness:**
    * Verify coverage of necessary states: `Normal`, `Loading`, `Selected`, `Critical Alarm`, `Telemetry Loss / Diagnostic`, and `Unmapped / Offline`.
+4. **Frontend Component Contract Audit (Section 7, if present):**
+   * If the specification defines a Razor component contract (Section 7):
+     * **Mapping:** Verify that `CMP-*` components map to declared `.razor` files.
+     * **DTO Integrity:** Verify that DTO records align with ERD columns and Domain Model enums without impedance mismatches.
+     * **Event Signatures:** Verify that interactive behaviors in Section 5 have corresponding `EventCallback<T>` declarations.
+     * **[FAIL]** if DTO records hallucinate fields unbacked by the ERD or omit critical domain identifiers.
 
 ---
 

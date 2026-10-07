@@ -56,7 +56,7 @@ status: In Review
 | `CMP-01` | Canvas Viewport 2D      | Interactive SVG vector canvas | `--dt-color-bg-canvas`                                                                              | Renders the SVG map of the functional area (ISA-101 Level 2). Supports continuous panning and dual zoom (geometric and semantic) per [[UC-VIS-033]]. |
 | `CMP-02` | Viewport Toolbar        | Spatial navigation bar | Surface: `--dt-color-surface-card`<br>Radius: `--dt-radius-full`                                    | Unified floating pill toolbar centered over `CMP-01`. Integrates `CMP-03`, level badge, and viewer controls: Reset view, zoom levels, and layer selector. |
 | `CMP-03` | Command Palette Trigger | Quick search access | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-full`    | Embedded pill search input within `CMP-02` (`Ctrl + K` / `/`). Supports fuzzy equipment tag search. |
-| `CMP-04` | Equipment Hotspot       | Equipment symbol in SVG | Border: `--dt-primitive-gray-500`<br>Background: `--dt-color-bg-canvas` | Level 6 geometry linked by `TagNumber`. In normal condition, it operates with neutral outlining; in alarm, it acquires a halo and severity shape per [[DT-UI-DS-DOC-001]]. |
+| `CMP-04` | Equipment Hotspot       | Equipment symbol in SVG | Border: `--dt-color-border-subtle`<br>Background: `--dt-color-bg-canvas` | Level 6 geometry linked by `TagNumber`. In normal condition, it operates with neutral outlining; in alarm, it acquires a halo and severity shape per [[DT-UI-DS-DOC-001]]. |
 | `CMP-05` | Context Container       | Level 3 Equipment Task Faceplate | Surface: `--dt-color-surface-card` | Adaptable container (Collapsible lateral panel or *Bottom Sheet*). Desktop Elevation: `--dt-z-overlay-card`. Mobile Elevation: `--dt-z-drawer-sidebar`. **Boundary rule:** Strictly limited to Level 3 operational data. Excludes Level 4 static master data (datasheets, purchase records, full manuals). |
 | `CMP-06` | Asset Header Block      | Identification and status | Surface: `--dt-color-surface-card` | Presents `TagNumber` (with `--dt-font-mono-data` typography), technical description, criticality rating, and operational status (`EquipmentUnit.operationalStatus`). |
 | `CMP-07` | Live Telemetry Block    | MAI analog indicators | `--dt-color-mai-*`                                                                                  | Moving Analog Indicators (MAI) contextualizing process variables within calibrated normal operating zones (`--dt-color-mai-normal-zone`) and trip limits ([[DT-UI-DS-DOC-001#6.1]]). Dynamically updated via SignalR ([[TR-010]]). Raw numbers without analog scale context are prohibited. |
@@ -108,3 +108,109 @@ status: In Review
 * **Pre-Attentive Telemetry Scanning:** Telemetry must never be presented as disconnected numerical text alone. Moving Analog Indicators (MAI) provide immediate spatial assessment relative to high/low limits within <2 seconds.
 * **Level 3 Cognitive Boundary:** The contextual faceplate (`CMP-05`) is strictly an operational bridge. Overloading the faceplate with Level 4 static master catalog data or extensive CMMS logs is prohibited to prevent field operational errors.
 * **Telemetry Resilience:** No variable without a confirmed timestamp can be presented as a live reading. The interface explicitly distinguishes between a real zero-value reading and instrument disconnection.
+
+---
+
+## 7. Frontend Component Contract (Blazor / Razor)
+
+### 7.1. Component Hierarchy & File Mapping
+
+```text
+Pages/
+└── AssetInspectionPage.razor                 # Root View (SCR-VIS-033)
+    ├── CanvasViewport2D.razor                # CMP-01: Vector map with zoom/pan
+    ├── ViewportToolbar.razor                 # CMP-02: Unified floating navigation pill
+    │   └── CommandPaletteTrigger.razor       # CMP-03: Fuzzy tag search trigger
+    └── AssetTaskFaceplate.razor              # CMP-05: Level 3 contextual drawer / sheet
+        ├── AssetHeaderBlock.razor            # CMP-06: Tag, status, criticality
+        ├── MovingAnalogIndicator.razor       # CMP-07: Process variable bar with normal zone
+        ├── SafetyContextSummary.razor        # CMP-08: Active PTW & LOTO status
+        ├── ActiveWorkOrdersList.razor        # CMP-10: Actionable task list
+        └── QuickActionButtons.razor          # CMP-09: Drill-down actions
+```
+
+### 7.2. Physical Component Parameters & DTO Contracts
+
+#### 7.2.1. `CanvasViewport2D.razor` (`CMP-01`)
+```csharp
+[Parameter, EditorRequired]
+public string FunctionalLocationCode { get; set; } = default!;
+
+[Parameter, EditorRequired]
+public string SvgContent { get; set; } = default!;
+
+[Parameter]
+public string? SelectedEquipmentTag { get; set; }
+
+[Parameter]
+public IReadOnlyDictionary<string, OperationalStatus> EquipmentStatuses { get; set; } = new Dictionary<string, OperationalStatus>();
+
+[Parameter]
+public EventCallback<string> OnEquipmentSelected { get; set; }
+```
+
+#### 7.2.2. `AssetTaskFaceplate.razor` (`CMP-05`)
+```csharp
+[Parameter, EditorRequired]
+public EquipmentFaceplateDto FaceplateData { get; set; } = default!;
+
+[Parameter]
+public bool IsCollapsed { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnCollapseToggled { get; set; }
+
+[Parameter]
+public EventCallback<string> OnDrillDownRequested { get; set; }
+```
+
+#### 7.2.3. Data Transfer Objects (DTOs)
+```csharp
+namespace DTeam.DigitalTwin.Contracts.Inspection;
+
+public record EquipmentFaceplateDto(
+    EquipmentHeaderDto Header,
+    IReadOnlyList<MovingAnalogIndicatorDto> Telemetry,
+    SafetyContextSummaryDto SafetyContext,
+    IReadOnlyList<ActiveWorkOrderSummaryDto> ActiveWorkOrders
+);
+
+public record EquipmentHeaderDto(
+    string TagNumber,
+    string Description,
+    Criticality Criticality,
+    OperationalStatus OperationalStatus
+);
+
+public record MovingAnalogIndicatorDto(
+    string VariableCode,
+    string VariableName,
+    double CurrentValue,
+    string EngineeringUnit,
+    double ScaleMin,
+    double ScaleMax,
+    double NormalMin,
+    double NormalMax,
+    double? TripLow,
+    double? TripHigh,
+    bool IsStale,
+    DateTimeOffset Timestamp
+);
+
+public record SafetyContextSummaryDto(
+    string? ActivePtwNumber,
+    string? PermitType,
+    LotoLockoutState LotoState
+);
+
+public record ActiveWorkOrderSummaryDto(
+    string OrderNumber,
+    WorkOrderType OrderType,
+    WorkOrderStatus Status,
+    int RimePriorityScore
+);
+```
+
+### 7.3. SVG DOM Interaction Bridge
+1. **Geometric Navigation (Panning & Zoom):** Handled natively on the client via SVG `viewBox` coordinates or a lightweight client-side interop wrapper ([[ADR-001]]) to eliminate SignalR roundtrip latency.
+2. **Semantic Selection:** Hotspots in SVG share the exact `id` attribute matching the ISO 14224 Level 6 `TagNumber` (e.g., `<g id="tag-P-101" class="equipment-hotspot">`). Clicking an SVG node dispatches an `@onclick` event that bubbles `OnEquipmentSelected(tagNumber)`.
