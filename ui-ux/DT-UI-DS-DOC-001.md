@@ -11,7 +11,7 @@ standard:
   - WCAG 2.1 Level AA (Web Content Accessibility Guidelines)
   - ISO 45001:2018 (Clause 8.1 — LOTO & Operational Safety)
 ---
-		
+
 # Design Tokens Technical Specification
 
 ## 1. Scope
@@ -97,8 +97,9 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-primitive-gray-200  | #D8DBE0   | Light neutral gray (Munsell N7.5 / Hollifield / Canvas in light)      |
 | --dt-primitive-gray-100  | #E5E8EC   | Base light surface (App background in light theme)                 |
 | --dt-primitive-gray-50   | #F4F5F7   | Light card surface (Cards in light theme)                      |
-| --dt-primitive-gray-10   | #FDFEFE   | High-contrast off-white for text in dark theme              |
-| --dt-primitive-white     | #FFFFFF   | Pure white (Canvas, elevated backgrounds)                                |
+| --dt-primitive-gray-30   | #FAFBFC   | Very light neutral surface (Drawer in light theme)             |
+| --dt-primitive-gray-20   | #FCFDFD   | Elevated light surface (Floating pills / Modals in light theme)|
+| --dt-primitive-gray-10   | #FDFEFE   | High-contrast off-white for text in dark theme / Overlay       |
 | --dt-primitive-red-600   | #E63946   | Industrial alarm red                                            |
 | --dt-primitive-amber-600 | #AC5E04   | Amber / Warning on light background (Adjusted WCAG AA 3.47:1)         |
 | --dt-primitive-amber-500 | #D97706   | Amber / Base Warning                                             |
@@ -120,8 +121,11 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-color-bg-canvas       | --dt-primitive-gray-900     | --dt-primitive-gray-200       | 2D canvas background / Floor plan                                   |
 | --dt-color-surface-base    | --dt-primitive-gray-800     | --dt-primitive-gray-100       | App background / Header                                         |
 | --dt-color-surface-card    | --dt-primitive-gray-700     | --dt-primitive-gray-50        | Asset cards / Table rows                                    |
-| --dt-color-surface-raised  | --dt-primitive-gray-600     | --dt-primitive-white          | Modals / Floating panels                                             |
+| --dt-color-surface-drawer  | --dt-primitive-gray-650     | --dt-primitive-gray-30        | Lateral panels / Bottom sheets                                       |
+| --dt-color-surface-raised  | --dt-primitive-gray-600     | --dt-primitive-gray-20        | Modals / Floating pills / Toolbars                                   |
+| --dt-color-surface-overlay | --dt-primitive-gray-500     | --dt-primitive-gray-10        | Tooltips / Context menus / Highest elevation                         |
 | --dt-color-border-subtle   | --dt-primitive-gray-650     | --dt-primitive-gray-300       | Dividing lines / Separators                                         |
+| --dt-color-border-panel    | --dt-primitive-gray-500     | --dt-primitive-gray-350       | Structural panel / drawer perimeter borders                         |
 | --dt-color-border-focus    | --dt-primitive-gray-450     | --dt-primitive-gray-550       | Focused input border (Dark Theme adjusted to 3.09:1 WCAG AA)          |
 | --dt-color-text-muted      | --dt-primitive-gray-420     | --dt-primitive-gray-620       | Units of measurement / Timestamps (Dark Theme adjusted to 4.55:1 WCAG AA) |
 | --dt-color-text-body       | --dt-primitive-gray-280     | --dt-primitive-gray-850       | Main text / Table values                                      |
@@ -213,11 +217,11 @@ To avoid direct coupling of hexadecimal codes and ensure compatibility between t
 | **Normal Operating Zone**                    | --dt-color-mai-normal-zone        | --dt-primitive-blue-200    | --dt-primitive-blue-700     | **Light blue strip** for pre-attentive recognition of the safe range.                |
 | **Normal Zone Border**                        | --dt-color-mai-normal-zone-border | --dt-primitive-blue-400    | --dt-primitive-blue-450     | Outline (`0.5px` or `1px`) to improve the contrast of the safe blue block.            |
 | **Current Value Pointer**                     | --dt-color-mai-pointer            | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Moving circular pointer. **Maintains shape and neutral color.** Border `2px`.                 |
-| **Pointer Border**                           | --dt-color-mai-pointer-border     | --dt-primitive-white       | --dt-primitive-gray-980     | High-contrast outline for visibility over the normal zone.                       |
+| **Pointer Border**                           | --dt-color-mai-pointer-border     | --dt-primitive-gray-10       | --dt-primitive-gray-980     | High-contrast outline for visibility over the normal zone.                       |
 | **High Alarm Indicator (P1)**               | --dt-color-alarm-critical         | --dt-primitive-red-600     | --dt-primitive-red-600      | **Separate element (Method 3):** Red square + '1' appearing next to the limit.      |
-| **Text on Critical Alarm**                  | --dt-color-alarm-text-critical    | --dt-primitive-white       | --dt-primitive-white        | High contrast text on red square ($4.6:1$ WCAG AA).                          |
+| **Text on Critical Alarm**                  | --dt-color-alarm-text-critical    | --dt-primitive-gray-10       | --dt-primitive-gray-10        | High contrast text on red square ($4.6:1$ WCAG AA).                          |
 | **Low Alarm / Warning Indicator (P2)** | --dt-color-alarm-warning          | --dt-primitive-amber-600   | --dt-primitive-amber-400    | **Separate element (Method 3):** Amber triangle + '2' (Adjusted WCAG AA $3.47:1$).    |
-| **Text on Amber Warning**               | --dt-color-alarm-text-warning     | --dt-primitive-white       | --dt-primitive-gray-900     | High contrast text on Amber ($5.36:1$ on light, $8.5:1$ on dark).             |
+| **Text on Amber Warning**               | --dt-color-alarm-text-warning     | --dt-primitive-gray-10       | --dt-primitive-gray-900     | High contrast text on Amber ($5.36:1$ on light, $8.5:1$ on dark).             |
 | **Interlock Limit**          | --dt-color-mai-interlock          | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Solid block at the end indicating automatic safety trip.                 |
 
 #### 6.1.2. Dynamic Behavior and Alarm Rules
