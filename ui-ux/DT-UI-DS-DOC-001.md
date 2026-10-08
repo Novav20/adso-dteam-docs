@@ -239,12 +239,15 @@ To avoid direct coupling of hexadecimal codes and ensure compatibility between t
 
 | Safety Concept | Main Color / Token | Geometric Shape | Associated Icon | Mandatory Text   |
 | ------------------------------------- | ------------------------- | ------------------------------------- | -------------------------- | ------------------- |
-| **Hot Work Permit**    | --dt-color-alarm-critical | Square ( $24\times24\text{px}$ )    | Flame ( `flame` )          | HOT WORK            |
-| **Heights Permit**      | --dt-color-state-info     | Triangle ( $24\times24\text{px}$ )   | Ladder / Harness           | HEIGHTS             |
-| **Confined Space**      | --dt-color-alarm-warning  | Circle ( $\varnothing 24\text{px}$ ) | Silhouette / Tank           | CONFINED            |
-| **LOTO Point Locked (Safe)**     | --dt-color-state-success  | Closed padlock                       | Padlock ( `lock` )         | ISOLATED - 0 ENERGY |
-| **LOTO Point Energized (Danger)**   | --dt-color-alarm-critical | Open padlock with halo              | Lightning / Alert              | DANGER - ENERGIZED  |
-| **Telemetry Loss (Fail-Safe)** | --dt-color-alarm-warning  | Rhombus                                 | Disconnection ( `wifi-off` ) | SIGNAL LOST - STALE |
+| **Hot Work Permit**    | --dt-color-alarm-critical | Square ( $20\times20\text{px}$ )    | Flame ( `#icon-hot-work` ) | HOT WORK            |
+| **Electrical Permit**  | --dt-color-alarm-critical | Octagon ( $20\times20\text{px}$ )   | Lightning ( `#icon-electrical` ) | ELECTRICAL          |
+| **Heights Permit**      | --dt-color-state-info     | Triangle ( $20\times18\text{px}$ )   | Ladder / Harness ( `#icon-heights` ) | HEIGHTS             |
+| **Cold Work Permit**   | --dt-color-state-info     | Hexagon ( $20\times20\text{px}$ )   | Wrench ( `#icon-cold-work` ) | COLD WORK           |
+| **Confined Space**      | --dt-color-alarm-warning  | Circle ( $\varnothing 20\text{px}$ ) | Silhouette / Tank ( `#icon-confined-space` ) | CONFINED            |
+| **Chemical Permit**    | --dt-color-alarm-warning  | Rhombus ( $20\times20\text{px}$ )   | Flask ( `#icon-chemical` ) | CHEMICAL            |
+| **LOTO Point Locked (Safe)**     | --dt-color-state-success  | Closed padlock                       | Padlock ( `#icon-loto-locked` ) | ISOLATED - 0 ENERGY |
+| **LOTO Point Energized (Danger)**   | --dt-color-alarm-critical | Open padlock with halo              | Lightning / Alert ( `#icon-loto-energized` ) | DANGER - ENERGIZED  |
+| **Telemetry Loss (Fail-Safe)** | --dt-color-alarm-warning  | Rhombus                                 | Disconnection ( `#icon-wifi-off` / `#icon-signal-lost` ) | SIGNAL LOST - STALE |
 
 ### 6.3. Sliding Containers Pattern (*Bottom Sheets* and *Drawers*)
 In compliance with the principle of **Controllability** (ISO 9241-110:2020, Clause 5.5) and to mitigate the low precision of capacitive sensors when operating with industrial gloves or in wet conditions, mobile sliding containers must follow these guidelines:
@@ -270,9 +273,11 @@ To ensure compliance with WCAG 2.1 AA Redundant Coding and [[DT-ARQ-ASR-001#1. O
 #### 6.4.2. Geometric Shape Calibration for Redundant Coding
 When symbols are encapsulated in the mandatory geometric containers defined in the Redundant Coding Matrix (Section 6.2), the containers are dimensioned as follows:
 * **Square (Hot Work / LOTO):** $20 \times 20\text{ px}$, corner radius $r = 2\text{ px}$ (`--dt-radius-sm`).
+* **Octagon (Electrical):** Regular 8-sided polygon inscribed in $20 \times 20\text{ px}$.
 * **Triangle (Heights):** Equilateral triangle inscribed in $20 \times 20\text{ px}$, base width $20\text{ px}$, height $18\text{ px}$, corner radius $r = 1.5\text{ px}$.
+* **Hexagon (Cold Work):** Regular 6-sided polygon inscribed in $20 \times 20\text{ px}$.
 * **Circle (Confined Space):** Diameter $\varnothing = 20\text{ px}$, centered at $(12, 12)$.
-* **Rhombus (Signal Lost):** $20 \times 20\text{ px}$ rotated $45^\circ$, corner radius $r = 2\text{ px}$.
+* **Rhombus (Chemical / Signal Lost):** $20 \times 20\text{ px}$ rotated $45^\circ$, corner radius $r = 2\text{ px}$.
 
 #### 6.4.3. Asset Storage and Distribution Pipeline
 * **Source Vectors:** Authoring master files reside in `adso-dteam-docs/ui-ux/assets/icons-src/` (e.g., thematic files like `safety-ptw-loto.svg` or standalone `icon-*.svg` files).
