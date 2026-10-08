@@ -1,7 +1,7 @@
 ---
 code: DT-UI-DS-DOC-001
-version: 1.9
-date: 2026-10-02
+version: 2.0
+date: 2026-10-07
 status: APPROVED
 author: Juan David Julio Serrano
 standard:
