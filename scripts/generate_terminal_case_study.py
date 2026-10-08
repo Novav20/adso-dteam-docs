@@ -1115,7 +1115,7 @@ def main():
     # Auto-sync prototype if present
     proto_html = out.parent / "index.html"
     if not proto_html.exists():
-        proto_html = Path(__file__).resolve().parent.parent / "temp" / "canvas-prototype" / "index.html"
+        proto_html = Path(__file__).resolve().parent.parent / "ui-ux" / "temp" / "canvas-prototype" / "index.html"
     if proto_html.exists():
         if sync_prototype_html(svg_l1, proto_html):
             print(f"Synchronized SVG canvas into {proto_html}")

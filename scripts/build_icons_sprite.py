@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE_DIR = ROOT / "ui-ux" / "assets" / "icons-src"
 DEFAULT_TARGET = ROOT / "ui-ux" / "assets" / "icons.svg"
-DEFAULT_PROTOTYPE_TARGET = ROOT / "temp" / "ui-prototype" / "assets" / "icons.svg"
+DEFAULT_PROTOTYPE_TARGET = ROOT / "ui-ux" / "temp" / "ui-prototype" / "assets" / "icons.svg"
 
 # Built-in fallback UI & Navigation symbols if not overridden in icons-src
 DEFAULT_UI_SYMBOLS = {

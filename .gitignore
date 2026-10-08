@@ -27,4 +27,5 @@ domain-models/class/DT-DM-001.puml
 domain-models/entity-relationship/DT-ERD-DOC-001.dbml
 
 temp/
+ui-ux/temp/
 domain-models/entity-relationship/DT-ERD-DOC-001.sql
