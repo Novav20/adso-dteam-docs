@@ -372,11 +372,14 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
-| permit_identifier | VARCHAR(80) | NOT NULL | UNIQUE | - | Permit traceability. |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table (`equipment_units`). |
+| permit_identifier | VARCHAR(80) | NOT NULL | UNIQUE | - | Permit traceability natural code (e.g. PTW-1042). |
+| permit_type | VARCHAR(50) | NOT NULL | CHECK | - | Controlled permit risk classification vocabulary (DT-DM-DOC-001 §4.28). |
+| contractor | VARCHAR(120) | NOT NULL | | - | Executing contractor or internal company team name. |
+| issuer_user_id | UUID | NOT NULL | FK | - | Foreign key to `adm.users(id)` for authorizing authority. |
 | valid_from | TIMESTAMP | NOT NULL | | clock_timestamp() | Timeline start. |
 | valid_to | TIMESTAMP | NOT NULL | | - | Timeline end. |
-| status | VARCHAR(20) | NOT NULL | CHECK | - | Permit status (Active, Revoked, Expired). |
+| status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled permit lifecycle status vocabulary (DT-DM-DOC-001 §4.29). |
 
 ### 3.5 Schema `adm`
 
@@ -501,6 +504,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | mesh_mappings | 1 : 0..N | spatial_metadata | located via | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | telemetry_signals | monitored by | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | isolation_points | contains | RESTRICT | CASCADE |
+| equipment_units | 1 : 0..N | work_permits | targets | RESTRICT | CASCADE |
+| users | 1 : 0..N | work_permits | authorizes / issues | RESTRICT | CASCADE |
 | work_permits | 1 : 0..N | work_orders | validates execution of | RESTRICT | CASCADE |
 | work_orders | 1 : 0..N | visual_layers | visualized in | CASCADE | CASCADE |
 | work_orders | 1 : 1..N | work_order_isolations | requires | CASCADE | CASCADE |

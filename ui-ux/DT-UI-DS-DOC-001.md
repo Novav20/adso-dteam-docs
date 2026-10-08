@@ -255,7 +255,7 @@ In compliance with the principle of **Controllability** (ISO 9241-110:2020, Clau
 
 ### 6.4. Iconography and Redundant Symbology Standards
 
-To ensure compliance with WCAG 2.1 AA Redundant Coding and [[ASR-001]] (Offline-First field operation without remote network dependencies), all application icons follow a standardized vector grid:
+To ensure compliance with WCAG 2.1 AA Redundant Coding and [[DT-ARQ-ASR-001#1. Offline-First Operation and Partition Tolerance|ASR-001]], all application icons follow a standardized vector grid:
 
 #### 6.4.1. Vector Frame and Optical Padding
 * **Base ViewBox:** Strictly $24 \times 24\text{ px}$ (`viewBox="0 0 24 24"`).
