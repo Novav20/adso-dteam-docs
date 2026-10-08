@@ -222,6 +222,8 @@ To avoid direct coupling of hexadecimal codes and ensure compatibility between t
 | **Text on Critical Alarm**                  | --dt-color-alarm-text-critical    | --dt-primitive-gray-10       | --dt-primitive-gray-10        | High contrast text on red square ($4.6:1$ WCAG AA).                          |
 | **Low Alarm / Warning Indicator (P2)** | --dt-color-alarm-warning          | --dt-primitive-amber-600   | --dt-primitive-amber-400    | **Separate element (Method 3):** Amber triangle + '2' (Adjusted WCAG AA $3.47:1$).    |
 | **Text on Amber Warning**               | --dt-color-alarm-text-warning     | --dt-primitive-gray-10       | --dt-primitive-gray-900     | High contrast text on Amber ($5.36:1$ on light, $8.5:1$ on dark).             |
+| **Stale / Disabled Operating Zone**     | --dt-color-mai-stale-zone         | --dt-primitive-gray-280    | --dt-primitive-gray-600     | Muted slate grayish-blue zone indicating stale/inactive telemetry during signal loss. |
+| **Stale Zone Border**                   | --dt-color-mai-stale-zone-border  | --dt-primitive-gray-420    | --dt-primitive-gray-450     | Subtle boundary outline for disabled instrument zone.                   |
 | **Interlock Limit**          | --dt-color-mai-interlock          | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Solid block at the end indicating automatic safety trip.                 |
 
 #### 6.1.2. Dynamic Behavior and Alarm Rules
@@ -231,6 +233,7 @@ To avoid direct coupling of hexadecimal codes and ensure compatibility between t
     * **High Deviation (High / High-High):** When crossing the upper threshold, a **separate alarm element** appears adjacent to the scale at the point of infraction. A red square (`--dt-color-alarm-critical`) with priority number 1 for Critical Alarm is presented.
     * **Low Deviation (Low / Low-Low):** When crossing the lower threshold, an **amber triangle** (`--dt-color-alarm-warning`) appears adjacent with priority number 2 for Warning.
 4. **Safety and Interlock Limits (Safety Interlock):** The ends of the scale that trigger automatic shutdowns (ESD) are marked with a solid rectangle (`--dt-color-mai-interlock`) at the corresponding end.
+5. **Stale Telemetry and Instrument Deactivation:** Upon loss of telemetry signal or device heartbeat timeout (Fail-Safe), the normal operating zone transmutates from vibrant light blue to a deactivated slate grayish-blue (`--dt-color-mai-stale-zone` / `--dt-color-mai-stale-zone-border`), visually conveying that the instrument is inactive/stale per ISO 11064 and [[TR-011]].
 
 ### 6.2. Redundant Coding Matrix for Permits and LOTO
 

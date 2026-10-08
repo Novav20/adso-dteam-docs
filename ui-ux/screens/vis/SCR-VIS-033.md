@@ -97,7 +97,10 @@ status: In Review
 1. Selecting an asset on the map invokes the opening of `CMP-05` and real-time subscription to the equipment's telemetry channel.
 2. `CMP-05` renders strictly tactical Level 3 data: Asset Header (`CMP-06`), Analog Telemetry (`CMP-07`), Safety Boundaries (`CMP-08`), and Actionable Work Orders (`CMP-10`).
 3. **SignalR Subscription Management:** Subject to global *debouncing* policies to prevent network collisions due to rapid multiple selection ([[DT-ARQ-CMP-DOC-001]]).
-4. **Diagnostic Connection Resilience:** If the component detects a violation of the *Heartbeat* threshold or receives a packet with "Bad" quality ([[DT-ARQ-DEP-DOC-001]]), it immediately transitions to the "Telemetry Loss" state using Priority 4 Diagnostic coding, preventing the generation of misleading process alarms.
+4. **Diagnostic Connection Resilience:** If the component detects a violation of the *Heartbeat* threshold or receives a packet with "Bad" quality ([[DT-ARQ-DEP-DOC-001]]), it immediately transitions to the "Telemetry Loss" state using Priority 4 Diagnostic coding, preventing the generation of misleading process alarms:
+   - Displays the top contextual diagnosis banner: *"Datos no actualizados. Conexión interrumpida a las HH:mm:ss UTC"*.
+   - Transmutes the MAI safe operating zone to a deactivated slate grayish-blue (`--dt-color-mai-stale-zone` / `--dt-color-mai-stale-zone-border`), visually presenting the instrument as inactive/disabled without triggering process alarm colors.
+   - Attenuates live values to muted italic typography (`--dt-color-text-muted`), pointer border to `--dt-color-mai-stale-zone-border`, and hides active alarm badges with layout box preservation (`visibility: hidden`).
 5. **Level 4 Drill-Down:** Deep master data (catalogs, specifications) and historical work order archives are deferred to full-screen views triggered via `CMP-09`.
 
 ---
