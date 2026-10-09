@@ -974,7 +974,15 @@ def tank_fr(t):
         micro.append(rect(mx - 4, my - 2.5, 8, 5, f=WHITE, s=INK, w=0.7))
     els.append(G(micro, c=ZL3))
     STR.extend(stair(cx, cy, r, a0, sw, wd=5.0, step=2.5))
-    return G(els, data_cmp_id="CMP-EQP-TANK", data_tag=tag, c="dt-interactive")
+    return G(els,
+             data_cmp_id="CMP-EQP-TANK",
+             data_func_loc=f"TFA-CSS-{tag}",
+             data_equip_id=f"EQ-{tag}-A",
+             data_shell_diam_m=M(r * 2),
+             data_tank_height_m=Hm,
+             data_design_std="API-650",
+             data_status="E",
+             c="dt-interactive")
 
 
 def tank_cone(t):
@@ -995,7 +1003,15 @@ def tank_cone(t):
     micro.append(circle(*polar(cx, cy, r - 1, av), 2, f=WHITE, s=INK, w=0.8))
     els.append(G(micro, c=ZL3))
     STR.extend(stair(cx, cy, r, a0, sw, wd=4.0, step=3.0))
-    return G(els, data_cmp_id="CMP-EQP-TANK", data_tag=tag, c="dt-interactive")
+    return G(els,
+             data_cmp_id="CMP-EQP-TANK",
+             data_func_loc=f"TFA-CSS-{tag}",
+             data_equip_id=f"EQ-{tag}-A",
+             data_shell_diam_m=M(r * 2),
+             data_tank_height_m=Hm,
+             data_design_std="API-650",
+             data_status="E",
+             c="dt-interactive")
 
 
 for t in ALL_TANKS:
@@ -1010,7 +1026,12 @@ for i, tag in enumerate(PUMP_TAGS):
               line(-4, 10, 44, 10, s=INK, w=0.5, d=DASHDOT)] +
              [line(xx, 3, xx, 17, s=INK, w=0.3) for xx in (27, 29.5, 32, 34.5, 37)] +
              [circle(bx, by, 1, f=INK) for bx, by in ((3, 3), (37, 3), (3, 17), (37, 17))], c=ZL3)]
-    MEC.append(PF.g([G(els, data_cmp_id="CMP-EQP-PUMP", data_tag=tag, c="dt-interactive",
+    MEC.append(PF.g([G(els,
+                       data_cmp_id="CMP-EQP-PUMP",
+                       data_func_loc=f"TFA-CSS-{tag}",
+                       data_equip_id=f"EQ-{tag}-A",
+                       data_status="E",
+                       c="dt-interactive",
                        transform=f"translate({x} {y}) scale({PUMP_S})")]))
 
 # fire-water pumps in pump house
@@ -1029,7 +1050,12 @@ for k_, xl in enumerate(BAY_X):
            G([circle(bay_c, yy, 1.8, f=WHITE, s=INK, w=0.6) for yy in (45, 60, 75)] +
              [circle(arm_x, 70, 26, s=STEEL, w=0.7, d="4 3"), circle(arm_x, 70, 3, f=INK),
               line(arm_x, 70, bay_c, 60, s=INK, w=1.6)], c=ZL3)]
-    MEC.append(GF.g([G(els, data_cmp_id="CMP-EQP-BAY", data_tag=tag, c="dt-interactive")]))
+    MEC.append(GF.g([G(els,
+                       data_cmp_id="CMP-EQP-BAY",
+                       data_func_loc=f"TFA-TLG-{tag}",
+                       data_equip_id=f"EQ-{tag}-A",
+                       data_status="E",
+                       c="dt-interactive")]))
 
 # ==========================================================================
 #                                L-PIPE
@@ -1580,9 +1606,12 @@ def validate(p):
     by = {}
     for e in root.iter(ns + "g"):
         if "dt-interactive" in (e.get("class") or ""):
-            assert e.get("data-cmp-id") and e.get("data-tag")
-            by.setdefault(e.get("data-cmp-id"), []).append(e.get("data-tag"))
-    assert len(by["CMP-EQP-PUMP"]) == 6 and len(by["CMP-EQP-BAY"]) == 4
+            assert e.get("data-cmp-id"), f"missing data-cmp-id in {e.attrib}"
+            loc = e.get("data-func-loc") or e.get("data-tag")
+            assert loc, f"missing functional location or tag in {e.attrib}"
+            assert e.get("data-status"), f"missing data-status in {e.attrib}"
+            by.setdefault(e.get("data-cmp-id"), []).append(loc)
+    assert len(by["CMP-EQP-TANK"]) == 31 and len(by["CMP-EQP-PUMP"]) == 6 and len(by["CMP-EQP-BAY"]) == 4
     raw = Path(p).read_text(encoding="utf-8")
     for hx in set(re.findall(r"#[0-9A-Fa-f]{6}", raw)):
         r, g, b = (int(hx[i:i + 2], 16) / 255 for i in (1, 3, 5))
@@ -1594,8 +1623,25 @@ def validate(p):
 
 
 def main():
-    out = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("terminal_plot_plan_irregular.svg")
-    out.parent.mkdir(parents=True, exist_ok=True)
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Generate industrial terminal General Arrangement (GA) SVG conforming to DT-UI-SVG-DOC-001 rev 2.0."
+    )
+    parser.add_argument(
+        "output_path",
+        type=Path,
+        help="Mandatory target output SVG file or directory path (e.g., path/to/terminal_plot_plan.svg)"
+    )
+    args = parser.parse_args()
+
+    target = args.output_path
+    if target.is_dir() or target.suffix != ".svg":
+        target.mkdir(parents=True, exist_ok=True)
+        out = target / "terminal_plot_plan_irregular.svg"
+    else:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        out = target
+
     out.write_text(build("zoom-l1"), encoding="utf-8")
     out.with_name(out.stem + "_l2.svg").write_text(build("zoom-l2"), encoding="utf-8")
     out.with_name(out.stem + "_l3.svg").write_text(build("zoom-l3"), encoding="utf-8")
