@@ -1,115 +1,149 @@
 ---
 code: DT-UI-SVG-DOC-001
-version: 0.1
-date: 2026-09-29
-status: DRAFT
+version: 2
+date: 2026-10-09
+status: APPROVED
 author: Juan David Julio Serrano
 standard:
-  - ISO 9001:2015 (Documented Information Control)
-  - ANSI/ISA-101.01-2015 (Human Machine Interfaces for Process Automation Systems)
-  - AIA CAD Layer Guidelines v5 / ISO 13567
-  - ISO 14224:2016 (Equipment Taxonomy and Functional Locations)
+  - ISO 13567-1/2 (Organization and naming of layers for CAD)
+  - AIA CAD Layer Guidelines v5
+  - ISO 14224:2016 (Collection and exchange of reliability and maintenance data for equipment)
+  - ANSI/ISA-5.1-2009 (Instrumentation Symbols and Identification)
+  - OSHA 29 CFR 1910.106 (Flammable Liquids)
+  - API Standard 650/620
 ---
 
-# DT-UI-SVG-DOC-001: SVG Ingestion & Layering Contract
+# DT-UI-SVG-DOC-001: SVG Ingestion, Layering, and Spatial Data Contract
 
 ## 1. Purpose
-This document defines the strict structural contract for standardizing and ingesting raw 2D vector layouts (exported from CAD, Illustrator, Inkscape, etc.) into the DTEAM Digital Twin rendering engine. 
+This normative standard defines the structural, spatial, semantic, and security contract for ingesting 2D vector CAD/BIM layouts into the DTEAM Digital Twin rendering engine. 
 
-To bridge the gap between traditional industrial CAD standards (AIA CAD Layer Guidelines / ISO 13567) and web-native rendering, DTEAM enforces a specific XML structure, grouping (`<g>`), and data-attribute schema.
+To bridge the gap between industrial CAD standards and High-Performance Human-Machine Interface (HPHMI) web rendering, DTEAM enforces strict XML structures, predefined layer groups, semantic pruning, and ISO 14224 data binding. This standard filters out greenfield CAD bloat and prioritizes brownfield Management of Change (MOC) integrities.
 
-## 2. The Hybrid Workflow
-Our asset creation workflow is:
-1. **Drafting:** The domain expert draws the physical layout in any vector tool (e.g., Penpot, Inkscape, Vectorizer).
-2. **Export:** The file is exported as a raw, unstructured SVG.
-3. **Normalization (The Contract):** The raw SVG is structurally refactored (often via automated tooling or AI) to strictly adhere to the rules below.
-4. **Ingestion:** The frontend consumes the normalized SVG, applying CSS-driven Semantic Zoom and SignalR telemetry bindings.
+## 2. Ingestion & Sanitization Invariants
 
-## 3. Structural Contract
+Before client-side DOM insertion, all SVG documents MUST pass the following automated server-side checks:
 
-### 3.1 Document Root
-The root `<svg>` MUST contain the base spatial definitions and semantic zoom controllers.
+1. **Security Sanitization:** Complete removal of all executable `<script>` elements, `javascript:` URIs, inline event attributes (`onclick`, etc.), external entities (`<!ENTITY>`), and proprietary CAD manifests (e.g., Adobe XMP, C2PA).
+2. **Performance Ceiling:** The parsed DOM tree MUST NOT exceed 15,000 nodes to guarantee $\ge$ 60 FPS rendering under alarm conditions.
+3. **MOC Header Validation:** Verification of cryptographic signatures and MOC tracking metadata against the active plant database.
+
+## 3. Structural Root Contract (`<svg>`)
+
+The root `<svg>` element MUST define Management of Change (MOC) attributes, viewport scaling, and semantic zoom controllers.
 
 ```xml
 <svg 
   xmlns="http://www.w3.org/2000/svg" 
-  viewBox="0 0 2000 1500" 
-  class="dt-canvas zoom-l1" <!-- zoom-l1, zoom-l2, zoom-l3 dynamically applied by JS -->
+  viewBox="0 0 10000 10000" 
+  class="dt-canvas zoom-l1"
+  data-moc-id="MOC-2026-0042"
+  data-rev-number="2.0"
+  data-checksum-sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  data-scale-ratio="0.1"
+  data-units="meters"
 >
 ```
 
-### 3.2 Layering Architecture (AIA / ISO 13567 Mapping)
-Raw CAD layers must be mapped to specific SVG `<g>` (group) elements. These base layers dictate Z-index and rendering order (bottom to top).
+*(Note: Global geodesic EPSG coordinates are deliberately omitted. Spatial mapping is handled via local metric scaling to ensure broad compatibility with standard plot plans).*
 
-| CAD Standard (AIA) | SVG Group ID | CSS Class | Description |
-| :--- | :--- | :--- | :--- |
-| `C-ROAD`, `C-TOPO` | `g#L-CIVIL` | `.dt-layer-civil` | Roads, concrete pads, terrain, containment dikes. |
-| `S-GRID`, `S-COLS` | `g#L-STRUCT` | `.dt-layer-struct`| Structural supports, pipe racks, stairs. |
-| `M-EQPM` | `g#L-MECH` | `.dt-layer-mech` | Tanks, pumps, compressors, vessels. |
-| `P-PIPE` | `g#L-PIPE` | `.dt-layer-pipe` | Process piping, valves, manifolds. |
-| `E-POWR`, `I-INST` | `g#L-ELEC` | `.dt-layer-elec` | Cable trays, major instrumentation nodes. |
-| `A-ANNO` | `g#L-ANNO` | `.dt-layer-anno` | Static text labels, grids. |
+## 4. Layer Architecture
+
+All graphics MUST be mapped into seven immutable `<g>` (group) elements. Z-index is strictly dictated by DOM order (bottom to top). Unstructured paths outside these groups will be rejected by the ingestion engine.
+
+| SVG Group ID (`id`) | CSS Class | Scope & Governance |
+| :--- | :--- | :--- |
+| `L-CIVL-BOTM` | `.dt-layer-civil-botm` | Civil works, terrain, roads, concrete pads, and secondary containment dikes. |
+| `L-MECH-EQPM` | `.dt-layer-mech-eqpm` | Process equipment: storage tanks, vessels, pumps. |
+| `L-PIPE-PROC` | `.dt-layer-pipe-proc` | Process piping lines and manifolds. |
+| `L-INSP-INST` | `.dt-layer-insp-inst` | Instrumentation nodes and control loops (ANSI/ISA-5.1). |
+| `L-FIRE-PROT` | `.dt-layer-fire-prot` | Fixed fire protection: deluge rings, foam lines, hydrants (NFPA 15). |
+| `L-ELEC-HAZ` | `.dt-layer-elec-haz` | Hazardous area electrical classification zones (Class I Div 1/2). |
+| `L-ANNO-TEXT` | `.dt-layer-anno-text` | Static labels, grid lines, and the calibration vector. |
+
+## 5. Process Safety Geometry
+
+Geometry representing physical safety boundaries MUST embed structural data attributes allowing the Digital Twin engine to compute spatial interlocks dynamically.
+
+### 5.1 Secondary Containment Dikes (`L-CIVL-BOTM`)
+```xml
+<polygon 
+  id="DIKE-101" 
+  class="dt-safety-containment"
+  data-dike-vol-m3="14500.0" 
+  data-dike-height-m="1.80" 
+  data-submerged-vol-m3="1200.0" 
+  points="..." 
+/>
+```
+
+### 5.2 Storage Tank Shells (`L-MECH-EQPM`)
+Tanks MUST carry their physical diameter to allow dynamic, software-driven calculation of OSHA 1910.106 $D/6$ shell-to-shell buffers. (Explicit dashed buffer paths drawn in CAD are forbidden to reduce DOM bloat).
+
+```xml
+<circle 
+  cx="5000" cy="5000" r="160" 
+  class="dt-equipment-unit"
+  data-shell-diam-m="32.0" 
+  data-tank-height-m="14.0" 
+  data-design-std="API-650"
+/>
+```
+
+## 6. Telemetry Binding & Identity Schema (ISO 14224)
+
+Live SCADA telemetry and interactive UI components MUST decouple physical hardware from spatial plant slots.
+
+- `data-func-loc`: (Level 5) The immutable Functional Location slot (e.g., `TFA-CSS-TK-0101`). This is the **primary** binding key.
+- `data-equip-id`: (Level 6) The physical asset serial/ID currently occupying the slot (e.g., `EQ-TK-101-A`). Used for maintenance tracking.
+- `data-isa-tag`: For instrumentation loops (e.g., `LIT-101A`).
 
 *Example:*
 ```xml
-<!-- Base layer for civil engineering / concrete -->
-<g id="L-CIVIL" class="dt-layer-civil">
-   ...
+<g id="TK-0101" data-func-loc="TFA-CSS-TK-0101" data-equip-id="EQ-TK-101-A" class="dt-interactive">
+  <!-- Tank graphics -->
 </g>
 ```
 
-### 3.3 Semantic Zoom Classes
-Elements within layers must dictate *when* they appear based on the current zoom level (ISA-101 spatial context).
+## 7. Element Lifecycle (AIA v5 Status)
 
-- **No zoom class:** Always visible (e.g., major tank outlines).
-- **`.dt-zoom-l2`:** Appears at medium zoom (e.g., secondary piping, platforms).
-- **`.dt-zoom-l3`:** Appears at maximum zoom (e.g., individual flanges, small pumps, stairs).
+For brownfield MOC integrity, elements MUST carry a `data-status` attribute to track as-built lifecycle states without destructive DOM deletion:
 
-*Example:*
-```xml
-<g id="L-STRUCT">
-  <!-- Stairs only visible when zoomed in -->
-  <path class="dt-zoom-l3" d="..." /> 
-</g>
-```
+- `data-status="N"`: New Work (Scheduled installation).
+- `data-status="E"`: Existing to Remain (Current as-built).
+- `data-status="D"`: Demolish / Decommissioned (Visible as ghosted/dashed geometry).
+- `data-status="M"`: Moved / Relocated Asset.
 
-### 3.4 Data Binding & Telemetry (The Digital Twin Link)
-For an SVG element to receive live telemetry or respond to user interactions (Contextual Drawers), it MUST contain the following data attributes:
+## 8. Web Performance & Semantic Zoom
 
-- `data-cmp-id`: The Component ID mapping to the UI Design System (e.g., `CMP-EQP-TANK`).
-- `data-tag`: The exact `EquipmentUnit` or `FunctionalLocation` tag from the ISO 14224 domain model (e.g., `TK-101`).
+DTEAM employs a CSS-driven Semantic Zoom approach. To prevent browser DOM thrashing and memory leaks, hidden zoom tiers MUST be stripped from the layout rendering pass using `display: none !important`. 
 
-*Example:*
-```xml
-<g id="L-MECH">
-  <!-- An interactive Tank mapped to backend data -->
-  <g data-cmp-id="CMP-EQP-TANK" data-tag="TK-101" class="dt-interactive">
-    <circle cx="500" cy="500" r="100" />
-  </g>
-</g>
-```
-
-## 4. CSS Interactions
-The CSS file uses the parent `.zoom-l*` class on the root SVG to cascade visibility down to the layers.
+Using `opacity: 0` to hide dense CAD elements is strictly forbidden.
 
 ```css
-/* Hide L2 and L3 elements by default */
+/* Hard DOM Layout Pruning Rules */
 .dt-zoom-l2, .dt-zoom-l3 {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: none !important;
 }
 
-/* Reveal L2 elements when canvas is zoomed to L2 or L3 */
+/* Medium Zoom */
 svg.zoom-l2 .dt-zoom-l2,
 svg.zoom-l3 .dt-zoom-l2 {
-  opacity: 1;
-  pointer-events: auto;
+  display: inline !important;
 }
 
-/* Reveal L3 elements only when canvas is zoomed to L3 */
+/* High Zoom */
 svg.zoom-l3 .dt-zoom-l3 {
-  opacity: 1;
-  pointer-events: auto;
+  display: inline !important;
 }
+```
+
+## 9. Spatial Calibration
+
+Layer `L-ANNO-TEXT` MUST contain a calibration vector validating the metric translation from SVG User Units to real-world dimensions.
+
+```xml
+<g id="L-ANNO-TEXT" class="dt-layer-anno-text">
+  <line x1="0" y1="0" x2="1000" y2="0" id="CALIBRATION-VECTOR" data-real-meters="100.0" />
+</g>
 ```

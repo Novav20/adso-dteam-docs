@@ -1,27 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-generate_terminal_svg.py
-========================
-Parametric generator for a 2D General Arrangement (GA) Plot Plan of a mid-size
-Bulk Liquid Hydrocarbon Terminal (400 m x 300 m plot) as a pure SVG file.
+generate_terminal_svg_irregular.py   (rev B - engineering corrections)
+=====================================================================
+Parametric 2D General Arrangement (GA) plot plan of a bulk liquid hydrocarbon terminal on an
+IRREGULAR plot traced from a reference survey (31 tanks = 30 storage + 1 fire-water, 6 pumps,
+4 loading bays) on a 49-degree plant grid.
 
-Contract : DT-UI-SVG-DOC-001
-Scale    : 1 SVG unit = 0.2 m  (viewBox 0 0 2000 1500)  -> 5 units per metre
-Output   : terminal_plot_plan.svg   (root class "dt-canvas zoom-l1")
-           terminal_plot_plan_l2.svg / _l3.svg  (same drawing, root class
-           switched so the ISA-101 L2 / L3 detail can be previewed directly)
+Contract : DT-UI-SVG-DOC-001  (6 layers, ISA-101 zoom classes, ISO 14224 data binding)
+Scale    : 1 SVG unit = 0.2 m (viewBox 0 0 2000 1500); design space 1 px = 2 units
+Colour   : neutral greys only (colour is reserved for live alarms)
 
-Layers (AIA CAD / ISO 13567 mapping)
-  L-CIVIL  L-STRUCT  L-MECH  L-PIPE  L-FIRE  L-ANNO
-Semantic zoom (ISA-101 progressive disclosure)
-  (none)        macro outlines, always visible at L1
-  dt-zoom-l2    secondary detail  (rack bents, pump bases, road striping ...)
-  dt-zoom-l3    micro detail      (stair treads, flanges, nozzle CL, handwheels)
-Data binding (ISO 14224)
-  CMP-EQP-TANK / CMP-EQP-PUMP / CMP-EQP-BAY  + data-tag + class dt-interactive
-Styling (ISA-101 high-performance HMI)
-  Neutral greys only; saturated colour is reserved for live alarms.
+Rev B corrections, all asserted at generation time
+  1. Distributed buildings: ONE Main Control Room + ONE Field Auxiliary/Rack Room, ONE Main HV
+     Substation + THREE zone MCCs, ONE Maintenance Warehouse + ONE Consumables/Lube store.
+  2. One-way HV tanker circuit: G1 HV entry -> perimeter road (CCW) -> staging/queue yard ->
+     4 gantry lanes (SE -> NW) -> R-06 southbound -> R-02 -> R-05 -> R-01 -> perimeter -> G2 HV exit.
+     G3 = emergency / light-vehicle access.  No dead-end road vectors; the short SE fence chamfer is
+     merged into one road corner so the 15 m turning radius is continuous.
+  3. Tank spacing (shell-to-shell >= D/6), wall clearance (>= 1.5 m) and bund walls sized for 110 %
+     of the largest tank in each bund plus displacement of the others.
+  4. Sleeperway network is a single connected piping graph reaching every tank stub, the pump pad,
+     manifold and gantry; no pipe enters a building, basin, yard or tank.
+Output   : terminal_plot_plan_irregular.svg (+ _l2 / _l3 preview copies)
 """
 import colorsys
 import math
@@ -113,7 +114,7 @@ def path(dd, **kw):
     return f'<path d="{dd}" {A(kw)}/>'
 
 
-def poly(pts, **kw):
+def polyg(pts, **kw):
     kw.setdefault("f", "none")
     p = " ".join(f"{n(x)},{n(y)}" for x, y in pts)
     return f'<polygon points="{p}" {A(kw)}/>'
@@ -172,843 +173,1370 @@ def split(a, b, skips):
     return segs
 
 
-# --------------------------------------------------------------------------
-# Master parameters (all geometry derives from these)
-# --------------------------------------------------------------------------
-FENCE = 30
-RING = 90                         # ring-road centreline inset
-RW = U(8)                         # 8 m road width            = 40
-TURN_IN = U(15)                   # 15 m inner turning radius = 75
-RING_RC = TURN_IN + RW / 2        # centreline radius         = 95
-R1X = 950                         # N-S internal fire road
-R5Y = 610                         # E-W road (south of tank farms)
-R2Y = 1000                        # E-W road (south of process area)
-R6Y = 800                         # pump-station access spur
-R1_BAND = (R1X - RW / 2, R1X + RW / 2)
-R5_BAND = (R5Y - RW / 2, R5Y + RW / 2)
-R2_BAND = (R2Y - RW / 2, R2Y + RW / 2)
-
-# Tanks ---------------------------------------------------------------
-TK1_D, TK1_H = 40.0, 12.0         # m  floating roof, crude (Class I)
-TK2_D, TK2_H = 25.0, 12.0         # m  cone roof, diesel
-FW_D = 20.0                       # m  fire-water tank
-TK1_R, TK2_R, FW_R = U(TK1_D) / 2, U(TK2_D) / 2, U(FW_D) / 2
-
-B1 = (130, 140, 830, 540)         # Tank-farm-1 bund (x1,y1,x2,y2)
-B2 = (1300, 140, 1850, 560)       # Tank-farm-2 bund
-WALL_T = 6                        # 1.2 m concrete wall
-
-TK1 = [("TK-0101", 360.0, 340.0), ("TK-0102", 600.0, 340.0)]
-TK2 = [("TK-0201", 1437.5, 245.0), ("TK-0202", 1712.5, 245.0),
-       ("TK-0203", 1437.5, 455.0), ("TK-0204", 1712.5, 455.0)]
-FW_TK = ("TK-0301", 720.0, 1180.0)
-
-# Sleeperway (6 m = 30 units) ------------------------------------------
-SLP_W = U(6)
-S1_X0, S1_X1 = 275, 1650
-S1_A, S1_B = 676, 684             # process header A / B centrelines
-S2V_AX, S2V_BX = 1296, 1284
-S2H_A, S2H_B = 924, 936
-
-# Pump station ---------------------------------------------------------
-PX0, PITCH, PUMP_Y = 345, 70, 785
-PUMP_TAGS = ["P-0101A", "P-0101B", "P-0101C", "P-0201A", "P-0201B", "P-0201C"]
-
-# Truck gantry ---------------------------------------------------------
-GX = 1400
-ISL_W, BAY_W = 20, 40
-ISL_X = [GX + (ISL_W + BAY_W) * k for k in range(5)]          # island left edges
-BAY_X = [GX + ISL_W + (ISL_W + BAY_W) * k for k in range(4)]  # bay left edges
-ISL_Y0, ISL_Y1 = 1050, 1230
-
-# --------------------------------------------------------------------------
-# Engineering checks (computed, then printed + asserted)
-# --------------------------------------------------------------------------
-def vol(d, h):
-    return math.pi * (d / 2) ** 2 * h
-
-
-V1, V2 = vol(TK1_D, TK1_H), vol(TK2_D, TK2_H)
-
-
-def bund_calc(b, v_largest, other_tank_d_list, wall_h_step=0.1, freeboard=0.15):
-    x1, y1, x2, y2 = b
-    a = M(x2 - x1 - 2 * WALL_T) * M(y2 - y1 - 2 * WALL_T)
-    a_other = sum(math.pi * (d / 2) ** 2 for d in other_tank_d_list)
-    req = 1.10 * v_largest
-    h_req = req / (a - a_other)
-    h_des = math.ceil((h_req + freeboard) / wall_h_step) * wall_h_step
-    net = (a - a_other) * h_des
-    return dict(area=a, req=req, h_req=h_req, h_des=h_des, net=net)
-
-
-C1 = bund_calc(B1, V1, [TK1_D])
-C2 = bund_calc(B2, V2, [TK2_D] * 3)
-# intermediate (fire-break) compartment check for TF2
-cell_w = (B2[2] - B2[0] - 2 * WALL_T - 4) / 2
-cell_h = (B2[3] - B2[1] - 2 * WALL_T - 4) / 2
-INT_H = 0.6
-cell_net = (M(cell_w) * M(cell_h) - math.pi * (TK2_D / 2) ** 2) * INT_H
-cell_pct = 100 * cell_net / V2
-
-GAP1 = M(TK1[1][1] - TK1[0][1]) - TK1_D
-GAP2_X = M(TK2[1][1] - TK2[0][1]) - TK2_D
-GAP2_Y = M(TK2[2][2] - TK2[0][2]) - TK2_D
-
-assert GAP1 >= TK1_D / 6, "TF1 shell-to-shell < D/6"
-assert GAP2_X >= TK2_D / 6 and GAP2_Y >= TK2_D / 6, "TF2 shell-to-shell < D/6"
-assert C1["h_des"] <= 2.5 and C2["h_des"] <= 2.5
-assert cell_pct >= 10.0, "intermediate compartment < 10 % of tank volume"
-assert abs(RING_RC - RW / 2 - U(15)) < 1e-6 and abs(RW - U(8)) < 1e-6
-assert abs(SLP_W - 30) < 1e-6 and abs(U(40) - 200) < 1e-6 and abs(U(25) - 125) < 1e-6
-for _, cx, cy in TK1:
-    assert B1[0] + WALL_T + U(1.5) < cx - TK1_R and cx + TK1_R < B1[2] - WALL_T - U(1.5)
-    assert B1[1] + WALL_T + U(1.5) < cy - TK1_R and cy + TK1_R < B1[3] - WALL_T - U(1.5)
-for _, cx, cy in TK2:
-    assert B2[0] + WALL_T + U(1.5) < cx - TK2_R and cx + TK2_R < B2[2] - WALL_T - U(1.5)
-    assert B2[1] + WALL_T + U(1.5) < cy - TK2_R and cy + TK2_R < B2[3] - WALL_T - U(1.5)
-
-# --------------------------------------------------------------------------
-# Layer buffers
-# --------------------------------------------------------------------------
-CIV, STR, MEC, PIP, FIR, ANN = ([] for _ in range(6))
-VAL2, VAL3, FLG = [], [], []          # collected valve bodies / handwheels / flanges
-
-
-def valve(x, y, orient, s=4.5):
-    if orient == "h":
-        VAL2.append(path(f"M{n(x-s)},{n(y-s*.7)} L{n(x+s)},{n(y+s*.7)} L{n(x+s)},{n(y-s*.7)} "
-                         f"L{n(x-s)},{n(y+s*.7)} Z", f=WHITE, s=INK, w=0.9))
-        yy = y - s * .7 - 5
-        VAL3.append(line(x, y, x, yy, s=INK, w=0.7))
-        VAL3.append(line(x - 3.5, yy, x + 3.5, yy, s=INK, w=1.2))
-    else:
-        VAL2.append(path(f"M{n(x-s*.7)},{n(y-s)} L{n(x+s*.7)},{n(y+s)} L{n(x-s*.7)},{n(y+s)} "
-                         f"L{n(x+s*.7)},{n(y-s)} Z", f=WHITE, s=INK, w=0.9))
-        xx = x + s * .7 + 5
-        VAL3.append(line(x, y, xx, y, s=INK, w=0.7))
-        VAL3.append(line(xx, y - 3.5, xx, y + 3.5, s=INK, w=1.2))
-
-
-def check_valve(x, y):
-    VAL2.append(poly([(x - 4, y + 3.5), (x + 4, y + 3.5), (x, y - 3.5)], f=WHITE, s=INK, w=0.9))
-    VAL2.append(line(x - 4, y - 3.5, x + 4, y - 3.5, s=INK, w=1.1))
-
-
-def flange(x, y, orient="v", size=4.5):
-    if orient == "v":      # pipe runs vertically -> flange faces are horizontal ticks
-        FLG.append(line(x - size, y, x + size, y, s=INK, w=1.1))
-        FLG.append(line(x - size, y + 2.2, x + size, y + 2.2, s=INK, w=1.1))
-    else:
-        FLG.append(line(x, y - size, x, y + size, s=INK, w=1.1))
-        FLG.append(line(x + 2.2, y - size, x + 2.2, y + size, s=INK, w=1.1))
-
-
-def hpath(y, x0, x1, loops=(), sign=1, start=None):
-    """Horizontal run with U-shaped expansion loops. sign +1 = loop toward +y."""
-    d = start if start else f"M{n(x0)},{n(y)}"
-    for xc, wd, dp in sorted(loops):
-        d += (f" L{n(xc-wd/2)},{n(y)} L{n(xc-wd/2)},{n(y+sign*dp)} "
-              f"L{n(xc+wd/2)},{n(y+sign*dp)} L{n(xc+wd/2)},{n(y)}")
-    return d + f" L{n(x1)},{n(y)}"
-
-
-def dim_h(x1, x2, y, label, off=-5):
-    return G([line(x1, y, x2, y, s=INK, w=0.6),
-              line(x1, y - 4, x1, y + 4, s=INK, w=0.6),
-              line(x2, y - 4, x2, y + 4, s=INK, w=0.6),
-              text((x1 + x2) / 2, y + off, label, size=7, anchor="middle")], c=ZL2)
-
-
-def dim_v(x, y1, y2, label, off=4):
-    return G([line(x, y1, x, y2, s=INK, w=0.6),
-              line(x - 4, y1, x + 4, y1, s=INK, w=0.6),
-              line(x - 4, y2, x + 4, y2, s=INK, w=0.6),
-              text(x + off, (y1 + y2) / 2 + 2.5, label, size=7)], c=ZL2)
 
 
 # ==========================================================================
-#                               L-CIVIL
+#  SITE MODEL  (design space = reference "px"; 1 px = 2 SVG units = 0.4 m)
 # ==========================================================================
-CIV.append(rect(0, 0, W, H, f=LIGHT))                                     # ground
-CIV.append(rect(4, 4, W - 8, H - 8, s=MID, w=1.5, d="30 6 4 6"))          # property limit
+K = 2.0                                  # SVG units per design px
+OX, OY = -37.0, 120.0                    # design px -> SVG translation
+GRID_DEG = 49.0                          # plant grid rotation (matches the reference)
+ROT = -(90.0 - GRID_DEG)                 # SVG rotate() angle of the u/v frame (-41 deg)
+CU, SU = math.cos(math.radians(GRID_DEG)), math.sin(math.radians(GRID_DEG))
+HW = U(6) / K / 2                        # road / sleeperway half width in px (7.5)
+ROAD_W = U(6)                            # 6 m internal & perimeter roads = 30 units
 
-# --- perimeter fence + gate ------------------------------------------------
-fx0, fy0, fx1, fy1, g0, g1 = FENCE, FENCE, W - FENCE, H - FENCE, 330, 390
-CIV.append(path(f"M{fx0},{fy0} H{fx1} V{fy1} H{g1} M{g0},{fy1} H{fx0} V{fy0}", s=INK, w=1.2))
-CIV.append(line(300, fy1 + 3, g0, fy1 + 3, s=INK, w=3))
-CIV.append(line(g1, fy1 + 3, g1 + 30, fy1 + 3, s=INK, w=3))
-posts = []
-for x in range(fx0, fx1 + 1, 50):
-    posts.append(rect(x - 1.5, fy0 - 1.5, 3, 3, f=INK))
-    if not (g0 - 25 < x < g1 + 25):
-        posts.append(rect(x - 1.5, fy1 - 1.5, 3, 3, f=INK))
-for y in range(fy0 + 50, fy1, 50):
-    posts.append(rect(fx0 - 1.5, y - 1.5, 3, 3, f=INK))
-    posts.append(rect(fx1 - 1.5, y - 1.5, 3, 3, f=INK))
-CIV.append(G(posts, c=ZL2))
 
-# --- asphalt roads (two-pass edge/fill trick) --------------------------------
-def road_strokes(width, colour):
-    out = [rect(RING, RING, W - 2 * RING, H - 2 * RING, rx=RING_RC, s=colour, w=width)]
-    out.append(line(R1X, RING, R1X, H - RING, s=colour, w=width))
-    for y in (R5Y, R2Y):
-        out.append(line(RING, y, W - RING, y, s=colour, w=width))
-    out.append(line(770, R6Y, R1_BAND[0], R6Y, s=colour, w=width))
+def P(x, y):
+    return (OX + K * x, OY + K * y)
+
+
+def uvp(u, v):                           # plant-grid (u down-right, v up-right) -> design px
+    return (u * CU + v * SU, u * SU - v * CU)
+
+
+def UVu(u, v):                           # plant-grid -> SVG units
+    return P(*uvp(u, v))
+
+
+def uv_of(x, y):
+    return (x * CU + y * SU, x * SU - y * CU)
+
+
+# ---- irregular site boundary (traced from the reference, design px) -------------
+BND = [(480, 10), (967, 187), (936, 252), (803, 352), (806, 497), (790, 512),
+       (550, 523), (412, 525), (385, 520), (363, 495), (235, 532), (70, 343), (255, 140)]
+
+
+def poly_area(p):
+    return sum(p[i][0] * p[(i + 1) % len(p)][1] - p[(i + 1) % len(p)][0] * p[i][1]
+               for i in range(len(p))) / 2
+
+
+def offset_poly(p, d):
+    """Inward miter offset (positive d = inward), valid for either orientation."""
+    s = 1 if poly_area(p) > 0 else -1
+    nn, lines, out = len(p), [], []
+    for i in range(nn):
+        a, b = p[i], p[(i + 1) % nn]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        L = math.hypot(dx, dy)
+        nx, ny = -dy / L * s, dx / L * s
+        lines.append(((a[0] + nx * d, a[1] + ny * d), (dx / L, dy / L)))
+    for i in range(nn):
+        (p1, d1), (p2, d2) = lines[i - 1], lines[i]
+        cr = d1[0] * d2[1] - d1[1] * d2[0]
+        if abs(cr) < 1e-9:
+            out.append(p2)
+            continue
+        t = ((p2[0] - p1[0]) * d2[1] - (p2[1] - p1[1]) * d2[0]) / cr
+        out.append((p1[0] + d1[0] * t, p1[1] + d1[1] * t))
     return out
 
 
-CIV += road_strokes(RW + 2, STEEL)
-CIV += road_strokes(RW, ASPH)
-CIV.append(line(770, R6Y - RW / 2, 770, R6Y + RW / 2, s=STEEL, w=1))
+def dist_seg(p, a, b):
+    ax, ay = a
+    bx, by = b
+    dx, dy = bx - ax, by - ay
+    t = max(0, min(1, ((p[0] - ax) * dx + (p[1] - ay) * dy) / (dx * dx + dy * dy)))
+    return math.hypot(p[0] - ax - t * dx, p[1] - ay - t * dy)
 
 
-def fillet(vx, hy, sx, sy, R=TURN_IN):
-    px, py = vx + sx * RW / 2, hy + sy * RW / 2
-    ax, ay = px + sx * R, py
-    bx, by = px, py + sy * R
-    sweep = 0 if sx * sy > 0 else 1
-    fill = path(f"M{n(px)},{n(py)} L{n(ax)},{n(ay)} A{n(R)},{n(R)} 0 0 {sweep} {n(bx)},{n(by)} Z", f=ASPH)
-    edge = path(f"M{n(ax)},{n(ay)} A{n(R)},{n(R)} 0 0 {sweep} {n(bx)},{n(by)}", s=STEEL, w=1)
-    return fill, edge
+def dist_poly(p, poly):
+    return min(dist_seg(p, poly[i], poly[(i + 1) % len(poly)]) for i in range(len(poly)))
 
 
-junc = []
-for sx in (-1, 1):
-    for sy in (-1, 1):
-        junc += [(R1X, R5Y, sx, sy), (R1X, R2Y, sx, sy)]
-junc += [(R1X, RING, sx, 1) for sx in (-1, 1)]
-junc += [(R1X, H - RING, sx, -1) for sx in (-1, 1)]
-for hy in (R5Y, R2Y):
-    junc += [(RING, hy, 1, sy) for sy in (-1, 1)]
-    junc += [(W - RING, hy, -1, sy) for sy in (-1, 1)]
-junc += [(R1X, R6Y, -1, sy) for sy in (-1, 1)]
+def pip(p, poly):
+    x, y, c = p[0], p[1], False
+    for i in range(len(poly)):
+        x1, y1 = poly[i]
+        x2, y2 = poly[(i + 1) % len(poly)]
+        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
+            c = not c
+    return c
+
+
+def clip_half(poly, a, b, d):
+    """Keep the part of poly that lies >= d inside boundary edge a->b (BND is CW on screen)."""
+    ex, ey = b[0] - a[0], b[1] - a[1]
+    L = math.hypot(ex, ey)
+    nx, ny = -ey / L, ex / L
+    f = lambda q: (q[0] - a[0]) * nx + (q[1] - a[1]) * ny - d
+    out = []
+    for i in range(len(poly)):
+        p, q = poly[i], poly[(i + 1) % len(poly)]
+        fp, fq = f(p), f(q)
+        if fp >= 0:
+            out.append(p)
+        if (fp >= 0) != (fq >= 0):
+            t = fp / (fp - fq)
+            out.append((p[0] + t * (q[0] - p[0]), p[1] + t * (q[1] - p[1])))
+    return out
+
+
+def ray_hit(p, d, poly):
+    best = None
+    for i in range(len(poly)):
+        a, b = poly[i], poly[(i + 1) % len(poly)]
+        ex, ey = b[0] - a[0], b[1] - a[1]
+        den = d[0] * ey - d[1] * ex
+        if abs(den) < 1e-9:
+            continue
+        t = ((a[0] - p[0]) * ey - (a[1] - p[1]) * ex) / den
+        s = ((a[0] - p[0]) * d[1] - (a[1] - p[1]) * d[0]) / den
+        if t > 1e-6 and -1e-9 <= s <= 1 + 1e-9 and (best is None or t < best):
+            best = t
+    return best
+
+
+def rounded_closed(pts, r):
+    """Closed polygon path with arc-rounded corners (radius clamped to adjacent edges)."""
+    nn, d = len(pts), ""
+    for i in range(nn):
+        pv, v, nx_ = pts[i - 1], pts[i], pts[(i + 1) % nn]
+        a, b = (pv[0] - v[0], pv[1] - v[1]), (nx_[0] - v[0], nx_[1] - v[1])
+        la, lb = math.hypot(*a), math.hypot(*b)
+        ua, ub = (a[0] / la, a[1] / la), (b[0] / lb, b[1] / lb)
+        phi = math.acos(max(-1, min(1, ua[0] * ub[0] + ua[1] * ub[1])))
+        cmd = "M" if i == 0 else "L"
+        if phi > math.pi - 1e-3:
+            d += f"{cmd}{n(v[0])},{n(v[1])} "
+            continue
+        t = min(r / math.tan(phi / 2), 0.48 * la, 0.48 * lb)
+        rr = t * math.tan(phi / 2)
+        A_ = (v[0] + ua[0] * t, v[1] + ua[1] * t)
+        B_ = (v[0] + ub[0] * t, v[1] + ub[1] * t)
+        cross = (v[0] - pv[0]) * (nx_[1] - v[1]) - (v[1] - pv[1]) * (nx_[0] - v[0])
+        d += f"{cmd}{n(A_[0])},{n(A_[1])} A{n(rr)},{n(rr)} 0 0 {1 if cross > 0 else 0} {n(B_[0])},{n(B_[1])} "
+    return d + "Z"
+
+
+def pts_path(pts, close=False):
+    d = "M" + " L".join(f"{n(x)},{n(y)}" for x, y in pts)
+    return d + (" Z" if close else "")
+
+
+def uvpath(pts_uv, close=False):
+    return pts_path([UVu(*p) for p in pts_uv], close)
+
+
+class Frame:
+    """Local equipment frame: x' = +v (up-right), y' = +u (down-right), units."""
+
+    def __init__(s, u0, v0):
+        s.u0, s.v0 = u0, v0
+        s.o = UVu(u0, v0)
+
+    def uv(s, x, y):
+        return (s.u0 + y / K, s.v0 + x / K)
+
+    def pt(s, x, y):
+        return UVu(*s.uv(x, y))
+
+    def g(s, children, **kw):
+        return G(children, transform=f"translate({n(s.o[0])} {n(s.o[1])}) rotate({n(ROT)})", **kw)
+
+
+BNDU = [P(*p) for p in BND]
+_RAW15 = offset_poly(BND, 15)
+
+
+def _line_x(p1, p2, p3, p4):
+    d1, d2 = (p2[0] - p1[0], p2[1] - p1[1]), (p4[0] - p3[0], p4[1] - p3[1])
+    cr = d1[0] * d2[1] - d1[1] * d2[0]
+    t = ((p3[0] - p1[0]) * d2[1] - (p3[1] - p1[1]) * d2[0]) / cr
+    return (p1[0] + d1[0] * t, p1[1] + d1[1] * t)
+
+
+# the short SE chamfer (fence vertices 4-5) would force a ~1 m turn: merge it into ONE corner so the
+# rounded road keeps the full 15 m turning radius
+ROADC = _RAW15[:4] + [_line_x(_RAW15[6], _RAW15[5], _RAW15[3], _RAW15[4])] + _RAW15[6:]
+RINGM = offset_poly(BND, 10)             # perimeter fire-water main (px)
+HYDR = offset_poly(BND, 5)               # perimeter hydrant line (px)
+
+# ---- tank farms -------------------------------------------------------------------
+# (tag, u, v, r_px, kind, shell_height_m, pipe_dir_deg)   pipe_dir = screen angle of the stub
+A_PV, A_MV, A_PU, A_MU = ROT, ROT + 180, GRID_DEG, GRID_DEG + 180      # +v, -v, +u, -u
+TKS = {
+    "SW": [("TK-0101", 396, -110, 24, "FR", 12, A_PV), ("TK-0102", 402, -44, 23, "FR", 12, A_MV),
+           ("TK-0103", 458, -112, 23, "FR", 12, A_PV), ("TK-0104", 462, -48, 22, "FR", 12, A_MV),
+           ("TK-0105", 522, -82, 34, "FR", 12, A_MU)],
+    "ST": [(f"TK-020{i+1}", 410 + 48 * i, 52, 18, "CR", 12, A_PV) for i in range(5)],
+    "CE": [(f"TK-03{i*3+j+1:02d}", 400 + 62 * i, 150 + 40 * j, 14, "CR", 10, A_PV if j == 0 else A_MV)
+           for i in range(4) for j in range(3)],
+    "NE": [(f"TK-040{i*3+j+1}", 500 + 48 * i, 326 + 36 * j, 15, "CR", 10, A_PU if i == 0 else A_MU)
+           for i in range(2) for j in range(3)] +
+          [("TK-0407", 642, 336, 22, "FR", 8, A_PV), ("TK-0408", 642, 393, 22, "FR", 8, A_MV)],
+}
+FWT = ("TK-0501", 772, 278, 19, "CR", 9, A_MU)
+
+# bund rectangles in (u0,u1,v0,v1) + boundary edges that clip them (index into BND)
+BUND_DEF = {
+    "SW": ((358, 574, -148, -8), [9, 10, 11]),
+    "ST": ((382, 630, 24, 80), []),
+    "CE": ((376, 610, 126, 254), []),
+    "NE1": ((467, 573, 301, 423), [0]),
+    "NE2": ((608, 676, 302, 427), [0]),
+}
+CLIP_D = 26.0
+BUNDS = {}
+for k_, ((u0, u1, v0, v1), edges) in BUND_DEF.items():
+    poly = [uvp(u0, v0), uvp(u1, v0), uvp(u1, v1), uvp(u0, v1)]
+    for e in edges:
+        poly = clip_half(poly, BND[e], BND[(e + 1) % len(BND)], CLIP_D)
+    BUNDS[k_] = poly
+BUND_TANKS = {"SW": TKS["SW"], "ST": TKS["ST"], "CE": TKS["CE"],
+              "NE1": [t for t in TKS["NE"] if t[3] == 15], "NE2": [t for t in TKS["NE"] if t[3] == 22]}
+WALL_PX = 3.0                            # 6 units = 1.2 m concrete wall
+
+# ---- roads (plant-grid coordinates) ----------------------------------------------------
+# (id, [(u,v),...], snap_start, snap_end)
+ROADS = [("R-01", [(300, 8), (670, 8)], True, True),
+         ("R-02", [(300, 92), (690, 92)], True, False),
+         ("R-03", [(364, 8), (364, 300)], False, True),
+         ("R-04", [(364, 273), (690, 273)], False, False),
+         ("R-05", [(655, 8), (655, 273)], False, False),
+         ("R-06", [(690, 92), (690, 500)], True, True),
+         ("R-07", [(585, 273), (585, 440)], False, True)]
+SNAP_PX = ROADC
+
+
+def snap_road(pts, s0, s1):
+    p = [uvp(*q) for q in pts]
+    out = list(p)
+    for flag, idx, nb in ((s0, 0, 1), (s1, -1, -2)):
+        if not flag:
+            continue
+        a, b = p[idx], p[nb]
+        d = (a[0] - b[0], a[1] - b[1])
+        L = math.hypot(*d)
+        d = (d[0] / L, d[1] / L)
+        t = ray_hit(a, d, SNAP_PX)
+        if t is not None and t < 400:
+            out[idx] = (a[0] + d[0] * t, a[1] + d[1] * t)
+    return out
+
+
+ROADS_PX = [(rid, snap_road(pts, a, b)) for rid, pts, a, b in ROADS]
+ROAD_EXT = []       # (type, const, lo, hi) from the SNAPPED geometry; type 'u' = runs along u at v=const
+for (rid, pts, a_, b_), (_, ppx) in zip(ROADS, ROADS_PX):
+    e0, e1 = uv_of(*ppx[0]), uv_of(*ppx[-1])
+    if pts[0][1] == pts[-1][1]:
+        ROAD_EXT.append(("u", pts[0][1], min(e0[0], e1[0]), max(e0[0], e1[0])))
+    else:
+        ROAD_EXT.append(("v", pts[0][0], min(e0[1], e1[1]), max(e0[1], e1[1])))
+
+# ---- sleeperways / pipe corridors -----------------------------------------------------------
+SLEEPERS = [("v", 346, -82, 296), ("u", 111, 346, 672), ("v", 672, 20, 264), ("u", 290, 346, 600)]
+
+# ---- equipment frames ---------------------------------------------------------------------------
+PF, MF, GF = Frame(702, 122), Frame(706, 262), Frame(700, 380)
+PUMP_TAGS = ["P-0101A", "P-0101B", "P-0101C", "P-0201A", "P-0201B", "P-0201C"]
+PUMP_PITCH, PUMP_X0, PUMP_Y, PUMP_S = 40, 12, 43, 0.7
+ISL_W, BAY_W = 14, 30
+ISL_X = [(ISL_W + BAY_W) * k for k in range(5)]
+BAY_X = [ISL_W + (ISL_W + BAY_W) * k for k in range(4)]
+
+# ---- site buildings: distributed architecture (plant-grid rectangles u0,u1,v0,v1) ---------------
+# name -> rect ; BLDG_INFO name -> (tag, short label, discipline, serves)
+BLDG = {"MCR": (804, 826, 244, 284),
+        "FAR": (600, 624, 436, 470),
+        "HV SUB": (730, 750, 342, 368),
+        "MCC-1": (308, 332, 28, 62),
+        "MCC-2": (616, 640, 150, 182),
+        "MCC-3": (628, 652, 436, 470),
+        "WH-01": (378, 408, 308, 350),
+        "WH-02": (414, 438, 308, 342),
+        "FW PUMP HOUSE": (790, 808, 288, 308)}
+BLDG_INFO = {
+    "MCR": ("BLD-MCR-01", "MAIN CONTROL ROOM (MCR)", "Control", "whole terminal"),
+    "FAR": ("BLD-FAR-01", "FIELD AUXILIARY ROOM (FAR) / RACK ROOM", "Control", "tank farms 3 & 4, manifold"),
+    "HV SUB": ("BLD-SUB-01", "MAIN HV SUBSTATION", "Power", "incoming supply, MV distribution"),
+    "MCC-1": ("BLD-MCC-01", "MCC-1 (TANK FARMS 1 & 2)", "Power", "TF1 / TF2 mixers, valves, sumps"),
+    "MCC-2": ("BLD-MCC-02", "MCC-2 (TANK FARM 3)", "Power", "TF3 valves, sumps, lighting"),
+    "MCC-3": ("BLD-MCC-03", "MCC-3 (TANK FARM 4 + PUMPS)", "Power", "TF4, pump station, gantry"),
+    "WH-01": ("BLD-WH-01", "MAIN MAINTENANCE WAREHOUSE", "Storage", "spares, tools, workshop"),
+    "WH-02": ("BLD-WH-02", "CONSUMABLES / LUBE STORAGE", "Storage", "lubricants, additives, PPE"),
+    "FW PUMP HOUSE": ("BLD-FWP-01", "FIRE-WATER PUMP HOUSE", "Fire", "ring main"),
+}
+BASIN = (765, 815, 190, 240)
+
+# ---- gates: (id, role, boundary-edge index, point on the fence in design px) ------------------------
+GATES = [("G1", "HV ENTRY", 6, (485, 524)),
+         ("G2", "HV EXIT", 7, (400, 522.8)),
+         ("G3", "EMERGENCY / LV ACCESS", 4, (798, 504.5))]
+GATE_PX = GATES[0][3]
+PUB_ROAD = [(380, 610), (1010, 490)]            # public road outside the fence
+
+# ---- one-way heavy-vehicle (HV) staging yard along the east perimeter, inside the road ------------------
+def lerp(a, b, t):
+    return (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+
+
+_o23, _o41 = offset_poly(BND, 23), offset_poly(BND, 41)
+YARD_PX = [lerp(_o23[4], _o23[3], 0.14), lerp(_o23[4], _o23[3], 0.96),
+           lerp(_o41[4], _o41[3], 0.96), lerp(_o41[4], _o41[3], 0.14)]
+GANT_W, GANT_Y0, GANT_Y1 = 190, -20, 154
+
+# ---- tanks, obstacles and free-space tests (design px) ---------------------------------------------
+ALL_TANKS = [t for ts in TKS.values() for t in ts] + [FWT]
+OBST = [BUNDS[k_] for k_ in BUNDS]
+for ax, c, a, b_ in SLEEPERS:
+    if ax == "v":
+        OBST.append([uvp(c - HW, a), uvp(c + HW, a), uvp(c + HW, b_), uvp(c - HW, b_)])
+    else:
+        OBST.append([uvp(a, c - HW), uvp(b_, c - HW), uvp(b_, c + HW), uvp(a, c + HW)])
+for (a0, a1, b0, b1) in list(BLDG.values()) + [BASIN]:
+    OBST.append([uvp(a0, b0), uvp(a1, b0), uvp(a1, b1), uvp(a0, b1)])
+FRAME_BOX = []
+for fr, (w_, h_, x0_, y0_) in ((PF, (250, 100, 0, 0)), (MF, (150, 80, 0, 0)), (GF, (GANT_W + 24, GANT_Y1 - GANT_Y0, -12, GANT_Y0))):
+    FRAME_BOX.append([uvp(*fr.uv(x0_, y0_)), uvp(*fr.uv(x0_ + w_, y0_)), uvp(*fr.uv(x0_ + w_, y0_ + h_)), uvp(*fr.uv(x0_, y0_ + h_))])
+OBST += FRAME_BOX + [YARD_PX]
+ROAD_SEGS_PX = [(pts[i], pts[i + 1]) for _, pts in ROADS_PX for i in range(len(pts) - 1)]
+CIRC = [(uvp(t[1], t[2]), t[3]) for t in ALL_TANKS]
+
+
+def free(p, clr_road=10.5, margin=1.0):
+    if dist_poly(p, BND) < 4 or not pip(p, BND):
+        return False
+    if dist_poly(p, ROADC) < clr_road:
+        return False
+    if any(dist_seg(p, a, b) < clr_road for a, b in ROAD_SEGS_PX):
+        return False
+    for o in OBST:
+        if pip(p, o) or dist_poly(p, o) < margin:
+            return False
+    for c, r in CIRC:
+        if math.hypot(p[0] - c[0], p[1] - c[1]) < r + 1:
+            return False
+    return True
+
+
+# ==========================================================================
+#  ENGINEERING SELF-CHECK (computed, printed, asserted)
+# ==========================================================================
+def m2(px_area):
+    return px_area * (K * M_PER_UNIT) ** 2
+
+
+def tk_geom(t):
+    return (t[3] * K * M_PER_UNIT, t[5])      # radius_m, height_m
+
+
+BUND_RES = {}
+for k_, poly in BUNDS.items():
+    ts = BUND_TANKS[k_]
+    vols = [math.pi * tk_geom(t)[0] ** 2 * tk_geom(t)[1] for t in ts]
+    big = max(range(len(ts)), key=lambda i: vols[i])
+    a_net = m2(abs(poly_area(poly))) - sum(math.pi * tk_geom(t)[0] ** 2 for i, t in enumerate(ts) if i != big)
+    h_req = 1.10 * vols[big] / a_net
+    h_des = max(1.0, math.ceil((h_req + 0.15) / 0.1) * 0.1)
+    BUND_RES[k_] = dict(v=vols[big], req=1.1 * vols[big], h_req=h_req, h_des=h_des, net=a_net * h_des, tag=ts[big][0])
+    assert h_des <= 2.5, f"bund {k_} wall too high ({h_des})"
+    # shell-to-shell spacing (>= D/6) and wall clearance (>= 1.5 m)
+    for i in range(len(ts)):
+        c = uvp(ts[i][1], ts[i][2])
+        assert pip(c, poly), f"{ts[i][0]} outside bund"
+        inner = offset_poly(poly, WALL_PX)
+        assert dist_poly(c, inner) - ts[i][3] >= 1.5 / (K * M_PER_UNIT) - 1e-6, f"{ts[i][0]} too close to wall"
+        for j in range(i + 1, len(ts)):
+            d = math.hypot(ts[i][1] - ts[j][1], ts[i][2] - ts[j][2])
+            gap_m = (d - ts[i][3] - ts[j][3]) * K * M_PER_UNIT
+            dmax = 2 * max(tk_geom(ts[i])[0], tk_geom(ts[j])[0])
+            assert gap_m >= dmax / 6 - 1e-6, f"{ts[i][0]}-{ts[j][0]} gap {gap_m:.1f} m < D/6"
+for k_, ts in TKS.items():
+    for t in ts:
+        c = uvp(t[1], t[2])
+        assert dist_poly(c, BND) - t[3] >= 24, f"{t[0]} within 24 px of fence"
+for k_, poly in BUNDS.items():
+    for q in poly:
+        assert dist_poly(q, BND) >= CLIP_D - 1.0, f"bund {k_} too close to fence"
+assert abs(ROAD_W - U(6)) < 1e-9 and abs(U(40) - 200) < 1e-9
+assert pip(uvp(*FWT[1:3]), BND)
+
+# ==========================================================================
+#                              LAYER BUFFERS
+# ==========================================================================
+CIV, STR, MEC, PIP, FIR, ANN = ([] for _ in range(6))
+VAL2, VAL3, FLG = [], [], []
+
+
+def ang_of(along):
+    return ROT if along == "v" else GRID_DEG
+
+
+def valve(uv, along="v", s=4.5):
+    x, y = UVu(*uv)
+    tr = f"translate({n(x)} {n(y)}) rotate({n(ang_of(along))})"
+    VAL2.append(G([path(f"M{n(-s)},{n(-s*.7)} L{n(s)},{n(s*.7)} L{n(s)},{n(-s*.7)} L{n(-s)},{n(s*.7)} Z",
+                        f=WHITE, s=INK, w=0.9)], transform=tr))
+    VAL3.append(G([line(0, -s * .7, 0, -s * .7 - 5, s=INK, w=0.7),
+                   line(-3.5, -s * .7 - 5, 3.5, -s * .7 - 5, s=INK, w=1.2)], transform=tr))
+
+
+def check_valve(uv, along="v"):
+    x, y = UVu(*uv)
+    VAL2.append(G([polyg([(-4, -3.5), (-4, 3.5), (4, 0)], f=WHITE, s=INK, w=0.9),
+                   line(4, -3.5, 4, 3.5, s=INK, w=1.1)], transform=f"translate({n(x)} {n(y)}) rotate({n(ang_of(along))})"))
+
+
+def flange(uv, along="v", size=4.5):
+    x, y = UVu(*uv)
+    FLG.append(G([line(0, -size, 0, size, s=INK, w=1.1), line(2.2, -size, 2.2, size, s=INK, w=1.1)],
+                 transform=f"translate({n(x)} {n(y)}) rotate({n(ang_of(along))})"))
+
+
+PIPE_NET = []          # every process polyline (plant-grid points) for connectivity / clearance checks
+STUBS = {}             # tank tag -> its stub polyline
+
+
+def pipe(pts_uv, kind="A", w=2.6):
+    PIPE_NET.append(list(pts_uv))
+    return path(uvpath(pts_uv), s=INK if kind == "A" else STEEL, w=w, lj="round")
+
+
+# ==========================================================================
+#                                L-CIVIL
+# ==========================================================================
+CIV.append(rect(0, 0, W, H, f=LIGHT))
+prop = offset_poly(BND, -3)
+CIV.append(path(pts_path([P(*q) for q in prop], True), s=MID, w=1.5, d="30 6 4 6"))      # property limit
+# public road outside the fence
+pub = [P(*PUB_ROAD[0]), P(*PUB_ROAD[1])]
+CIV.append(line(*pub[0], *pub[1], s=STEEL, w=44))
+CIV.append(line(*pub[0], *pub[1], s=ASPH, w=42))
+CIV.append(line(*pub[0], *pub[1], s=LIGHT, w=1.2, d="14 10", c=ZL2))
+
+
+def pub_y(x):
+    return PUB_ROAD[0][1] + (x - PUB_ROAD[0][0]) * (PUB_ROAD[1][1] - PUB_ROAD[0][1]) / (PUB_ROAD[1][0] - PUB_ROAD[0][0])
+
+
+def edge_dirs(ei):
+    a_, b_ = BND[ei], BND[(ei + 1) % len(BND)]
+    L = math.hypot(b_[0] - a_[0], b_[1] - a_[1])
+    d = ((b_[0] - a_[0]) / L, (b_[1] - a_[1]) / L)
+    return d, (d[1], -d[0])            # unit along fence, OUTWARD normal (BND is clockwise on screen)
+
+
+# gate throats (asphalt drives down to the public road) and gate leaves
+GATE_U = {}
+for gid, role, ei, gp in GATES:
+    d, nout = edge_dirs(ei)
+    w_ = 11.0
+    reach = 0.0
+    while gp[1] + nout[1] * reach < pub_y(gp[0] + nout[0] * reach) - 9 and reach < 120:
+        reach += 1
+    q1 = (gp[0] - d[0] * w_, gp[1] - d[1] * w_)
+    q2 = (gp[0] + d[0] * w_, gp[1] + d[1] * w_)
+    q3 = (q2[0] + nout[0] * (reach + 3), q2[1] + nout[1] * (reach + 3))
+    q4 = (q1[0] + nout[0] * (reach + 3), q1[1] + nout[1] * (reach + 3))
+    CIV.append(polyg([P(*q) for q in (q1, q2, q3, q4)], f=ASPH, s=STEEL, w=1))
+    GATE_U[gid] = (P(*gp), d, nout)
+# fence (boundary polygon) with posts every 25 units; gate openings skipped
+CIV.append(path(pts_path(BNDU, True), s=INK, w=1.4))
+posts = []
+for i in range(len(BNDU)):
+    a, b_ = BNDU[i], BNDU[(i + 1) % len(BNDU)]
+    L = math.hypot(b_[0] - a[0], b_[1] - a[1])
+    for k_ in range(int(L // 25) + 1):
+        t = k_ * 25 / L
+        x, y = a[0] + t * (b_[0] - a[0]), a[1] + t * (b_[1] - a[1])
+        if any(math.hypot(x - gu[0][0], y - gu[0][1]) < 28 for gu in GATE_U.values()):
+            continue
+        posts.append(rect(x - 1.5, y - 1.5, 3, 3, f=INK))
+CIV.append(G(posts, c=ZL2))
+for gid, ((gx_, gy_), d, nout) in GATE_U.items():
+    for s_ in (-1, 1):
+        CIV.append(line(gx_ + s_ * d[0] * 14 + nout[0] * 3, gy_ + s_ * d[1] * 14 + nout[1] * 3,
+                        gx_ + s_ * d[0] * 28 + nout[0] * 3, gy_ + s_ * d[1] * 28 + nout[1] * 3, s=INK, w=3))
+gx, gy = GATE_U["G1"][0]
+
+# --- asphalt roads (two-pass: edge colour then fill) ------------------------------------
+perim_pts = [P(*q) for q in ROADC]
+perim_d = rounded_closed(perim_pts, U(15) + ROAD_W / 2)      # 15 m inner turning radius target
+road_lines = [[P(*q) for q in pts] for _, pts in ROADS_PX]
+
+
+def road_pass(width, colour):
+    out = [path(perim_d, s=colour, w=width, lj="round")]
+    for pl_ in road_lines:
+        out.append(path(pts_path(pl_), s=colour, w=width, lc="butt", lj="round"))
+    return out
+
+
+CIV += road_pass(ROAD_W + 2, STEEL)
+CIV += road_pass(ROAD_W, ASPH)
+
+# junction fillets between internal orthogonal roads
+FIL_CANDIDATES = (75.0, 60.0, 50.0, 40.0, 30.0, 22.0)     # units: 15 m ... 4.4 m inner radius
+FIL_LOG = {}
+
+
+def fillet_poly(pu, pv, su, sv, Rp, n_arc=10):
+    cu_, cv_ = pu + su * Rp, pv + sv * Rp
+    arc = [(cu_ - su * Rp * math.sin(math.radians(90 * i / n_arc)), cv_ - sv * Rp * math.cos(math.radians(90 * i / n_arc)))
+           for i in range(n_arc + 1)]
+    return [(pu, pv)] + arc, arc
+
+
+def fillet_clear(poly_uv):
+    pts = [uvp(*q) for q in poly_uv]
+    cen = (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
+    for p in pts[1:] + [cen]:
+        if not pip(p, BND) or dist_poly(p, BND) < 26:
+            return False
+        for o in OBST:
+            if pip(p, o):
+                return False
+        for c, r in CIRC:
+            if math.hypot(p[0] - c[0], p[1] - c[1]) < r:
+                return False
+    return True
+
+
 fills, edges = [], []
-for j in junc:
-    f_, e_ = fillet(*j)
-    fills.append(f_)
-    edges.append(e_)
+for ia, (ta, ca, la, ha) in enumerate(ROAD_EXT):
+    if ta != "u":
+        continue
+    for ib, (tb, cb, lb, hb) in enumerate(ROAD_EXT):
+        if tb != "v":
+            continue
+        if not (la <= cb <= ha and lb <= ca <= hb):
+            continue
+        for su in (-1, 1):
+            for sv in (-1, 1):
+                arm_u = (ha > cb + 1) if su > 0 else (la < cb - 1)
+                arm_v = (hb > ca + 1) if sv > 0 else (lb < ca - 1)
+                if not (arm_u and arm_v):
+                    continue
+                if abs(la - 120 - cb) < 1 or abs(ha + 120 - cb) < 1:
+                    continue
+                pu, pv = cb + su * HW, ca + sv * HW
+                arm_len = min((ha - cb) if su > 0 else (cb - la), (hb - ca) if sv > 0 else (ca - lb)) * K - HW * K
+                for Rc in FIL_CANDIDATES:
+                    poly_uv, arc = fillet_poly(pu, pv, su, sv, Rc / K)
+                    if Rc / K <= arm_len / K + 1e-9 and fillet_clear(poly_uv):
+                        break
+                else:
+                    Rc = FIL_CANDIDATES[-1]
+                    poly_uv, arc = fillet_poly(pu, pv, su, sv, Rc / K)
+                FIL_LOG[(cb, ca, su, sv)] = Rc
+                fills.append(path(uvpath(poly_uv, True), f=ASPH))
+                edges.append(path(uvpath(arc), s=STEEL, w=1))
 CIV += fills + edges
 
-# truck apron, entrance drive, parking
-CIV.append(rect(1370, 1020, 320, 370, f=ASPH))
-CIV.append(line(1370, 1020, 1370, 1390, s=STEEL, w=1))
-CIV.append(line(1690, 1020, 1690, 1390, s=STEEL, w=1))
-CIV.append(rect(g0, 1430, g1 - g0, 40, f=ASPH))
-CIV.append(line(g0, 1430, g0, 1470, s=STEEL, w=1))
-CIV.append(line(g1, 1430, g1, 1470, s=STEEL, w=1))
-CIV.append(rect(200, 1020, 140, 70, f=ASPH, s=STEEL, w=0.8))
-CIV.append(G([line(x, 1022, x, 1046, s=LIGHT, w=0.8) for x in range(212, 340, 12)] +
-             [line(x, 1064, x, 1088, s=LIGHT, w=0.8) for x in range(212, 340, 12)], c=ZL2))
+# ---- one-way heavy-vehicle (HV) tanker circuit ------------------------------------------------------
+def proj_on_poly(p, poly):
+    best, bq, bi = 1e9, None, 0
+    for i in range(len(poly)):
+        a_, b_ = poly[i], poly[(i + 1) % len(poly)]
+        dx, dy = b_[0] - a_[0], b_[1] - a_[1]
+        t = max(0, min(1, ((p[0] - a_[0]) * dx + (p[1] - a_[1]) * dy) / (dx * dx + dy * dy)))
+        q = (a_[0] + t * dx, a_[1] + t * dy)
+        d_ = math.hypot(p[0] - q[0], p[1] - q[1])
+        if d_ < best:
+            best, bq, bi = d_, q, i
+    return bq, bi
 
-# road striping (L2)
-stripes = [rect(RING, RING, W - 2 * RING, H - 2 * RING, rx=RING_RC, s=LIGHT, w=1.2, d="12 9"),
-           line(R1X, RING, R1X, H - RING, s=LIGHT, w=1.2, d="12 9"),
-           line(RING, R5Y, W - RING, R5Y, s=LIGHT, w=1.2, d="12 9"),
-           line(RING, R2Y, W - RING, R2Y, s=LIGHT, w=1.2, d="12 9"),
-           line(770, R6Y, R1X, R6Y, s=LIGHT, w=1.2, d="12 9"),
-           line((g0 + g1) / 2, 1430, (g0 + g1) / 2, 1470, s=LIGHT, w=1.2, d="12 9")]
+
+LANE_V = [GF.uv(BAY_X[k_] + BAY_W / 2, 0)[1] for k_ in range(4)]              # lane centre-lines (v)
+LANE_ENTRY_U, LANE_EXIT_U = GF.uv(0, GANT_Y1)[0] - 1.0, GF.uv(0, GANT_Y0)[0]   # SE entry end / NW exit end
+G1_IN, _g1i = proj_on_poly(GATES[0][3], ROADC)
+G2_IN, _g2i = proj_on_poly(GATES[1][3], ROADC)
+R06_FOOT = ROADS_PX[5][1][0]
+assert R06_FOOT[0] < G1_IN[0] - 10, "exit road must reach the perimeter west of the HV entry gate"
+LANE_PROJ = [proj_on_poly(uvp(LANE_ENTRY_U, v_), ROADC)[0] for v_ in LANE_V]
+HV_ENTRY = [G1_IN, ROADC[5], ROADC[4], ROADC[3], LANE_PROJ[-1]]            # gate -> perimeter CCW -> gantry
+HV_LANES = [[LANE_PROJ[k_], uvp(LANE_ENTRY_U, LANE_V[k_]), uvp(LANE_EXIT_U, LANE_V[k_])] for k_ in range(4)]
+HV_EXIT = [uvp(LANE_EXIT_U, LANE_V[-1]), R06_FOOT, ROADC[6], G2_IN]
+HV_YARD_MID = [lerp(YARD_PX[0], YARD_PX[3], 0.5), lerp(YARD_PX[1], YARD_PX[2], 0.5)]
+
+
+def arrow_polys(pts_px, spacing=55.0, size=5.5, start=14.0):
+    out = []
+    pos = start
+    for i in range(len(pts_px) - 1):
+        a_, b_ = pts_px[i], pts_px[i + 1]
+        L = math.hypot(b_[0] - a_[0], b_[1] - a_[1])
+        if L < 1e-6:
+            continue
+        d = ((b_[0] - a_[0]) / L, (b_[1] - a_[1]) / L)
+        nrm = (-d[1], d[0])
+        while pos < L:
+            c = P(a_[0] + d[0] * pos, a_[1] + d[1] * pos)
+            tip = (c[0] + d[0] * size, c[1] + d[1] * size)
+            l_ = (c[0] - d[0] * size * .7 + nrm[0] * size * .75, c[1] - d[1] * size * .7 + nrm[1] * size * .75)
+            r_ = (c[0] - d[0] * size * .7 - nrm[0] * size * .75, c[1] - d[1] * size * .7 - nrm[1] * size * .75)
+            out.append(polyg([tip, l_, r_], f=INK, s=LIGHT, w=0.6))
+            pos += spacing
+        pos -= L
+    return out
+
+
+# inward gate throats: fence opening -> perimeter road
+for gid, role, ei_, gp_ in GATES:
+    q_, _i = proj_on_poly(gp_, ROADC)
+    dx_, dy_ = q_[0] - gp_[0], q_[1] - gp_[1]
+    L_ = math.hypot(dx_, dy_)
+    nx2, ny2 = -dy_ / L_ * 11, dx_ / L_ * 11
+    CIV.append(polyg([P(gp_[0] + nx2, gp_[1] + ny2), P(q_[0] + nx2, q_[1] + ny2), P(q_[0] - nx2, q_[1] - ny2), P(gp_[0] - nx2, gp_[1] - ny2)],
+                     f=ASPH))
+# staging / queuing yard (asphalt) + weighbridge on the entry lane
+CIV.append(polyg([P(*q) for q in YARD_PX], f=ASPH, s=STEEL, w=1))
+CIV.append(path(pts_path([P(*lerp(YARD_PX[0], YARD_PX[3], 0.5)), P(*lerp(YARD_PX[1], YARD_PX[2], 0.5))]), s=LIGHT, w=1.2, d="10 8", c=ZL2))
+_d6 = edge_dirs(6)[0]
+_wbc = (G1_IN[0] - _d6[0] * 30, G1_IN[1] - _d6[1] * 30)
+_nn = (-_d6[1], _d6[0])
+CIV.append(polyg([P(_wbc[0] + _d6[0] * s_ * 18 + _nn[0] * t_ * 6, _wbc[1] + _d6[1] * s_ * 18 + _nn[1] * t_ * 6)
+                  for s_, t_ in ((-1, -1), (1, -1), (1, 1), (-1, 1))], f=CONC, s=INK, w=1))
+hv_arrows = (arrow_polys(HV_ENTRY, 60) + arrow_polys(HV_EXIT, 60) + arrow_polys(HV_YARD_MID, 40, 5, 10) +
+             [p_ for ln in HV_LANES for p_ in arrow_polys(ln[1:], 40, 5, 12)])
+CIV.append(G(hv_arrows))
+
+# centre-line striping (L2)
+stripes = [path(perim_d, s=LIGHT, w=1.2, d="12 9")]
+for pl_ in road_lines:
+    stripes.append(path(pts_path(pl_), s=LIGHT, w=1.2, d="12 9"))
 CIV.append(G(stripes, c=ZL2))
 
-# --- concrete bunds ---------------------------------------------------------
-def bund(b):
-    x1, y1, x2, y2 = b
-    t = WALL_T
-    wall = (f"M{x1},{y1} H{x2} V{y2} H{x1} Z M{x1+t},{y1+t} H{x2-t} V{y2-t} H{x1+t} Z")
-    return [rect(x1 + t, y1 + t, x2 - x1 - 2 * t, y2 - y1 - 2 * t, f=BUNDFILL),
-            path(wall, f=CONC, fill_rule="evenodd"),
-            path(wall, f="url(#hatch-concrete)", fill_rule="evenodd", s=INK, w=1.2)]
+# --- concrete bunds -------------------------------------------------------------------------
+BUNDU = {}
+for k_, poly in BUNDS.items():
+    outer = [P(*q) for q in poly]
+    inner = [P(*q) for q in offset_poly(poly, WALL_PX)]
+    BUNDU[k_] = (outer, inner)
+    wall = pts_path(outer, True) + " " + pts_path(inner, True)
+    CIV.append(path(pts_path(inner, True), f=BUNDFILL))
+    CIV.append(path(wall, f=CONC, fill_rule="evenodd"))
+    CIV.append(path(wall, f="url(#hatch-concrete)", fill_rule="evenodd", s=INK, w=1.2))
+
+# internal fire-break walls: central compound (between rows) and NE farm (between rows)
+def wall_line(u0, u1, v0, v1, t=2.0):
+    return polyg([UVu(u0, v0), UVu(u1, v0), UVu(u1, v1), UVu(u0, v1)], f=CONC, s=INK, w=0.8)
 
 
-CIV += bund(B1)
-CIV += bund(B2)
-# TF2 intermediate fire-break walls (lower than outer bund)
-bx1, by1, bx2, by2 = B2
-midx, midy = (bx1 + bx2) / 2, (by1 + by2) / 2
-for rr in (rect(midx - 2, by1 + WALL_T, 4, by2 - by1 - 2 * WALL_T, f=CONC, s=INK, w=0.8),
-           rect(bx1 + WALL_T, midy - 2, bx2 - bx1 - 2 * WALL_T, 4, f=CONC, s=INK, w=0.8)):
-    CIV.append(rr)
-# bund step-over stairs (L3) and sumps
-stairs = []
-for (sx_, sy_) in [(470, B1[3] - 10), (B1[0] + 10, 200), (1500, B2[3] - 10), (B2[2] - 10, 300)]:
-    horiz = sy_ in (B1[3] - 10, B2[3] - 10)
-    if horiz:
-        stairs.append(rect(sx_ - 12, sy_ - 3, 24, 26, f=WHITE, s=INK, w=0.7))
-        stairs += [line(sx_ - 12, yy, sx_ + 12, yy, s=INK, w=0.4) for yy in range(int(sy_), int(sy_) + 24, 3)]
-    else:
-        stairs.append(rect(sx_ - 3, sy_ - 12, 26, 24, f=WHITE, s=INK, w=0.7))
-        stairs += [line(xx, sy_ - 12, xx, sy_ + 12, s=INK, w=0.4) for xx in range(int(sx_), int(sx_) + 24, 3)]
-CIV.append(G(stairs, c=ZL3))
-SUMP1 = (810.0, 520.0)
-SUMP2 = (1318.0, 546.0)
-for (sx_, sy_) in (SUMP1, SUMP2):
-    CIV.append(rect(sx_ - 7, sy_ - 7, 14, 14, f=PALE, s=INK, w=1))
-    CIV.append(G([line(sx_ - 7, sy_ - 7, sx_ + 7, sy_ + 7, s=INK, w=0.5),
-                  line(sx_ - 7, sy_ + 7, sx_ + 7, sy_ - 7, s=INK, w=0.5)], c=ZL3))
+for ub in (431, 493, 555):
+    CIV.append(wall_line(ub - 1.2, ub + 1.2, 126 + WALL_PX, 254 - WALL_PX))
+# sumps (one per bund, lowest corner = nearest the retention basin side)
+SUMPS = {"SW": (560, -20), "ST": (620, 70), "CE": (600, 244), "NE1": (562, 412), "NE2": (668, 418)}
+sump_el = []
+for k_, (su_, sv_) in SUMPS.items():
+    c = UVu(su_, sv_)
+    sump_el.append(rect(c[0] - 6, c[1] - 6, 12, 12, f=PALE, s=INK, w=1))
+CIV.append(G(sump_el))
+CIV.append(G([G([line(UVu(su_, sv_)[0] - 6, UVu(su_, sv_)[1] - 6, UVu(su_, sv_)[0] + 6, UVu(su_, sv_)[1] + 6, s=INK, w=0.5),
+                 line(UVu(su_, sv_)[0] - 6, UVu(su_, sv_)[1] + 6, UVu(su_, sv_)[0] + 6, UVu(su_, sv_)[1] - 6, s=INK, w=0.5)])
+              for (su_, sv_) in SUMPS.values()], c=ZL3))
 
-# --- sleeperway concrete strips ------------------------------------------------
-sl = []
-for p, q in split(S1_X0, S1_X1, [R1_BAND]):
-    sl.append(rect(p, S1_A - 11, q - p, SLP_W, f=CONC, s=STEEL, w=0.8))
-sl.append(rect(1275, 665, SLP_W, 280, f=CONC, s=STEEL, w=0.8))          # S2 vertical
-sl.append(rect(1275, 915, 325, SLP_W, f=CONC, s=STEEL, w=0.8))           # S2 horizontal
-for _, cx, cy in TK1:
-    for p, q in split(B1[3], 665, [R5_BAND]):
-        sl.append(rect(cx - 15, p, SLP_W, q - p, f=CONC, s=STEEL, w=0.8))
-for _, cx, cy in TK2[:2]:
-    for p, q in split(B2[3], 665, [R5_BAND]):
-        sl.append(rect(cx - 94, p, SLP_W, q - p, f=CONC, s=STEEL, w=0.8))
+# --- sleeperway concrete strips + road-crossing sleeves ---------------------------------------
+def split_bands(a, b, bands):
+    return split(a, b, bands)
+
+
+sl, sleeves = [], []
+for ax, c, a, b in SLEEPERS:
+    bands = []
+    for (t, cc, lo, hi) in ROAD_EXT:
+        if ax == "v" and t == "u" and lo <= c <= hi:
+            bands.append((cc - HW, cc + HW))
+        if ax == "u" and t == "v" and lo <= c <= hi:
+            bands.append((cc - HW, cc + HW))
+    for p, q in split_bands(a, b, bands):
+        if ax == "v":
+            sl.append(polyg([UVu(c - HW, p), UVu(c + HW, p), UVu(c + HW, q), UVu(c - HW, q)], f=CONC, s=STEEL, w=0.8))
+        else:
+            sl.append(polyg([UVu(p, c - HW), UVu(p, c + HW), UVu(q, c + HW), UVu(q, c - HW)], f=CONC, s=STEEL, w=0.8))
+    for (b0, b1) in bands:
+        if not (a < b0 and b1 < b):
+            continue
+        if ax == "v":
+            sleeves.append(polyg([UVu(c - HW - 2, b0 - 2), UVu(c + HW + 2, b0 - 2), UVu(c + HW + 2, b1 + 2), UVu(c - HW - 2, b1 + 2)],
+                                s=STEEL, w=1, d="4 2"))
+        else:
+            sleeves.append(polyg([UVu(b0 - 2, c - HW - 2), UVu(b1 + 2, c - HW - 2), UVu(b1 + 2, c + HW + 2), UVu(b0 - 2, c + HW + 2)],
+                                s=STEEL, w=1, d="4 2"))
 CIV.append(G(sl))
-
-# road crossings (pipe sleeves / culverts)
-sleeves = [rect(R1_BAND[0] - 4, 662, RW + 8, 36, s=STEEL, w=1, d="4 2")]
-for _, cx, _cy in TK1:
-    sleeves.append(rect(cx - 18, R5_BAND[0] - 2, 36, RW + 4, s=STEEL, w=1, d="4 2"))
-for _, cx, _cy in TK2[:2]:
-    sleeves.append(rect(cx - 97, R5_BAND[0] - 2, 36, RW + 4, s=STEEL, w=1, d="4 2"))
-for x in (1410, 1470, 1530, 1590):
-    sleeves.append(rect(x - 8, R2_BAND[0] - 2, 16, RW + 4, s=STEEL, w=1, d="4 2"))
 CIV.append(G(sleeves, c=ZL2))
 
-# --- pump pad / manifold pad ---------------------------------------------------
-CIV.append(rect(320, 715, 440, 170, f=CONC, s=STEEL, w=1))
-CIV.append(rect(324, 719, 432, 162, s=STEEL, w=0.6, d="5 3", c=ZL2))
+# --- pump pad, manifold pad (rotated frames) -----------------------------------------------------
 corr = []
 for i in range(5):
-    xa = PX0 + PITCH * i + 40
-    corr.append(rect(xa, 722, PITCH - 40, 154, f="url(#hatch-light)", s=MID, w=0.6, d="3 2"))
-corr.append(text(540, 878, "MAINTENANCE ACCESS CORRIDORS 6.0 m BETWEEN SKIDS", size=6.5, anchor="middle"))
-corr.append(line(320, 872, 740, 872, s=STEEL, w=1.2, d="6 3"))        # pad drain trench
-corr.append(rect(741, 867, 10, 10, f=PALE, s=INK, w=0.8))              # pad sump
-CIV.append(G(corr, c=ZL2))
-CIV.append(rect(990, 712, 275, 155, f=CONC, s=STEEL, w=1))
-CIV.append(rect(994, 716, 267, 147, s=STEEL, w=0.6, d="5 3", c=ZL2))
+    xa = PUMP_X0 + PUMP_PITCH * i + 28
+    corr.append(rect(xa, 6, PUMP_PITCH - 28, 88, f="url(#hatch-light)", s=MID, w=0.6, d="3 2"))
+corr.append(text(125, 98, "6 m MAINTENANCE CORRIDORS", size=5.5, anchor="middle"))
+CIV.append(PF.g([rect(0, 0, 250, 100, f=CONC, s=STEEL, w=1),
+                 G([rect(4, 4, 242, 92, s=STEEL, w=0.6, d="5 3")] + corr, c=ZL2)]))
+CIV.append(MF.g([rect(0, 0, 150, 80, f=CONC, s=STEEL, w=1), rect(4, 4, 142, 72, s=STEEL, w=0.6, d="5 3", c=ZL2)]))
 
-# --- retention / OWS basin + drain lines -----------------------------------------
-CIV.append(rect(1000, 1100, 250, 230, rx=10, f="#D0D4DB", s=STEEL, w=1.4))
-CIV.append(G([rect(1000 + k, 1100 + k, 250 - 2 * k, 230 - 2 * k, rx=max(2, 10 - k / 4), s=STEEL,
-                   w=0.5, d="4 3") for k in (20, 40, 60, 80)], c=ZL2))
-drain = [path(f"M{SUMP1[0]},{SUMP1[1]} H915 V1115 H1000", s=STEEL, w=1.8, d="6 3"),
-         path(f"M{SUMP2[0]},{SUMP2[1]} V1115 H1250", s=STEEL, w=1.8, d="6 3"),
-         circle(840, SUMP1[1], 3, f=WHITE, s=INK, w=0.8),
-         circle(SUMP2[0], B2[3] + 0, 3, f=WHITE, s=INK, w=0.8)]
-CIV.append(G(drain, c=ZL2))
+# --- retention / OWS basin ---------------------------------------------------------------------------
+bu0, bu1, bv0, bv1 = BASIN
+CIV.append(polyg([UVu(bu0, bv0), UVu(bu1, bv0), UVu(bu1, bv1), UVu(bu0, bv1)], f="#D0D4DB", s=STEEL, w=1.4))
+CIV.append(G([polyg([UVu(bu0 + k_, bv0 + k_), UVu(bu1 - k_, bv0 + k_), UVu(bu1 - k_, bv1 - k_), UVu(bu0 + k_, bv1 - k_)],
+                   s=STEEL, w=0.5, d="4 3") for k_ in (6, 12, 18)], c=ZL2))
 
-# --- gantry islands (concrete) --------------------------------------------------
-for xi in ISL_X:
-    CIV.append(rect(xi, ISL_Y0, ISL_W, ISL_Y1 - ISL_Y0, rx=4, f=PALE, s=INK, w=1))
+# --- truck gantry: apron + concrete islands --------------------------------------------------------------
+CIV.append(GF.g([rect(-12, GANT_Y0, GANT_W + 24, GANT_Y1 - GANT_Y0, f=ASPH, s=STEEL, w=1)] +
+                [rect(xi, 15, ISL_W, 110, rx=3, f=PALE, s=INK, w=1) for xi in ISL_X]))
+CIV.append(GF.g([line(x, GANT_Y0, x, GANT_Y1, s=LIGHT, w=0.8, d="8 4") for x in (BAY_X[0] - 1, BAY_X[-1] + BAY_W + 1)], c=ZL2))
+
+# --- parking ------------------------------------------------------------------------------------------------
 
 # ==========================================================================
-#                               L-STRUCT
+#                                L-STRUCT
 # ==========================================================================
-# pipe-rack bents / sleeper supports (L2)
-def bents_h(x1, x2, y, skips=(), pitch=40, wd=30):
-    out, x = [], x1 + 10
-    while x <= x2 - 6:
-        if not any(a - 4 <= x <= b for a, b in skips):
-            out.append(rect(x, y - wd / 2, 4, wd, f=STEEL, s=INK, w=0.3))
-        x += pitch
-    return out
-
-
-def bents_v(x, y1, y2, skips=(), pitch=40, wd=30):
-    out, y = [], y1 + 10
-    while y <= y2 - 6:
-        if not any(a - 4 <= y <= b for a, b in skips):
-            out.append(rect(x - wd / 2, y, wd, 4, f=STEEL, s=INK, w=0.3))
-        y += pitch
-    return out
-
-
-bents = bents_h(S1_X0, S1_X1, S1_A + 4, [R1_BAND])
-bents += bents_v(1290, 700, 945)
-bents += bents_h(1280, 1600, 930)
-for _, cx, _cy in TK1:
-    bents += bents_v(cx, B1[3] + 6, 665, [R5_BAND])
-for _, cx, _cy in TK2[:2]:
-    bents += bents_v(cx - 79, B2[3] + 6, 665, [R5_BAND])
-STR.append(G(bents, c=ZL2))
-
-
-def stair(cx, cy, r, a0, sweep, wd=5, step=2.5):
+def stair(cx, cy, r, a0, sweep, wd=5.0, step=3.0):
     r1, r2 = r + 0.8, r + 0.8 + wd
     a1 = a0 + sweep
     base = path(arc_band(cx, cy, r1, r2, a0, a1), f=PALE, s=INK, w=0.8)
-    plat = path(arc_band(cx, cy, r1, r2 + 7, a1 - 2, a1 + 9), f=WHITE, s=INK, w=0.9, c=ZL2)
+    plat = path(arc_band(cx, cy, r1, r2 + 6, a1 - 3, a1 + 10), f=WHITE, s=INK, w=0.9, c=ZL2)
     treads = G([line(*polar(cx, cy, r1, a), *polar(cx, cy, r2, a), s=INK, w=0.4)
                 for a in frange(a0 + step, a1 - step, step)], c=ZL3)
     return [base, plat, treads]
 
 
-FR_STAIR = (180, 150)           # start angle, sweep (clockwise on screen)
-CONE_STAIR = (270, 140)
-for _, cx, cy in TK1:
-    STR += stair(cx, cy, TK1_R, *FR_STAIR)
-for _, cx, cy in TK2:
-    STR += stair(cx, cy, TK2_R, *CONE_STAIR)
-STR += stair(FW_TK[1], FW_TK[2], FW_R, *CONE_STAIR, wd=4)
+# rack bents along every sleeperway (L2)
+bents = []
+for ax, c, a, b in SLEEPERS:
+    bands = [(cc - HW, cc + HW) for (t, cc, lo, hi) in ROAD_EXT
+             if (ax == "v" and t == "u" and lo <= c <= hi) or (ax == "u" and t == "v" and lo <= c <= hi)]
+    pos = a + 8
+    while pos <= b - 6:
+        if not any(x0 - 2 <= pos <= x1 for x0, x1 in bands):
+            if ax == "v":
+                bents.append(polyg([UVu(c - HW, pos), UVu(c + HW, pos), UVu(c + HW, pos + 2), UVu(c - HW, pos + 2)],
+                                  f=STEEL, s=INK, w=0.3))
+            else:
+                bents.append(polyg([UVu(pos, c - HW), UVu(pos, c + HW), UVu(pos + 2, c + HW), UVu(pos + 2, c - HW)],
+                                  f=STEEL, s=INK, w=0.3))
+        pos += 20
+STR.append(G(bents, c=ZL2))
 
-# gantry canopy, columns, bollards, stair tower
-cx0, cx1, cy0, cy1 = 1385, 1675, 1065, 1215
-STR.append(rect(cx0, cy0, cx1 - cx0, cy1 - cy0, f="none", s=STEEL, w=1.6, d="10 4"))
-cols, beams = [], []
+# gantry canopy, columns, bollards, stair tower (local frame)
+canopy = [rect(-6, 25, GANT_W + 12, 90, f="none", s=STEEL, w=1.6, d="10 4")]
+cols = []
 for xi in ISL_X:
     xc = xi + ISL_W / 2
-    for yc in (1075, 1205):
+    for yc in (33, 107):
         cols.append(rect(xc - 3, yc - 3, 6, 6, f=STEEL, s=INK, w=0.6))
-    for off in (-5, 5):
-        for yb in (1056, 1224):
-            cols.append(circle(xc + off, yb, 2.2, f=INK))          # bollards
-for yc in (1075, 1205):
-    beams.append(line(ISL_X[0] + 10, yc, ISL_X[-1] + 10, yc, s=STEEL, w=0.7, d="6 3"))
-for xi in ISL_X:
-    beams.append(line(xi + 10, 1075, xi + 10, 1205, s=STEEL, w=0.7, d="6 3"))
-beams.append(line(cx0, (cy0 + cy1) / 2, cx1, (cy0 + cy1) / 2, s=STEEL, w=0.7, d="2 4"))   # ridge
-STR.append(G(cols))
-STR.append(G(beams, c=ZL2))
-STR.append(rect(1664, 1100, 18, 50, f=WHITE, s=INK, w=1))                                # stair tower
-STR.append(G([line(1664, yy, 1682, yy, s=INK, w=0.4) for yy in range(1103, 1150, 3)], c=ZL3))
+    for off in (-4, 4):
+        for yb in (19, 121):
+            cols.append(circle(xc + off, yb, 2, f=INK))
+beams = [line(5, yc, GANT_W - 5, yc, s=STEEL, w=0.7, d="6 3") for yc in (33, 107)]
+beams += [line(xi + 7, 33, xi + 7, 107, s=STEEL, w=0.7, d="6 3") for xi in ISL_X]
+STR.append(GF.g(canopy + cols))
+STR.append(GF.g(beams, c=ZL2))
+STR.append(GF.g([rect(GANT_W + 14, 40, 16, 44, f=WHITE, s=INK, w=1)] +
+                [G([line(GANT_W + 14, yy, GANT_W + 30, yy, s=INK, w=0.4) for yy in range(43, 84, 3)], c=ZL3)]))
 
-# buildings
-STR.append(rect(140, 1130, 200, 90, f=PALE, s=INK, w=1.6))                    # admin / control
-STR.append(rect(136, 1126, 208, 98, s=MID, w=0.7, d="5 3", c=ZL2))            # roof overhang
-STR.append(rect(380, 1040, 90, 70, f=PALE, s=INK, w=1.6))                     # substation / MCC
-STR.append(rect(790, 1140, 90, 60, f=PALE, s=INK, w=1.6))                     # FW pump house
-STR.append(rect(400, 1440, 30, 25, f=PALE, s=INK, w=1.4))                     # gatehouse
-STR.append(G([line(140 + k * 25, 1130, 140 + k * 25, 1220, s=MID, w=0.5) for k in range(1, 8)] +
-             [line(380 + k * 15, 1040, 380 + k * 15, 1110, s=MID, w=0.5) for k in range(1, 6)], c=ZL3))
+# buildings (+ roof overhang L2, structural grid L3)
+for name, (a0, a1, b0, b1) in BLDG.items():
+    STR.append(polyg([UVu(a0, b0), UVu(a1, b0), UVu(a1, b1), UVu(a0, b1)], f=PALE, s=INK, w=1.6))
+    STR.append(polyg([UVu(a0 - 2, b0 - 2), UVu(a1 + 2, b0 - 2), UVu(a1 + 2, b1 + 2), UVu(a0 - 2, b1 + 2)], s=MID, w=0.7, d="5 3", c=ZL2))
+GATEHOUSES = {}
+for gid, ei_, off_ in (("G1", 6, 16), ("G2", 7, 16)):
+    d_, nout_ = edge_dirs(ei_)
+    gp_ = [g_ for g_ in GATES if g_[0] == gid][0][3]
+    cc = (gp_[0] - nout_[0] * (HW + 11) + d_[0] * off_, gp_[1] - nout_[1] * (HW + 11) + d_[1] * off_)
+    GATEHOUSES[gid] = [(cc[0] + d_[0] * s_ * 9 - nout_[0] * t_ * 6, cc[1] + d_[1] * s_ * 9 - nout_[1] * t_ * 6)
+                       for s_, t_ in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+    STR.append(polyg([P(*q) for q in GATEHOUSES[gid]], f=PALE, s=INK, w=1.4))
 
 # ==========================================================================
-#                               L-MECH
+#                                L-MECH
 # ==========================================================================
-def tank_fr(tag, cx, cy, r):
-    els = [circle(cx, cy, r, f=WHITE, s=INK, w=2.4),
-           circle(cx, cy, r - 2, s=STEEL, w=0.7, c=ZL2),                  # rim seal
-           circle(cx, cy, r - 7, s=STEEL, w=0.9, c=ZL2),                  # pontoon outer
-           circle(cx, cy, r - 20, s=STEEL, w=0.9, c=ZL2)]                 # pontoon inner / deck
-    els.append(G([line(*polar(cx, cy, r - 7, a), *polar(cx, cy, r - 20, a), s=STEEL, w=0.6)
-                  for a in frange(0, 337.5, 22.5)], c=ZL2))               # pontoon bulkheads
-    # rolling ladder (shell top of stair -> roof)
-    a_end = FR_STAIR[0] + FR_STAIR[1]
-    ax, ay = polar(cx, cy, r, a_end)
-    bx, by = polar(cx, cy, r * 0.35, a_end)
-    nx, ny = -math.sin(math.radians(a_end)), math.cos(math.radians(a_end))
-    els.append(G([line(ax + nx * 1.6, ay + ny * 1.6, bx + nx * 1.6, by + ny * 1.6, s=INK, w=0.8),
-                  line(ax - nx * 1.6, ay - ny * 1.6, bx - nx * 1.6, by - ny * 1.6, s=INK, w=0.8)], c=ZL2))
-    # L3: roof drain sump, roof legs, nozzles, mixers
-    micro = [circle(cx, cy, 5, f=PALE, s=INK, w=0.8)]
-    for rr_, cnt in ((r * 0.45, 12), (r * 0.7, 18)):
-        micro += [circle(*polar(cx, cy, rr_, k * 360 / cnt), 1.2, f=STEEL) for k in range(cnt)]
-    for off in (-6, 6):                                                   # south nozzle CL
-        micro.append(line(cx + off, cy + r + 16, cx + off, cy + r - 14, s=INK, w=0.5, d=DASHDOT))
-        micro.append(circle(cx + off, cy + r - 1, 2.2, f=WHITE, s=INK, w=0.8))
-    for a in (30, 120):                                                   # side-entry mixers
+STAIRS_BUF = []
+
+
+def tank_fr(t):
+    tag, u, v, rp, kind, Hm, av = t
+    cx, cy = UVu(u, v)
+    r = rp * K
+    sw = 120.0
+    a0 = av + 180 - sw / 2
+    els = [circle(cx, cy, r, f=WHITE, s=INK, w=2.2), circle(cx, cy, r - 2, s=STEEL, w=0.7, c=ZL2),
+           circle(cx, cy, r * 0.92, s=STEEL, w=0.9, c=ZL2), circle(cx, cy, r * 0.78, s=STEEL, w=0.9, c=ZL2),
+           G([line(*polar(cx, cy, r * .92, a), *polar(cx, cy, r * .78, a), s=STEEL, w=0.6)
+              for a in frange(0, 337.5, 22.5)], c=ZL2)]
+    a_end = a0 + sw
+    ax_, ay_ = polar(cx, cy, r, a_end)
+    bx_, by_ = polar(cx, cy, r * 0.3, a_end)
+    nx_, ny_ = -math.sin(math.radians(a_end)), math.cos(math.radians(a_end))
+    els.append(G([line(ax_ + nx_ * 1.6, ay_ + ny_ * 1.6, bx_ + nx_ * 1.6, by_ + ny_ * 1.6, s=INK, w=0.8),
+                  line(ax_ - nx_ * 1.6, ay_ - ny_ * 1.6, bx_ - nx_ * 1.6, by_ - ny_ * 1.6, s=INK, w=0.8)], c=ZL2))
+    micro = [circle(cx, cy, 4, f=PALE, s=INK, w=0.8)]
+    for rr_, cnt in ((r * .45, 10), (r * .65, 16)):
+        micro += [circle(*polar(cx, cy, rr_, k_ * 360 / cnt), 1.1, f=STEEL) for k_ in range(cnt)]
+    micro.append(line(*polar(cx, cy, r + 14, av), *polar(cx, cy, r - 12, av), s=INK, w=0.5, d=DASHDOT))
+    micro.append(circle(*polar(cx, cy, r - 1, av), 2.2, f=WHITE, s=INK, w=0.8))
+    for a in (av + 60, av - 60):
         mx, my = polar(cx, cy, r + 5, a)
         micro.append(rect(mx - 4, my - 2.5, 8, 5, f=WHITE, s=INK, w=0.7))
-        micro.append(line(*polar(cx, cy, r - 12, a), *polar(cx, cy, r + 10, a), s=INK, w=0.5, d=DASHDOT))
     els.append(G(micro, c=ZL3))
+    STR.extend(stair(cx, cy, r, a0, sw, wd=5.0, step=2.5))
     return G(els, data_cmp_id="CMP-EQP-TANK", data_tag=tag, c="dt-interactive")
 
 
-def tank_cone(tag, cx, cy, r, nozzle_stubs=True):
-    els = [circle(cx, cy, r, f=WHITE, s=INK, w=2.2),
-           circle(cx, cy, r - 2.5, s=STEEL, w=0.7, c=ZL2),                # roof eave
-           circle(cx, cy, r * 0.5, s=STEEL, w=0.6, c=ZL2),                # centre ring girder
-           circle(cx, cy, 5, f=PALE, s=INK, w=0.9)]                       # centre vent
-    els.append(G([line(*polar(cx, cy, 5, a), *polar(cx, cy, r - 2.5, a), s=STEEL, w=0.4)
-                  for a in frange(0, 345, 15)], c=ZL2))                   # rafters
-    micro = [circle(*polar(cx, cy, r * 0.72, 300), 3, f=WHITE, s=INK, w=0.7),   # roof manway
-             circle(*polar(cx, cy, r * 0.72, 40), 2, f=WHITE, s=INK, w=0.7)]   # PV vent
-    for a in (60, 100):                                                   # foam chambers
-        fx, fy = polar(cx, cy, r - 1, a)
-        micro.append(rect(fx - 3, fy - 2, 6, 4, f=PALE, s=INK, w=0.6))
-    if nozzle_stubs:
-        for off in (-6, 6):
-            micro.append(line(cx - r - 14, cy + off, cx - r + 8, cy + off, s=INK, w=0.5, d=DASHDOT))
-            micro.append(circle(cx - r + 0.5, cy + off, 2, f=WHITE, s=INK, w=0.8))
+def tank_cone(t):
+    tag, u, v, rp, kind, Hm, av = t
+    cx, cy = UVu(u, v)
+    r = rp * K
+    sw = 140.0
+    a0 = av + 180 - sw / 2
+    els = [circle(cx, cy, r, f=WHITE, s=INK, w=2.0), circle(cx, cy, r - 2.5, s=STEEL, w=0.7, c=ZL2),
+           circle(cx, cy, r * 0.5, s=STEEL, w=0.6, c=ZL2), circle(cx, cy, 4, f=PALE, s=INK, w=0.9),
+           G([line(*polar(cx, cy, 4, a), *polar(cx, cy, r - 2.5, a), s=STEEL, w=0.4) for a in frange(0, 345, 15)], c=ZL2)]
+    micro = [circle(*polar(cx, cy, r * .72, av + 90), 2.6, f=WHITE, s=INK, w=0.7),
+             circle(*polar(cx, cy, r * .72, av + 150), 1.8, f=WHITE, s=INK, w=0.7)]
+    for a in (av + 40, av - 40):
+        fx_, fy_ = polar(cx, cy, r - 1, a)
+        micro.append(rect(fx_ - 3, fy_ - 2, 6, 4, f=PALE, s=INK, w=0.6))
+    micro.append(line(*polar(cx, cy, r + 14, av), *polar(cx, cy, r - 12, av), s=INK, w=0.5, d=DASHDOT))
+    micro.append(circle(*polar(cx, cy, r - 1, av), 2, f=WHITE, s=INK, w=0.8))
     els.append(G(micro, c=ZL3))
+    STR.extend(stair(cx, cy, r, a0, sw, wd=4.0, step=3.0))
     return G(els, data_cmp_id="CMP-EQP-TANK", data_tag=tag, c="dt-interactive")
 
 
-for tag, cx, cy in TK1:
-    MEC.append(tank_fr(tag, cx, cy, TK1_R))
-for tag, cx, cy in TK2:
-    MEC.append(tank_cone(tag, cx, cy, TK2_R))
-MEC.append(tank_cone(FW_TK[0], FW_TK[1], FW_TK[2], FW_R, nozzle_stubs=False))
+for t in ALL_TANKS:
+    MEC.append(tank_fr(t) if t[4] == "FR" else tank_cone(t))
 
-# --- pump skids ---------------------------------------------------------------
+# pump skids
 for i, tag in enumerate(PUMP_TAGS):
-    x, y = PX0 + PITCH * i, PUMP_Y
-    els = [rect(x, y, 40, 20, f=PALE, s=INK, w=1, c=ZL2),                 # baseplate
-           circle(x + 11, y + 10, 7.5, f=WHITE, s=INK, w=1.4),            # casing
-           rect(x + 24, y + 3, 15, 14, rx=2, f=WHITE, s=INK, w=1.2),      # motor
-           G([rect(x + 19, y + 7, 5, 6, f=MID, s=INK, w=0.6),             # coupling guard
-              rect(x + 29, y - 1, 6, 4, f=PALE, s=INK, w=0.6),            # terminal box
-              line(x - 4, y + 10, x + 44, y + 10, s=INK, w=0.5, d=DASHDOT)] +   # shaft CL
-             [line(x + xx, y + 3, x + xx, y + 17, s=INK, w=0.3) for xx in (27, 29.5, 32, 34.5, 37)] +
-             [circle(x + bx, y + by, 1, f=INK) for bx, by in ((3, 3), (37, 3), (3, 17), (37, 17))],
-             c=ZL3)]
-    MEC.append(G(els, data_cmp_id="CMP-EQP-PUMP", data_tag=tag, c="dt-interactive"))
+    x, y = PUMP_X0 + PUMP_PITCH * i, PUMP_Y
+    els = [rect(0, 0, 40, 20, f=PALE, s=INK, w=1, c=ZL2), circle(11, 10, 7.5, f=WHITE, s=INK, w=1.4),
+           rect(24, 3, 15, 14, rx=2, f=WHITE, s=INK, w=1.2),
+           G([rect(19, 7, 5, 6, f=MID, s=INK, w=0.6), rect(29, -1, 6, 4, f=PALE, s=INK, w=0.6),
+              line(-4, 10, 44, 10, s=INK, w=0.5, d=DASHDOT)] +
+             [line(xx, 3, xx, 17, s=INK, w=0.3) for xx in (27, 29.5, 32, 34.5, 37)] +
+             [circle(bx, by, 1, f=INK) for bx, by in ((3, 3), (37, 3), (3, 17), (37, 17))], c=ZL3)]
+    MEC.append(PF.g([G(els, data_cmp_id="CMP-EQP-PUMP", data_tag=tag, c="dt-interactive",
+                       transform=f"translate({x} {y}) scale({PUMP_S})")]))
 
-# --- heat exchangers (crude heaters) ---------------------------------------------
-HX = [("E-0101A", 340.0, 925.0), ("E-0101B", 470.0, 925.0)]
-for tag, x, y in HX:
-    els = [rect(x, y, 80, 16, rx=7, f=WHITE, s=INK, w=1.4),
-           rect(x + 10, y - 3, 6, 22, f=PALE, s=INK, w=0.8, c=ZL2),       # saddles
-           rect(x + 60, y - 3, 6, 22, f=PALE, s=INK, w=0.8, c=ZL2),
-           G([line(x + 8, y + 3 + k * 2.5, x + 72, y + 3 + k * 2.5, s=STEEL, w=0.4) for k in range(5)] +
-             [circle(x + 12, y, 2, f=WHITE, s=INK, w=0.7), circle(x + 68, y, 2, f=WHITE, s=INK, w=0.7)],
-             c=ZL3)]
-    MEC.append(G(els, data_cmp_id="CMP-EQP-HX", data_tag=tag))
+# fire-water pumps in pump house
+fw0, fw1, fv0, fv1 = BLDG["FW PUMP HOUSE"]
+MEC.append(G([circle(*UVu((fw0 + fw1) / 2, fv0 + 6 + 9 * k_), 3.6, f=WHITE, s=INK, w=1) for k_ in range(3)], c=ZL2))
 
-# --- FW pumps (inside pump house outline) -------------------------------------------
-MEC.append(G([G([circle(810 + 22 * k, 1170, 5, f=WHITE, s=INK, w=1),
-                 rect(816 + 22 * k, 1166, 8, 8, rx=1, f=WHITE, s=INK, w=0.8)])
-              for k in range(3)], c=ZL2))
-
-# --- truck loading bays -------------------------------------------------------------
-for k, xl in enumerate(BAY_X):
-    tag = f"BAY-{k + 1:02d}"
-    arm_x = ISL_X[k] + ISL_W / 2                                          # serving island centre
-    bay_c = xl + BAY_W / 2
-    els = [rect(xl, ISL_Y0, BAY_W, ISL_Y1 - ISL_Y0, s=INK, w=1),                       # bay envelope
-           G([line(xl, 1020, xl, 1390, s=MID, w=0.6, d="8 4"),                       # lane edges
-              line(xl + BAY_W, 1020, xl + BAY_W, 1390, s=MID, w=0.6, d="8 4"),
-              rect(bay_c - 6.5, 1098, 13, 80, rx=5, f=WHITE, s=STEEL, w=0.9),         # tanker barrel
-              rect(bay_c - 5.5, 1180, 11, 16, rx=2, f=WHITE, s=STEEL, w=0.9),         # cab
-              line(xl + 2, 1090, xl + BAY_W - 2, 1090, s=INK, w=0.8, d="3 2")], c=ZL2),  # stop line
-           G([circle(bay_c, yy, 1.8, f=WHITE, s=INK, w=0.6) for yy in (1118, 1138, 1158)] +   # manways
-             [circle(arm_x, 1140, 32, s=STEEL, w=0.7, d="4 3"),                             # arm envelope
-              circle(arm_x, 1140, 3, f=INK),                                                # pedestal
-              line(arm_x, 1140, bay_c, 1138, s=INK, w=1.6)], c=ZL3)]                        # loading arm
-    MEC.append(G(els, data_cmp_id="CMP-EQP-BAY", data_tag=tag, c="dt-interactive"))
+# truck loading bays
+for k_, xl in enumerate(BAY_X):
+    tag = f"BAY-{k_ + 1:02d}"
+    arm_x, bay_c = ISL_X[k_] + ISL_W / 2, xl + BAY_W / 2
+    els = [rect(xl, 15, BAY_W, 110, s=INK, w=1),
+           G([line(xl, GANT_Y0, xl, GANT_Y1, s=MID, w=0.6, d="8 4"), line(xl + BAY_W, GANT_Y0, xl + BAY_W, GANT_Y1, s=MID, w=0.6, d="8 4"),
+              rect(bay_c - 6.5, 30, 13, 60, rx=5, f=WHITE, s=STEEL, w=0.9),
+              rect(bay_c - 5.5, 92, 11, 16, rx=2, f=WHITE, s=STEEL, w=0.9),
+              line(xl + 2, 24, xl + BAY_W - 2, 24, s=INK, w=0.8, d="3 2")], c=ZL2),
+           G([circle(bay_c, yy, 1.8, f=WHITE, s=INK, w=0.6) for yy in (45, 60, 75)] +
+             [circle(arm_x, 70, 26, s=STEEL, w=0.7, d="4 3"), circle(arm_x, 70, 3, f=INK),
+              line(arm_x, 70, bay_c, 60, s=INK, w=1.6)], c=ZL3)]
+    MEC.append(GF.g([G(els, data_cmp_id="CMP-EQP-BAY", data_tag=tag, c="dt-interactive")]))
 
 # ==========================================================================
-#                               L-PIPE
+#                                L-PIPE
 # ==========================================================================
-def pl(d, kind="A", w=3.0):
-    return path(d, s=INK if kind == "A" else STEEL, w=w, lj="round")
+# --- SN trunk with expansion loops (project to -u), SA, SB, SR sleeper trunks ----------
+def trunk_v(c_u, v0, v1, loops, depth_sign, line_off, kind):
+    """Trunk along v at u=c_u+line_off with U-loops projecting depth_sign*(depth) in u."""
+    pts = [(c_u + line_off, v0)]
+    for vc, wd, dp in sorted(loops):
+        pts += [(c_u + line_off, vc - wd / 2), (c_u + line_off + depth_sign * dp, vc - wd / 2),
+                (c_u + line_off + depth_sign * dp, vc + wd / 2), (c_u + line_off, vc + wd / 2)]
+    pts.append((c_u + line_off, v1))
+    return pts
 
 
-# S1 manifold header, both lines, with expansion loops (south)
-S1_LOOPS_A = [(860, 76, 46), (1500, 76, 46)]
-S1_LOOPS_B = [(860, 52, 32), (1500, 52, 32)]
-PIP.append(pl(hpath(S1_A, S1_X0, S1_X1, S1_LOOPS_A, +1), "A"))
-PIP.append(pl(hpath(S1_B, S1_X0, S1_X1, S1_LOOPS_B, +1), "B"))
+SN_A = trunk_v(346, -82, 296, [(-30, 36, 14), (190, 36, 14)], -1, 0, "A")
+PIP.append(pipe(SN_A, "A", 3.0))                       # SN  : farm outlet header -> SA / SR
+PIP.append(pipe([(346, 111), (672, 111)], "A", 3.0))     # SA  : trunk to the pump station
+PIP.append(pipe([(672, 20), (672, 264)], "A", 3.0))      # SB  : trunk past pump suction and manifold
+PIP.append(pipe([(346, 290), (600, 290)], "A", 3.0))     # SR  : trunk along the TF3 / TF4 corridor
 
-# S2: vertical + horizontal to gantry, loops projecting north
-PIP.append(pl(hpath(S2H_A, S2V_AX, 1590, [(1350, 36, 24)], -1, start=f"M{S2V_AX},{S1_A} V{S2H_A}"), "A"))
-PIP.append(pl(hpath(S2H_B, S2V_BX, 1600, [(1350, 58, 38)], -1, start=f"M{S2V_BX},{S1_B} V{S2H_B}"), "B"))
-for x in (1410, 1470, 1530, 1590):                        # drops to loading-arm pedestals
-    PIP.append(pl(f"M{x},{S2H_A} V1140", "A", 2.6))
-    flange(x, 1052, "v")
+# --- farm collectors and tank stubs -------------------------------------------------------------
+def collector(pts, w=2.4):
+    PIP.append(pipe(pts, "A", w))
 
-# Tank Farm 1 branches (two lines per tank)
-for _, cx, cy in TK1:
-    y_end = cy + math.sqrt(TK1_R ** 2 - 36)
-    PIP.append(pl(f"M{cx-6},{S1_A} V{n(y_end)}", "A"))
-    PIP.append(pl(f"M{cx+6},{S1_B} V{n(y_end)}", "B"))
-    valve(cx - 6, 646, "v")
-    valve(cx + 6, 654, "v")
-    flange(cx - 6, y_end + 8, "v")
-    flange(cx + 6, y_end + 8, "v")
 
-# Tank Farm 2 branches (risers + stubs into each cone-roof tank)
-for col, cx in enumerate((TK2[0][1], TK2[1][1])):
-    xa, xb = cx - 84, cx - 74
-    top_cy, bot_cy = TK2[0][2], TK2[2][2]
-    xs_ = cx - math.sqrt(TK2_R ** 2 - 36)
-    PIP.append(pl(f"M{xa},{S1_A} V{top_cy-6} H{n(xs_)}", "A", 2.6))
-    PIP.append(pl(f"M{xb},{S1_B} V{top_cy+6} H{n(xs_)}", "B", 2.6))
-    PIP.append(pl(f"M{xa},{bot_cy-6} H{n(xs_)}", "A", 2.6))
-    PIP.append(pl(f"M{xb},{bot_cy+6} H{n(xs_)}", "B", 2.6))
-    valve(xa, 646, "v")
-    valve(xb, 654, "v")
-    for yy in (top_cy - 6, top_cy + 6, bot_cy - 6, bot_cy + 6):
-        flange(xs_ - 6, yy, "h")
+def stub_v(t, vc):        # stub along v from shell to collector at v=vc
+    tag, u, v, rp, *_ = t
+    s = 1 if vc > v else -1
+    PIP.append(pipe([(u, v + s * rp), (u, vc)], "A", 2.0))
+    STUBS[tag] = PIPE_NET[-1]
+    flange((u, v + s * (rp + 1.5)), "v", 3.6)
 
-# Pump station piping
-xs_list = [PX0 + PITCH * i + 11 for i in range(6)]
-PIP.append(pl(f"M{S1_X0 + 15},{S1_B} V850 H{xs_list[-1]}", "B", 3.0))          # suction header
-PIP.append(pl(f"M{xs_list[0]},745 H790 V{S1_A}", "A", 3.0))                    # discharge header
-for xs in xs_list:
-    PIP.append(pl(f"M{xs},805 V850", "B", 2.4))
-    PIP.append(pl(f"M{xs},785 V745", "A", 2.4))
-    valve(xs, 830, "v")
-    check_valve(xs, 770)
-    valve(xs, 756, "v")
-    flange(xs, 806, "v")
-    flange(xs, 780, "v")
-for _, x, y in HX:                                        # heater tie-ins to suction header
-    for xo in (12, 68):
-        PIP.append(pl(f"M{x+xo},850 V{y}", "B", 2.2))
-        flange(x + xo, y - 8, "v")
 
-# Manifold block (5 headers + valve ladders)
-MF_Y = [740 + 25 * i for i in range(5)]
-PIP.append(pl(f"M1000,{MF_Y[0]} H{S2V_AX}", "A", 2.8))
-PIP.append(pl(f"M1000,{MF_Y[1]} H{S2V_BX}", "B", 2.8))
-for yy in MF_Y[2:]:
-    PIP.append(pl(f"M1000,{yy} H1250", "A" if yy % 50 else "B", 2.8))
-PIP.append(pl(f"M1006,{MF_Y[0]} V{S1_A}", "A", 2.4))
-PIP.append(pl(f"M1018,{MF_Y[1]} V{S1_B}", "B", 2.4))
-for xt in (1070, 1190):
-    PIP.append(path(f"M{xt},{MF_Y[0]} V{MF_Y[-1]}", s=INK, w=1.6))
-    for a_, b_ in zip(MF_Y[:-1], MF_Y[1:]):
-        valve(xt, (a_ + b_) / 2, "v", 4)
-for yy in MF_Y:
-    for xv in (1035, 1230):
-        if xv == 1230 and yy in MF_Y[:2]:
-            continue
-        valve(xv, yy, "h", 4)
-    if yy in MF_Y[2:]:
-        flange(1250, yy, "h")
-for xv, yy in ((1006, 700), (1018, 708)):
-    valve(xv, yy, "v", 3.6)
+def stub_u(t, uc):
+    tag, u, v, rp, *_ = t
+    s = 1 if uc > u else -1
+    PIP.append(pipe([(u + s * rp, v), (uc, v)], "A", 2.0))
+    STUBS[tag] = PIPE_NET[-1]
+    flange((u + s * (rp + 1.5), v), "u", 3.6)
 
-# tank-farm / header isolation valves along S1 and S2 lines
-for xv in (330, 700, 1100, 1250):
-    valve(xv, S1_A, "h", 4)
-valve(S2V_AX, 800, "v", 4)
-valve(S2V_BX, 800, "v", 4)
-for xv in (1410, 1470, 1530, 1590):
-    valve(xv, 960, "v", 4)
+
+sw = TKS["SW"]
+collector([(488, -77), (346, -77)])
+STUBS["TK-0105"] = PIPE_NET[-1]          # the big tank is fed directly by the end of its collector
+for t in sw[:4]:
+    stub_v(t, -77)
+valve((366, -77), "u")
+st = TKS["ST"]
+collector([(602, 74), (346, 74)])
+for t in st:
+    stub_v(t, 74)
+valve((392, 74), "u")
+for vc in (170, 210):
+    collector([(586, vc), (346, vc)])
+    valve((386, vc), "u")
+for t in TKS["CE"]:
+    stub_v(t, 170 if t[2] <= 190 else 210)
+ne_small = [t for t in TKS["NE"] if t[3] == 15]
+collector([(522, 290), (522, 398)])
+for t in ne_small:
+    stub_u(t, 522)
+valve((522, 312), "v")
+collector([(600, 290), (600, 364.5), (642, 364.5)])
+for t in TKS["NE"][-2:]:
+    stub_v(t, 364.5)
+valve((620, 364.5), "u")
+
+# --- pump-station piping (suction north, discharge south) -------------------------------------------
+xcs = [PUMP_X0 + PUMP_PITCH * i + 11 * PUMP_S for i in range(6)]
+SUC_U = PF.uv(0, 20)[0]
+DIS_U = PF.uv(0, 76)[0]
+PIP.append(pipe([(672, 122), (SUC_U, 122), (SUC_U, PF.uv(xcs[-1], 20)[1])], "A", 3.0))
+PIP.append(pipe([(DIS_U, PF.uv(xcs[0], 0)[1]), (DIS_U, MF.uv(4, 0)[1])], "A", 3.0))
+for xc in xcs:
+    PIP.append(pipe([PF.uv(xc, 20), PF.uv(xc, PUMP_Y + 5.25 - 1.5)], "A", 2.2))
+    PIP.append(pipe([PF.uv(xc, PUMP_Y + 14 - 5.25 + 1.5), PF.uv(xc, 76)], "A", 2.2))
+    valve(PF.uv(xc, 30), "u", 4)
+    check_valve(PF.uv(xc, 62), "u")
+    valve(PF.uv(xc, 69), "u", 4)
+    flange(PF.uv(xc, 40), "u")
+    flange(PF.uv(xc, 58), "u")
+valve((680, 122), "u", 4)
+
+# --- manifold block: 5 headers + valve ladders ---------------------------------------------------------
+MH = [12 + 14 * k_ for k_ in range(5)]
+for k_, yy in enumerate(MH):
+    x_end = 146
+    PIP.append(pipe([MF.uv(4, yy), MF.uv(x_end, yy)], "A" if k_ % 2 == 0 else "B", 2.6))
+    for xv in (16, 134):
+        valve(MF.uv(xv, yy), "v", 4)
+    if k_ >= 3:
+        flange(MF.uv(x_end, yy), "v")
+for xt in (50, 100):
+    for a_, b_ in zip(MH[:-1], MH[1:]):
+        PIP.append(pipe([MF.uv(xt, a_), MF.uv(xt, b_)], "A", 1.6))
+        valve(MF.uv(xt, (a_ + b_) / 2), "u", 3.6)
+PIP.append(pipe([(672, 262), (MF.uv(0, MH[0])[0], 262), MF.uv(4, MH[0])], "A", 2.6))
+# manifold -> gantry loading header
+G_A = GF.uv(0, 5)
+PIP.append(pipe([MF.uv(146, MH[2]), (MF.uv(146, MH[2])[0], 358), (G_A[0], 358), G_A], "A", 2.8))
+valve((MF.uv(146, MH[2])[0], 350), "v", 4)
+PIP.append(pipe([GF.uv(0, 5), GF.uv(GANT_W - 6, 5)], "A", 2.8))
+for k_ in range(4):
+    xa = ISL_X[k_] + ISL_W / 2
+    PIP.append(pipe([GF.uv(xa, 5), GF.uv(xa, 70)], "A", 2.4))
+    valve(GF.uv(xa, 40), "u", 4)
+    flange(GF.uv(xa, 62), "u")
+# R-06 crossing sleeves for suction / manifold branches
+for (a_, b_) in [(122, 122), (262, 262)]:
+    sleeves_extra = polyg([UVu(690 - HW - 2, a_ - 8), UVu(690 + HW + 2, a_ - 8), UVu(690 + HW + 2, a_ + 8), UVu(690 - HW - 2, a_ + 8)],
+                         s=STEEL, w=1, d="4 2")
+    CIV.append(G([sleeves_extra], c=ZL2))
 
 PIP.append(G(VAL2, c=ZL2))
 PIP.append(G(VAL3, c=ZL3))
 PIP.append(G(FLG, c=ZL3))
-# pipe supports inside bunds (L2) -- low sleepers under tank-farm lines
-sup = []
-for _, cx, cy in TK1:
-    for yy in range(int(cy + TK1_R + 12), int(B1[3] - WALL_T), 30):
-        sup.append(rect(cx - 12, yy, 24, 3, f=STEEL, s=INK, w=0.3))
-PIP.append(G(sup, c=ZL2))
 
 # ==========================================================================
-#                               L-FIRE
+#                                L-FIRE
 # ==========================================================================
-mains = [rect(58, 58, W - 116, H - 116, s=STEEL, w=2.4, d="16 4 3 4"),               # ring main
-         path("M982,58 V1442", s=STEEL, w=2.0, d="16 4 3 4"),                         # internal branch
-         path("M880,1170 H982", s=STEEL, w=2.0, d="16 4 3 4")]                        # FW pump-house tie
+mains = [path(pts_path([P(*q) for q in RINGM], True), s=STEEL, w=2.4, d="16 4 3 4")]
+main_segs = [(RINGM[i], RINGM[(i + 1) % len(RINGM)]) for i in range(len(RINGM))]
+for (rid, pts), (_, pu, _s0, _s1) in zip(ROADS_PX, ROADS):
+    (u1, v1), (u2, v2) = pu[0], pu[-1]
+    da = uvp(0, 6) if v1 == v2 else uvp(6, 0)           # underground main 6 px beside the road centre-line
+    sa = (pts[0][0] + da[0], pts[0][1] + da[1])
+    sb = (pts[-1][0] + da[0], pts[-1][1] + da[1])
+    mains.append(path(pts_path([P(*sa), P(*sb)]), s=STEEL, w=2.0, d="16 4 3 4"))
+    main_segs.append((sa, sb))
 FIR.append(G(mains))
 
+
+def nearest_main(p):
+    best, bp = 1e9, None
+    for a, b in main_segs:
+        ax, ay = a
+        bx, by = b
+        dx, dy = bx - ax, by - ay
+        t = max(0, min(1, ((p[0] - ax) * dx + (p[1] - ay) * dy) / (dx * dx + dy * dy)))
+        q = (ax + t * dx, ay + t * dy)
+        d = math.hypot(p[0] - q[0], p[1] - q[1])
+        if d < best:
+            best, bp = d, q
+    return bp
+
+
+# hydrants: perimeter line (between fence and road) + beside internal roads
 hyd = []
-for x in range(200, 1801, 200):
-    hyd.append((x, 48))
-    if not (300 <= x <= 420):
-        hyd.append((x, H - 48))
-for y in range(200, 1401, 200):
-    hyd.append((48, y))
-    hyd.append((W - 48, y))
-for y in range(200, 1400, 200):
-    if any(a - 12 <= y <= b + 12 for a, b in (R5_BAND, R2_BAND)):
-        continue
-    hyd.append((982, y))
+acc = 0.0
+for i in range(len(HYDR)):
+    a, b = HYDR[i], HYDR[(i + 1) % len(HYDR)]
+    L = math.hypot(b[0] - a[0], b[1] - a[1])
+    pos = 20 - acc
+    while pos < L:
+        t = pos / L
+        q = (a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1]))
+        if math.hypot(q[0] - GATE_PX[0], q[1] - GATE_PX[1]) > 22 and pip(q, BND) and dist_poly(q, BND) > 3:
+            hyd.append((q, "perim"))
+        pos += 80
+    acc = (pos - L)
+for (rid, pts) in ROADS_PX:
+    for i in range(len(pts) - 1):
+        a, b = pts[i], pts[i + 1]
+        L = math.hypot(b[0] - a[0], b[1] - a[1])
+        ux_, uy_ = (b[0] - a[0]) / L, (b[1] - a[1]) / L
+        nx_, ny_ = -uy_, ux_
+        pos, side = 30, 1
+        while pos < L - 15:
+            for sgn in (side, -side):
+                q = (a[0] + ux_ * pos + nx_ * 11.5 * sgn, a[1] + uy_ * pos + ny_ * 11.5 * sgn)
+                if free(q):
+                    hyd.append((q, "road"))
+                    break
+            pos += 90
+            side = -side
 hyd_sym, hyd_spur, hyd_tag = [], [], []
-for i, (x, y) in enumerate(hyd, 1):
+for i, (q, kind) in enumerate(hyd, 1):
+    x, y = P(*q)
     hyd_sym += [circle(x, y, 4.5, f=WHITE, s=INK, w=1.2), circle(x, y, 1.4, f=INK)]
-    if x in (48, W - 48) or y in (48, H - 48):
-        tx, ty = (58, y) if x == 48 else ((W - 58, y) if x == W - 48 else ((x, 58) if y == 48 else (x, H - 58)))
-        hyd_spur.append(line(x, y, tx, ty, s=STEEL, w=1.2))
-    hyd_tag.append(text(x + 7, y - 6, f"FH-{i:02d}", size=5.5))
+    m_ = nearest_main(q)
+    if m_ is not None and math.hypot(q[0] - m_[0], q[1] - m_[1]) < 25:
+        hyd_spur.append(line(x, y, *P(*m_), s=STEEL, w=1.2))
+    hyd_tag.append(text(x + 6, y - 5, f"FH-{i:02d}", size=5.5))
 FIR.append(G(hyd_sym))
 FIR.append(G(hyd_spur, c=ZL2))
 FIR.append(G(hyd_tag, c=ZL3))
 
-FM = [("FM-01", 865, 160, (982, 160)), ("FM-02", 865, 555, (982, 555)),
-      ("FM-03", 1270, 160, (982, 160)), ("FM-04", 1270, 555, (982, 555)),
-      ("FM-05", 1870, 360, (W - 58, 360)), ("FM-06", 260, 740, (58, 740)),
-      ("FM-07", 1352, 1060, (982, 1060)), ("FM-08", 1710, 1060, (W - 58, 1060))]
-cov, fm_sym, fm_sp, fm_tag = [], [], [], []
-for tag, x, y, tgt in FM:
-    cov.append(circle(x, y, U(50), s=MID, w=0.7, d="10 6", o=0.55))
-    fm_sp.append(line(x, y, tgt[0], tgt[1], s=STEEL, w=1.4, d="6 3"))
-    fm_sym += [rect(x - 6, y - 6, 12, 12, f=WHITE, s=INK, w=1.3),
-               line(x - 6, y - 6, x + 6, y + 6, s=INK, w=0.8), line(x - 6, y + 6, x + 6, y - 6, s=INK, w=0.8),
-               circle(x, y, 2.4, f=INK)]
-    fm_tag.append(text(x + 9, y + 3, tag, size=6.5))
+# foam monitor towers: two diagonal corners of every bund (on the wall), plus pump/gantry
+fm_list = []
+for k_, poly_ in BUNDS.items():
+    cen = (sum(q[0] for q in poly_) / len(poly_), sum(q[1] for q in poly_) / len(poly_))
+    best, pair = -1, None
+    for i in range(len(poly_)):
+        for j in range(i + 1, len(poly_)):
+            d = math.hypot(poly_[i][0] - poly_[j][0], poly_[i][1] - poly_[j][1])
+            if d > best:
+                best, pair = d, (i, j)
+    for idx in pair:
+        q = poly_[idx]
+        d = (cen[0] - q[0], cen[1] - q[1])
+        L = math.hypot(*d)
+        fm_list.append((q[0] + d[0] / L * 3.5, q[1] + d[1] / L * 3.5))
+fm_list += [uvp(705, 254), uvp(676, 470)]
+cov, fm_sp, fm_sym, fm_tag = [], [], [], []
+for i, q in enumerate(fm_list, 1):
+    x, y = P(*q)
+    cov.append(circle(x, y, U(50), s=MID, w=0.7, d="10 6", o=0.5))
+    m_ = nearest_main(q)
+    fm_sp.append(line(x, y, *P(*m_), s=STEEL, w=1.4, d="6 3"))
+    fm_sym += [rect(x - 5, y - 5, 10, 10, f=WHITE, s=INK, w=1.3), line(x - 5, y - 5, x + 5, y + 5, s=INK, w=0.8),
+               line(x - 5, y + 5, x + 5, y - 5, s=INK, w=0.8), circle(x, y, 2, f=INK)]
+    fm_tag.append(text(x + 8, y + 3, f"FM-{i:02d}", size=6))
 FIR.append(G(cov, c=ZL2))
 FIR.append(G(fm_sp, c=ZL2))
 FIR.append(G(fm_sym))
 FIR.append(G(fm_tag, c=ZL2))
 
 # ==========================================================================
-#                               L-ANNO
+#                                L-ANNO
 # ==========================================================================
 # coordinate grid (40 m modules) with bubbles on all four sides
 grid, bub = [], []
-cols_ = "ABCDEFGHI"
-for k, x in enumerate(range(200, 1801, 200)):
+for k_, x in enumerate(range(200, 1801, 200)):
     grid.append(line(x, 26, x, H - 26, s=MID, w=0.5, d="2 6", o=0.7))
     for yb in (17, H - 17):
-        bub += [circle(x, yb, 9, f=WHITE, s=INK, w=0.8), text(x, yb + 3, cols_[k], size=8, anchor="middle")]
-for k, y in enumerate(range(200, 1401, 200)):
+        bub += [circle(x, yb, 9, f=WHITE, s=INK, w=0.8), text(x, yb + 3, "ABCDEFGHI"[k_], size=8, anchor="middle")]
+for k_, y in enumerate(range(200, 1401, 200)):
     grid.append(line(26, y, W - 26, y, s=MID, w=0.5, d="2 6", o=0.7))
     for xb in (17, W - 17):
-        bub += [circle(xb, y, 9, f=WHITE, s=INK, w=0.8), text(xb, y + 3, str(k + 1), size=8, anchor="middle")]
+        bub += [circle(xb, y, 9, f=WHITE, s=INK, w=0.8), text(xb, y + 3, str(k_ + 1), size=8, anchor="middle")]
 ANN.append(G(grid, c=ZL2))
 ANN.append(G(bub))
 
-# zone labels + zone envelopes
-ANN.append(text(B1[0] + 6, 131, "ZONE 1 — TANK FARM 1 · CRUDE OIL (CLASS I) · FLOATING ROOF", size=11, weight="bold"))
-ANN.append(text(B2[0] + 6, 131, "ZONE 2 — TANK FARM 2 · REFINED PRODUCTS / DIESEL · CONE ROOF", size=11, weight="bold"))
-ANN.append(text(322, 708, "ZONE 3 — MANIFOLD & PUMP STATION (PUMPS)", size=10, weight="bold"))
-ANN.append(text(996, 706, "ZONE 3 — MANIFOLD", size=10, weight="bold"))
-ANN.append(text(1380, 1295, "ZONE 4 — TRUCK LOADING GANTRY (4 BAYS)", size=11, weight="bold"))
-ANN.append(G([rect(312, 712, 456, 180, s=INK, w=0.8, d="14 4 3 4"),
-              rect(986, 710, 283, 158, s=INK, w=0.8, d="14 4 3 4"),
-              rect(1360, 1020, 340, 372, s=INK, w=0.8, d="14 4 3 4")]))
-
 # tank tags
-for tag, cx, cy in TK1:
-    ANN.append(text(cx, cy - 2, tag, size=17, anchor="middle", weight="bold"))
-    ANN.append(text(cx, cy + 14, f"Ø{TK1_D:.0f} m · FLOATING ROOF · H {TK1_H:.0f} m", size=7.5, anchor="middle"))
-for tag, cx, cy in TK2:
-    ANN.append(text(cx, cy - 20, tag, size=12, anchor="middle", weight="bold"))
-    ANN.append(text(cx, cy - 8, f"Ø{TK2_D:.0f} m · CONE ROOF", size=6.5, anchor="middle"))
-ANN.append(text(FW_TK[1], FW_TK[2] - 12, FW_TK[0], size=10, anchor="middle", weight="bold"))
-ANN.append(text(FW_TK[1], FW_TK[2], f"FIRE WATER Ø{FW_D:.0f} m", size=6.5, anchor="middle"))
+for t in ALL_TANKS:
+    cx, cy = UVu(t[1], t[2])
+    r = t[3] * K
+    big = r > 44
+    ANN.append(text(cx, cy + (2 if not big else -3), t[0], size=14 if big else (8.5 if r > 30 else 7.5), anchor="middle", weight="bold"))
+    if big:
+        ANN.append(text(cx, cy + 13, f"Ø{2*r*M_PER_UNIT:.0f} m · {'FLOATING' if t[4]=='FR' else 'CONE'} ROOF", size=7, anchor="middle"))
 
-# pump / HX / bay / building tags
-ANN.append(G([text(PX0 + PITCH * i + 18, 773, t, size=7, weight="bold") for i, t in enumerate(PUMP_TAGS)], c=ZL2))
-ANN.append(G([text(x + 40, y + 29, t, size=7, anchor="middle", weight="bold") for t, x, y in HX], c=ZL2))
-for k, xl in enumerate(BAY_X):
-    ANN.append(text(xl + BAY_W / 2, 1247, f"BAY-{k + 1:02d}", size=8, anchor="middle", weight="bold"))
-ANN.append(text(240, 1181, "ADMIN / CONTROL BUILDING", size=8, anchor="middle", weight="bold"))
-ANN.append(text(425, 1078, "SUBSTATION / MCC", size=7, anchor="middle", weight="bold"))
-ANN.append(text(835, 1215, "FIRE WATER PUMP HOUSE", size=7, anchor="middle", weight="bold"))
-ANN.append(text(270, 1056, "PARKING", size=7, anchor="middle"))
-ANN.append(text(415, 1432, "GATE-HOUSE", size=6.5, anchor="middle"))
-ANN.append(text((g0 + g1) / 2, 1486, "MAIN GATE", size=8, anchor="middle", weight="bold"))
-ANN.append(text(1125, 1222, "RETENTION / OWS BASIN", size=9, anchor="middle", weight="bold"))
-ANN.append(text(1135, 902, "MANIFOLD M-0101  (5 HEADERS)", size=8, anchor="middle", weight="bold"))
-ANN.append(G([text(450, 662, "SLEEPERWAY S1 · 6.0 m · HEADER A (PRODUCT) / HEADER B (SUCTION)", size=6.5),
-              text(1301, 905, "S2 · TO LOADING GANTRY", size=6.5),
-              text(860, 735, "EXP. LOOP", size=6, anchor="middle"),
-              text(1500, 735, "EXP. LOOP", size=6, anchor="middle"),
-              text(1350, 883, "EXP. LOOP", size=6, anchor="middle")], c=ZL2))
+# zone bubbles + key
+ZONES = [("1", "TANK FARM 1 — CRUDE OIL (CLASS I) · FLOATING ROOF", (470, -77)),
+         ("2", "TANK FARM 2 — DIESEL · CONE ROOF", (506, 52)),
+         ("3", "TANK FARM 3 — REFINED PRODUCTS · CONE ROOF", (493, 190)),
+         ("4", "TANK FARM 4 — PRODUCTS (CONE) + CRUDE FR", (520, 362)),
+         ("5", "MANIFOLD & PUMP STATION", (727, 185)),
+         ("6", "TRUCK LOADING GANTRY (4 BAYS)", (700, 428)),
+         ("7", "MCR · FIRE WATER · OWS BASIN · HV SUBSTATION", (800, 255)),
+         ("8", "SERVICES — MAINTENANCE WAREHOUSE · LUBE STORE", (408, 372))]
+zb = []
+for num, name, (zu, zv) in ZONES:
+    x, y = UVu(zu, zv)
+    zb += [circle(x, y, 12, f=INK), text(x, y + 4.5, num, size=13, anchor="middle", weight="bold", f=LIGHT)]
+ANN.append(G(zb))
 
-# roads
-ANN.append(G([text(500, 94, "PERIMETER FIRE ACCESS ROAD · 8.0 m · Ri = 15 m", size=8, anchor="middle"),
-              text(R1X + 3, 400, "FIRE ACCESS ROAD R-01 · 8.0 m", size=8, anchor="middle", rot=-90),
-              text(1130, R5Y + 3, "ACCESS ROAD R-02 · 8.0 m", size=8, anchor="middle"),
-              text(600, R2Y + 3, "ACCESS ROAD R-03 · 8.0 m", size=8, anchor="middle"),
-              text(850, R6Y + 3, "R-04 PUMP ACCESS", size=7, anchor="middle")], c=ZL2))
+# equipment labels (L2 where small)
+ANN.append(G([text(*PF.pt(PUMP_X0 + PUMP_PITCH * i + 2, 38), t, size=6, weight="bold") for i, t in enumerate(PUMP_TAGS)], c=ZL2))
+for k_, xl in enumerate(BAY_X):
+    ANN.append(text(*GF.pt(xl + BAY_W / 2, 140), f"BAY-{k_ + 1:02d}", size=7.5, anchor="middle", weight="bold"))
+ANN.append(text(*MF.pt(75, 90), "MANIFOLD M-0101 · 5 HDRS", size=6.5, anchor="middle", weight="bold"))
+BLDG_SHORT = {"MCR": "MCR", "FAR": "FAR", "HV SUB": "HV SUB", "MCC-1": "MCC-1", "MCC-2": "MCC-2", "MCC-3": "MCC-3",
+              "WH-01": "WH-01", "WH-02": "WH-02", "FW PUMP HOUSE": "FWPH"}
+for name, (a0, a1, b0, b1) in BLDG.items():
+    ANN.append(text(*UVu((a0 + a1) / 2, (b0 + b1) / 2 + 1.5), BLDG_SHORT[name], size=6.2, anchor="middle", weight="bold"))
+    ANN.append(G([text(*UVu((a0 + a1) / 2, (b0 + b1) / 2 - 6), BLDG_INFO[name][0], size=4.6, anchor="middle")], c=ZL2))
+ANN.append(G([text(*UVu((BASIN[0] + BASIN[1]) / 2, (BASIN[2] + BASIN[3]) / 2), "RETENTION / OWS BASIN", size=7, anchor="middle", weight="bold")]))
+for gid, role, ei_, gp_ in GATES:
+    (gx_, gy_), d_, nout_ = GATE_U[gid]
+    ANN.append(text(gx_ + nout_[0] * 40, gy_ + nout_[1] * 40 + 2, f"{gid} · {role}", size=8, anchor="middle", weight="bold"))
+ANN.append(G([text(*P(*lerp(GATEHOUSES["G1"][0], GATEHOUSES["G1"][2], 0.5)), "GATE-HOUSE", size=4.8, anchor="middle"),
+              text(*P(*lerp(GATEHOUSES["G2"][0], GATEHOUSES["G2"][2], 0.5)), "GATE-HOUSE", size=4.8, anchor="middle"),
+              text(*P(_wbc[0], _wbc[1] + 11), "WEIGHBRIDGE", size=5.5, anchor="middle")], c=ZL2))
+_yc = lerp(lerp(YARD_PX[0], YARD_PX[3], 0.5), lerp(YARD_PX[1], YARD_PX[2], 0.5), 0.5)
+ANN.append(text(*P(_yc[0] - 17, _yc[1] + 4), "HV STAGING / QUEUE (one-way)", size=6.5, anchor="middle", weight="bold", rot=-88))
+ANN.append(G([text(*UVu(735, LANE_V[0] - 14), "LANE 1-4  (one-way, SE → NW)", size=6, anchor="start", rot=ROT)], c=ZL2))
+ANN.append(G([text(*UVu(690 + 1.5, 200), "HV EXIT — ONE-WAY SOUTH", size=6, anchor="middle", rot=ROT)], c=ZL2))
+ANN.append(text(*P(700, 548), "PUBLIC ROAD", size=8, anchor="middle", rot=-11.3))
+ANN.append(G([text(*UVu(430, 8 + 1.5), "R-01 · 6.0 m FIRE ACCESS", size=6.5, anchor="middle", rot=GRID_DEG),
+              text(*UVu(520, 92 + 1.5), "R-02", size=6.5, anchor="middle", rot=GRID_DEG),
+              text(*UVu(364 + 1.5, 170), "R-03", size=6.5, anchor="middle", rot=ROT),
+              text(*UVu(520, 273 + 1.5), "R-04", size=6.5, anchor="middle", rot=GRID_DEG),
+              text(*UVu(690 + 1.5, 330), "R-06", size=6.5, anchor="middle", rot=ROT),
+              text(*UVu(585 + 1.5, 440), "R-07", size=6.5, anchor="middle", rot=ROT),
+              text(*UVu(450, 111 - 5.0), "SLEEPERWAY SA · HEADERS A/B", size=6, anchor="middle", rot=GRID_DEG),
+              text(*UVu(346 - 6, 120), "SN · TRUNK", size=6, anchor="middle", rot=ROT),
+              text(*UVu(346 - 20, -30), "EXP. LOOP", size=5.5, anchor="middle", rot=ROT),
+              text(*UVu(346 - 20, 190), "EXP. LOOP", size=5.5, anchor="middle", rot=ROT)], c=ZL2))
 
-# dimensions (shell-to-shell spacing)
-ANN.append(dim_h(TK1[0][1] + TK1_R, TK1[1][1] - TK1_R, 340, f"{GAP1:.1f} m"))
-ANN.append(dim_h(TK2[0][1] + TK2_R, TK2[1][1] - TK2_R, TK2[0][2], f"{GAP2_X:.1f} m"))
-ANN.append(dim_v(TK2[0][1] + 30, TK2[0][2] + TK2_R, TK2[2][2] - TK2_R, f"{GAP2_Y:.1f} m"))
+# dimensions (shell-to-shell spacing) — SW and NE examples
+def dim_uv(a, b, label):
+    (x1, y1), (x2, y2) = UVu(*a), UVu(*b)
+    mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+    return G([line(x1, y1, x2, y2, s=INK, w=0.6), circle(x1, y1, 1.6, f=INK), circle(x2, y2, 1.6, f=INK),
+              text(mx, my - 4, label, size=6.5, anchor="middle")], c=ZL2)
 
-# bund data block
+
+def gap_m(t1, t2):
+    return (math.hypot(t1[1] - t2[1], t1[2] - t2[2]) - t1[3] - t2[3]) * K * M_PER_UNIT
+
+
+ANN.append(dim_uv((396 + 0, -110 + 24), (402, -44 - 23), f"{gap_m(sw[0], sw[1]):.1f} m"))
+ANN.append(dim_uv((400, 150 + 14), (400, 190 - 14), f"{gap_m(TKS['CE'][0], TKS['CE'][1]):.1f} m"))
+
+# compass rose (plant north = up), scale bar, bund data, title block, legend
+cr_x, cr_y = 120, 520
+ANN.append(G([circle(cr_x, cr_y, 36, s=INK, w=1), circle(cr_x, cr_y, 3, f=INK),
+              polyg([(cr_x, cr_y - 36), (cr_x - 7, cr_y), (cr_x + 7, cr_y)], f=INK),
+              polyg([(cr_x, cr_y + 36), (cr_x - 7, cr_y), (cr_x + 7, cr_y)], f=WHITE, s=INK, w=0.8),
+              line(cr_x - 36, cr_y, cr_x + 36, cr_y, s=INK, w=0.8),
+              text(cr_x, cr_y - 41, "N", size=12, anchor="middle", weight="bold"),
+              text(cr_x, cr_y + 50, "S", size=8, anchor="middle"), text(cr_x + 44, cr_y + 3, "E", size=8),
+              text(cr_x - 44, cr_y + 3, "W", size=8, anchor="end"), text(cr_x, cr_y + 64, "PLANT NORTH", size=7, anchor="middle")]))
+sb_x, sb_y = 40, 610
+sb = [rect(sb_x + k_ * 50, sb_y, 50, 6, f=INK if k_ % 2 == 0 else WHITE, s=INK, w=0.8) for k_ in range(4)]
+sb += [text(sb_x + k_ * 50, sb_y + 17, str(k_ * 10), size=7, anchor="middle") for k_ in range(5)]
+sb += [text(sb_x + 215, sb_y + 17, "m", size=7), text(sb_x, sb_y - 6, "SCALE 1 unit = 0.2 m  (5 units / m)", size=7)]
+ANN.append(G(sb))
+
+
 def nf(v):
     return f"{v:,.0f}"
 
 
-ANN.append(G([
-    text(1010, 196, "BUND DATA  (NFPA 30 · 110 % OF LARGEST TANK)", size=8, weight="bold"),
-    text(1010, 208, f"B-01  TK-0101/0102  V = {nf(V1)} m³  → 110 % = {nf(C1['req'])} m³", size=7),
-    text(1010, 218, f"      H req. {C1['h_req']:.2f} m → wall H {C1['h_des']:.1f} m · net {nf(C1['net'])} m³", size=7),
-    text(1010, 232, f"B-02  TK-0201..0204  V = {nf(V2)} m³  → 110 % = {nf(C2['req'])} m³", size=7),
-    text(1010, 242, f"      H req. {C2['h_req']:.2f} m → wall H {C2['h_des']:.1f} m · net {nf(C2['net'])} m³", size=7),
-    text(1010, 252, f"      fire-break walls H {INT_H:.1f} m · cell = {cell_pct:.0f} % of tank", size=7),
-    text(1010, 266, "SHELL SPACING  (≥ D/6)", size=8, weight="bold"),
-    text(1010, 277, f"TF1  {GAP1:.1f} m ≥ {TK1_D/6:.1f} m   ·   TF2  {min(GAP2_X, GAP2_Y):.1f} m ≥ {TK2_D/6:.1f} m", size=7),
-]))
-ANN.append(G([text(142, 160, "BUND B-01", size=8, weight="bold"),
-              text(142, 170, f"110 % × TK-0101 = {nf(C1['req'])} m³", size=6.5),
-              text(142, 180, f"WALL H {C1['h_des']:.1f} m", size=6.5)], c=ZL2))
+bd = [text(40, 1270, "BUND DATA  (NFPA 30 · 110 % OF LARGEST TANK · SHELL SPACING ≥ D/6 · WALL CLEARANCE ≥ 1.5 m)", size=9, weight="bold")]
+names = {"SW": "B-01 TF1", "ST": "B-02 TF2", "CE": "B-03 TF3", "NE1": "B-04 TF4", "NE2": "B-05 TF4-FR"}
+for i, (k_, r_) in enumerate(BUND_RES.items()):
+    bd.append(text(40, 1288 + 14 * i, f"{names[k_]}  largest {r_['tag']}  V = {nf(r_['v'])} m³  → 110 % = {nf(r_['req'])} m³   "
+                   f"H req. {r_['h_req']:.2f} m → wall H {r_['h_des']:.1f} m · net {nf(r_['net'])} m³", size=7.5))
+bd.append(text(40, 1288 + 14 * 5 + 6, "Fillet R = 4.4 m at internal junctions (narrow corridors); perimeter road corners R = 15 m + half-width where edges allow.", size=7))
+bd.append(text(40, 1288 + 14 * 6 + 6, "Underground drains / OWS lines not shown. Sumps drain to the retention basin (zone 7).", size=7))
+ANN.append(G(bd))
+bk = [text(1090, 1270, "BUILDING / GATE KEY  (distributed architecture)", size=9, weight="bold")]
+for i, (nm, info) in enumerate(BLDG_INFO.items()):
+    bk.append(text(1090, 1288 + 13 * i, f"{BLDG_SHORT[nm]:6s} {info[0]}   {info[1]}  —  {info[2]}: {info[3]}", size=7))
+for j, (gid, role, ei_, gp_) in enumerate(GATES):
+    bk.append(text(1090, 1288 + 13 * (len(BLDG_INFO) + j), f"{gid:6s} {role}", size=7, weight="bold"))
+ANN.append(G(bk))
 
-# compass rose (plant north = up)
-cr_x, cr_y = 1145, 370
-ANN.append(G([circle(cr_x, cr_y, 38, s=INK, w=1), circle(cr_x, cr_y, 3, f=INK),
-              poly([(cr_x, cr_y - 38), (cr_x - 7, cr_y), (cr_x + 7, cr_y)], f=INK),
-              poly([(cr_x, cr_y + 38), (cr_x - 7, cr_y), (cr_x + 7, cr_y)], f=WHITE, s=INK, w=0.8),
-              line(cr_x - 38, cr_y, cr_x + 38, cr_y, s=INK, w=0.8),
-              text(cr_x, cr_y - 43, "N", size=12, anchor="middle", weight="bold"),
-              text(cr_x, cr_y + 52, "S", size=8, anchor="middle"),
-              text(cr_x + 46, cr_y + 3, "E", size=8), text(cr_x - 46, cr_y + 3, "W", size=8, anchor="end"),
-              text(cr_x, cr_y + 66, "PLANT NORTH", size=7, anchor="middle")]))
-# scale bar 0-40 m
-sb_x, sb_y = 1010, 470
-sb = []
-for k in range(4):
-    sb.append(rect(sb_x + k * 50, sb_y, 50, 6, f=INK if k % 2 == 0 else WHITE, s=INK, w=0.8))
-for k in range(5):
-    sb.append(text(sb_x + k * 50, sb_y + 17, f"{k * 10}", size=7, anchor="middle"))
-sb.append(text(sb_x + 215, sb_y + 17, "m", size=7))
-sb.append(text(sb_x, sb_y - 6, "SCALE 1 unit = 0.2 m  (5 units / m)", size=7))
-ANN.append(G(sb))
-
-# title block
-tb = [rect(140, 1262, 500, 118, f=WHITE, s=INK, w=1.4),
-      line(140, 1290, 640, 1290, s=INK, w=0.8), line(400, 1290, 400, 1380, s=INK, w=0.8),
-      text(150, 1281, "GENERAL ARRANGEMENT — PLOT PLAN · BULK LIQUID HYDROCARBON TERMINAL", size=10, weight="bold"),
-      text(150, 1306, "PLOT 400 m × 300 m   ·   1 UNIT = 0.2 m", size=8),
-      text(150, 1320, "DRAWING  DT-UI-SVG-DOC-001 / GA-001      REV A", size=8),
-      text(150, 1334, "TANK FARM 1: 2 × FR Ø40 m   ·   TANK FARM 2: 4 × CR Ø25 m", size=8),
-      text(150, 1348, "PUMPS: 6 × CENTRIFUGAL   ·   GANTRY: 4 BAYS", size=8),
-      text(150, 1366, "LAYERS: L-CIVIL · L-STRUCT · L-MECH · L-PIPE · L-FIRE · L-ANNO", size=7),
-      text(410, 1306, "CODES / STANDARDS", size=8, weight="bold"),
-      text(410, 1320, "NFPA 30 (spacing, diking)", size=7.5),
-      text(410, 1332, "ISA-101 (HMI, progressive disclosure)", size=7.5),
-      text(410, 1344, "ISO 13567 / AIA CAD layering", size=7.5),
-      text(410, 1356, "ISO 14224 (APM data binding)", size=7.5),
-      text(410, 1372, "COLOUR RESERVED FOR LIVE ALARMS", size=7, weight="bold")]
+tb = [rect(30, 30, 520, 118, f=WHITE, s=INK, w=1.4), line(30, 58, 550, 58, s=INK, w=0.8), line(320, 58, 320, 148, s=INK, w=0.8),
+      text(40, 49, "GENERAL ARRANGEMENT — PLOT PLAN · BULK LIQUID HYDROCARBON TERMINAL", size=9.5, weight="bold"),
+      text(40, 74, f"IRREGULAR PLOT ≈ {m2(poly_area(BND)) / 1e4:.1f} ha · 1 UNIT = 0.2 m", size=8),
+      text(40, 88, "DRAWING  DT-UI-SVG-DOC-001 / GA-003      REV B", size=8),
+      text(40, 102, f"TANKS: {sum(1 for t in ALL_TANKS if t[0] != 'TK-0501')} + 1 FW  ·  PUMPS: 6  ·  BAYS: 4", size=8),
+      text(40, 116, "LAYERS: L-CIVIL · L-STRUCT · L-MECH · L-PIPE · L-FIRE · L-ANNO", size=7),
+      text(40, 130, "SEMANTIC ZOOM: L1 macro · L2 secondary · L3 micro", size=7),
+      text(330, 74, "CODES / STANDARDS", size=8, weight="bold"), text(330, 88, "NFPA 30 (spacing, diking)", size=7.5),
+      text(330, 100, "ISA-101 (HMI, progressive disclosure)", size=7.5), text(330, 112, "ISO 13567 / AIA CAD layering", size=7.5),
+      text(330, 124, "ISO 14224 (APM data binding)", size=7.5), text(330, 140, "COLOUR RESERVED FOR LIVE ALARMS", size=7, weight="bold")]
 ANN.append(G(tb))
 
-# legend
-lg_x, lg_y = 680, 1262
-lg = [rect(lg_x, lg_y, 240, 118, f=WHITE, s=INK, w=1.2),
-      text(lg_x + 8, lg_y + 12, "LEGEND", size=8, weight="bold")]
-rows = [("sym_fr", "FLOATING ROOF TANK"), ("sym_cr", "CONE ROOF TANK"), ("pipeA", "PROCESS HEADER A / B"),
-        ("fire", "FIRE-WATER RING MAIN"), ("hyd", "HYDRANT"), ("fm", "FOAM MONITOR + COVERAGE"),
-        ("bund", "CONCRETE BUND"), ("slp", "PIPE SLEEPERWAY (6 m)")]
-for i, (kind, label) in enumerate(rows):
-    col = i // 4
-    yy = lg_y + 26 + (i % 4) * 22
-    xx = lg_x + 14 + col * 118
-    if kind == "sym_fr":
-        lg += [circle(xx + 6, yy, 6, f=WHITE, s=INK, w=1.4), circle(xx + 6, yy, 3.5, s=STEEL, w=0.6)]
-    elif kind == "sym_cr":
-        lg += [circle(xx + 6, yy, 6, f=WHITE, s=INK, w=1.4), circle(xx + 6, yy, 1.5, f=INK)]
-    elif kind == "pipeA":
-        lg += [line(xx, yy - 2, xx + 14, yy - 2, s=INK, w=2.4), line(xx, yy + 3, xx + 14, yy + 3, s=STEEL, w=2.4)]
-    elif kind == "fire":
-        lg += [line(xx, yy, xx + 14, yy, s=STEEL, w=2, d="6 2 2 2")]
-    elif kind == "hyd":
-        lg += [circle(xx + 6, yy, 4.5, f=WHITE, s=INK, w=1.2), circle(xx + 6, yy, 1.4, f=INK)]
-    elif kind == "fm":
-        lg += [rect(xx, yy - 6, 12, 12, f=WHITE, s=INK, w=1.3), line(xx, yy - 6, xx + 12, yy + 6, s=INK, w=0.8),
-               line(xx, yy + 6, xx + 12, yy - 6, s=INK, w=0.8)]
-    elif kind == "bund":
-        lg += [rect(xx, yy - 4, 14, 8, f="url(#hatch-concrete)", s=INK, w=1)]
-    elif kind == "slp":
-        lg += [rect(xx, yy - 4, 14, 8, f=CONC, s=STEEL, w=0.8)]
-    lg.append(text(xx + 20, yy + 3, label, size=6.5))
-lg.append(text(lg_x + 8, lg_y + 112, "L2 / L3 DETAIL REVEALED BY SEMANTIC ZOOM CLASSES", size=6))
+lg = [rect(30, 160, 300, 256, f=WHITE, s=INK, w=1.2), text(40, 175, "LEGEND / ZONE KEY", size=8, weight="bold")]
+for i, (num, name, _) in enumerate(ZONES):
+    lg += [circle(48, 191 + 14 * i, 5.5, f=INK), text(48, 193.5 + 14 * i, num, size=7, anchor="middle", weight="bold", f=LIGHT),
+           text(60, 193.5 + 14 * i, name, size=6.3)]
+yy = 191 + 14 * 8 + 10
+lg += [circle(46, yy, 5, f=WHITE, s=INK, w=1.2), text(58, yy + 2.5, "STORAGE TANK (FR / CONE ROOF)", size=6.3),
+       circle(46, yy + 13, 3.5, f=WHITE, s=INK, w=1.2), circle(46, yy + 13, 1.2, f=INK), text(58, yy + 15.5, "HYDRANT", size=6.3),
+       rect(41, yy + 24, 10, 10, f=WHITE, s=INK, w=1.2), text(58, yy + 32, "FOAM MONITOR (R = 50 m)", size=6.3),
+       line(36, yy + 46, 56, yy + 46, s=INK, w=2.6), line(36, yy + 51, 56, yy + 51, s=STEEL, w=1.0),
+       text(64, yy + 50, "PROCESS HEADER / SLEEPER LINES", size=6.3),
+       line(176, yy, 196, yy, s=STEEL, w=2, d="16 4 3 4"), text(202, yy + 3, "FIRE-WATER MAIN", size=6.3),
+       rect(176, yy + 8, 20, 8, f="url(#hatch-concrete)", s=INK, w=1), text(202, yy + 15, "CONCRETE BUND", size=6.3),
+       rect(176, yy + 22, 20, 8, f=CONC, s=STEEL, w=0.8), text(202, yy + 29, "SLEEPERWAY 6 m", size=6.3),
+       line(176, yy + 42, 196, yy + 42, s=ASPH, w=8), text(202, yy + 45, "ROAD 6 m", size=6.3),
+       polyg([(206, yy + 56), (196, yy + 52), (196, yy + 60)], f=INK), text(212, yy + 59, "HV ONE-WAY DIRECTION", size=6.3)]
 ANN.append(G(lg))
 
+
+
+# ==========================================================================
+#  LAYOUT / LOGISTICS / PIPING VALIDATION  (asserted at generation time)
+# ==========================================================================
+def seg_hit(p1, p2, p3, p4):
+    def o(a, b_, c):
+        return (b_[0] - a[0]) * (c[1] - a[1]) - (b_[1] - a[1]) * (c[0] - a[0])
+    return (o(p1, p2, p3) * o(p1, p2, p4) < 0) and (o(p3, p4, p1) * o(p3, p4, p2) < 0)
+
+
+def polys_overlap(p, q):
+    if any(pip(v, q) for v in p) or any(pip(v, p) for v in q):
+        return True
+    return any(seg_hit(p[i], p[(i + 1) % len(p)], q[j], q[(j + 1) % len(q)]) for i in range(len(p)) for j in range(len(q)))
+
+
+def poly_seg_dist(poly, a, b_):
+    d = min(dist_seg(v, a, b_) for v in poly)
+    d = min(d, min(dist_seg(a, poly[i], poly[(i + 1) % len(poly)]) for i in range(len(poly))),
+            min(dist_seg(b_, poly[i], poly[(i + 1) % len(poly)]) for i in range(len(poly))))
+    if any(seg_hit(a, b_, poly[i], poly[(i + 1) % len(poly)]) for i in range(len(poly))) or pip(a, poly):
+        return 0.0
+    return d
+
+
+BLDG_POLY = {k_: [uvp(a0, b0), uvp(a1, b0), uvp(a1, b1), uvp(a0, b1)] for k_, (a0, a1, b0, b1) in BLDG.items()}
+BASIN_POLY = [uvp(BASIN[0], BASIN[2]), uvp(BASIN[1], BASIN[2]), uvp(BASIN[1], BASIN[3]), uvp(BASIN[0], BASIN[3])]
+ALL_ROAD_SEGS = ROAD_SEGS_PX + [(ROADC[i], ROADC[(i + 1) % len(ROADC)]) for i in range(len(ROADC))]
+SLEEPER_POLY = [o for o in OBST[len(BUNDS):len(BUNDS) + len(SLEEPERS)]]
+
+# 1. buildings: inside the fence, off every road / bund / pad / sleeper / tank / basin / yard / other building
+for k_, bp in BLDG_POLY.items():
+    assert all(pip(v, BND) and dist_poly(v, BND) >= 24 for v in bp), f"building {k_} too close to fence"
+    for nm_, o_ in list(("bund " + n2, BUNDS[n2]) for n2 in BUNDS) + [("pad/apron", f) for f in FRAME_BOX] + \
+            [("basin", BASIN_POLY), ("yard", YARD_PX)] + [("sleeper", s_) for s_ in SLEEPER_POLY] + \
+            [("bldg " + k2, v2) for k2, v2 in BLDG_POLY.items() if k2 != k_]:
+        assert not polys_overlap(bp, o_), f"building {k_} overlaps {nm_}"
+    for (ca, r_) in CIRC:
+        assert dist_poly(ca, bp) >= r_ + 1 and not pip(ca, bp), f"building {k_} overlaps a tank"
+    for a_, b_ in ALL_ROAD_SEGS:
+        assert poly_seg_dist(bp, a_, b_) >= HW + 0.5, f"building {k_} clips a road"
+
+# 2. staging yard: inside the fence and clear of equipment
+assert all(pip(v, BND) for v in YARD_PX)
+for nm_, o_ in list(("bund " + n2, BUNDS[n2]) for n2 in BUNDS) + [("basin", BASIN_POLY)] + [("bldg " + k2, v2) for k2, v2 in BLDG_POLY.items()]:
+    assert not polys_overlap(YARD_PX, o_), f"yard overlaps {nm_}"
+for (ca, r_) in CIRC:
+    assert dist_poly(ca, YARD_PX) >= r_, "yard overlaps a tank"
+
+# 3. no dead-end or floating road vectors: every road end lies on the perimeter road or on another road
+for ri, (rid, pts) in enumerate(ROADS_PX):
+    for end in (pts[0], pts[-1]):
+        on_perim = dist_poly(end, ROADC) <= 1.5
+        on_other = any(dist_seg(end, a_, b_) <= 1.5 for rj, (rid2, p2) in enumerate(ROADS_PX) if rj != ri
+                       for a_, b_ in zip(p2[:-1], p2[1:]))
+        assert on_perim or on_other, f"road {rid} has a dead end at {end}"
+
+# 4. one-way HV circuit: gate -> perimeter -> staging yard -> lanes -> R-06 -> R-02 -> R-05 -> R-01 -> perimeter -> exit gate
+def on_roads(p, tol=1.0):
+    return any(dist_seg(p, a_, b_) <= tol for a_, b_ in ALL_ROAD_SEGS)
+
+
+for ptn in HV_ENTRY[1:] + [q for ln in HV_LANES for q in ln] + HV_EXIT:
+    assert on_roads(ptn) or any(pip(ptn, f) for f in FRAME_BOX), f"HV route leaves the road network at {ptn}"
+assert math.hypot(*(HV_ENTRY[-1][i] - HV_LANES[-1][0][i] for i in (0, 1))) < 1.0
+assert math.hypot(*(HV_LANES[-1][-1][i] - HV_EXIT[0][i] for i in (0, 1))) < 1.0
+assert dist_poly(G1_IN, ROADC) < 1.0 and dist_poly(G2_IN, ROADC) < 1.0 and dist_poly(R06_FOOT, ROADC) < 1.5
+assert math.hypot(GATES[0][3][0] - GATES[1][3][0], GATES[0][3][1] - GATES[1][3][1]) >= 60, "HV gates too close"
+def vertex_radius(i, r=U(15) + ROAD_W / 2):
+    pv, v, nx_ = ROADC[i - 1], ROADC[i], ROADC[(i + 1) % len(ROADC)]
+    a_, b_ = (pv[0] - v[0], pv[1] - v[1]), (nx_[0] - v[0], nx_[1] - v[1])
+    la, lb = math.hypot(*a_), math.hypot(*b_)
+    phi = math.acos(max(-1, min(1, (a_[0] * b_[0] + a_[1] * b_[1]) / (la * lb))))
+    if phi > math.pi - 1e-3:
+        return float("inf")
+    t = min(r / math.tan(phi / 2), 0.48 * la, 0.48 * lb)
+    return (t * math.tan(phi / 2)) * K - ROAD_W / 2         # inner-edge radius in units
+
+
+HV_R = {f"perimeter vertex {i}": vertex_radius(i) for i in (5, 4, 3, 6)}
+HV_DEFLECT_R06 = 41.0     # deg: R-06 merges into the perimeter road at a shallow angle (no 90-degree corner)
+
+# 5. piping: sleeperways reach every bund, pump pad, manifold and gantry without crossing buildings or tanks
+def poly_samples(pts, step=1.0):
+    out = []
+    for (u1, v1), (u2, v2) in zip(pts[:-1], pts[1:]):
+        L = math.hypot(u2 - u1, v2 - v1)
+        for i in range(int(L / step) + 1):
+            t = min(1.0, i * step / L) if L else 0
+            out.append((u1 + (u2 - u1) * t, v1 + (v2 - v1) * t))
+    out.append(pts[-1])
+    return out
+
+
+for pi_, pts in enumerate(PIPE_NET):
+    for (u_, v_) in poly_samples(pts):
+        p_ = uvp(u_, v_)
+        for k_, bp in list(BLDG_POLY.items()) + [("basin", BASIN_POLY), ("yard", YARD_PX)]:
+            assert not pip(p_, bp) if isinstance(k_, str) else True, f"pipe {pi_} enters {k_}"
+        for (ca, r_) in CIRC:
+            assert math.hypot(p_[0] - ca[0], p_[1] - ca[1]) >= r_ - 0.4, f"pipe {pi_} passes through a tank at {(u_, v_)}"
+
+
+def pipes_touch(p1, p2, tol=1.0):
+    ends1, ends2 = (p1[0], p1[-1]), (p2[0], p2[-1])
+    segs1, segs2 = list(zip(p1[:-1], p1[1:])), list(zip(p2[:-1], p2[1:]))
+    return (any(dist_seg(e, a_, b_) <= tol for e in ends1 for a_, b_ in segs2) or
+            any(dist_seg(e, a_, b_) <= tol for e in ends2 for a_, b_ in segs1))
+
+
+_par = list(range(len(PIPE_NET)))
+
+
+def _find(i):
+    while _par[i] != i:
+        _par[i] = _par[_par[i]]
+        i = _par[i]
+    return i
+
+
+for i in range(len(PIPE_NET)):
+    for j in range(i + 1, len(PIPE_NET)):
+        if pipes_touch(PIPE_NET[i], PIPE_NET[j]):
+            _par[_find(i)] = _find(j)
+PIPE_COMPONENTS = len({_find(i) for i in range(len(PIPE_NET))})
+assert PIPE_COMPONENTS == 1, f"piping network split into {PIPE_COMPONENTS} islands"
+assert len(STUBS) == len([t for t in ALL_TANKS if t[0] != "TK-0501"]), "a storage tank has no connecting stub"
+_net_idx = {tuple(map(tuple, p_)): i for i, p_ in enumerate(PIPE_NET)}
 
 # --------------------------------------------------------------------------
 # Assemble document
 # --------------------------------------------------------------------------
 STYLE = """
 .dt-canvas { font-family: Arial, Helvetica, sans-serif; background: #EDF2F4; }
-/* ISA-101 progressive disclosure with fluid opacity transitions (DT-UI-SVG-DOC-001) */
-.dt-zoom-l2, .dt-zoom-l3 {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.zoom-l2 .dt-zoom-l2, .zoom-l3 .dt-zoom-l2 {
-  opacity: 1;
-  pointer-events: auto;
-}
-.zoom-l3 .dt-zoom-l3 {
-  opacity: 1;
-  pointer-events: auto;
-}
+/* ISA-101 progressive disclosure */
+.zoom-l1 .dt-zoom-l2, .zoom-l1 .dt-zoom-l3, .zoom-l2 .dt-zoom-l3 { display: none; }
 .dt-interactive { cursor: pointer; }
 .dt-interactive:hover { opacity: 0.85; }
 """
@@ -1029,98 +1557,62 @@ def layer(lid, cls, items):
 def build(zoom="zoom-l1"):
     parts = [
         '<?xml version="1.0" encoding="UTF-8"?>',
-        f'<svg viewBox="0 0 {W} {H}" id="dt-plant-svg" width="100%" height="100%" class="dt-canvas {zoom}" xmlns="http://www.w3.org/2000/svg">',
-        "<title>General Arrangement Plot Plan — Bulk Liquid Hydrocarbon Terminal (DT-UI-SVG-DOC-001)</title>",
-        "<desc>400 m x 300 m terminal plot; 1 SVG unit = 0.2 m. Layers per AIA CAD / ISO 13567; "
+        f'<svg viewBox="0 0 {W} {H}" class="dt-canvas {zoom}" xmlns="http://www.w3.org/2000/svg">',
+        "<title>General Arrangement Plot Plan — Irregular-site Bulk Liquid Hydrocarbon Terminal (DT-UI-SVG-DOC-001)</title>",
+        "<desc>Irregular plot traced from a reference survey; 1 SVG unit = 0.2 m. Layers per AIA CAD / ISO 13567; "
         "ISA-101 semantic zoom classes dt-zoom-l2 / dt-zoom-l3; ISO 14224 data binding on equipment.</desc>",
-        f"<defs>{DEFS}</defs>",
-        f"<style>{STYLE}</style>",
-        layer("L-CIVIL", "dt-layer-civil", CIV),
-        layer("L-STRUCT", "dt-layer-struct", STR),
-        layer("L-MECH", "dt-layer-mech", MEC),
-        layer("L-PIPE", "dt-layer-pipe", PIP),
-        layer("L-FIRE", "dt-layer-fire", FIR),
-        layer("L-ANNO", "dt-layer-anno", ANN),
-        "</svg>",
-    ]
+        f"<defs>{DEFS}</defs>", f"<style>{STYLE}</style>",
+        layer("L-CIVIL", "dt-layer-civil", CIV), layer("L-STRUCT", "dt-layer-struct", STR),
+        layer("L-MECH", "dt-layer-mech", MEC), layer("L-PIPE", "dt-layer-pipe", PIP),
+        layer("L-FIRE", "dt-layer-fire", FIR), layer("L-ANNO", "dt-layer-anno", ANN), "</svg>"]
     return "\n".join(parts)
 
 
-# --------------------------------------------------------------------------
-# Validation & Prototype Sync
-# --------------------------------------------------------------------------
 def validate(p):
-    tree = ET.parse(p)                                   # raises on malformed XML
+    tree = ET.parse(p)
     root = tree.getroot()
     ns = "{http://www.w3.org/2000/svg}"
-    assert root.tag == ns + "svg"
-    assert root.get("viewBox") == f"0 0 {W} {H}"
-    assert "dt-canvas" in (root.get("class") or "")
-    ids = [g.get("id") for g in root if g.tag == ns + "g"]
+    assert root.tag == ns + "svg" and root.get("viewBox") == f"0 0 {W} {H}"
+    assert root.get("class") in ("dt-canvas zoom-l1", "dt-canvas zoom-l2", "dt-canvas zoom-l3")
+    layers = [g for g in root if g.tag == ns + "g"]
+    ids = [g.get("id") for g in layers]
     assert ids == ["L-CIVIL", "L-STRUCT", "L-MECH", "L-PIPE", "L-FIRE", "L-ANNO"], ids
-    inter = [e for e in root.iter(ns + "g") if "dt-interactive" in (e.get("class") or "")]
     by = {}
-    for e in inter:
-        by.setdefault(e.get("data-cmp-id"), []).append(e.get("data-tag"))
-    assert len([t for t in by["CMP-EQP-TANK"] if t.startswith("TK-01")]) == 2
-    assert len([t for t in by["CMP-EQP-TANK"] if t.startswith("TK-02")]) == 4
+    for e in root.iter(ns + "g"):
+        if "dt-interactive" in (e.get("class") or ""):
+            assert e.get("data-cmp-id") and e.get("data-tag")
+            by.setdefault(e.get("data-cmp-id"), []).append(e.get("data-tag"))
     assert len(by["CMP-EQP-PUMP"]) == 6 and len(by["CMP-EQP-BAY"]) == 4
-    for e in root.iter():
-        if e.tag.endswith("circle") or e.tag.endswith("rect") or e.tag.endswith("path"):
-            pass
     raw = Path(p).read_text(encoding="utf-8")
     for hx in set(re.findall(r"#[0-9A-Fa-f]{6}", raw)):
         r, g, b = (int(hx[i:i + 2], 16) / 255 for i in (1, 3, 5))
-        _, _, s = colorsys.rgb_to_hls(r, g, b)
-        assert s <= 0.30, f"saturated colour {hx} not allowed for static equipment"
+        assert colorsys.rgb_to_hls(r, g, b)[2] <= 0.30, f"saturated colour {hx}"
     z2 = sum(1 for e in root.iter() if "dt-zoom-l2" in (e.get("class") or ""))
     z3 = sum(1 for e in root.iter() if "dt-zoom-l3" in (e.get("class") or ""))
-    counts = {i: sum(1 for _ in g.iter()) - 1 for i, g in zip(ids, [g for g in root if g.tag == ns + "g"])}
+    counts = {i: sum(1 for _ in g.iter()) - 1 for i, g in zip(ids, layers)}
     return by, z2, z3, counts, len(raw)
 
 
-def sync_prototype_html(svg_text, html_path):
-    if not html_path.exists():
-        return False
-    html = html_path.read_text(encoding="utf-8")
-    # Clean svg_text of XML declaration if embedding inside HTML
-    clean_svg = re.sub(r'<\?xml[^>]*\?>\s*', '', svg_text)
-    pattern = r'(<div id="dt-svg-container">)[\s\S]*?(</div>\s*</div>\s*<!-- =+\s*CONTEXTUAL INSPECTION DRAWER)'
-    match = re.search(pattern, html)
-    if not match:
-        return False
-    new_html = html[:match.start(1)] + f'<div id="dt-svg-container">\n{clean_svg}\n        ' + html[match.start(2):]
-    html_path.write_text(new_html, encoding="utf-8")
-    return True
-
-
 def main():
-    out = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("terminal_plot_plan.svg")
+    out = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("terminal_plot_plan_irregular.svg")
     out.parent.mkdir(parents=True, exist_ok=True)
-    svg_l1 = build("zoom-l1")
-    out.write_text(svg_l1, encoding="utf-8")
+    out.write_text(build("zoom-l1"), encoding="utf-8")
     out.with_name(out.stem + "_l2.svg").write_text(build("zoom-l2"), encoding="utf-8")
     out.with_name(out.stem + "_l3.svg").write_text(build("zoom-l3"), encoding="utf-8")
     by, z2, z3, counts, size = validate(out)
     print(f"Wrote {out}  ({size/1024:.0f} KB) — valid XML")
-    print("Interactive units :", {k: len(v) for k, v in by.items()})
-    print("Tags              :", ", ".join(t for v in by.values() for t in v))
+    print("Interactive units :", {k_: len(v) for k_, v in by.items()})
     print("Elements per layer:", counts)
     print(f"Zoom-tagged elems : L2={z2}  L3={z3}")
-    print(f"TF1 bund: V_tank={V1:,.0f} m3  110%={C1['req']:,.0f}  H_req={C1['h_req']:.2f} m  wall={C1['h_des']:.1f} m")
-    print(f"TF2 bund: V_tank={V2:,.0f} m3  110%={C2['req']:,.0f}  H_req={C2['h_req']:.2f} m  wall={C2['h_des']:.1f} m  "
-          f"intermediate cell={cell_pct:.0f}% of tank")
-    print(f"Shell spacing: TF1 {GAP1:.1f} m (D/6={TK1_D/6:.1f})  TF2 {GAP2_X:.1f}/{GAP2_Y:.1f} m (D/6={TK2_D/6:.1f})")
-
-    # Auto-sync prototype if present
-    proto_html = out.parent / "index.html"
-    if not proto_html.exists():
-        proto_html = Path(__file__).resolve().parent.parent / "ui-ux" / "temp" / "canvas-prototype" / "index.html"
-    if proto_html.exists():
-        if sync_prototype_html(svg_l1, proto_html):
-            print(f"Synchronized SVG canvas into {proto_html}")
+    print(f"HV circuit: {GATES[0][0]} {GATES[0][1]} -> perimeter -> staging yard -> 4 lanes -> R-06 -> R-02 -> R-05 -> R-01 -> {GATES[1][0]} {GATES[1][1]}; "
+          f"{GATES[2][0]} = {GATES[2][1]}")
+    print("HV perimeter-vertex inner radii (m):", {k_: ("straight" if v_ == float("inf") else f"{v_*M_PER_UNIT:.1f}") for k_, v_ in HV_R.items()})
+    print(f"Piping network: {len(PIPE_NET)} polylines, {PIPE_COMPONENTS} connected component, {len(STUBS)} tank stubs; buildings: {', '.join(BLDG)}")
+    print(f"Plot area ≈ {m2(poly_area(BND))/1e4:.1f} ha ; hydrants {len(hyd)} ; foam monitors {len(fm_list)}")
+    for k_, r_ in BUND_RES.items():
+        print(f"Bund {names[k_]:12s} largest {r_['tag']} V={r_['v']:,.0f} m3  110%={r_['req']:,.0f}  "
+              f"H_req={r_['h_req']:.2f} m  wall={r_['h_des']:.1f} m")
 
 
 if __name__ == "__main__":
     main()
-
