@@ -557,7 +557,7 @@ assert pip(uvp(*FWT[1:3]), BND)
 # ==========================================================================
 #                              LAYER BUFFERS
 # ==========================================================================
-CIV, STR, MEC, PIP, FIR, ANN = ([] for _ in range(6))
+CIV, STR, MEC, PIP, INS, FIR, HAZ, ANN = ([] for _ in range(8))
 VAL2, VAL3, FLG = [], [], []
 
 
@@ -910,7 +910,7 @@ for ax, c, a, b in SLEEPERS:
                 bents.append(polyg([UVu(pos, c - HW), UVu(pos, c + HW), UVu(pos + 2, c + HW), UVu(pos + 2, c - HW)],
                                   f=STEEL, s=INK, w=0.3))
         pos += 20
-STR.append(G(bents, c=ZL2))
+CIV.append(G(bents, c=ZL2))
 
 # gantry canopy, columns, bollards, stair tower (local frame)
 canopy = [rect(-6, 25, GANT_W + 12, 90, f="none", s=STEEL, w=1.6, d="10 4")]
@@ -924,15 +924,15 @@ for xi in ISL_X:
             cols.append(circle(xc + off, yb, 2, f=INK))
 beams = [line(5, yc, GANT_W - 5, yc, s=STEEL, w=0.7, d="6 3") for yc in (33, 107)]
 beams += [line(xi + 7, 33, xi + 7, 107, s=STEEL, w=0.7, d="6 3") for xi in ISL_X]
-STR.append(GF.g(canopy + cols))
-STR.append(GF.g(beams, c=ZL2))
-STR.append(GF.g([rect(GANT_W + 14, 40, 16, 44, f=WHITE, s=INK, w=1)] +
+CIV.append(GF.g(canopy + cols))
+CIV.append(GF.g(beams, c=ZL2))
+CIV.append(GF.g([rect(GANT_W + 14, 40, 16, 44, f=WHITE, s=INK, w=1)] +
                 [G([line(GANT_W + 14, yy, GANT_W + 30, yy, s=INK, w=0.4) for yy in range(43, 84, 3)], c=ZL3)]))
 
 # buildings (+ roof overhang L2, structural grid L3)
 for name, (a0, a1, b0, b1) in BLDG.items():
-    STR.append(polyg([UVu(a0, b0), UVu(a1, b0), UVu(a1, b1), UVu(a0, b1)], f=PALE, s=INK, w=1.6))
-    STR.append(polyg([UVu(a0 - 2, b0 - 2), UVu(a1 + 2, b0 - 2), UVu(a1 + 2, b1 + 2), UVu(a0 - 2, b1 + 2)], s=MID, w=0.7, d="5 3", c=ZL2))
+    CIV.append(polyg([UVu(a0, b0), UVu(a1, b0), UVu(a1, b1), UVu(a0, b1)], f=PALE, s=INK, w=1.6))
+    CIV.append(polyg([UVu(a0 - 2, b0 - 2), UVu(a1 + 2, b0 - 2), UVu(a1 + 2, b1 + 2), UVu(a0 - 2, b1 + 2)], s=MID, w=0.7, d="5 3", c=ZL2))
 GATEHOUSES = {}
 for gid, ei_, off_ in (("G1", 6, 16), ("G2", 7, 16)):
     d_, nout_ = edge_dirs(ei_)
@@ -940,7 +940,7 @@ for gid, ei_, off_ in (("G1", 6, 16), ("G2", 7, 16)):
     cc = (gp_[0] - nout_[0] * (HW + 11) + d_[0] * off_, gp_[1] - nout_[1] * (HW + 11) + d_[1] * off_)
     GATEHOUSES[gid] = [(cc[0] + d_[0] * s_ * 9 - nout_[0] * t_ * 6, cc[1] + d_[1] * s_ * 9 - nout_[1] * t_ * 6)
                        for s_, t_ in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
-    STR.append(polyg([P(*q) for q in GATEHOUSES[gid]], f=PALE, s=INK, w=1.4))
+    CIV.append(polyg([P(*q) for q in GATEHOUSES[gid]], f=PALE, s=INK, w=1.4))
 
 # ==========================================================================
 #                                L-MECH
@@ -1562,9 +1562,9 @@ def build(zoom="zoom-l1"):
         "<desc>Irregular plot traced from a reference survey; 1 SVG unit = 0.2 m. Layers per AIA CAD / ISO 13567; "
         "ISA-101 semantic zoom classes dt-zoom-l2 / dt-zoom-l3; ISO 14224 data binding on equipment.</desc>",
         f"<defs>{DEFS}</defs>", f"<style>{STYLE}</style>",
-        layer("L-CIVIL", "dt-layer-civil", CIV), layer("L-STRUCT", "dt-layer-struct", STR),
-        layer("L-MECH", "dt-layer-mech", MEC), layer("L-PIPE", "dt-layer-pipe", PIP),
-        layer("L-FIRE", "dt-layer-fire", FIR), layer("L-ANNO", "dt-layer-anno", ANN), "</svg>"]
+        layer("L-CIVL-BOTM", "dt-layer-civil-botm", CIV), 
+        layer("L-MECH-EQPM", "dt-layer-mech-eqpm", MEC), layer("L-INSP-INST", "dt-layer-insp-inst", INS), layer("L-PIPE-PROC", "dt-layer-pipe-proc", PIP),
+        layer("L-FIRE-PROT", "dt-layer-fire-prot", FIR), layer("L-ELEC-HAZ", "dt-layer-elec-haz", HAZ), layer("L-ANNO-TEXT", "dt-layer-anno-text", ANN), "</svg>"]
     return "\n".join(parts)
 
 
@@ -1576,7 +1576,7 @@ def validate(p):
     assert root.get("class") in ("dt-canvas zoom-l1", "dt-canvas zoom-l2", "dt-canvas zoom-l3")
     layers = [g for g in root if g.tag == ns + "g"]
     ids = [g.get("id") for g in layers]
-    assert ids == ["L-CIVIL", "L-STRUCT", "L-MECH", "L-PIPE", "L-FIRE", "L-ANNO"], ids
+    assert ids == ["L-CIVL-BOTM", "L-MECH-EQPM", "L-INSP-INST", "L-PIPE-PROC", "L-FIRE-PROT", "L-ELEC-HAZ", "L-ANNO-TEXT"], ids
     by = {}
     for e in root.iter(ns + "g"):
         if "dt-interactive" in (e.get("class") or ""):
