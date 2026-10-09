@@ -25,8 +25,8 @@ requirements:
   - NFR-605
   - "[[TR-010]]"
   - "[[TR-011]]"
-version: 1.6
-date: 2026-10-07
+version: 1.7
+date: 2026-10-09
 status: In Review
 ---
 
@@ -53,7 +53,7 @@ status: In Review
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Data Link / Behavior Rule |
 | :------- | :---------------------- | :------------------------------- | :-------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CMP-01` | Canvas Viewport 2D      | Interactive SVG vector canvas | `--dt-color-bg-canvas`                                                                              | Renders the SVG map of the functional area (ISA-101 Level 2). Supports continuous panning and dual zoom (geometric and semantic) per [[UC-VIS-033]]. |
+| `CMP-01` | Canvas Viewport 2D      | Interactive SVG vector canvas | `--dt-color-bg-canvas`                                                                              | Renders the SVG map of the functional area (ISA-101 Level 2). Dual-mode spatial interaction: Desktop panning is strictly bound to middle-click (mouse wheel drag), keeping primary left-click exclusive for hotspot selection. Tablet panning is touch-driven with a 4px activation threshold to prevent accidental drags during taps. Supports mouse-wheel focal zoom around cursor coordinates $(cx, cy)$ and smooth equipment centering via `locateAssetOnMap`. |
 | `CMP-02` | Viewport Toolbar        | Spatial navigation bar | Surface: `--dt-color-surface-card`<br>Radius: `--dt-radius-full`                                    | Unified floating pill toolbar centered over `CMP-01`. Integrates `CMP-03`, level badge, and viewer controls: Reset view, zoom levels, and layer selector. |
 | `CMP-03` | Command Palette Trigger | Quick search access | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-full`    | Embedded pill search input within `CMP-02` (`Ctrl + K` / `/`). Supports fuzzy equipment tag search. |
 | `CMP-04` | Equipment Hotspot       | Equipment symbol in SVG | Border: `--dt-color-border-subtle`<br>Background: `--dt-color-bg-canvas` | Level 6 geometry linked by `TagNumber`. In normal condition, it operates with neutral outlining; in alarm, it acquires a halo and severity shape per [[DT-UI-DS-DOC-001]]. |
@@ -88,10 +88,18 @@ status: In Review
 3. The map is initialized centered on its macro view.
 
 ### 5.2. Spatial Navigation and Mobile Ergonomics
-1. **Panning and Zoom:** Dual navigation (Geometric and Semantic) per [[UC-VIS-033]].
-2. **Tactile Controllability:** The `CMP-05` container toggles its states via an upper graphic trigger that inherits the tactile size of `--dt-touch-target-mobile`.
-3. **Responsive Layout:** The transformation of the `CMP-05` container (Bottom Sheet $\leftrightarrow$ Lateral Panel) is delegated to the device orientation rules defined in [[DT-UI-NAV-DOC-001]].
-4. **Overlay Drawer Lifecycle (Minimize vs Deselect):** `CMP-01` (Canvas) functions as an independent, full-viewport bottom layer. When `CMP-05` expands, it acts as an absolute overlay without redimensioning the canvas. When minimized via the chevron trigger, the container retracts into a docked edge state leaving a protruding arrow/header peek trigger that allows instant re-expansion while preserving the active telemetry subscription. Clicking the close button ('X') explicitly dismisses the container, clears the equipment selection highlight on the canvas, and returns the view to the neutral macro supervisory state.
+1. **Dual-Modality Continuous Panning:**
+   - **Desktop Workstation Modality:** Canvas dragging/panning is bound strictly to middle-click (mouse wheel press and drag), displaying an active `grabbing` cursor. Primary Left-Click is reserved exclusively for selecting equipment nodes (`CMP-04`) and interacting with overlay controls, preventing accidental viewport displacements during tactical selection.
+   - **Industrial Tablet Tactile Modality:** Single-finger touch dragging across the SVG canvas. Enforces a mandatory $4\text{px}$ movement threshold before transitioning to an active pan state, disambiguating intentional dragging from stationary tap selections. Ephemeral cards or popovers dismiss immediately upon initiating a canvas drag or zoom.
+2. **Coordinate-Preserving Focal Zoom:**
+   - Mouse wheel zooming (`wheel`) calculates scale changes centered around the exact cursor coordinates $(cx, cy)$ on the canvas, dynamically updating pan offsets so the point under the cursor remains stationary. Viewport action buttons in `CMP-02` (`+` / `-`) zoom relative to the geometric center of the canvas.
+3. **Smooth Equipment Centering (`locateAssetOnMap`):**
+   - Direct search selection (`CMP-03`) or pressing `[Locate on Map]` in `CMP-09` smoothly animates the SVG viewport (pan and zoom to Level 2 tactical inspection scale, $Z = 1.35$) centering the asset's centroid $(X, Y)$ within the unoccluded canvas workspace. In landscape orientations with the lateral drawer deployed, the centering target offsets leftward by half the drawer width to prevent occlusion. Activates a high-visibility SVG pulsing highlight halo.
+4. **Decoupled Viewport & Zero Layout Shift:**
+   - `CMP-01` (Canvas) functions as a continuous, full-viewport layer. Deployment, minimization, or expansion of `CMP-05` (Context Container) operates as an absolute overlay that does not redimension or re-render the vector canvas, guaranteeing zero layout shift on the map and preventing SVG DOM thrashing or SignalR re-render latency.
+5. **Tactile Controllability:** The `CMP-05` container toggles its states via an upper graphic trigger that inherits the tactile size of `--dt-touch-target-mobile`.
+6. **Responsive Layout:** The transformation of the `CMP-05` container (Bottom Sheet $\leftrightarrow$ Lateral Panel) is delegated to the device orientation rules defined in [[DT-UI-NAV-DOC-001]].
+7. **Overlay Drawer Lifecycle (Minimize vs Deselect):** When minimized via the chevron trigger, `CMP-05` retracts into a docked edge state leaving a protruding arrow/header peek trigger that allows instant re-expansion while preserving the active telemetry subscription. Clicking the close button ('X') explicitly dismisses the container, clears the equipment selection highlight on the canvas, and returns the view to the neutral macro supervisory state.
   
 ### 5.3. Inspection and Telemetry
 1. Selecting an asset on the map invokes the opening of `CMP-05` and real-time subscription to the equipment's telemetry channel.
@@ -247,5 +255,6 @@ public record ActiveWorkOrderSummaryDto
 ```
 
 ### 7.3. SVG DOM Interaction Bridge
-1. **Geometric Navigation (Panning & Zoom):** Handled natively on the client via SVG `viewBox` coordinates or a lightweight client-side interop wrapper ([[ADR-001]]) to eliminate SignalR roundtrip latency.
-2. **Semantic Selection:** Hotspots in SVG share the exact `id` attribute matching the ISO 14224 Level 6 `TagNumber` (e.g., `<g id="tag-P-101" class="equipment-hotspot">`). Clicking an SVG node dispatches an `@onclick` event that bubbles `OnEquipmentSelected(tagNumber)`.
+1. **Geometric Navigation (Panning & Zoom):** Encapsulated within a client-side viewport navigation interop module (Blazor JS Interop per [[ADR-001]]). Handles pointer tracking, middle-click panning, touch gesture thresholds ($4\text{px}$), focal mouse-wheel matrix transformations, and boundary-clamped popover positioning directly in the client runtime, eliminating SignalR roundtrip latency and avoiding network saturation.
+2. **Drawer Touch Physics & Gesture Bridge:** Client-side touch gesture handler managing pointer capture on the upper drag handle, height constraints (min $160\text{px}$, max $85\text{vh}$), snap thresholds, and single-tap collapse toggling.
+3. **Semantic Selection:** Hotspots in SVG share the exact `id` attribute matching the ISO 14224 Level 6 `TagNumber` (e.g., `<g id="tag-P-101" class="equipment-hotspot">`). Clicking or tapping an SVG node triggers the `OnEquipmentSelected(tagNumber)` callback. Stationary taps are disambiguated from canvas drags, suppressing selection if a drag motion exceeded the tactile threshold.
