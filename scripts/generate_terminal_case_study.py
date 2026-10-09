@@ -975,6 +975,7 @@ def tank_fr(t):
     els.append(G(micro, c=ZL3))
     STR.extend(stair(cx, cy, r, a0, sw, wd=5.0, step=2.5))
     return G(els,
+             id=f"tag-{tag}",
              data_cmp_id="CMP-EQP-TANK",
              data_func_loc=f"TFA-CSS-{tag}",
              data_equip_id=f"EQ-{tag}-A",
@@ -982,7 +983,7 @@ def tank_fr(t):
              data_tank_height_m=Hm,
              data_design_std="API-650",
              data_status="E",
-             c="dt-interactive")
+             c="dt-interactive equipment-hotspot")
 
 
 def tank_cone(t):
@@ -1004,6 +1005,7 @@ def tank_cone(t):
     els.append(G(micro, c=ZL3))
     STR.extend(stair(cx, cy, r, a0, sw, wd=4.0, step=3.0))
     return G(els,
+             id=f"tag-{tag}",
              data_cmp_id="CMP-EQP-TANK",
              data_func_loc=f"TFA-CSS-{tag}",
              data_equip_id=f"EQ-{tag}-A",
@@ -1011,7 +1013,7 @@ def tank_cone(t):
              data_tank_height_m=Hm,
              data_design_std="API-650",
              data_status="E",
-             c="dt-interactive")
+             c="dt-interactive equipment-hotspot")
 
 
 for t in ALL_TANKS:
@@ -1027,11 +1029,12 @@ for i, tag in enumerate(PUMP_TAGS):
              [line(xx, 3, xx, 17, s=INK, w=0.3) for xx in (27, 29.5, 32, 34.5, 37)] +
              [circle(bx, by, 1, f=INK) for bx, by in ((3, 3), (37, 3), (3, 17), (37, 17))], c=ZL3)]
     MEC.append(PF.g([G(els,
+                       id=f"tag-{tag}",
                        data_cmp_id="CMP-EQP-PUMP",
                        data_func_loc=f"TFA-CSS-{tag}",
                        data_equip_id=f"EQ-{tag}-A",
                        data_status="E",
-                       c="dt-interactive",
+                       c="dt-interactive equipment-hotspot",
                        transform=f"translate({x} {y}) scale({PUMP_S})")]))
 
 # fire-water pumps in pump house
@@ -1051,11 +1054,12 @@ for k_, xl in enumerate(BAY_X):
              [circle(arm_x, 70, 26, s=STEEL, w=0.7, d="4 3"), circle(arm_x, 70, 3, f=INK),
               line(arm_x, 70, bay_c, 60, s=INK, w=1.6)], c=ZL3)]
     MEC.append(GF.g([G(els,
+                       id=f"tag-{tag}",
                        data_cmp_id="CMP-EQP-BAY",
                        data_func_loc=f"TFA-TLG-{tag}",
                        data_equip_id=f"EQ-{tag}-A",
                        data_status="E",
-                       c="dt-interactive")]))
+                       c="dt-interactive equipment-hotspot")]))
 
 # ==========================================================================
 #                                L-PIPE
@@ -1402,7 +1406,7 @@ tb = [rect(30, 30, 520, 118, f=WHITE, s=INK, w=1.4), line(30, 58, 550, 58, s=INK
       text(40, 74, f"IRREGULAR PLOT ≈ {m2(poly_area(BND)) / 1e4:.1f} ha · 1 UNIT = 0.2 m", size=8),
       text(40, 88, "DRAWING  DT-UI-SVG-DOC-001 / GA-003      REV B", size=8),
       text(40, 102, f"TANKS: {sum(1 for t in ALL_TANKS if t[0] != 'TK-0501')} + 1 FW  ·  PUMPS: 6  ·  BAYS: 4", size=8),
-      text(40, 116, "LAYERS: L-CIVIL · L-STRUCT · L-MECH · L-PIPE · L-FIRE · L-ANNO", size=7),
+      text(40, 116, "LAYERS: L-CIVL-BOTM · L-MECH-EQPM · L-PIPE-PROC · L-INSP-INST · L-FIRE-PROT · L-ELEC-HAZ · L-ANNO-TEXT", size=6.5),
       text(40, 130, "SEMANTIC ZOOM: L1 macro · L2 secondary · L3 micro", size=7),
       text(330, 74, "CODES / STANDARDS", size=8, weight="bold"), text(330, 88, "NFPA 30 (spacing, diking)", size=7.5),
       text(330, 100, "ISA-101 (HMI, progressive disclosure)", size=7.5), text(330, 112, "ISO 13567 / AIA CAD layering", size=7.5),
@@ -1583,7 +1587,10 @@ def layer(lid, cls, items):
 def build(zoom="zoom-l1"):
     parts = [
         '<?xml version="1.0" encoding="UTF-8"?>',
-        f'<svg viewBox="0 0 {W} {H}" class="dt-canvas {zoom}" xmlns="http://www.w3.org/2000/svg">',
+        f'<svg viewBox="0 0 {W} {H}" class="dt-canvas {zoom}" xmlns="http://www.w3.org/2000/svg" '
+        f'data-moc-id="MOC-2026-0042" data-rev-number="2.0" '
+        f'data-checksum-sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" '
+        f'data-scale-ratio="{M_PER_UNIT}" data-units="meters">',
         "<title>General Arrangement Plot Plan — Irregular-site Bulk Liquid Hydrocarbon Terminal (DT-UI-SVG-DOC-001)</title>",
         "<desc>Irregular plot traced from a reference survey; 1 SVG unit = 0.2 m. Layers per AIA CAD / ISO 13567; "
         "ISA-101 semantic zoom classes dt-zoom-l2 / dt-zoom-l3; ISO 14224 data binding on equipment.</desc>",
@@ -1637,7 +1644,7 @@ def main():
     target = args.output_path
     if target.is_dir() or target.suffix != ".svg":
         target.mkdir(parents=True, exist_ok=True)
-        out = target / "terminal_plot_plan_irregular.svg"
+        out = target / "tfa_terminal_plot_plan.svg"
     else:
         target.parent.mkdir(parents=True, exist_ok=True)
         out = target
