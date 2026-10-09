@@ -100,6 +100,11 @@ status: In Review
 5. **Tactile Controllability:** The `CMP-05` container toggles its states via an upper graphic trigger that inherits the tactile size of `--dt-touch-target-mobile`.
 6. **Responsive Layout:** The transformation of the `CMP-05` container (Bottom Sheet $\leftrightarrow$ Lateral Panel) is delegated to the device orientation rules defined in [[DT-UI-NAV-DOC-001]].
 7. **Overlay Drawer Lifecycle (Minimize vs Deselect):** When minimized via the chevron trigger, `CMP-05` retracts into a docked edge state leaving a protruding arrow/header peek trigger that allows instant re-expansion while preserving the active telemetry subscription. Clicking the close button ('X') explicitly dismisses the container, clears the equipment selection highlight on the canvas, and returns the view to the neutral macro supervisory state.
+8. **Bottom Sheet Tactile Gestures & Snap Mechanics (Portrait / Mobile):**
+   - **Continuous Height Dragging:** Dragging upwards via the upper tactile drag handle allows continuous adjustment up to $85\text{vh}$. Upon release, the container retains the custom dragged height to facilitate simultaneous inspection of process telemetry and work orders.
+   - **Hysteresis & Snap-Back Threshold:** Pulling downward slightly ($< 100\text{px}$ or height above minimum operational threshold) smoothly snaps back to the natural layout height, preventing accidental collapses caused by minor contact or industrial glove swipes.
+   - **Smooth Minimize Transition:** Pulling downward firmly past the minimize threshold ($> 100\text{px}$ pull or height $< 260\text{px}$) smoothly translates the container into the docked peek tab ($36\text{px}$) without upward bounce or layout oscillation.
+   - **Discrete Tap Navigation:** A single tap on the drag handle or protruding peek tab toggles between the natural height and the docked minimized state. Re-selecting an asset from the canvas always resets the faceplate to its natural height.
   
 ### 5.3. Inspection and Telemetry
 1. Selecting an asset on the map invokes the opening of `CMP-05` and real-time subscription to the equipment's telemetry channel.
