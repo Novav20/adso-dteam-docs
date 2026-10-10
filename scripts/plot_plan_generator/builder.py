@@ -2,7 +2,7 @@
 SVG Document Assembly and Orchestration Coordinator.
 Combines all 7 standard layers, injects MOC metadata, styles, and SVG defs.
 """
-from .config import W, H, M_PER_UNIT, LIGHT_PALETTE, THEMES
+from .config import W, H, M_PER_UNIT, LIGHT_PALETTE, THEMES, load_theme_palette
 from .layers.civil import build_civil_layer
 from .layers.mechanical import build_mechanical_layer
 from .layers.piping import build_piping_layer
@@ -16,7 +16,7 @@ def format_layer(lid, cls, items):
     return f'<g id="{lid}" class="{cls}">\n{body}\n</g>' if body else f'<g id="{lid}" class="{cls}"/>'
 
 
-def build_plot_plan(zoom="zoom-l1", palette=None, theme="light", include_cad_tables=False):
+def build_plot_plan(zoom="zoom-l1", palette=None, theme="light", theme_file=None, include_cad_tables=False):
     """
     Builds the complete SVG plot plan.
     
@@ -24,10 +24,11 @@ def build_plot_plan(zoom="zoom-l1", palette=None, theme="light", include_cad_tab
         zoom: 'zoom-l1', 'zoom-l2', or 'zoom-l3'
         palette: Palette instance. If None, resolved from theme.
         theme: 'light' or 'dark'
+        theme_file: Optional path to external themes JSON file.
         include_cad_tables: whether to include title block, bund data, legends (default False)
     """
     if palette is None:
-        palette = THEMES.get(theme, LIGHT_PALETTE)
+        palette = load_theme_palette(theme, theme_file=theme_file)
 
     # 1. Generate Layers
     CIV, gate_u, gatehouses, wbc = build_civil_layer(palette)

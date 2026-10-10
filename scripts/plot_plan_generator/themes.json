@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Spatial Material & HMI Color Palettes for 2D Digital Twin Layouts (conforming to DT-UI-DS-DOC-001 and ANSI/ISA-101)",
+  "themes": {
+    "light": {
+      "name": "light",
+      "description": "Standard High-Performance HMI Day/Desktop palette (Munsell N7.5 neutral canvas)",
+      "INK": "#2B2D42",
+      "MID": "#8D99AE",
+      "LIGHT": "#EDF2F4",
+      "PALE": "#E5E5E5",
+      "STEEL": "#5C677D",
+      "ASPH": "#C5CAD3",
+      "CONC": "#D6DAE0",
+      "WHITE": "#FAFBFC",
+      "FAINT": "#B9C0CC",
+      "BUNDFILL": "#E8EAED",
+      "CANVAS_BG": "#EDF2F4",
+      "token_references": {
+        "INK": "--dt-primitive-gray-850",
+        "MID": "--dt-primitive-gray-420",
+        "LIGHT": "--dt-primitive-gray-100",
+        "PALE": "--dt-primitive-gray-100",
+        "STEEL": "--dt-primitive-gray-500",
+        "ASPH": "--dt-primitive-gray-280",
+        "CONC": "--dt-primitive-gray-200",
+        "WHITE": "--dt-primitive-gray-30",
+        "FAINT": "--dt-primitive-gray-300",
+        "BUNDFILL": "--dt-primitive-gray-100",
+        "CANVAS_BG": "--dt-color-bg-canvas"
+      }
+    },
+    "dark": {
+      "name": "dark",
+      "description": "High-Performance HMI Night/Tablet dark palette (Muted slate with saturated alarm reservation)",
+      "INK": "#E2E8F0",
+      "MID": "#64748B",
+      "LIGHT": "#111827",
+      "PALE": "#1F2937",
+      "STEEL": "#64748B",
+      "ASPH": "#1E2430",
+      "CONC": "#2D3748",
+      "WHITE": "#1E2530",
+      "FAINT": "#374151",
+      "BUNDFILL": "#171F2C",
+      "CANVAS_BG": "#0F172A",
+      "token_references": {
+        "INK": "--dt-primitive-gray-10",
+        "MID": "--dt-primitive-gray-450",
+        "LIGHT": "--dt-primitive-gray-980",
+        "PALE": "--dt-primitive-gray-850",
+        "STEEL": "--dt-primitive-gray-500",
+        "ASPH": "--dt-primitive-gray-800",
+        "CONC": "--dt-primitive-gray-700",
+        "WHITE": "--dt-primitive-gray-800",
+        "FAINT": "--dt-primitive-gray-650",
+        "BUNDFILL": "--dt-primitive-gray-900",
+        "CANVAS_BG": "--dt-color-bg-canvas"
+      }
+    }
+  }
+}

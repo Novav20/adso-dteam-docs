@@ -25,6 +25,12 @@ def main():
         help="Color theme palette: 'light' (standard) or 'dark' (High-Performance HMI dark mode)."
     )
     parser.add_argument(
+        "--theme-file",
+        type=Path,
+        default=None,
+        help="Path to custom JSON theme file overriding built-in palettes."
+    )
+    parser.add_argument(
         "--include-cad-tables",
         action="store_true",
         default=False,
@@ -57,14 +63,19 @@ def main():
     svg_l1, meta = build_plot_plan(
         zoom="zoom-l1",
         theme=args.theme,
+        theme_file=args.theme_file,
         include_cad_tables=args.include_cad_tables
     )
     out.write_text(svg_l1, encoding="utf-8")
 
     # Optional multi-zoom files
     if args.all_zooms:
-        svg_l2, _ = build_plot_plan(zoom="zoom-l2", theme=args.theme, include_cad_tables=args.include_cad_tables)
-        svg_l3, _ = build_plot_plan(zoom="zoom-l3", theme=args.theme, include_cad_tables=args.include_cad_tables)
+        svg_l2, _ = build_plot_plan(
+            zoom="zoom-l2", theme=args.theme, theme_file=args.theme_file, include_cad_tables=args.include_cad_tables
+        )
+        svg_l3, _ = build_plot_plan(
+            zoom="zoom-l3", theme=args.theme, theme_file=args.theme_file, include_cad_tables=args.include_cad_tables
+        )
         out.with_name(out.stem + "_l2.svg").write_text(svg_l2, encoding="utf-8")
         out.with_name(out.stem + "_l3.svg").write_text(svg_l3, encoding="utf-8")
 

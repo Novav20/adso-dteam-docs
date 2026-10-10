@@ -70,3 +70,39 @@ THEMES = {
     "light": LIGHT_PALETTE,
     "dark": DARK_PALETTE
 }
+
+import json
+from pathlib import Path
+
+DEFAULT_THEMES_FILE = Path(__file__).resolve().parent / "themes.json"
+
+
+def load_theme_palette(theme_name="light", theme_file=None) -> Palette:
+    """
+    Loads a Palette dataclass from a JSON theme specification file.
+    Falls back to built-in constants if file or key is unavailable.
+    """
+    fpath = Path(theme_file) if theme_file else DEFAULT_THEMES_FILE
+    if fpath.is_file():
+        try:
+            data = json.loads(fpath.read_text(encoding="utf-8"))
+            theme_dict = data.get("themes", {}).get(theme_name)
+            if theme_dict:
+                return Palette(
+                    name=theme_dict.get("name", theme_name),
+                    INK=theme_dict["INK"],
+                    MID=theme_dict["MID"],
+                    LIGHT=theme_dict["LIGHT"],
+                    PALE=theme_dict["PALE"],
+                    STEEL=theme_dict["STEEL"],
+                    ASPH=theme_dict["ASPH"],
+                    CONC=theme_dict["CONC"],
+                    WHITE=theme_dict["WHITE"],
+                    FAINT=theme_dict["FAINT"],
+                    BUNDFILL=theme_dict["BUNDFILL"],
+                    CANVAS_BG=theme_dict["CANVAS_BG"]
+                )
+        except Exception:
+            pass
+    return THEMES.get(theme_name, LIGHT_PALETTE)
+
