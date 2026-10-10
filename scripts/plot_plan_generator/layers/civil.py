@@ -280,7 +280,7 @@ def build_civil_layer(palette):
 
     # Basin
     bu0, bu1, bv0, bv1 = BASIN
-    CIV.append(polyg([UVu(bu0, bv0), UVu(bu1, bv0), UVu(bu1, bv1), UVu(bu0, bv1)], f="#D0D4DB" if palette.name == "light" else "#1E293B", s=palette.STEEL, w=1.4))
+    CIV.append(polyg([UVu(bu0, bv0), UVu(bu1, bv0), UVu(bu1, bv1), UVu(bu0, bv1)], f=palette.BUNDFILL, s=palette.STEEL, w=1.4))
     CIV.append(G([polyg([UVu(bu0 + k_, bv0 + k_), UVu(bu1 - k_, bv0 + k_), UVu(bu1 - k_, bv1 - k_), UVu(bu0 + k_, bv1 - k_)],
                        s=palette.STEEL, w=0.5, d="4 3") for k_ in (6, 12, 18)], c=ZL2))
 
