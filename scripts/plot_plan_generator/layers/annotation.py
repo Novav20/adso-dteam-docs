@@ -44,24 +44,25 @@ def nf(v):
     return f"{v:,.0f}"
 
 
-def build_annotation_layer(palette, gate_u, gatehouses, wbc, include_cad_tables=False):
+def build_annotation_layer(palette, gate_u, gatehouses, wbc, include_cad_tables=False, include_grid_axes=False, include_zone_badges=False):
     """Assembles all textual annotations, grid, compass, and optional CAD tables for L-ANNO-TEXT."""
     ANN = []
 
-    # 1. Coordinate grid (40 m modules) with bubbles on all four sides
-    grid, bub = [], []
-    for k_, x in enumerate(range(200, 1801, 200)):
-        grid.append(line(x, 26, x, H - 26, s=palette.MID, w=0.5, d="2 6", o=0.7))
-        for yb in (17, H - 17):
-            bub += [circle(x, yb, 9, f=palette.WHITE, s=palette.INK, w=0.8),
-                    text(x, yb + 3, "ABCDEFGHI"[k_], size=8, anchor="middle", fill=palette.INK)]
-    for k_, y in enumerate(range(200, 1401, 200)):
-        grid.append(line(26, y, W - 26, y, s=palette.MID, w=0.5, d="2 6", o=0.7))
-        for xb in (17, W - 17):
-            bub += [circle(xb, y, 9, f=palette.WHITE, s=palette.INK, w=0.8),
-                    text(xb, y + 3, str(k_ + 1), size=8, anchor="middle", fill=palette.INK)]
-    ANN.append(G(grid, c=ZL2))
-    ANN.append(G(bub))
+    # 1. Coordinate grid (40 m modules) with bubbles on all four sides (Optional CAD overlay)
+    if include_grid_axes:
+        grid, bub = [], []
+        for k_, x in enumerate(range(200, 1801, 200)):
+            grid.append(line(x, 26, x, H - 26, s=palette.MID, w=0.5, d="2 6", o=0.7))
+            for yb in (17, H - 17):
+                bub += [circle(x, yb, 9, f=palette.WHITE, s=palette.INK, w=0.8),
+                        text(x, yb + 3, "ABCDEFGHI"[k_], size=8, anchor="middle", fill=palette.INK)]
+        for k_, y in enumerate(range(200, 1401, 200)):
+            grid.append(line(26, y, W - 26, y, s=palette.MID, w=0.5, d="2 6", o=0.7))
+            for xb in (17, W - 17):
+                bub += [circle(xb, y, 9, f=palette.WHITE, s=palette.INK, w=0.8),
+                        text(xb, y + 3, str(k_ + 1), size=8, anchor="middle", fill=palette.INK)]
+        ANN.append(G(grid, c=ZL2))
+        ANN.append(G(bub))
 
     # 2. Metric Calibration Vector (Normative requirement per DT-UI-SVG-DOC-001 Rev 2.0)
     ANN.append(f'<line x1="0" y1="0" x2="1000" y2="0" id="CALIBRATION-VECTOR" data-real-meters="{1000 * M_PER_UNIT:.1f}" stroke="none" fill="none" style="display:none;" />')
@@ -77,13 +78,14 @@ def build_annotation_layer(palette, gate_u, gatehouses, wbc, include_cad_tables=
             ANN.append(text(cx, cy + 13, f"Ø{2*r*M_PER_UNIT:.0f} m · {'FLOATING' if t[4]=='FR' else 'CONE'} ROOF",
                             size=7, anchor="middle", fill=palette.INK))
 
-    # 4. Zone bubbles
-    zb = []
-    for num, name, (zu, zv) in ZONES:
-        x, y = UVu(zu, zv)
-        zb += [circle(x, y, 12, f=palette.INK),
-               text(x, y + 4.5, num, size=13, anchor="middle", weight="bold", fill=palette.LIGHT)]
-    ANN.append(G(zb))
+    # 4. Zone bubbles (Optional)
+    if include_zone_badges:
+        zb = []
+        for num, name, (zu, zv) in ZONES:
+            x, y = UVu(zu, zv)
+            zb += [circle(x, y, 12, f=palette.INK),
+                   text(x, y + 4.5, num, size=13, anchor="middle", weight="bold", fill=palette.LIGHT)]
+        ANN.append(G(zb))
 
     # 5. Equipment labels
     ANN.append(G([text(*PF.pt(PUMP_X0 + PUMP_PITCH * i + 2, 38), t, size=6, weight="bold", fill=palette.INK)
@@ -128,25 +130,26 @@ def build_annotation_layer(palette, gate_u, gatehouses, wbc, include_cad_tables=
     ANN.append(dim_uv((396 + 0, -110 + 24), (402, -44 - 23), f"{gap_m(sw[0], sw[1]):.1f} m", palette))
     ANN.append(dim_uv((400, 150 + 14), (400, 190 - 14), f"{gap_m(TKS['CE'][0], TKS['CE'][1]):.1f} m", palette))
 
-    # 7. Compass rose & Scale bar
-    cr_x, cr_y = 120, 520
-    ANN.append(G([circle(cr_x, cr_y, 36, s=palette.INK, w=1),
-                  circle(cr_x, cr_y, 3, f=palette.INK),
-                  polyg([(cr_x, cr_y - 36), (cr_x - 7, cr_y), (cr_x + 7, cr_y)], f=palette.INK),
-                  polyg([(cr_x, cr_y + 36), (cr_x - 7, cr_y), (cr_x + 7, cr_y)], f=palette.WHITE, s=palette.INK, w=0.8),
-                  line(cr_x - 36, cr_y, cr_x + 36, cr_y, s=palette.INK, w=0.8),
-                  text(cr_x, cr_y - 41, "N", size=12, anchor="middle", weight="bold", fill=palette.INK),
-                  text(cr_x, cr_y + 50, "S", size=8, anchor="middle", fill=palette.INK),
-                  text(cr_x + 44, cr_y + 3, "E", size=8, fill=palette.INK),
-                  text(cr_x - 44, cr_y + 3, "W", size=8, anchor="end", fill=palette.INK),
-                  text(cr_x, cr_y + 64, "PLANT NORTH", size=7, anchor="middle", fill=palette.INK)]))
+    # 7. Compass rose & Scale bar (Only in print CAD sheets when include_cad_tables is True)
+    if include_cad_tables:
+        cr_x, cr_y = 120, 520
+        ANN.append(G([circle(cr_x, cr_y, 36, s=palette.INK, w=1),
+                      circle(cr_x, cr_y, 3, f=palette.INK),
+                      polyg([(cr_x, cr_y - 36), (cr_x - 7, cr_y), (cr_x + 7, cr_y)], f=palette.INK),
+                      polyg([(cr_x, cr_y + 36), (cr_x - 7, cr_y), (cr_x + 7, cr_y)], f=palette.WHITE, s=palette.INK, w=0.8),
+                      line(cr_x - 36, cr_y, cr_x + 36, cr_y, s=palette.INK, w=0.8),
+                      text(cr_x, cr_y - 41, "N", size=12, anchor="middle", weight="bold", fill=palette.INK),
+                      text(cr_x, cr_y + 50, "S", size=8, anchor="middle", fill=palette.INK),
+                      text(cr_x + 44, cr_y + 3, "E", size=8, fill=palette.INK),
+                      text(cr_x - 44, cr_y + 3, "W", size=8, anchor="end", fill=palette.INK),
+                      text(cr_x, cr_y + 64, "PLANT NORTH", size=7, anchor="middle", fill=palette.INK)]))
 
-    sb_x, sb_y = 40, 610
-    sb = [rect(sb_x + k_ * 50, sb_y, 50, 6, f=palette.INK if k_ % 2 == 0 else palette.WHITE, s=palette.INK, w=0.8) for k_ in range(4)]
-    sb += [text(sb_x + k_ * 50, sb_y + 17, str(k_ * 10), size=7, anchor="middle", fill=palette.INK) for k_ in range(5)]
-    sb += [text(sb_x + 215, sb_y + 17, "m", size=7, fill=palette.INK),
-           text(sb_x, sb_y - 6, "SCALE 1 unit = 0.2 m  (5 units / m)", size=7, fill=palette.INK)]
-    ANN.append(G(sb))
+        sb_x, sb_y = 40, 610
+        sb = [rect(sb_x + k_ * 50, sb_y, 50, 6, f=palette.INK if k_ % 2 == 0 else palette.WHITE, s=palette.INK, w=0.8) for k_ in range(4)]
+        sb += [text(sb_x + k_ * 50, sb_y + 17, str(k_ * 10), size=7, anchor="middle", fill=palette.INK) for k_ in range(5)]
+        sb += [text(sb_x + 215, sb_y + 17, "m", size=7, fill=palette.INK),
+               text(sb_x, sb_y - 6, "SCALE 1 unit = 0.2 m  (5 units / m)", size=7, fill=palette.INK)]
+        ANN.append(G(sb))
 
     # 8. Optional CAD Engineering Tables (only when include_cad_tables is True)
     if include_cad_tables:

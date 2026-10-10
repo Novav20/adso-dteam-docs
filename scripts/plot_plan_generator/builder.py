@@ -16,16 +16,19 @@ def format_layer(lid, cls, items):
     return f'<g id="{lid}" class="{cls}">\n{body}\n</g>' if body else f'<g id="{lid}" class="{cls}"/>'
 
 
-def build_plot_plan(zoom="zoom-l1", palette=None, theme="light", theme_file=None, include_cad_tables=False):
+def build_plot_plan(zoom="zoom-l1", palette=None, theme="light", theme_file=None, include_cad_tables=False, include_grid_axes=False, include_fire_radii=False, include_zone_badges=False):
     """
     Builds the complete SVG plot plan.
     
     Args:
         zoom: 'zoom-l1', 'zoom-l2', or 'zoom-l3'
         palette: Palette instance. If None, resolved from theme.
-        theme: 'light' or 'dark'
+        theme: 'light', 'dark', or 'tokens'
         theme_file: Optional path to external themes JSON file.
         include_cad_tables: whether to include title block, bund data, legends (default False)
+        include_grid_axes: whether to include coordinate grid axis bubbles 1..9, A..I (default False)
+        include_fire_radii: whether to include dashed fire monitor coverage throw circles (default False)
+        include_zone_badges: whether to include numbered zone bubbles 1..8 (default False)
     """
     if palette is None:
         palette = load_theme_palette(theme, theme_file=theme_file)
@@ -35,10 +38,13 @@ def build_plot_plan(zoom="zoom-l1", palette=None, theme="light", theme_file=None
     MEC = build_mechanical_layer(palette)
     INS = []  # Reserved for instrumentation / transmitters
     PIP, pipe_net, stubs = build_piping_layer(palette)
-    FIR, hyd, fm_list, nearest_main = build_fire_layer(palette)
+    FIR, hyd, fm_list, nearest_main = build_fire_layer(palette, include_fire_radii=include_fire_radii)
     HAZ = []  # Reserved for electrical hazardous zones
     ANN = build_annotation_layer(
-        palette, gate_u, gatehouses, wbc, include_cad_tables=include_cad_tables
+        palette, gate_u, gatehouses, wbc,
+        include_cad_tables=include_cad_tables,
+        include_grid_axes=include_grid_axes,
+        include_zone_badges=include_zone_badges
     )
 
     # 2. Defs and Styles

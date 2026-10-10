@@ -66,9 +66,25 @@ DARK_PALETTE = Palette(
     CANVAS_BG="#0F172A"
 )
 
+TOKENS_PALETTE = Palette(
+    name="tokens",
+    INK="var(--dt-color-canvas-pipe-proc, #2B2D42)",
+    MID="var(--dt-color-text-muted, #8D99AE)",
+    LIGHT="var(--dt-color-surface-base, #EDF2F4)",
+    PALE="var(--dt-color-surface-card, #E5E5E5)",
+    STEEL="var(--dt-color-canvas-steel, #5C677D)",
+    ASPH="var(--dt-color-canvas-asphalt, #C5CAD3)",
+    CONC="var(--dt-color-canvas-concrete, #D6DAE0)",
+    WHITE="var(--dt-color-canvas-equip-shell, #FAFBFC)",
+    FAINT="var(--dt-color-border-subtle, #B9C0CC)",
+    BUNDFILL="var(--dt-color-canvas-bund-floor, #E8EAED)",
+    CANVAS_BG="var(--dt-color-bg-canvas, #EDF2F4)"
+)
+
 THEMES = {
     "light": LIGHT_PALETTE,
-    "dark": DARK_PALETTE
+    "dark": DARK_PALETTE,
+    "tokens": TOKENS_PALETTE
 }
 
 import json

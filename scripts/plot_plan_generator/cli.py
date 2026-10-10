@@ -20,9 +20,9 @@ def main():
     )
     parser.add_argument(
         "--theme",
-        choices=["light", "dark"],
+        choices=["light", "dark", "tokens"],
         default="light",
-        help="Color theme palette: 'light' (standard) or 'dark' (High-Performance HMI dark mode)."
+        help="Color theme palette: 'light', 'dark', or 'tokens' (dynamic CSS variables conforming to Design System tokens)."
     )
     parser.add_argument(
         "--theme-file",
@@ -34,7 +34,25 @@ def main():
         "--include-cad-tables",
         action="store_true",
         default=False,
-        help="Include legacy CAD engineering tables (title block, bund table, legend). Disabled by default for clean Digital Twin HMI."
+        help="Include legacy CAD engineering tables, compass rose, and scale bar. Disabled by default for clean Digital Twin HMI."
+    )
+    parser.add_argument(
+        "--include-grid-axes",
+        action="store_true",
+        default=False,
+        help="Include coordinate grid axis bubble markers 1..9 and A..I. Disabled by default for clean Digital Twin HMI."
+    )
+    parser.add_argument(
+        "--include-fire-radii",
+        action="store_true",
+        default=False,
+        help="Include dashed fire monitor coverage throw circles. Disabled by default for clean Digital Twin HMI."
+    )
+    parser.add_argument(
+        "--include-zone-badges",
+        action="store_true",
+        default=False,
+        help="Include numbered zone bubbles 1..8. Disabled by default for clean Digital Twin HMI."
     )
     parser.add_argument(
         "--validate",
@@ -64,17 +82,28 @@ def main():
         zoom="zoom-l1",
         theme=args.theme,
         theme_file=args.theme_file,
-        include_cad_tables=args.include_cad_tables
+        include_cad_tables=args.include_cad_tables,
+        include_grid_axes=args.include_grid_axes,
+        include_fire_radii=args.include_fire_radii,
+        include_zone_badges=args.include_zone_badges
     )
     out.write_text(svg_l1, encoding="utf-8")
 
     # Optional multi-zoom files
     if args.all_zooms:
         svg_l2, _ = build_plot_plan(
-            zoom="zoom-l2", theme=args.theme, theme_file=args.theme_file, include_cad_tables=args.include_cad_tables
+            zoom="zoom-l2", theme=args.theme, theme_file=args.theme_file,
+            include_cad_tables=args.include_cad_tables,
+            include_grid_axes=args.include_grid_axes,
+            include_fire_radii=args.include_fire_radii,
+            include_zone_badges=args.include_zone_badges
         )
         svg_l3, _ = build_plot_plan(
-            zoom="zoom-l3", theme=args.theme, theme_file=args.theme_file, include_cad_tables=args.include_cad_tables
+            zoom="zoom-l3", theme=args.theme, theme_file=args.theme_file,
+            include_cad_tables=args.include_cad_tables,
+            include_grid_axes=args.include_grid_axes,
+            include_fire_radii=args.include_fire_radii,
+            include_zone_badges=args.include_zone_badges
         )
         out.with_name(out.stem + "_l2.svg").write_text(svg_l2, encoding="utf-8")
         out.with_name(out.stem + "_l3.svg").write_text(svg_l3, encoding="utf-8")
@@ -83,7 +112,7 @@ def main():
     if args.validate:
         compute_bund_capacities()
         validate_layout(meta["pipe_net"], meta["stubs"])
-        by, z2, z3, counts, size = validate_svg(out, is_dark=(args.theme == "dark"))
+        by, z2, z3, counts, size = validate_svg(out, is_dark=(args.theme in ("dark", "tokens")))
         print(f"Validated {out} ({size/1024:.0f} KB) — PASS")
         print("Interactive units :", {k_: len(v) for k_, v in by.items()})
         print("Elements per layer:", counts)

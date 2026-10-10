@@ -12,7 +12,7 @@ from ..domain.plant_data import (
 )
 
 
-def build_fire_layer(palette):
+def build_fire_layer(palette, include_fire_radii=False):
     """Assembles all fire protection mains, hydrants, and foam towers for L-FIRE-PROT."""
     FIR = []
 
@@ -116,7 +116,8 @@ def build_fire_layer(palette):
                    line(x - 5, y + 5, x + 5, y - 5, s=palette.INK, w=0.8),
                    circle(x, y, 2, f=palette.INK)]
         fm_tag.append(text(x + 8, y + 3, f"FM-{i:02d}", size=6, fill=palette.INK))
-    FIR.append(G(cov, c=ZL2))
+    if include_fire_radii:
+        FIR.append(G(cov, c=ZL2))
     FIR.append(G(fm_sp, c=ZL2))
     FIR.append(G(fm_sym))
     FIR.append(G(fm_tag, c=ZL2))
