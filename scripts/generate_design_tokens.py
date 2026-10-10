@@ -154,6 +154,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     semantic = table_for(tables, "Semantic Tokens", "Semantic Token")
     alarms = table_for(tables, "Alarm and Safety Semantics", "State / Severity")
     mai_tokens = table_for(tables, "Dual-Theme Semantic Token Table for MAI", "Semantic CSS")
+    spatial_tokens = table_for(tables, "Spatial and Physical Material", "Spatial Material Token")
     typography = table_for(tables, "Typographic Scale", "Typographic Token")
     radii = table_for(tables, "Border Radii", "Token")
     zindex = table_for(tables, "Layers and Stacking", "Z-Index Token")
@@ -224,6 +225,10 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, light, dark = row[:4]  # MAI table has Light in col 2 and Dark in col 3
             lines.append(f"  {token}: {semantic_value(light)};")
+    for row in spatial_tokens:
+        if row and row[0].startswith("--"):
+            token, dark, light = row[:3]
+            lines.append(f"  {token}: {semantic_value(light)};")
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, dark, light = row[:4]
@@ -237,6 +242,10 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     for row in mai_tokens:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, _, dark = row[:4]
+            lines.append(f"  {token}: {semantic_value(dark)};")
+    for row in spatial_tokens:
+        if row and row[0].startswith("--"):
+            token, dark, _ = row[:3]
             lines.append(f"  {token}: {semantic_value(dark)};")
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--"):
@@ -356,6 +365,13 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     for row in mai_tokens:
         if row and len(row) > 3 and row[1].startswith("--dt-"):
             _, token, light, dark = row[:4]
+            name = penpot_semantic_name(token)
+            penpot["Semantic-Dark"][name] = penpot_token(
+                penpot_reference(dark), "color"
+            )
+    for row in spatial_tokens:
+        if row and row[0].startswith("--dt-"):
+            token, dark, light = row[:3]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
                 penpot_reference(dark), "color"

@@ -145,6 +145,20 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | **Documentary Confirmation**       | --dt-color-state-success  | --dt-primitive-teal-400  | --dt-primitive-teal-700  | Checkmark ( $\checkmark$ ) (Adjusted WCAG AA 3.25:1 on light background) |
 | **Disabled Element**        | --dt-color-state-disabled | --dt-primitive-gray-580  | --dt-primitive-gray-380  | Dotted border                                                      |
 
+### 3.4. Spatial and Physical Material Tokens (Digital Twin Canvas)
+
+These tokens model the visual representation of physical site engineering materials and AIA/ISO 13567 layers for 2D Digital Twin viewports (`DT-UI-SVG-DOC-001`). They map directly to neutral grayscale primitives, maintaining the ANSI/ISA-101 90/10 HPHMI principle to reserve saturated colors for real-time telemetry alerts.
+
+| Spatial Material Token | Dark Theme (Mobile / Night) | Light Theme (Desktop / Day) | Physical Infrastructure / Plant Element |
+| :--------------------------------- | :-------------------------- | :---------------------------- | :-------------------------------------------------------------------------- |
+| --dt-color-canvas-asphalt          | --dt-primitive-gray-800     | --dt-primitive-gray-280       | Internal asphalt roads, vehicle queue yards, and loading bay aprons        |
+| --dt-color-canvas-concrete         | --dt-primitive-gray-700     | --dt-primitive-gray-200       | Reinforced concrete bund walls, pump foundation slabs, and manifold bases   |
+| --dt-color-canvas-steel            | --dt-primitive-gray-500     | --dt-primitive-gray-500       | Pipe sleeperway bents, gantry canopy structural columns, and trusses       |
+| --dt-color-canvas-bund-floor       | --dt-primitive-gray-900     | --dt-primitive-gray-100       | Interior retention dike floor / secondary containment gravel bed            |
+| --dt-color-canvas-equip-shell      | --dt-primitive-gray-800     | --dt-primitive-gray-30        | API 650 storage tank shell plates, pump bodies, and static equipment bodies |
+| --dt-color-canvas-pipe-proc        | --dt-primitive-gray-10      | --dt-primitive-gray-850       | Hydrocarbon process headers, collectors, and U-loop expansions              |
+| --dt-color-canvas-pipe-fire        | --dt-primitive-gray-500     | --dt-primitive-gray-500       | Dedicated fire-water ring mains, hydrant branches, and monitor spurs        |
+
 ---
 
 ## 4. Typographic Tokens

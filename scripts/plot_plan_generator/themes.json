@@ -17,16 +17,16 @@
       "BUNDFILL": "#E8EAED",
       "CANVAS_BG": "#EDF2F4",
       "token_references": {
-        "INK": "--dt-primitive-gray-850",
+        "INK": "--dt-color-canvas-pipe-proc",
         "MID": "--dt-primitive-gray-420",
         "LIGHT": "--dt-primitive-gray-100",
         "PALE": "--dt-primitive-gray-100",
-        "STEEL": "--dt-primitive-gray-500",
-        "ASPH": "--dt-primitive-gray-280",
-        "CONC": "--dt-primitive-gray-200",
-        "WHITE": "--dt-primitive-gray-30",
+        "STEEL": "--dt-color-canvas-steel",
+        "ASPH": "--dt-color-canvas-asphalt",
+        "CONC": "--dt-color-canvas-concrete",
+        "WHITE": "--dt-color-canvas-equip-shell",
         "FAINT": "--dt-primitive-gray-300",
-        "BUNDFILL": "--dt-primitive-gray-100",
+        "BUNDFILL": "--dt-color-canvas-bund-floor",
         "CANVAS_BG": "--dt-color-bg-canvas"
       }
     },
@@ -45,16 +45,16 @@
       "BUNDFILL": "#171F2C",
       "CANVAS_BG": "#0F172A",
       "token_references": {
-        "INK": "--dt-primitive-gray-10",
+        "INK": "--dt-color-canvas-pipe-proc",
         "MID": "--dt-primitive-gray-450",
         "LIGHT": "--dt-primitive-gray-980",
         "PALE": "--dt-primitive-gray-850",
-        "STEEL": "--dt-primitive-gray-500",
-        "ASPH": "--dt-primitive-gray-800",
-        "CONC": "--dt-primitive-gray-700",
-        "WHITE": "--dt-primitive-gray-800",
+        "STEEL": "--dt-color-canvas-steel",
+        "ASPH": "--dt-color-canvas-asphalt",
+        "CONC": "--dt-color-canvas-concrete",
+        "WHITE": "--dt-color-canvas-equip-shell",
         "FAINT": "--dt-primitive-gray-650",
-        "BUNDFILL": "--dt-primitive-gray-900",
+        "BUNDFILL": "--dt-color-canvas-bund-floor",
         "CANVAS_BG": "--dt-color-bg-canvas"
       }
     }
