@@ -26,3 +26,6 @@ scripts/temp/
 domain-models/class/DT-DM-001.puml
 domain-models/entity-relationship/DT-ERD-DOC-001.dbml
 domain-models/entity-relationship/DT-ERD-DOC-001.sql
+
+__pycache__/
+*.pyc
