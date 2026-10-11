@@ -1,6 +1,6 @@
 ---
 code: DT-ERD-DOC-001
-version: 1.3
+version: 1.4
 date: 2026-10-11
 status: Active
 author: Juan David Julio Serrano
@@ -368,6 +368,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | padlock_tag_id | VARCHAR(80) | NULL | | NULL | Identifier of the physical padlock or tag (Try-Out). |
 | try_out_confirmed | BOOLEAN | NOT NULL | | FALSE | Verified zero-energy Try-Out confirmation. |
 | try_out_at | TIMESTAMP | NULL | | NULL | Timestamp when physical Try-Out was performed. |
+| try_out_method | VARCHAR(40) | NULL | CHECK | NULL | Controlled Try-Out verification method (DT-DM-DOC-001 §4.30). |
+| try_out_reading | VARCHAR(80) | NULL | | NULL | Physical observed metric or confirmation text (e.g. 0.00 V, 0.0 psig). |
 | telemetry_snapshot | JSONB | NULL | | NULL | Sensor readings snapshot at lockout verification. |
 | signature_hash | VARCHAR(64) | NULL | | NULL | SHA-256 technician digital signature hash. |
 

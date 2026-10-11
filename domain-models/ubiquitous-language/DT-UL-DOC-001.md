@@ -2,7 +2,7 @@
 
 | Document ID | DT-UL-DOC-001 |
 | ----------- | ------------- |
-| Version     | 1.0.0         |
+| Version     | 1.1.0         |
 | Status      | DRAFT         |
 | Scope       | Domain-Driven Design |
 
@@ -82,3 +82,5 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | HPHMI                     | High-Performance Human-Machine Interface. Design philosophy prioritizing situational awareness, minimizing cognitive fatigue, and ensuring pre-attentive visibility of safety alarms. |
 | Redundant Coding          | The practice of communicating critical states using multiple simultaneous channels (Shape + Icon + Color + Text) to guarantee accessibility, especially for color blindness. |
 | Discrete Switching (UI)   | A UI interaction pattern requiring explicit taps (rather than continuous swipe/drag gestures) to toggle container states, necessary due to the low precision of capacitive sensors operated with industrial gloves. |
+| **Try-Out Attestation**   | Formalized legal and cryptographic confirmation comprising the physical test method, observed value, and technician digital signature hash, mandatory prior to work authorization. |
+| **Negative Interlock**    | A safety interlocking architecture where telemetry sensors and automated systems can only veto or inhibit an action upon detecting hazard, but can never affirmatively enable or authorize execution on their own without human verification. |

@@ -1,6 +1,6 @@
 ---
 code: DT-DM-DOC-002
-version: 1.4
+version: 1.5
 date: 2026-10-11
 status: Full Traceability Audit Completed (ISO 9001:2015 / ISO 14224 / ISO 55001)
 author: Juan David Julio Serrano
@@ -173,7 +173,7 @@ Additionally, the document justifies the existence of each method under the prin
 | Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
 | :--- | :--- | :--- | :--- |
 | `VerifyIsolation(padlockTagId: String): void` | Sets `IsIsolated` to `true`, records `IsolatedAt` timestamp, and binds the physical lock/tag ID. | [[VIS-011]]<br>FR-228, FR-230 | **LOTO Sequencing:** Enforces positive mechanical or electrical lockout before Try-Out verification. |
-| `ConfirmTryOut(technicianSignatureHash: String, telemetrySnapshot: JSON): void` | Sets `TryOutConfirmed` to `true`, records `TryOutAt`, and captures the tamper-evident signature hash and IoT sensor snapshot. | [[VIS-011]]<br>FR-230, FR-231, TR-001 | **OSHA 1910.147 (d)(6) Compliance:** Mandates immutable evidence of absence-of-energy test before work order can enter execution. |
+| `ConfirmTryOut(method: TryOutMethod, observedReading: String, technicianSignatureHash: String, telemetrySnapshot: JSON): void` | Sets `TryOutConfirmed` to `true`, records `TryOutAt`, physical `TryOutMethod`, observed reading metric, and captures the tamper-evident signature hash and IoT sensor snapshot. | [[VIS-011]]<br>FR-230, FR-231, TR-001 | **OSHA 1910.147 (d)(6) Compliance:** Mandates immutable evidence of physical absence-of-energy test before work order can enter execution. |
 
 ---
 

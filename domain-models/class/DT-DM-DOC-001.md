@@ -1,6 +1,6 @@
 ---
 code: DT-DM-DOC-001
-version: 1.5
+version: 1.6
 date: 2026-10-11
 status: Approved — Domain Conceptual Specification
 author: Juan David Julio Serrano
@@ -404,9 +404,17 @@ This segregation allows for:
 | REVOKED | Immediately canceled due to unsafe conditions in the field. | Emergency Intervention |
 | CLOSED | Formally finished after concluding the intervention and removing LOTO. | Operation Closure |
 
+#### 4.30 WorkOrderIsolation.tryOutMethod
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| MULTIMETER_PROBE | Direct dead-test on electrical conductors using a calibrated field multimeter. | NFPA 70E / OSHA 1910.147 (d)(6) |
+| ATMOSPHERIC_VENT_BLEED | Verification of depressurization by venting/bleeding to atmosphere. | Process Safety LOTO / API |
+| LOCAL_PUSHBUTTON_ATTEMPT | Attempted local start to verify absence of mechanical motion. | Machine Safety / OSHA 1910.147 (d)(6) |
+
 ### Schema: ADM
 
-#### 4.30 AuditLog.actionType
+#### 4.31 AuditLog.actionType
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -414,7 +422,7 @@ This segregation allows for:
 | UPDATE | Modification of existing fields (tracks previous state). | ISO 9001 Audit |
 | DELETE | Logical or physical deletion of a critical entity. | ISO 9001 Audit |
 
-#### 4.31 RolePermission.module
+#### 4.32 RolePermission.module
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -424,7 +432,7 @@ This segregation allows for:
 | SAFETY | Management of telemetry, LOTO permits, and isolations. | Safety Domain |
 | SYSTEM | Governance, users, roles, and audit logs. | IAM Domain |
 
-#### 4.32 User.status
+#### 4.33 User.status
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -432,7 +440,7 @@ This segregation allows for:
 | INACTIVE | Account deactivated temporarily or permanently (history preserved). | Account Lifecycle |
 | LOCKED | Automatically locked after exceeding failed login attempts. | Brute Force Mitigation |
 
-#### 4.33 WorkOrderAssignment.roleInWork
+#### 4.34 WorkOrderAssignment.roleInWork
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
