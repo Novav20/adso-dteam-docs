@@ -432,3 +432,36 @@ public record PlantZoneDto
 ### 7.3. SVG DOM Interaction Bridge
 1. **Geometric Viewport Navigation:** Panning, dragging, and wheel zooming are handled client-side via SVG `viewBox` coordinates or a high-performance JavaScript interop wrapper ([[ADR-001]]), maintaining $\ge 30\text{ FPS}$ on tablets and $\ge 60\text{ FPS}$ on desktop (`NFR-190`).
 2. **Semantic Event Dispatching:** Hotspot groups in the SVG declare data attributes (`data-tag="P-101"`, `data-permit-id="uuid"`). Clicks on permit badges trigger the `OnPermitBadgeClicked(permitId)` callback. Clicks on equipment geometry outside active badges trigger `OnEquipmentSelected(tagNumber)`, invoking the [[SCR-VIS-033]] Level 3 faceplate.
+
+---
+
+## 8. Layout and Responsive Adaptability
+
+| Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
+| :--- | :--- | :--- |
+| **Desktop Workstation**<br>($\ge 1400\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full viewport. Floating pill toolbar `CMP-02` displays uncompressed filter chips (`HOT_WORK`, `CONFINED_SPACE`, etc.) and fixed $144\text{px}$ badge. Non-modal integrity drawer `CMP-08` docks as lateral right panel ($440\text{px}$). | Mouse wheel focal zoom; middle-click canvas pan; cursor tooltips `CMP-06` enabled on hover; popover cards `CMP-07` clamp within viewport bounds. |
+| **Industrial Tablet Landscape**<br>($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`) | Canvas `CMP-01` full screen. Toolbar `CMP-02` applies adaptive badge condensation, collapsing individual text chips into a single filter dropdown trigger. Integrity drawer `CMP-08` slides over right flank ($380\text{px}$). | Touch pan threshold ($4\text{px}$); touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); hover tooltips disabled, direct tap opens popover card. |
+| **Industrial Tablet Portrait**<br>($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`) | Canvas `CMP-01` full screen. Toolbar `CMP-02` wraps to compact icon-only controls. Integrity drawer `CMP-08` operates as a bottom sheet with tactile drag handle. | Single-finger drag pan; pinch-to-zoom; bottom-sheet snap mechanics; floating HUD elements dock to lower corners. |
+
+---
+
+## 9. Traceability and Requirements Matrix
+
+| Requirement | Addressed in Component | Verification & Implementation Mechanism |
+| :--- | :--- | :--- |
+| **FR-182** | `CMP-01`, `CMP-02` | Toggling the "Work Permits" layer overlays active permits over the 2D plot plan without obscuring base context. |
+| **FR-183** | `CMP-05` | Renders redundant coding (Color + Geometric Shape) for each permit type against the neutral grayscale canvas. |
+| **FR-184** | `CMP-07` | Clicking a permit badge opens a compact popover card with type, contractor, supervisor, schedule, and drill-down action. |
+| **FR-185** | `CMP-08` | Automated integrity validation cross-references active permits against loaded SVG tags, flagging orphaned permits. |
+| **FR-186** | `CMP-08` | Collapsible lateral drawer displays visualization failures, allowing manual reassignment or resolution. |
+| **FR-187** | `CMP-01`, `CMP-05` | Near real-time SignalR synchronization adds, updates, and removes permit badges without full page reloads. |
+| **FR-188** | `CMP-02` | Horizontal filter controls allow toggling visibility by permit type, preserving filter state in user session. |
+| **FR-189** | `CMP-06` | Hovering over permit badges on desktop displays a compact tooltip with permit type, contractor, and action hint. |
+| **NFR-190** | `CMP-01` | SVG rendering maintains $\ge 30\text{ FPS}$ on mobile/tablets and $\ge 60\text{ FPS}$ on desktop during pan/zoom with up to 100 icons. |
+| **NFR-191** | `CMP-08` | Orphan detection integrity check completes in $< 5\text{s}$ for up to 100 active permits. |
+| **NFR-192** | `CMP-05` | Permit status updates reflect on the canvas within $< 5\text{s}$ from backend event publication. |
+| **NFR-193** | `CMP-05`, `CMP-07` | Visual coding complies with WCAG 2.1 AA redundant coding for color blindness with permanent visual legend. |
+| **NFR-194** | `CMP-01` | Displays last known state with a clear visual diagnostic banner if permit service is offline, without blocking navigation. |
+| **NFR-195** | `CMP-01` | 2D vector fallback rendering ensures full functionality on hardware lacking WebGL 3D acceleration. |
+| **TR-010** | `CMP-02`, `CMP-05`, `CMP-07` | Tactile touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`) for industrial field gloved operation. |
+| **TR-011** | `CMP-01`, `CMP-05` | High-Performance HMI (ANSI/ISA-101): Grayscale canvas, reserving color strictly for alarms and active permit types. |

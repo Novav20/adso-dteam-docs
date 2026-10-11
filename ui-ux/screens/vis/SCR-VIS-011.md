@@ -195,6 +195,7 @@ Pages/
 
 ### 7.2. Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)
 
+#### 7.2.1. `LotoIsolationMatrixPage.razor` (Root View)
 ```csharp
 namespace DTeam.DigitalTwin.Pages;
 
@@ -225,8 +226,81 @@ public partial class LotoIsolationMatrixPage : ComponentBase
     public bool IsOffline { get; private set; }
     public bool HasValidOfflineLease { get; private set; }
 }
+```
 
-// CMP-07: TelemetryVerificationMatrix.razor DTO
+#### 7.2.2. Subcomponent Parameters (`CMP-04` to `CMP-11`)
+```csharp
+// CMP-04: IsolationCutoffNode.razor
+[Parameter]
+public required CutoffPointStatusDto CutoffPoint { get; set; }
+
+[Parameter]
+public EventCallback<string> OnNodeSelected { get; set; }
+
+// CMP-05: LotoIsolationDrawer.razor
+[Parameter]
+public required LotoIsolationPlanDto Plan { get; set; }
+
+[Parameter]
+public bool IsCollapsed { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnCollapseToggled { get; set; }
+
+// CMP-06: SequentialChecklist.razor
+[Parameter]
+public required IReadOnlyList<ChecklistStepDto> Steps { get; set; }
+
+[Parameter]
+public EventCallback<int> OnStepVerified { get; set; }
+
+// CMP-07: TelemetryVerificationMatrix.razor
+[Parameter]
+public required IReadOnlyList<CutoffPointStatusDto> CutoffPoints { get; set; }
+
+[Parameter]
+public required ZeroEnergyState OverallEnergyState { get; set; }
+
+// CMP-08: PhysicalTryOutCard.razor
+[Parameter]
+public bool IsConfirmed { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnTryOutToggled { get; set; }
+
+// CMP-09: ActiveSafetyInterlockButton.razor
+[Parameter]
+public bool CanStartWork { get; set; }
+
+[Parameter]
+public EventCallback OnStartWorkInitiated { get; set; }
+
+// CMP-11: FailSafeDiagnosticBanner.razor
+[Parameter]
+public bool IsOffline { get; set; }
+
+[Parameter]
+public bool HasValidOfflineLease { get; set; }
+
+[Parameter]
+public int RemainingLeaseSeconds { get; set; }
+```
+
+#### 7.2.3. Data Transfer Objects (DTOs)
+```csharp
+namespace DTeam.DigitalTwin.Contracts.Safety;
+
+public record LotoIsolationPlanDto
+{
+    public required string PlanId { get; init; }
+    public required string WorkOrderId { get; init; }
+    public required string TargetEquipmentTag { get; init; }
+    public required string StandardOperatingProcedureUrl { get; init; }
+    public IReadOnlyList<string> RequiredPpeCodes { get; init; } = [];
+    public IReadOnlyList<CutoffPointStatusDto> CutoffPoints { get; init; } = [];
+    public IReadOnlyList<ChecklistStepDto> ChecklistSteps { get; init; } = [];
+}
+
 public record CutoffPointStatusDto(
     string CutoffNodeId,
     string PhysicalTag,
@@ -238,7 +312,6 @@ public record CutoffPointStatusDto(
     DateTimeOffset LastReadingUtc
 );
 
-// CMP-06: SequentialChecklist.razor DTO
 public record ChecklistStepDto(
     int SequenceOrder,
     string ActionDescription,
@@ -247,7 +320,27 @@ public record ChecklistStepDto(
     bool IsVerified,
     DateTimeOffset? VerifiedAtUtc
 );
+
+public enum CutoffType
+{
+    ElectricalBreaker,
+    SuctionValve,
+    DischargeValve,
+    BleedValve
+}
+
+public enum ZeroEnergyState
+{
+    Energized,
+    Uncertain,
+    ZeroEnergyVerified
+}
 ```
+
+### 7.3. SVG DOM Interaction Bridge
+1. **Dynamic Energy Path & Route Rendering:** Interop module manipulating SVG path stroke attributes (red solid for active hazardous energy vs. slate dashed for confirmed isolated lines), updating segment classes in real time without triggering full SVG re-parsing or DOM thrashing.
+2. **Cutoff Node Hotspot Binding:** Direct client-side event binding on `<g id="cutoff-{nodeId}">` SVG elements. Disambiguates canvas middle-click dragging from discrete touch taps on cutoff nodes, highlighting corresponding checklist steps in `CMP-06`.
+3. **Client-Side Cryptographic Lease Interop:** Local evaluation of offline cryptographic lease timestamp and AES-GCM token validity in client storage (`sqlite-net-pcl` / IndexedDB), locking or unlocking the `[Start Work]` action button in disconnected mode without requiring server roundtrip latency.
 
 ---
 

@@ -272,3 +272,30 @@ public record ActiveWorkOrderSummaryDto
 1. **Geometric Navigation (Panning & Zoom):** Encapsulated within a client-side viewport navigation interop module (Blazor JS Interop per [[ADR-001]]). Handles pointer tracking, middle-click panning, touch gesture thresholds ($4\text{px}$), focal mouse-wheel matrix transformations, and boundary-clamped popover positioning directly in the client runtime, eliminating SignalR roundtrip latency and avoiding network saturation.
 2. **Drawer Touch Physics & Gesture Bridge:** Client-side touch gesture handler managing pointer capture on the upper drag handle, height constraints (min $160\text{px}$, max $85\text{vh}$), snap thresholds, and single-tap collapse toggling.
 3. **Semantic Selection:** Hotspots in SVG share the exact `id` attribute matching the ISO 14224 Level 6 `TagNumber` (e.g., `<g id="tag-P-101" class="equipment-hotspot">`). Clicking or tapping an SVG node triggers the `OnEquipmentSelected(tagNumber)` callback. Stationary taps are disambiguated from canvas drags, suppressing selection if a drag motion exceeded the tactile threshold.
+
+---
+
+## 8. Layout and Responsive Adaptability
+
+| Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
+| :--- | :--- | :--- |
+| **Desktop Workstation**<br>($\ge 1400\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full workspace. Context Container `CMP-05` docks as fixed lateral sidebar ($440\text{px}$, $100\%$ height, elevation `--dt-z-overlay-card`) on the right flank. | Mouse wheel focal zoom around $(cx, cy)$; middle-click canvas pan; asset centering offsets leftward by half drawer width ($220\text{px}$). |
+| **Industrial Tablet Landscape**<br>($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`) | Canvas `CMP-01` occupies left workspace; Context Container `CMP-05` docks as lateral panel ($440\text{px}$). Viewport toolbar `CMP-02` centers over visible canvas. | Touch pan threshold ($4\text{px}$); touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); chevron toggle minimizes panel to $36\text{px}$ peek trigger. |
+| **Industrial Tablet Portrait**<br>($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`) | Canvas `CMP-01` occupies full viewport. Context Container `CMP-05` operates as **Bottom Sheet** (elevation `--dt-z-drawer-sidebar`), initializing at natural content height ($\le 40\%$, $\sim 480\text{px}$). | Continuous upward drag handle up to $85\text{vh}$ ($82\text{vh}$ ceiling); downward drag hysteresis ($< 100\text{px}$ snap-back; $> 100\text{px}$ minimizes to $36\text{px}$ peek tab); discrete tap navigation. |
+
+---
+
+## 9. Traceability and Requirements Matrix
+
+| Requirement | Addressed in Component | Verification & Implementation Mechanism |
+| :--- | :--- | :--- |
+| **FR-598** | `CMP-01` | Renders 2D vector plans ensuring interactive compatibility (panning and selection) across mobile tablets and desktop workstations. |
+| **FR-599** | `CMP-01`, `CMP-04` | Bidirectionally links SVG graphic elements (`id="tag-{TagNumber}"`) with physical Equipment Unit records in the master catalog. |
+| **FR-600** | `CMP-05`, `CMP-06` | Selecting a mapped geometry deploys contextual faceplate displaying Tag Number, Operational Status, Criticality, and telemetry. |
+| **FR-601** | `CMP-07` | Contextual panel presents real-time Moving Analog Indicators (MAI) updated dynamically via SignalR telemetry streams. |
+| **FR-602** | `CMP-01`, `CMP-04`, `CMP-07` | Implements ANSI/ISA-101 HPHMI: neutral grayscale baseline, reserving saturated colors strictly for alarms with redundant shape coding. |
+| **NFR-603** | `CMP-01` | Initial load of vector plan and asset mapping completes in $< 2\text{s}$ over standard industrial network conditions. |
+| **NFR-604** | `CMP-07` | Telemetry readings update and reflect in the contextual faceplate in $< 1\text{s}$ from data reception at the server (`TR-010`). |
+| **NFR-605** | `CMP-01` | Vector rendering engine maintains $\ge 30\text{ FPS}$ during continuous map panning and zooming on mobile tablets ($\ge 60\text{ FPS}$ on desktop). |
+| **TR-010** | `CMP-05`, `CMP-09`, `CMP-11` | All interactive touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`) for gloved field operation; SignalR WebSocket transport. |
+| **TR-011** | `CMP-01`, `CMP-04`, `CMP-07` | High-Performance HMI philosophy: eliminates green for normal status, applies Priority 4 Diagnostic coding for telemetry loss. |

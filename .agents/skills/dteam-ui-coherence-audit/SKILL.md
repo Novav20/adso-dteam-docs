@@ -28,6 +28,7 @@ When invoked to audit a specific screen (e.g., `SCR-VIS-033`, `SCR-VIS-011`, or 
    * Domain Model behaviors: `adso-dteam-docs/domain-models/class/DT-DM-DOC-002.md`.
    * Design System & tokens: `adso-dteam-docs/ui-ux/DT-UI-DS-DOC-001.md`.
    * Ubiquitous Language: `adso-dteam-docs/domain-models/ubiquitous-language/DT-UL-DOC-001.md`.
+   * Canonical Screen Template: `adso-dteam-docs/.agents/skills/dteam-ui-coherence-audit/templates/SCR-TEMPLATE-screen-specification.md`.
 
 ---
 
@@ -68,16 +69,63 @@ When invoked to audit a specific screen (e.g., `SCR-VIS-033`, `SCR-VIS-011`, or 
    * For controls targeted at tablets or mobile (`target_device: Industrial Tablet`), ensure action buttons and container triggers inherit `--dt-touch-target-mobile` ($\ge 48\text{px}$) to support gloved operation.
 3. **Screen State Matrix Completeness:**
    * Verify coverage of necessary states: `Normal`, `Loading`, `Selected`, `Critical Alarm`, `Telemetry Loss / Diagnostic`, and `Unmapped / Offline`.
-4. **Frontend Component Contract Audit (Section 7, if present):**
-   * If the specification defines a Razor component contract (Section 7):
-     * **Mapping:** Verify that `CMP-*` components map to declared `.razor` files.
-     * **DTO Integrity:** Verify that DTO records align with ERD columns and Domain Model enums without impedance mismatches.
-     * **Event Signatures:** Verify that interactive behaviors in Section 5 have corresponding `EventCallback<T>` declarations.
-     * **[FAIL]** if DTO records hallucinate fields unbacked by the ERD or omit critical domain identifiers.
 
 ---
 
-### Step 4: Audit Report Generation & Persistence
+### Step 4: Structural Integrity, SSoT Boundary Enforcement & Anti-Redundancy Audit
+
+All screen specifications must strictly align with the canonical standard defined in `templates/SCR-TEMPLATE-screen-specification.md`:
+
+1. **Canonical 9-Section Hierarchy:**
+   * Verify presence and exact sequencing of all 9 sections:
+     * §1 Purpose and Operational Context
+     * §2 Visual Artifact (Obsidian transclusion link `![[SCR-*.svg]]`)
+     * §3 Functional Component Inventory
+     * §4 Screen State Matrix
+     * §5 Interaction Rules and Data Flow (Single Source of Truth)
+     * §6 Industrial and Safety Considerations
+     * §7 Frontend Component Contract (Blazor / Razor)
+     * §8 Layout and Responsive Adaptability
+     * §9 Traceability and Requirements Matrix
+   * **[FAIL]** if sections are omitted, merged, or out of order.
+
+2. **Section 3 Anti-Redundancy (Clean Cataloging):**
+   * Table cells in §3 must strictly serve as a catalog of visual roles, semantic tokens, and pointers to Section 5.
+   * **[FAIL]** if table cells in §3 contain detailed algorithms, mathematical formulas (e.g., coordinate calculations, clamping bounds), or multi-step interaction workflows. These belong exclusively in Section 5.
+
+3. **Section 4 DOM/Visual-Only Delta Integrity:**
+   * State descriptions in §4 must define observable visual modifications in the DOM (e.g., muted typography, halo additions, container transitions).
+   * **[FAIL]** if §4 cells duplicate backend business rules, state machine transitions, or detailed interaction logic.
+
+4. **Section 5 Single Source of Truth (SSoT) Completeness:**
+   * Section 5 is the sole SSoT for interaction mechanics, gesture physics, and calculations:
+     * Viewport math, focal zooming, bounding box clamping, and coordinate transformations.
+     * Layout shift invariants (e.g., fixed badge widths, fixed slot heights).
+     * Tactile mechanics: touch thresholds (e.g., $4\text{px}$ pan threshold), sheet snap heights, drag handle hysteresis, and minimize transitions.
+     * Real-time subscription policies, debouncing thresholds, and fail-safe diagnostic fallbacks.
+   * **[FAIL]** if technical behaviors mentioned in §3 or §4 are missing from §5.
+
+5. **Section 7 Tripartite Contract Conformance:**
+   * Section 7 must follow the structured tripartite hierarchy:
+     * `7.1 Component Hierarchy & File Mapping` (ASCII tree of `.razor` components).
+     * `7.2 Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)` (cleanly subdivided: 7.2.1 Root View, 7.2.2 Subcomponents, 7.2.3 DTO records).
+     * `7.3 Client-Side DOM & Interop Bridge` (JavaScript Interop, pointer tracking, SVG DOM manipulation, or touch gesture bridge).
+   * **[FAIL]** if Section 7 dumps unstructured monolithic code or omits the client-side bridge (`7.3`).
+
+6. **Sections 8 & 9 Completeness:**
+   * **Section 8 (Layout & Responsive Adaptability):** Must tabulate layout organization and ergonomic rules across all 3 standard viewports:
+     * Desktop Workstation ($\ge 1400\text{px}$)
+     * Industrial Tablet Landscape ($901\text{px} - 1399\text{px}$)
+     * Industrial Tablet Portrait ($600\text{px} - 900\text{px}$)
+   * **Section 9 (Traceability and Requirements Matrix):** Must tabulate 100% of the requirements declared in the frontmatter (`FR-*`, `NFR-*`, `TR-*`, `ADR-*`), mapping each to its implementing `CMP-*` component and verification mechanism.
+
+7. **Language and Persona Tone Guardrails:**
+   * Must be written in 100% Technical English. **[FAIL]** if Spanish words, accents, or untranslated domain phrases are present.
+   * Must maintain concise, senior engineering tone without parenthetical filler, conversational fluff, or premature design rationales.
+
+---
+
+### Step 5: Audit Report Generation & Persistence
 
 The agent **must persist** the complete audit report to the evidence repository at:
 `/home/novillus/Documents/vscode/SENA-Career/sena-evidence/00-Overview/Audits/UI/AUD-UI-<SCREEN_ID>-<YYYYMMDD-HHMMSS>.md`
@@ -99,7 +147,7 @@ The generated report must include the following structure:
 3. **Audit Findings & Evaluation:**
    * **[PASS]:** Elements compliant with ERD, Domain Model, and Design System tokens.
    * **[WARNING]:** Potential cognitive overload, missing ergonomic affordances, or ambiguous parameters.
-   * **[FAIL]:** Missing mandatory database fields, cardinality violations, or breaches of HPHMI/ISA-101 rules (color overloading, naked numbers, level boundary violations).
+   * **[FAIL]:** Missing mandatory database fields, cardinality violations, structural/SSoT boundary violations, or breaches of HPHMI/ISA-101 rules.
 4. **Tier 2 Escalation (If Required):**
    * If the audit uncovers non-trivial ergonomic trade-offs, disputed HMI density, or complex CTA questions, format a dedicated prompt ready to be saved into `sena-evidence/00-Overview/Deep-in/Prompts/P<XX>-*.md` for formal verification in Gemini Notebook.
 5. **Chat Presentation:** Present a concise summary in the chat with the overall verdict and a markdown link to the persisted report file in `sena-evidence/00-Overview/Audits/UI/`.
