@@ -14,17 +14,6 @@ user_stories:
   - "[[VIS-033]]"
 use_cases:
   - "[[UC-VIS-033]]"
-requirements:
-  - FR-598
-  - FR-599
-  - FR-600
-  - FR-601
-  - FR-602
-  - NFR-603
-  - NFR-604
-  - NFR-605
-  - "[[TR-010]]"
-  - "[[TR-011]]"
 version: 1.8
 date: 2026-10-10
 status: In Review
@@ -218,8 +207,6 @@ public EventCallback<string> OnActionTriggered { get; set; }
 
 #### 7.2.4. Data Transfer Objects (DTOs)
 ```csharp
-namespace DTeam.DigitalTwin.Contracts.Inspection;
-
 public record EquipmentFaceplateDto
 {
     public required EquipmentHeaderDto Header { get; init; }

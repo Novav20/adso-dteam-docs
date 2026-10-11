@@ -13,29 +13,6 @@ user_stories:
   - "[[VIS-011]]"
 use_cases:
   - "[[UC-VIS-011]]"
-requirements:
-  - FR-225
-  - FR-226
-  - FR-227
-  - FR-228
-  - FR-230
-  - FR-231
-  - FR-232
-  - NFR-229
-  - NFR-233
-  - NFR-234
-  - NFR-235
-  - NFR-236
-  - NFR-237
-  - NFR-238
-  - "[[TR-001]]"
-  - "[[TR-002]]"
-  - "[[TR-005]]"
-  - "[[TR-006]]"
-  - "[[TR-007]]"
-  - "[[TR-010]]"
-  - "[[TR-011]]"
-  - "[[ADR-006]]"
 version: 1.0
 date: 2026-10-11
 status: In Review
@@ -197,8 +174,6 @@ Pages/
 
 #### 7.2.1. `LotoIsolationMatrixPage.razor` (Root View)
 ```csharp
-namespace DTeam.DigitalTwin.Pages;
-
 public partial class LotoIsolationMatrixPage : ComponentBase
 {
     [Parameter]
@@ -288,8 +263,6 @@ public int RemainingLeaseSeconds { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs)
 ```csharp
-namespace DTeam.DigitalTwin.Contracts.Safety;
-
 public record LotoIsolationPlanDto
 {
     public required string PlanId { get; init; }

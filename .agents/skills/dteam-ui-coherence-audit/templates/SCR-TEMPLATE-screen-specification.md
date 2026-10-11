@@ -12,10 +12,6 @@ user_stories:
   - "[[US-ID]]"
 use_cases:
   - "[[UC-ID]]"
-requirements:
-  - FR-000
-  - NFR-000
-  - "[[TR-000]]"
 version: 1.0
 date: YYYY-MM-DD
 status: Draft | In Review | Approved
@@ -113,8 +109,6 @@ public required string EntityId { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs)
 ```csharp
-namespace DTeam.DigitalTwin.Contracts;
-
 public record ScreenDataDto
 {
     public required string Id { get; init; }

@@ -110,14 +110,15 @@ All screen specifications must strictly align with the canonical standard define
      * `7.1 Component Hierarchy & File Mapping` (ASCII tree of `.razor` components).
      * `7.2 Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)` (cleanly subdivided: 7.2.1 Root View, 7.2.2 Subcomponents, 7.2.3 DTO records).
      * `7.3 Client-Side DOM & Interop Bridge` (JavaScript Interop, pointer tracking, SVG DOM manipulation, or touch gesture bridge).
-   * **[FAIL]** if Section 7 dumps unstructured monolithic code or omits the client-side bridge (`7.3`).
+   * **Decoupled Namespaces:** Snippets define UI contracts, parameters, and DTO signatures without premature C# `namespace` declarations.
+   * **[FAIL]** if Section 7 dumps unstructured monolithic code, hardcodes speculative namespaces, or omits the client-side bridge (`7.3`).
 
 6. **Sections 8 & 9 Completeness:**
    * **Section 8 (Layout & Responsive Adaptability):** Must tabulate layout organization and ergonomic rules across all 3 standard viewports:
      * Desktop Workstation ($\ge 1400\text{px}$)
      * Industrial Tablet Landscape ($901\text{px} - 1399\text{px}$)
      * Industrial Tablet Portrait ($600\text{px} - 900\text{px}$)
-   * **Section 9 (Traceability and Requirements Matrix):** Must tabulate 100% of the requirements declared in the frontmatter (`FR-*`, `NFR-*`, `TR-*`, `ADR-*`), mapping each to its implementing `CMP-*` component and verification mechanism.
+   * **Section 9 (Traceability and Requirements Matrix):** Serves as the Single Source of Truth (SSoT) for screen-level requirements mapping. Must tabulate all functional and non-functional requirements associated with the screen's user story (sourced from Notion/backups: `srs.csv` / `transversal-requirements.csv`), mapping each requirement (`FR-*`, `NFR-*`, `TR-*`, `ADR-*`) to its implementing `CMP-*` component and concrete verification mechanism. The YAML frontmatter excludes raw requirement arrays to prevent duplicate bookkeeping.
 
 7. **Language and Persona Tone Guardrails:**
    * Must be written in 100% Technical English. **[FAIL]** if Spanish words, accents, or untranslated domain phrases are present.

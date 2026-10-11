@@ -12,23 +12,6 @@ user_stories:
   - "[[VIS-008]]"
 use_cases:
   - "[[UC-VIS-008]]"
-requirements:
-  - FR-182
-  - FR-183
-  - FR-184
-  - FR-185
-  - FR-186
-  - FR-187
-  - FR-188
-  - FR-189
-  - NFR-190
-  - NFR-191
-  - NFR-192
-  - NFR-193
-  - NFR-194
-  - NFR-195
-  - "[[TR-010]]"
-  - "[[TR-011]]"
 version: 1.2
 date: 2026-10-09
 status: In Review
@@ -199,8 +182,6 @@ Pages/
 
 #### 7.2.1. `GeneralPlantMapPage.razor` (Root View)
 ```csharp
-namespace DTeam.DigitalTwin.Pages;
-
 public partial class GeneralPlantMapPage : ComponentBase
 {
     [Inject]
@@ -317,8 +298,6 @@ public EventCallback<PermitType?> OnFilterChanged { get; set; }
 #### 7.2.3. Data Transfer Objects (DTOs)
 
 ```csharp
-namespace DTeam.DigitalTwin.Contracts.Safety;
-
 /// <summary>
 /// Controlled permit risk classification vocabulary per DT-DM-DOC-001 §4.28.
 /// </summary>
