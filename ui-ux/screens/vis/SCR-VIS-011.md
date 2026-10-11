@@ -51,7 +51,7 @@ status: In Review
   * **HSEQ Inspector:** Safety compliance audit, verification of energy isolation boundaries, review of cryptographic audit trails, and monitoring of concurrent permit interactions (SIMOPS).
   * **Maintenance Supervisor:** Oversight of active isolations, review of field lockouts, and emergency supervisory override authorization when required.
 * **Operational Context:** Deployed primarily on rugged industrial field tablets (`1280 x 800 px` landscape / `800 x 1280 px` portrait, `--dt-breakpoint-lg`) under harsh ambient plant conditions (bright daylight, explosive atmospheres, electromagnetic noise), and accessible from central maintenance consoles (`1920 x 1080 px`, `--dt-breakpoint-xl`).
-* **Architectural Integration (Single-Canvas Workspace Invariant):** `SCR-VIS-011` operates as a **contextual operational mode** within the unified digital twin application shell. It does NOT represent an independent browser web page requiring history-based back/forward navigation. It is activated contextually when the operator selects *"Ruta LOTO"* from the Equipment Task Faceplate (`SCR-VIS-033`), from a Work Order detail panel, or upon dispatching a safety lockout workflow, deploying the LOTO isolation layer over the shared SVG plot plan and opening the dedicated LOTO execution drawer in-place.
+* **Architectural Integration (Single-Canvas Workspace Invariant):** `SCR-VIS-011` operates as a **contextual operational mode** within the unified digital twin application shell. It does NOT represent an independent browser web page requiring history-based back/forward navigation. It is activated contextually when the operator selects *"LOTO Route"* from the Equipment Task Faceplate (`SCR-VIS-033`), from a Work Order detail panel, or upon dispatching a safety lockout workflow, deploying the LOTO isolation layer over the shared SVG plot plan and opening the dedicated LOTO execution drawer in-place.
 
 ---
 
@@ -68,16 +68,16 @@ status: In Review
 | ID | Control / Component | Visual Role / Content | Semantic Token | Data Link / Behavior Rule |
 | :--- | :--- | :--- | :--- | :--- |
 | `CMP-01` | Canvas Viewport 2D & LOTO Layer | Spatial SVG canvas with LOTO overlay | Surface: `--dt-color-bg-canvas`<br>Elevation: `--dt-canvas` | Renders the plant 2D plot plan with dynamic LOTO vector overlays: traces incoming energy paths (electrical feeders, process headers) down to the target Equipment Unit (`data-equip-id`). Energy routes employ dynamic line coding: solid red (`--dt-color-alarm-critical`) when energized, dashed muted slate (`--dt-color-text-muted`) when isolated. Employs **Focal Island De-emphasis**: non-isolated plant sectors are dimmed/low-contrast to highlight the active isolation boundary. Supports middle-click drag pan (desktop) and touch pan (tablet). |
-| `CMP-02` | Viewport Toolbar | Contextual LOTO toolbar | Surface: `--dt-color-surface-card`<br>Radius: `--dt-radius-full` | Floating pill toolbar centered over the viewport. Hosts level badge (`L3: LOTO MATRIX`), zoom controls (+ / −), reset view (1:1), and high-salience safety status badge: `[⚡ ENERGÍA DETECTADA]` (pulsing red) or `[🔒 CONDICIÓN ENERGÍA CERO]` (solid teal/green). Level badge maintains fixed width of $144\text{px}$ to prevent layout shifts. Shared component structure with [[SCR-VIS-008]] and [[SCR-VIS-033]]. |
+| `CMP-02` | Viewport Toolbar | Contextual LOTO toolbar | Surface: `--dt-color-surface-card`<br>Radius: `--dt-radius-full` | Floating pill toolbar centered over the viewport. Hosts level badge (`L3: LOTO MATRIX`), zoom controls (+ / −), reset view (1:1), and high-salience safety status badge: `[⚡ HAZARDOUS ENERGY DETECTED]` (pulsing red) or `[🔒 ZERO ENERGY CONDITION]` (solid teal/green). Level badge maintains fixed width of $144\text{px}$ to prevent layout shifts. Shared component structure with [[SCR-VIS-008]] and [[SCR-VIS-033]]. |
 | `CMP-03` | User Profile Button | Active user session indicator | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-full` | Circular floating button anchored at the top-left of the viewport (`left: 16px; top: 16px;`). Displays technician initials (e.g., "JS"). Minimum touch target $48 \times 48\text{ px}$ (`--dt-touch-target-mobile`). |
 | `CMP-04` | Isolation Cutoff Nodes | Cutoff points on SVG canvas | Border: `--dt-color-border-subtle`<br>Elevation: `--dt-z-layer-ptw` ($10$) | Vector hotspots placed over physical cutoff points (Breakers in Substation/MCC, Block Valves, Blinds, Bleed/Vent Valves). Implements 4-channel redundant coding: `#icon-loto-locked` (square with lock, teal/green) when confirmed isolated vs `#icon-loto-energized` (rhombus with bolt/flame, red) when energized. Tapping a node highlights its corresponding item in `CMP-06` and `CMP-07`. |
 | `CMP-05` | LOTO Isolation Drawer | Contextual safety panel | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel` | Adaptable contextual container (full-height lateral drawer in landscape, $440\text{px}$; bottom sheet in portrait initializing at natural height $\le 45\%$ expandable to $85\text{vh}$). Hosts header with asset tag, Work Order reference, SOP documentation link, PPE requirements, and the operational subcomponents `CMP-06` through `CMP-10`. |
 | `CMP-06` | Sequential Isolation Checklist | Physical lockout step-by-step list | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Ordered checklist of physical isolation actions (Step 1: Open Electrical Breaker, Step 2: Close Suction Valve, Step 3: Close Discharge Valve, Step 4: Open Bleed Valve to atmospheric drain). Each step requires: (a) physical padlock Tag ID entry/validation, (b) technician sign-off checkbox ($\ge 48\text{px}$ touch target). Total confirmation is strictly disabled until all steps are confirmed sequentially (`FR-228`). |
 | `CMP-07` | Telemetry Verification Matrix | Real-time multi-sensor readings | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Displays live telemetry from IoT sensors at each cutoff point (Voltage $V$, Current $I$, Pressure $P$, Flow $Q$). Updates in $< 1\text{s}$ (`NFR-233`). Shows calibrated safe thresholds ($V = 0.0\text{ V}$, $P < 0.5\text{ psig}$). Displays clear binary badge: `● 0 ENERGY VERIFIED` (`--dt-color-state-success`) or `▲ HAZARDOUS ENERGY DETECTED` (`--dt-color-alarm-critical`). |
 | `CMP-08` | Physical Try-Out Verification Card | Absence-of-energy test card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-focus` | Card mandating the physical absence-of-energy test (OSHA 1910.147 Try-Out): technician attempts local startup / verifies zero residual mechanical/electrical energy with calibrated multimeter or test gauge. Includes mandatory confirmation toggle with timestamp and technician digital signature. |
-| `CMP-09` | Active Safety Interlock Button | Work initiation locking control | Surface: Dynamic (`--dt-color-state-success` or `--dt-color-alarm-critical`) | Primary action control `[Iniciar Intervención / Start Work]`. **ACTIVE LOCK MECHANISM (`NFR-229`):** Hard-disabled (`disabled="disabled"`, opacity 0.45, red warning banner) whenever: (1) telemetry reports active energy, (2) any checklist item in `CMP-06` is incomplete, (3) physical Try-Out is unconfirmed, or (4) telemetry is disconnected without an active cryptographic lease. Turns active (`--dt-color-state-success`) ONLY when Zero Energy condition is provably achieved across all channels. |
+| `CMP-09` | Active Safety Interlock Button | Work initiation locking control | Surface: Dynamic (`--dt-color-state-success` or `--dt-color-alarm-critical`) | Primary action control `[Start Work]`. **ACTIVE LOCK MECHANISM (`NFR-229`):** Hard-disabled (`disabled="disabled"`, opacity 0.45, red warning banner) whenever: (1) telemetry reports active energy, (2) any checklist item in `CMP-06` is incomplete, (3) physical Try-Out is unconfirmed, or (4) telemetry is disconnected without an active cryptographic lease. Turns active (`--dt-color-state-success`) ONLY when Zero Energy condition is provably achieved across all channels. |
 | `CMP-10` | SIMOPS Awareness Ribbon | Concurrent permits alert strip | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Compact informative ribbon in drawer header indicating other active permits within the same plant sector (e.g., *"SIMOPS Note: Hot Work PTW-1042 active 45m away at TK-0101"*). Non-intrusive situational awareness to alert the technician to nearby hazards without blocking the LOTO workflow. |
-| `CMP-11` | Fail-Safe Diagnostic Banner | Connection / Offline Lease status | Surface: `--dt-color-surface-raised`<br>Color: `--dt-color-text-muted` | Priority 4 diagnostic banner deployed when operating offline or when sensor telemetry heartbeat times out (`NFR-238`, `ADR-006`). If a valid Cryptographic Offline Lease exists, displays *"Modo de Seguridad Fuera de Línea Activo (Lease expira: HH:mm)"*. If lease is expired or absent, enforces a fail-safe lockout: *"Peligro: Pérdida de telemetría. Intervención bloqueada por diseño seguro"*. |
+| `CMP-11` | Fail-Safe Diagnostic Banner | Connection / Offline Lease status | Surface: `--dt-color-surface-raised`<br>Color: `--dt-color-text-muted` | Priority 4 diagnostic banner deployed when operating offline or when sensor telemetry heartbeat times out (`NFR-238`, `ADR-006`). If a valid Cryptographic Offline Lease exists, displays *"Offline Safety Mode Active (Lease expires: HH:mm UTC)"*. If lease is expired or absent, enforces a fail-safe lockout: *"Danger: Telemetry communication lost. Intervention blocked by fail-safe design"*. |
 
 ---
 
@@ -85,12 +85,12 @@ status: In Review
 
 | State | Visual Modification in the Interface | Activation Condition |
 | :--- | :--- | :--- |
-| **Normal / Energized (Initial)** | Canvas renders energy lines in solid red (`--dt-color-alarm-critical`). Cutoff nodes show `#icon-loto-energized`. Drawer checklist shows pending steps. `CMP-09` is hard-locked (`disabled`). Status badge in `CMP-02` displays `[⚡ ENERGÍA DETECTADA]`. | Initial opening of LOTO mode for a scheduled Work Order prior to field cutoff. |
+| **Normal / Energized (Initial)** | Canvas renders energy lines in solid red (`--dt-color-alarm-critical`). Cutoff nodes show `#icon-loto-energized`. Drawer checklist shows pending steps. `CMP-09` is hard-locked (`disabled`). Status badge in `CMP-02` displays `[⚡ HAZARDOUS ENERGY DETECTED]`. | Initial opening of LOTO mode for a scheduled Work Order prior to field cutoff. |
 | **Field Cutoff in Progress** | Lines transition to amber dashed as individual cutoffs are applied. Checklist steps reflect completed padlocks. Telemetry matrix reflects decreasing residual energy. `CMP-09` remains locked. | Technician applies physical padlocks and enters Tag IDs sequentially in `CMP-06`. |
-| **Active Energy Detected (AF-001)** | High-contrast critical alert banner deployed across top: *"PELIGRO: Energía activa detectada por encima del umbral seguro ($240\text{ V}$ / $12\text{ psig}$)"*. Offending cutoff node pulses in red halo ($4\text{px}$). `CMP-09` is immediately locked. | Telemetry reports energy above threshold after cutoff attempt or due to unexpected backfeed (`AF-001`, `FR-232`). |
+| **Active Energy Detected (AF-001)** | High-contrast critical alert banner deployed across top: *"DANGER: Hazardous energy detected above safe threshold ($240\text{ V}$ / $12\text{ psig}$)"*. Offending cutoff node pulses in red halo ($4\text{px}$). `CMP-09` is immediately locked. | Telemetry reports energy above threshold after cutoff attempt or due to unexpected backfeed (`AF-001`, `FR-232`). |
 | **Zero Energy Verified (Pre-Start)** | All cutoff nodes display `#icon-loto-locked` in teal/green. Energy boundary lines render in neutral slate dashed. Telemetry matrix displays `● 0 ENERGY VERIFIED` across all points. Try-Out card `CMP-08` is ready for technician confirmation. | Telemetry confirms all points below threshold ($0\text{ V}$, $0\text{ psig}$) AND all checklist padlocks are validated. |
-| **Ready to Execute (Unlocked)** | `CMP-09` `[Iniciar Intervención]` unlocks with prominent teal/green background (`--dt-color-state-success`). Status badge in `CMP-02` reflects `[🔒 CONDICIÓN ENERGÍA CERO GARANTIZADA]`. | Zero Energy confirmed by telemetry + Checklist 100% complete + Physical Try-Out confirmed by technician (`FR-230`). |
-| **Work Order In Progress** | Status banner displays *"EN EJECUCIÓN (LOTO ACTIVO)"*. Continuous background monitoring active. `CMP-09` transitions to `[Finalizar Trabajo y Desaislar]`. | Technician activates `[Iniciar Intervención]`. Transaction logged to audit trail (`FR-231`). |
+| **Ready to Execute (Unlocked)** | `CMP-09` `[Start Work]` unlocks with prominent teal/green background (`--dt-color-state-success`). Status badge in `CMP-02` reflects `[🔒 ZERO ENERGY CONDITION VERIFIED]`. | Zero Energy confirmed by telemetry + Checklist 100% complete + Physical Try-Out confirmed by technician (`FR-230`). |
+| **Work Order In Progress** | Status banner displays *"IN EXECUTION (LOTO ACTIVE)"*. Continuous background monitoring active. `CMP-09` transitions to `[Complete Work & De-isolate]`. | Technician activates `[Start Work]`. Transaction logged to audit trail (`FR-231`). |
 | **Re-energization Emergency (AF-003)** | Immediate maximum evacuation alert deployed (pulsing red banner, high-priority audible tone simulation, visual flash). Work Order is automatically suspended. Emergency notification dispatched to HSEQ console. | Background telemetry detects energy flow ($> 0$) while Work Order is in progress (`FR-232`, `AF-003`). |
 | **Disconnectivity / Fail-Safe (AF-002)** | If unexpired Cryptographic Offline Lease exists (`ADR-006`): displays banner `CMP-11`, enables local manual re-verification flow. If lease is expired/missing: deploys fail-safe lock (`NFR-238`), freezing `CMP-09` until connection restored or dual supervisor cryptographic override provided. | Network connection lost with IoT telemetry service or central server prior to work start. |
 
@@ -103,28 +103,28 @@ status: In Review
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Tech as Técnico de Mantenimiento
+    actor Tech as Maintenance Technician
     participant UI as SCR-VIS-011 Interface
     participant IoT as Telemetry Service (IoT)
     participant SEC as Active Safety Interlock
     participant DB as Audit Trail (TR-001)
 
-    Tech->>UI: Abre "Ruta LOTO" desde OT
-    UI->>UI: Renderiza frontera de aislamiento en SVG y lista de corte
-    Tech->>UI: Ingresa Padlock Tag IDs en lista secuencial (CMP-06)
-    Tech->>UI: Confirma prueba física Try-Out (CMP-08)
-    UI->>IoT: Consulta síncrona de telemetría en puntos de corte
-    IoT-->>UI: Retorna lecturas (Voltaje = 0V, Presión = 0psig)
+    Tech->>UI: Opens "LOTO Route" from Work Order
+    UI->>UI: Renders isolation boundary on SVG and cutoff list
+    Tech->>UI: Inputs Padlock Tag IDs into sequential list (CMP-06)
+    Tech->>UI: Confirms physical Try-Out test (CMP-08)
+    UI->>IoT: Synchronous telemetry query at cutoff points
+    IoT-->>UI: Returns live readings (Voltage = 0V, Pressure = 0psig)
     
-    alt Energía Activa Detectada (> umbral)
-        UI->>SEC: Mantiene BLOQUEO ACTIVO (NFR-229)
-        UI->>Tech: Despliega Alerta Crítica "Energía Detectada"
-    else Condición Energía Cero Confirmada
-        UI->>SEC: Habilita control [Iniciar Intervención] (CMP-09)
-        Tech->>UI: Presiona [Iniciar Intervención]
-        UI->>DB: Registra firma, lecturas y padlocks en Audit Trail (FR-231)
-        UI->>UI: Transiciona OT a "IN_PROGRESS"
-        UI->>IoT: Inicia monitoreo continuo en segundo plano (FR-232)
+    alt Hazardous Energy Detected (> threshold)
+        UI->>SEC: Maintains ACTIVE LOCK (NFR-229)
+        UI->>Tech: Deploys Critical Alert "Hazardous Energy Detected"
+    else Zero Energy Condition Verified
+        UI->>SEC: Enables [Start Work] control (CMP-09)
+        Tech->>UI: Presses [Start Work]
+        UI->>DB: Logs signature, telemetry readings, and padlocks to Audit Trail (FR-231)
+        UI->>UI: Transitions Work Order to "IN_PROGRESS"
+        UI->>IoT: Initiates continuous background monitoring (FR-232)
     end
 ```
 
@@ -145,7 +145,7 @@ sequenceDiagram
    * If a sensor reading falls into an anomalous or out-of-range status (e.g., negative voltage, sensor disconnected code `0xBADF00D`), the system applies **Fail-Safe Pessimism**: it treats the state as energized and blocks work initiation.
 
 4. **Cryptographic Audit Trail Logging (`FR-231`, `TR-001`):**
-   * Upon pressing `[Iniciar Intervención]`, the client packages an immutable execution record:
+   * Upon pressing `[Start Work]`, the client packages an immutable execution record:
      $$\text{Payload} = \{\text{WO\_ID}, \text{TechnicianID}, \text{TimestampUTC}, \text{PadlockIDs}, \text{SensorReadings}, \text{TryOutHash}\}$$
    * The record is written to the append-only audit trail with SHA-256 hash chaining, guaranteeing OSHA 1910.147 regulatory compliance.
 
@@ -255,7 +255,7 @@ public record ChecklistStepDto(
 | :--- | :--- | :--- |
 | **Desktop Workstation**<br>($\ge 1400\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full left workspace ($1480\text{px}$); LOTO Drawer `CMP-05` docks as fixed lateral panel ($440\text{px}$, $100\text{vh}$) on right flank. | Mouse wheel focal zoom; middle-click pan; dual-column checklist and telemetry matrix. |
 | **Industrial Tablet Landscape**<br>($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`) | Canvas `CMP-01` occupies left area ($840\text{px}$); LOTO Drawer `CMP-05` occupies right panel ($440\text{px}$). Viewport toolbar `CMP-02` auto-centers over viewable canvas. | Touch pan threshold ($4\text{px}$); gloved touch targets $\ge 48\text{px}$; floating filter chips collapse gracefully. |
-| **Industrial Tablet Portrait**<br>($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`) | Canvas `CMP-01` occupies full width; LOTO Drawer `CMP-05` operates as **Bottom Sheet** docked at bottom, initializing at natural content height ($\sim 45\%$), expandable via drag handle to $85\text{vh}$. | Drag handle gesture support; sticky `[Iniciar Intervención]` footer button always visible above viewport edge. |
+| **Industrial Tablet Portrait**<br>($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`) | Canvas `CMP-01` occupies full width; LOTO Drawer `CMP-05` operates as **Bottom Sheet** docked at bottom, initializing at natural content height ($\sim 45\%$), expandable via drag handle to $85\text{vh}$. | Drag handle gesture support; sticky `[Start Work]` footer button always visible above viewport edge. |
 
 ---
 
@@ -263,7 +263,7 @@ public record ChecklistStepDto(
 
 | Requirement | Addressed in Component | Verification & Implementation Mechanism |
 | :--- | :--- | :--- |
-| **FR-225** | `CMP-01`, `CMP-05` | "Ruta LOTO" overlay renders energy paths over SVG plot plan upon request. |
+| **FR-225** | `CMP-01`, `CMP-05` | "LOTO Route" overlay renders energy paths over SVG plot plan upon request. |
 | **FR-226** | `CMP-01` | Energy lines dynamically styled based on live IoT telemetry (red energized, slate dashed isolated). |
 | **FR-227** | `CMP-04` | Cutoff points rendered with standardized industrial symbology (`#icon-loto-locked`, `#icon-loto-energized`). |
 | **FR-228** | `CMP-06` | Mandatory sequential checklist with strict order and physical Padlock Tag ID validation. |
