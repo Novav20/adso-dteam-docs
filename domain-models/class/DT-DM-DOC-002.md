@@ -1,7 +1,7 @@
 ---
 code: DT-DM-DOC-002
-version: 1.3
-date: 2026-09-26
+version: 1.4
+date: 2026-10-11
 status: Full Traceability Audit Completed (ISO 9001:2015 / ISO 14224 / ISO 55001)
 author: Juan David Julio Serrano
 standard:
