@@ -366,6 +366,10 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | is_isolated | BOOLEAN | NOT NULL | | FALSE | Verified lockout state for the specific work. |
 | isolated_at | TIMESTAMP | NULL | | NULL | Timestamp when the lockout was executed. |
 | padlock_tag_id | VARCHAR(80) | NULL | | NULL | Identifier of the physical padlock or tag (Try-Out). |
+| try_out_confirmed | BOOLEAN | NOT NULL | | FALSE | Verified zero-energy Try-Out confirmation. |
+| try_out_at | TIMESTAMP | NULL | | NULL | Timestamp when physical Try-Out was performed. |
+| telemetry_snapshot | JSONB | NULL | | NULL | Sensor readings snapshot at lockout verification. |
+| signature_hash | VARCHAR(64) | NULL | | NULL | SHA-256 technician digital signature hash. |
 
 #### 3.4.7 work_permits
 

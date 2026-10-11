@@ -272,6 +272,7 @@ This segregation allows for:
 | WAITING_PARTS | Active waiting for spare parts in warehouse/purchasing. | FSM - Logistics Bottleneck |
 | SCHEDULED | Assigned with technician and scheduled execution date. | FSM - Scheduling |
 | IN_PROGRESS | The technician is executing the labor (clock-in active). | FSM - Execution ("Wrench Time") |
+| SUSPENDED | Execution halted due to unsafe conditions, LOTO re-energization breach, or active hazard. | FSM - Safety Breach Interlock |
 | COMPLETE | Technical work finished, pending review. | FSM - Technical Pre-closure |
 | CLOSED | Administratively closed and failure codes entered. | FSM - QA / ISO 14224 Audit |
 
@@ -280,6 +281,7 @@ This segregation allows for:
 - To transition from any previous state (`PLANNING`, `SCHEDULED`, `WAITING_PARTS`) to **`IN_PROGRESS`**, the system must programmatically verify the following preconditions:
   1. **Work Permit (`WorkPermit`):** An associated work permit must exist and its `status` must be strictly `APPROVED`.
   2. **Lockout/Tagout (LOTO):** All isolation points declared for the work order in the intermediate `work_order_isolations` table must have their lockout status verified (`is_isolated = TRUE` and `isolated_at` not null).
+- If IoT telemetry or safety monitoring detects hazardous energy during **`IN_PROGRESS`** execution, the system immediately invokes `WorkOrder.SuspendExecution(reason)`, transitioning the state to **`SUSPENDED`** to enforce fail-safe life protection.
 
 #### 4.18 WorkOrder.maintenanceMethod
 

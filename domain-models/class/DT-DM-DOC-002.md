@@ -91,7 +91,7 @@ Additionally, the document justifies the existence of each method under the prin
 | `CloseAdministratively(): void` | Transitions to `CLOSED`. Validates that failure codes (ISO 14224) and actual consumptions are correctly filled out. | [[MTTO-002]]<br>FR-012, FR-014 | **Quality Control:** Guarantees the completeness of the maintenance record for reliability KPIs before its final immutability. |
 | `ReportFailure(maintainableItemId: UUID, mode: Enum, mechanism: Enum, cause: Enum, detectionMethod: Enum, operationalCondition: Enum, operationalImpact: Enum, technicianNotes: String): void` | Creates and links a complete `FailureRecord` to the WO, applying the ISO 14224 taxonomy (mode, cause, mechanism, detection method, and impacts) alongside qualitative observations. | [[MTTO-002]]<br>FR-011, FR-012 | **Rich Behavior:** The WO governs the failure reporting by capturing the entirety of the dimensions required by ISO 14224. |
 | `AddMediaAttachment(fileUrl: String, fileType: Enum): void` | Attaches multimedia evidence to the technical closure. | [[MTTO-002]]<br>FR-013<br>[[MTTO-003]]<br>FR-018, FR-020 | **Traceability:** Adds Value Objects (`MediaAttachment`) for auditing. |
-| `SuspendExecution(reason: String): void` | Immediately stops the work order (transitions to suspended/blocked state) if unsafe conditions are detected. | [[VIS-011]]<br>FR-232, NFR-234 | **Critical Invariant (LOTO):** If IoT telemetry detects active energy during execution, the WO must protect the worker's life by immediately suspending the normative flow. |
+| `SuspendExecution(reason: String): void` | Immediately halts the work order (transitions `current_status` to `SUSPENDED`) if unsafe conditions or active hazardous energy are detected. | [[VIS-011]]<br>FR-232, NFR-234 | **Critical Invariant (LOTO Fail-Safe):** If IoT telemetry detects active energy during execution, the WO protects human life by immediately halting work and logging the safety breach reason. |
 
 ### 3.4. `BacklogItem` (`<<Entity>>`)
 
@@ -167,6 +167,13 @@ Additionally, the document justifies the existence of each method under the prin
 | Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
 | :--- | :--- | :--- | :--- |
 | `MarkAsVerified(): void` | Changes the `IsVerified` flag to `true` after physical engineering inspection. | [[VIS-011]]<br>FR-228, FR-230, NFR-229 | **Master Data (Safety):** Certifies that the physical isolation point (breaker, valve, blind flange) effectively isolates equipment energy before locking out. |
+
+### 5.3. `WorkOrderIsolation` (`<<Entity>>`)
+
+| Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
+| :--- | :--- | :--- | :--- |
+| `VerifyIsolation(padlockTagId: String): void` | Sets `IsIsolated` to `true`, records `IsolatedAt` timestamp, and binds the physical lock/tag ID. | [[VIS-011]]<br>FR-228, FR-230 | **LOTO Sequencing:** Enforces positive mechanical or electrical lockout before Try-Out verification. |
+| `ConfirmTryOut(technicianSignatureHash: String, telemetrySnapshot: JSON): void` | Sets `TryOutConfirmed` to `true`, records `TryOutAt`, and captures the tamper-evident signature hash and IoT sensor snapshot. | [[VIS-011]]<br>FR-230, FR-231, TR-001 | **OSHA 1910.147 (d)(6) Compliance:** Mandates immutable evidence of absence-of-energy test before work order can enter execution. |
 
 ---
 

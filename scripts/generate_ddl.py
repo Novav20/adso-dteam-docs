@@ -215,7 +215,7 @@ def main():
     erd_doc_path = os.path.join(os.path.dirname(__file__), "..", "domain-models", "entity-relationship", "DT-ERD-DOC-001.md")
     dm_doc_path = os.path.join(os.path.dirname(__file__), "..", "domain-models", "class", "DT-DM-DOC-001.md")
     ul_doc_path = os.path.join(os.path.dirname(__file__), "..", "domain-models", "ubiquitous-language", "DT-UL-DOC-001.md")
-    output_path = os.path.join(os.path.dirname(__file__), "..", "domain-models", "entity-relationship", "DT-ERD-DOC-001.sql")
+    output_path = os.path.join(os.path.dirname(__file__), "..", "domain-models", "entity-relationship", "DT-ERD-001.sql")
     
     enums = parse_enums(dm_doc_path)
     ref_actions = parse_referential_actions(erd_doc_path)
