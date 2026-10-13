@@ -19,7 +19,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE_DIR = ROOT / "ui-ux" / "assets" / "icons-src"
 DEFAULT_TARGET = ROOT / "ui-ux" / "assets" / "icons.svg"
-DEFAULT_PROTOTYPE_TARGET = ROOT / "ui-ux" / "temp" / "ui-prototype" / "assets" / "icons.svg"
+DEFAULT_PROTOTYPE_TARGET = ROOT / ".." / "sena-evidence" / "00-Overview" / "Protoyping" / "ui-prototype" / "assets" / "icons.svg"
+DEFAULT_PROTOTYPE_DATA_JS = ROOT / ".." / "sena-evidence" / "00-Overview" / "Protoyping" / "ui-prototype" / "assets" / "icons-data.js"
 
 # Built-in fallback UI & Navigation symbols if not overridden in icons-src
 DEFAULT_UI_SYMBOLS = {
@@ -95,7 +96,7 @@ def clean_xml_element(elem: ET.Element) -> None:
         clean_xml_element(child)
 
 
-def build(source_dir: Path, target: Path, prototype_target: Path | None = None) -> None:
+def build(source_dir: Path, target: Path, prototype_target: Path | None = None, prototype_data_js: Path | None = None) -> None:
     if not source_dir.exists():
         raise FileNotFoundError(f"Source directory not found: {source_dir}")
 
@@ -182,14 +183,60 @@ def build(source_dir: Path, target: Path, prototype_target: Path | None = None) 
         prototype_target.write_text(sprite_content, encoding="utf-8")
         print(f"Synced to prototype: {prototype_target}")
 
+    if prototype_data_js:
+        import json
+        js_content = (
+            "/**\n"
+            " * ICONS-DATA.JS\n"
+            " * Inlines SVG icons sprite into document body.\n"
+            " * Enables zero-CORS SVG icon rendering on local file:// URLs.\n"
+            " * GENERATED FILE - Do not edit manually.\n"
+            f" * Source: ui-ux/assets/icons-src/\n"
+            " * Regenerate with: python3 scripts/build_icons_sprite.py\n"
+            " */\n"
+            "(function(global) {\n"
+            '    "use strict";\n'
+            f"    const spriteContent = {json.dumps(sprite_content)};\n\n"
+            "    function injectSprite() {\n"
+            "        if (document.getElementById('__dteam_inlined_sprite')) return;\n"
+            "        const div = document.createElement('div');\n"
+            "        div.id = '__dteam_inlined_sprite';\n"
+            "        div.style.display = 'none';\n"
+            "        div.innerHTML = spriteContent;\n"
+            "        if (document.body) {\n"
+            "            document.body.insertBefore(div, document.body.firstChild);\n"
+            "        }\n"
+            "    }\n\n"
+            "    function remapUses() {\n"
+            "        document.querySelectorAll('use').forEach(useEl => {\n"
+            "            const href = useEl.getAttribute('href') || useEl.getAttribute('xlink:href');\n"
+            "            if (href && href.startsWith('assets/icons.svg#')) {\n"
+            "                useEl.setAttribute('href', href.replace('assets/icons.svg', ''));\n"
+            "            }\n"
+            "        });\n"
+            "    }\n\n"
+            "    if (document.readyState === 'loading') {\n"
+            "        document.addEventListener('DOMContentLoaded', () => {\n"
+            "            injectSprite();\n"
+            "            remapUses();\n"
+            "        });\n"
+            "    }\n"
+            "    injectSprite();\n"
+            "})(typeof window !== 'undefined' ? window : this);\n"
+        )
+        prototype_data_js.parent.mkdir(parents=True, exist_ok=True)
+        prototype_data_js.write_text(js_content, encoding="utf-8")
+        print(f"Synced to prototype data JS: {prototype_data_js}")
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-dir", type=Path, default=DEFAULT_SOURCE_DIR)
     parser.add_argument("--target", type=Path, default=DEFAULT_TARGET)
     parser.add_argument("--prototype-target", type=Path, default=DEFAULT_PROTOTYPE_TARGET)
+    parser.add_argument("--prototype-data-js", type=Path, default=DEFAULT_PROTOTYPE_DATA_JS)
     args = parser.parse_args()
-    build(args.source_dir.resolve(), args.target.resolve(), args.prototype_target.resolve())
+    build(args.source_dir.resolve(), args.target.resolve(), args.prototype_target.resolve(), args.prototype_data_js.resolve())
 
 
 if __name__ == "__main__":
