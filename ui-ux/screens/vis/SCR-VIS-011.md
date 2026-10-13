@@ -164,6 +164,11 @@ sequenceDiagram
    * **Gesture Snap Physics:** Dragging past velocity threshold $> 0.5\text{px/ms}$ or displacement $> 25\%$ distance snaps to destination state via spring animation.
    * **Discrete Switching Invariant (ISO 9241-110 Clause 5.5 / `DT-UI-DS-DOC-001 §6.3`):** To guarantee usability under adverse field conditions (e.g., rain droplets, gloved operation), container deployment is NEVER conditioned exclusively to drag gestures. A single discrete tap on the touch drag handle immediately toggles sheet elevation between $45\text{vh}$ and $85\text{vh}$ via CSS transition `transform 250ms cubic-bezier(0.4, 0.0, 0.2, 1)`.
 
+6. **Overlay Drawer Lifecycle (Minimize vs. Deselect / Close Contract):**
+   * Inheriting the canonical lifecycle contract defined in [[SCR-VIS-033#5.2. Spatial Navigation and Mobile Ergonomics|SCR-VIS-033 §5.2.7]] and [[DT-UI-NAV-DOC-001]]:
+     * **Minimization (Chevron Trigger / Tactical Pull-Down):** Retracts `CMP-05` to the edge boundary while preserving an exposed protruding peek tab ($36\text{px}$) that facilitates immediate re-expansion. The active equipment selection halo, active checklist cursor, and real-time SignalR telemetry subscriptions are strictly retained in memory.
+     * **Explicit Dismissal / Deselection (Close 'X' Button):** Fully closes and dismisses `CMP-05` (`.drawer-panel.collapsed.closed`), completely suppressing the floating peek trigger (`display: none !important`). Clears equipment selection halo and cutoff hotspot focus (`.selected`) on the SVG canvas, returning the viewport to the neutral macro supervisory baseline.
+
 ### 5.3. Domain Workflows, Interlocks, and Telemetry
 
 1. **Sequential Padlock Verification Rule (`FR-228`):**
