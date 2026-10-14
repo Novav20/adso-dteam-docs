@@ -34,7 +34,7 @@ flowchart TD
     Inputs --> Step1["Step 1: Archetype Classification"]
     Step1 --> Step2["Step 2: Generate SCR-*.md Specification"]
     Step2 --> Step3["Step 3: Build scr-*.html Prototype"]
-    Step3 --> Step4["Step 4: Audit with dteam-ui-coherence-audit"]
+    Step3 --> StepDone["Step 4: Deliverable Handover"]
 ```
 
 1. **Use Case (`UC-*.md`):** Actors, pre-conditions, main transactional workflow, and alternate safety/error flows.
@@ -58,7 +58,7 @@ Classify the target screen into one of the three established system archetypes:
     *   *Pattern:* Coexists on the continuous *Single-Canvas Workspace* (`PlantViewportController`). Uses SVG vector layers, semantic zoom (`0.85x` to `4.5x`), lateral sliding drawer (`asset-drawer.js`), and floating HUD toolbar.
 *   **Archetype B: Field Execution / Modal Task (APM Mobile - L4):**
     *   *Examples:* `SCR-VIS-011` (LOTO Lockout), `SCR-INV-025` (Asset Swap Pauli Modal), `SCR-MTTO-002` (WO Closing).
-    *   *Pattern:* Contextual task container. On desktop/landscape: lateral drawer or modal overlay; on portrait/mobile: responsive bottom sheet (`height: 52vh` default, draggable to `85vh`). Heavy tactile buttons ($\ge 48\text{px}$), barcode/NFC scan triggers, and offline SQLCipher resilience.
+    *   *Pattern:* Contextual task container. On desktop/landscape: lateral drawer or modal overlay; on portrait/mobile: responsive bottom sheet (`height: min(45vh, 440px)` default, draggable to `85vh`). Heavy tactile buttons ($\ge 48\text{px}$), barcode/NFC scan triggers, and offline SQLCipher resilience.
 *   **Archetype C: Supervisory Backlog & Governance (Web Portal - L2):**
     *   *Examples:* `SCR-MTTO-026` (RIME Backlog), `SCR-INV-027` (FL Tree), `SCR-ADM-013` (RBAC Matrix), `SCR-ADM-032` (SHA-256 Audit).
     *   *Pattern:* Desktop workstation layout ($1920\times 1080$), collapsible navigation sidebar, breadcrumb trail, dense multi-column data grids with sorting, filtering, and cryptographic audit indicators.
@@ -106,10 +106,10 @@ Create the standalone prototype in `sena-evidence/00-Overview/Protoyping/ui-prot
 2.  **Shared Javascript Modules:**
     *   Include `assets/svg-canvas-loader.js`, `assets/canvas-viewport.js`, `assets/asset-drawer.js`, and `assets/top-toolbar.js` when building canvas/drawer views.
 3.  **Moving Analog Indicators (MAI) Responsive Standard:**
-    *   *Landscape / Compact mode:* Variable name on row 1 (`.mai-compact-label`), value on row 2 right-aligned (`.mai-compact-val`), bar on row 3 (`.mai-bar-wrap`), scale limits on row 4 (`.mai-compact-limits`).
+    *   *Landscape / Compact mode:* Variable name on row 1 (`.mai-compact-label`), value on row 2 right-aligned (`.mai-compact-val`, `.loto-mai-grid .mai-value`), bar on row 3 (`.mai-bar-wrap`), scale limits on row 4 (`.mai-compact-limits`). Ensure dynamic updates (e.g., `updateMaiIndicator`) do not wipe out `.mai-compact-val`.
     *   *Portrait mode:* Variable name and value share row 1 (`justify-content: space-between`), bar on row 2, scale limits on row 3.
 4.  **Bottom Sheet Drawer Containment:**
-    *   In portrait orientation, constrain initial height to `height: 52vh` (matching `VIS-033` and `VIS-008`), allowing smooth dragging up to `85vh` without blocking the spatial canvas.
+    *   In portrait orientation, constrain initial height to `height: min(45vh, 440px)` (matching `VIS-033` and `VIS-008`), allowing smooth dragging up to `85vh` without blocking the spatial canvas.
 5.  **Status Badges & Alarms:**
     *   Badges must have centered text (`justify-content: center; text-align: center;`), no decorative icons, and follow ISA-101 alarm color semantics (red only for critical alarm, amber for warning, blue for info/selection).
 6.  **Wrapper Integration:**
@@ -117,13 +117,9 @@ Create the standalone prototype in `sena-evidence/00-Overview/Protoyping/ui-prot
 
 ---
 
-### Step 4: Coherence Self-Audit
+### Step 4: Quality Gate & Independent Coherence Audit
 
-Before presenting the deliverable to the user, the agent must execute the validation checklist defined in `dteam-ui-coherence-audit`:
-*   [ ] 9 canonical sections present in exact order in the specification.
-*   [ ] Zero hardcoded hex colors violating the Design System tokens.
-*   [ ] Zero green indicators used for "normal running" status.
-*   [ ] All continuous process telemetry represented as Moving Analog Indicators (MAI).
-*   [ ] Database columns in `DT-ERD-DOC-001` match UI inputs with strict type parity.
-*   [ ] No auto-scroll jumps disrupting the technician's focus during checklist operations.
-*   [ ] Prototype loads and functions error-free in modern browsers without console warnings.
+Formal UI/UX and architectural coherence audits are **strictly decoupled** from this scaffolding skill. To prevent confirmation bias, do **NOT** invoke `dteam-ui-coherence-audit` within the same conversational session that scaffolded the deliverables.
+
+*   Deliverable handover marks the completion of the scaffolding phase.
+*   Independent compliance and coherence audits against `dteam-ui-coherence-audit` must be executed subsequently in dedicated, disposable audit sessions.
