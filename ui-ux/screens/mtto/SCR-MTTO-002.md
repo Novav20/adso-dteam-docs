@@ -223,8 +223,6 @@ Pages/
 #### 7.2.1. `MobileWorkOrderClosingPage.razor` (Root View)
 
 ```csharp
-namespace DTeam.App.Client.Pages;
-
 public partial class MobileWorkOrderClosingPage : ComponentBase
 {
     [Parameter]
@@ -244,8 +242,6 @@ public partial class MobileWorkOrderClosingPage : ComponentBase
 #### 7.2.2. Subcomponent Parameters
 
 ```csharp
-namespace DTeam.App.Client.Components;
-
 public partial class IsoTaxonomyDiagnosisTab : ComponentBase
 {
     [Parameter, EditorRequired]
@@ -277,8 +273,6 @@ public partial class TechnicalFinalizeBar : ComponentBase
 #### 7.2.3. Data Transfer Objects (DTOs)
 
 ```csharp
-namespace DTeam.App.Shared.Contracts.Maintenance;
-
 public record WorkOrderClosingContextDto
 {
     public required Guid WorkOrderId { get; init; }

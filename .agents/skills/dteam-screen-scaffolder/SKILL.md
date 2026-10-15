@@ -95,7 +95,7 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
     *   Offline partition tolerance ([ASR-001](file:///home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs/architecture/requirements/DT-ARQ-ASR-001.md)) and safety fail-safe locks ([ASR-002](file:///home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs/architecture/requirements/DT-ARQ-ASR-001.md)).
 8.  **§7 Frontend Component Contract (Blazor / Razor):**
     *   *§7.1 Component Hierarchy & File Mapping:* Tree structure of `.razor` files under `Pages/` or `Components/`.
-    *   *§7.2 Physical Parameters & DTOs (.NET 10 / C# 14):* Strongly-typed C# records and component parameters.
+    *   *§7.2 Physical Parameters & DTOs (.NET 10 / C# 14):* Strongly-typed C# records and component parameters. **Decoupled Namespaces Rule:** Never declare C# `namespace` statements in §7 snippets; declare classes, parameters, and records directly to avoid premature assembly coupling.
     *   *§7.3 Client-Side DOM & Interop Bridge:* JSInterop boundaries, event throttling, and touch listener lifecycles.
 9.  **§8 Layout and Responsive Adaptability:**
     *   Explicit 3-tier breakpoint table: Desktop ($\ge 1400\text{px}$), Tablet Landscape ($901\text{px}-1399\text{px}$), Tablet Portrait ($600\text{px}-900\text{px}$).
