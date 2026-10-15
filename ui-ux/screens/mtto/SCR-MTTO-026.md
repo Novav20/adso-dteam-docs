@@ -13,9 +13,9 @@ user_stories:
   - "[[MTTO-026]]"
 use_cases:
   - "[[UC-MTTO-026]]"
-version: 1.0
+version: 1
 date: 2026-10-15
-status: Approved
+status: DRAFT
 ---
 
 # SCR-MTTO-026: RIME Backlog Prioritization Dashboard
