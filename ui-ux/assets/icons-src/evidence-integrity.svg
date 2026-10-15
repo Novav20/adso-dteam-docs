@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created for DTEAM Asset Performance Management (DT-UI-DS-DOC-001) -->
+
 <svg
    width="24"
    height="24"
@@ -7,88 +8,107 @@
    version="1.1"
    id="svg-evidence-integrity"
    xml:space="preserve"
+   sodipodi:docname="evidence-integrity.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
-     id="namedview1"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:document-units="px"
-     inkscape:zoom="24"
-     inkscape:cx="12"
-     inkscape:cy="12"
-     inkscape:current-layer="icon-camera"
-     showguides="true"
-     showgrid="true">
+   id="namedview1"
+   pagecolor="#ffffff"
+   bordercolor="#000000"
+   borderopacity="0.25"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   inkscape:document-units="px"
+   inkscape:zoom="11.313709"
+   inkscape:cx="3.1819804"
+   inkscape:cy="6.2755724"
+   inkscape:current-layer="icon-ban"
+   showguides="true"
+   showgrid="true"
+   inkscape:window-width="1920"
+   inkscape:window-height="1011"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1">
     <inkscape:grid
-       type="xygrid"
-       id="grid1"
-       spacingx="1"
-       spacingy="1"
-       empspacing="4"
-       originx="0"
-       originy="0"
-       units="px" />
+   type="xygrid"
+   id="grid1"
+   spacingx="1"
+   spacingy="1"
+   empspacing="4"
+   originx="0"
+   originy="0"
+   units="px" />
   </sodipodi:namedview>
-  <defs id="defs1" />
+  <defs
+   id="defs1" />
 
   <g
-     inkscape:label="Evidence-Integrity-Icons"
-     inkscape:groupmode="layer"
-     id="layer-root"
-     style="display:inline">
+   inkscape:label="Evidence-Integrity-Icons"
+   inkscape:groupmode="layer"
+   id="layer-root"
+   style="display:inline">
 
     <!-- 1. ICON: INDUSTRIAL INSPECTION CAMERA (CMP-07) -->
     <g
-       inkscape:groupmode="layer"
-       id="icon-camera"
-       inkscape:label="icon-camera"
-       style="display:inline">
+   inkscape:groupmode="layer"
+   id="icon-camera"
+   inkscape:label="icon-camera"
+   style="display:inline">
       <!-- Cascarón: Dibujar en Inkscape cuerpo de cámara industrial con lente concéntrica -->
-    </g>
+    <path
+   id="path1-7"
+   style="display:inline;fill:#000000;stroke-width:3.27097"
+   d="m 11.966219,4.1024087 c -3.3527208,0 -3.2296178,-0.042755 -3.9545468,1.399104 l -0.415259,0.824133 h -2.146573 c -1.765699,0 -2.200666,0.01734 -2.4340597,0.115007 -0.3956513,0.165315 -0.6200714,0.397024 -0.8305188,0.843295 l -0.1788794,0.383318 -0.00638,5.4430923 v 5.449483 l 0.1980472,0.396092 c 0.2101891,0.421794 0.492417,0.668602 0.9455137,0.830521 0.378636,0.135385 17.1965688,0.153605 17.6453318,0.0193 0.388738,-0.116479 0.806732,-0.465135 1.015789,-0.856075 l 0.1661,-0.319442 0.02551,-5.23866 c 0.01341,-3.234424 -0.01047,-5.4000593 -0.0575,-5.6539193 -0.10176,-0.550373 -0.390534,-0.967398 -0.843298,-1.213833 l -0.370538,-0.198057 h -2.17853 -2.178516 l -0.376869,-0.773146 c -0.207759,-0.422251 -0.47904,-0.866479 -0.606918,-0.990233 -0.4661,-0.4510587 -0.556317,-0.45998 -3.417906,-0.45998 z m -0.0575,4.727571 c 0.422622,-0.0059 0.848286,0.03984 1.169115,0.134175 1.828088,0.537544 3.041218,2.0324683 3.155973,3.8778823 0.127993,2.058583 -1.326364,3.983878 -3.328464,4.408142 -1.557441,0.330037 -2.9960748,-0.140227 -4.1142648,-1.347998 -0.796896,-0.860746 -1.213561,-2.169083 -1.054121,-3.29652 0.248855,-1.759758 1.348685,-3.0802833 3.0026458,-3.6095653 0.32291,-0.103362 0.746494,-0.160179 1.169116,-0.166099 z m 0.249149,1.111615 c -0.787416,-0.035 -1.427191,0.1344053 -1.993245,0.5238693 -0.9775288,0.672556 -1.5431538,1.964991 -1.3479948,3.07292 0.232304,1.318723 1.2627138,2.405815 2.5362748,2.670437 0.436736,0.09074 1.208701,0.03601 1.673816,-0.121386 0.560254,-0.189585 1.155685,-0.631136 1.514101,-1.118007 0.459754,-0.624532 0.608089,-1.095639 0.606918,-1.935748 -8.57e-4,-0.615184 -0.02486,-0.745473 -0.242771,-1.207445 C 14.579342,11.1361 14.014047,10.549995 13.36531,10.229081 12.92354,10.010547 12.74939,9.9677627 12.157868,9.9415947 Z"
+   sodipodi:nodetypes="sccsccccccccccccccccccsscsssscscssccssssc" /></g>
 
     <!-- 2. ICON: CHECKMARK VERIFIED (CMP-06 / CMP-07) -->
     <g
-       inkscape:groupmode="layer"
-       id="icon-check"
-       inkscape:label="icon-check"
-       style="display:none">
+   inkscape:groupmode="layer"
+   id="icon-check"
+   inkscape:label="icon-check"
+   style="display:none">
       <!-- Cascarón: Dibujar en Inkscape marca de verificación formal / validación SHA-256 -->
-    </g>
+    <path
+   id="path1-5"
+   style="display:inline;fill:#000000;stroke-width:3.26359"
+   d="m 12.322338,2.0045765 c -0.693646,-0.0157 -1.407418,0.00829 -1.860982,0.082878 C 7.1633819,2.6297429 4.3660589,4.7406644 2.9409401,7.7549634 1.4828241,10.839053 1.734423,14.555906 3.5910099,17.406936 c 1.622785,2.491995 4.181323,4.134602 7.0806621,4.545481 0.695908,0.09861 2.66746,0.03496 3.320454,-0.108367 4.00604,-0.879241 6.989543,-3.856451 7.858196,-7.847809 0.199571,-0.917006 0.199571,-3.061087 0,-3.978093 C 20.98504,6.0422824 18.125411,3.1559434 14.07498,2.1703415 13.690505,2.0767865 13.015984,2.0202919 12.322338,2.0045851 Z m 4.066124,5.7758859 0.567216,0.561013 c 0.271882,0.270167 0.491345,0.51575 0.535354,0.592886 l 0.0065,0.0062 v 0.0065 0.0062 0.0065 c -0.01077,0.0297 -1.630585,1.6727826 -3.600878,3.6529606 -1.970295,1.980175 -3.589457,3.60196 -3.600877,3.60196 -0.03877,0 -3.7514171,-3.757741 -3.7729541,-3.818714 v -0.0065 c 0.031,-0.07201 0.25723,-0.345437 0.535353,-0.637516 l 0.560845,-0.586512 1.255524,1.262277 c 0.984685,0.986335 1.3036261,1.26228 1.4594721,1.26228 0.160805,0 0.767868,-0.575394 3.129256,-2.958069 z"
+   sodipodi:nodetypes="ssssccsssscccccccsscccccscc" /></g>
 
     <!-- 3. ICON: BAN / TAMPER ALERT / DATA CORRUPTION (AF-003) -->
     <g
-       inkscape:groupmode="layer"
-       id="icon-ban"
-       inkscape:label="icon-ban"
-       style="display:none">
+   inkscape:groupmode="layer"
+   id="icon-ban"
+   inkscape:label="icon-ban"
+   style="display:none">
       <!-- Cascarón: Dibujar en Inkscape círculo con barra diagonal de prohibición / payload corrupto -->
-    </g>
+    <path
+   id="path1"
+   style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:square;stroke-miterlimit:30.3;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+   d="m 12.257812,2.0039062 c -0.347767,-0.00902 -0.697204,-0.00333 -1.042968,0.019531 C 8.5678618,2.1984395 5.9354332,3.5975133 4.21875,5.7304688 2.8466041,7.4353372 2.0712865,9.5152999 2.0058594,11.671875 c -0.050637,1.668878 0.2725097,3.158906 1.0136718,4.669922 0.9710096,1.97962 2.4589363,3.508421 4.4355469,4.558594 0.9044999,0.48056 2.0921327,0.804932 3.1269529,0.96289 l -0.01563,0.07422 0.384766,0.03906 c 0.474182,0.04842 1.756811,0.01741 2.318359,-0.04297 1.347055,-0.144868 3.002597,-0.765332 4.199219,-1.566406 2.418229,-1.618879 3.958083,-3.989216 4.4375,-6.832032 0.107919,-0.639858 0.123896,-1.984881 0.03906,-2.679687 C 21.671366,8.6121624 20.634671,6.4935221 19.035156,4.9101562 17.929406,3.8155685 16.655941,3.0210735 15.158203,2.4921875 14.32537,2.1980844 13.301114,2.0309748 12.257812,2.0039062 Z m -0.472656,2.1035157 c 1.402152,-0.045445 2.483941,0.1797906 3.648438,0.7578125 0.440832,0.2188157 0.823636,0.4475964 1.082031,0.6347656 0.107131,0.077601 0.175889,0.1390459 0.232422,0.1933594 -0.0076,0.009 -0.0093,0.011845 -0.01758,0.021484 -0.104655,0.1224484 -0.263044,0.297611 -0.460938,0.5058593 -0.901288,0.948448 -8.3538183,8.4149289 -9.6347654,9.6523439 -0.300643,0.290428 -0.5783755,0.556134 -0.7832031,0.746094 -0.06153,0.05706 -0.099996,0.09072 -0.1464844,0.132812 C 5.6869318,16.73349 5.676802,16.728458 5.65625,16.705078 5.5379824,16.570537 5.3873334,16.362013 5.2402344,16.113281 4.8630542,15.475527 4.3608629,14.195688 4.2304688,13.552734 4.0898752,12.859666 4.0969662,11.137256 4.2480469,10.396484 4.421816,9.5445141 4.8880917,8.4294601 5.3828125,7.6835938 5.9903459,6.7676492 6.9695684,5.8072803 7.8867188,5.2265625 8.1712547,5.0464022 8.827872,4.7257243 9.2167969,4.5800781 9.9972275,4.287827 10.793974,4.1395423 11.785156,4.1074219 Z m 6.560547,3.2109375 c 0.03145,0.027382 0.04466,0.031691 0.123047,0.1308594 0.121208,0.1533511 0.2674,0.3758418 0.412109,0.6347656 0.28942,0.5178475 0.581568,1.1826168 0.75586,1.7695312 0.207688,0.6995084 0.228777,0.9163834 0.230469,2.1660154 0.0017,1.226464 -0.01181,1.384837 -0.205079,2.050781 -0.758442,2.613352 -2.696512,4.643808 -5.234375,5.492188 -0.489265,0.163555 -0.954092,0.256435 -1.554687,0.304688 -0.542898,0.04367 -1.612172,0.03966 -1.958985,0 C 10.30015,19.79696 9.292909,19.483344 8.5351562,19.115234 8.3011659,19.001564 7.9859027,18.82744 7.7246094,18.669922 7.5939627,18.591163 7.4759552,18.516343 7.3886719,18.457031 c -0.045242,-0.03074 -0.038317,-0.02515 -0.0625,-0.04492 0.047535,-0.09101 0.1781861,-0.27703 0.4179687,-0.558593 0.046521,-0.05463 0.5587868,-0.587002 1.2597656,-1.298828 0.7009788,-0.711827 1.6235388,-1.640984 2.5957028,-2.617188 1.944328,-1.952408 4.09327,-4.0953604 5.091797,-5.0664062 0.761461,-0.7405011 1.216583,-1.1764883 1.482422,-1.4121094 0.08935,-0.079194 0.125226,-0.1049935 0.171875,-0.140625 z" /></g>
 
     <!-- 4. BACKGROUND REFERENCE LAYER (DESACTIVADA POR DEFECTO) -->
     <g
-       inkscape:groupmode="layer"
-       id="layer-reference"
-       inkscape:label="Reference-Image (JPG)"
-       style="display:none;opacity:0.35"
-       sodipodi:insensitive="true">
+   inkscape:groupmode="layer"
+   id="layer-reference"
+   inkscape:label="Reference-Image (JPG)"
+   style="display:none;opacity:0.35"
+   sodipodi:insensitive="true">
       <image
-         width="24"
-         height="24"
-         preserveAspectRatio="xMidYMid meet"
-         xlink:href="../../../../sena-evidence/00-Overview/Protoyping/reference-images/evidence_integrity_icons.jpg"
-         id="image-ref-source"
-         x="0"
-         y="0"
-         style="opacity:1" />
+   width="24"
+   height="24"
+   preserveAspectRatio="xMidYMid"
+   xlink:href="../../../../sena-evidence/00-Overview/Protoyping/reference-images/evidence_integrity_icons.jpg"
+   id="image-ref-source"
+   x="0"
+   y="0"
+   style="opacity:1" />
     </g>
   </g>
 </svg>

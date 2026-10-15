@@ -83,14 +83,27 @@ def clean_xml_element(elem: ET.Element) -> None:
     if "style" in elem.attrib:
         style = elem.attrib["style"]
         style = re.sub(r"display\s*:\s*[^;]+;?", "", style).strip()
-        style = re.sub(r"fill\s*:\s*#000000;?", "fill: currentColor;", style)
+        style = re.sub(r"fill\s*:\s*(?:#000000|#000|black);?", "fill: currentColor;", style)
+        style = re.sub(r"stroke\s*:\s*(?:#000000|#000|black);?", "stroke: currentColor;", style)
         if style:
             elem.attrib["style"] = style
         else:
             elem.attrib.pop("style", None)
 
-    if elem.attrib.get("fill") == "#000000":
+    if elem.attrib.get("fill") in ("#000000", "#000", "black"):
         elem.attrib["fill"] = "currentColor"
+
+    if elem.attrib.get("stroke") in ("#000000", "#000", "black"):
+        elem.attrib["stroke"] = "currentColor"
+
+    # Default SVG shapes without explicit fill or stroke to currentColor (inherits parent CSS)
+    tag_clean = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
+    if tag_clean in ("path", "polygon", "rect", "circle", "ellipse"):
+        style_str = elem.attrib.get("style", "")
+        has_fill = ("fill" in elem.attrib) or bool(re.search(r"(?<!-)\bfill\s*:", style_str))
+        has_stroke = ("stroke" in elem.attrib) or bool(re.search(r"(?<!-)\bstroke\s*:", style_str))
+        if not has_fill and not has_stroke:
+            elem.attrib["fill"] = "currentColor"
 
     for child in elem:
         clean_xml_element(child)

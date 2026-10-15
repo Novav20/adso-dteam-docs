@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created for DTEAM Asset Performance Management (DT-UI-DS-DOC-001) -->
+
 <svg
    width="24"
    height="24"
@@ -7,88 +8,182 @@
    version="1.1"
    id="svg-asset-logistics-diagnostics"
    xml:space="preserve"
+   sodipodi:docname="asset-logistics-diagnostics.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
-     id="namedview1"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:document-units="px"
-     inkscape:zoom="24"
-     inkscape:cx="12"
-     inkscape:cy="12"
-     inkscape:current-layer="icon-package"
-     showguides="true"
-     showgrid="true">
+   id="namedview1"
+   pagecolor="#ffffff"
+   bordercolor="#000000"
+   borderopacity="0.25"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   inkscape:document-units="px"
+   inkscape:zoom="16"
+   inkscape:cx="6"
+   inkscape:cy="4.1875"
+   inkscape:current-layer="icon-package"
+   showguides="true"
+   showgrid="true"
+   inkscape:window-width="1920"
+   inkscape:window-height="1011"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1">
     <inkscape:grid
-       type="xygrid"
-       id="grid1"
-       spacingx="1"
-       spacingy="1"
-       empspacing="4"
-       originx="0"
-       originy="0"
-       units="px" />
+   type="xygrid"
+   id="grid1"
+   spacingx="1"
+   spacingy="1"
+   empspacing="4"
+   originx="0"
+   originy="0"
+   units="px" />
   </sodipodi:namedview>
-  <defs id="defs1" />
+  <defs
+   id="defs1"><inkscape:path-effect
+     effect="fillet_chamfer"
+     id="path-effect10"
+     is_visible="true"
+     lpeversion="1"
+     nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,5,0,1 @ F,0,0,1,0,0,0,1"
+     radius="0"
+     unit="px"
+     method="auto"
+     mode="F"
+     chamfer_steps="1"
+     flexible="false"
+     use_knot_distance="true"
+     apply_no_radius="true"
+     apply_with_radius="true"
+     only_selected="false"
+     hide_knots="false" /><inkscape:path-effect
+     effect="fillet_chamfer"
+     id="path-effect8"
+     is_visible="true"
+     lpeversion="1"
+     nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,5,0,1 @ F,0,0,1,0,0,0,1"
+     radius="0"
+     unit="px"
+     method="auto"
+     mode="F"
+     chamfer_steps="1"
+     flexible="false"
+     use_knot_distance="true"
+     apply_no_radius="true"
+     apply_with_radius="true"
+     only_selected="false"
+     hide_knots="false" /></defs>
 
   <g
-     inkscape:label="Asset-Logistics-Diagnostics-Icons"
-     inkscape:groupmode="layer"
-     id="layer-root"
-     style="display:inline">
+   inkscape:label="Asset-Logistics-Diagnostics-Icons"
+   inkscape:groupmode="layer"
+   id="layer-root"
+   style="display:inline">
 
     <!-- 1. ICON: SPARE PARTS PACKAGE / BOX (CMP-04) -->
     <g
-       inkscape:groupmode="layer"
-       id="icon-package"
-       inkscape:label="icon-package"
-       style="display:inline">
+   inkscape:groupmode="layer"
+   id="icon-package"
+   inkscape:label="icon-package"
+   style="display:inline">
       <!-- Cascarón: Dibujar en Inkscape caja/bulto de repuestos de almacén con etiqueta -->
-    </g>
+    <path
+   id="path1"
+   style="display:inline;opacity:1;fill:#000000;stroke-width:0.029985"
+   inkscape:label="box"
+   d="M 11.998046,2 C 11.938109,2 11.188194,2.4209218 8.7011704,3.8515625 7.7188401,4.4166409 4.8284799,6.0743913 4.0429673,6.5234375 3.7650332,6.6823235 3.506328,6.842587 3.4667954,6.8789062 l -0.072266,0.066406 V 11.847656 16.75 l 0.066406,0.07617 c 0.037107,0.042 0.5601603,0.369957 1.1621094,0.730469 1.3579067,0.81326 3.2836112,1.973631 5.1875001,3.125 0.7998501,0.483706 1.6229281,0.978996 1.8281251,1.099609 C 11.84387,21.901868 12.035842,22 12.064452,22 c 0.06097,0 1.339416,-0.769193 5.8125,-3.498047 0.568966,-0.347101 1.372863,-0.836689 1.785156,-1.087891 0.412294,-0.251197 0.792104,-0.490818 0.845703,-0.53125 l 0.09766,-0.07422 v -4.94336 -4.9453121 l -0.09766,-0.072266 C 20.419997,6.7825214 19.851595,6.4516567 19.031249,5.9882812 18.866331,5.8951267 17.888158,5.3351899 16.857421,4.7441406 12.715221,2.3688937 12.061146,2 11.998046,2 Z m -0.002,0.4433594 0.128906,0.072266 c 1.235622,0.7009822 2.687956,1.537193 2.71875,1.5664062 l 0.002,0.00195 v 0.00195 l 0.002,0.00195 v 0.00195 l 0.002,0.00195 0.002,0.00195 v 0.00195 0.00195 0.00195 0.00195 0.00195 C 14.554033,4.3436626 14.192936,4.5210353 13.859468,4.7148104 13.653186,4.8346023 12.722799,5.3747436 11.791015,5.9140625 10.859231,6.4533813 9.4626108,7.261864 8.6874985,7.7109375 7.912386,8.1600111 7.2020856,8.5688536 7.1093735,8.6210938 c -0.086918,0.048975 -0.1694974,0.089995 -0.1914062,0.09375 h -0.00195 -0.00195 C 6.8995705,8.713608 6.5234007,8.4950931 6.0781235,8.2304688 5.632846,7.9658468 4.9993069,7.5910484 4.6699204,7.3964844 4.3405342,7.201923 4.0667585,7.0313031 4.0624985,7.0175781 4.0582365,7.0038653 4.3082751,6.8491172 4.617186,6.6738281 4.9260969,6.4985415 5.9944348,5.8854281 6.992186,5.3125 7.989937,4.7395694 9.525146,3.8604189 10.402343,3.3574219 Z m 4.863281,2.84375 h 0.002 c 0.001,-1.031e-4 0.0028,2e-5 0.0039,0 0.08329,-0.00158 0.334076,0.137107 1.535157,0.8222656 0.817836,0.4665357 1.508033,0.8624594 1.533203,0.8808594 0.04547,0.033246 -0.445826,0.3325015 -6.695313,4.0703126 -0.630036,0.376823 -1.162214,0.684594 -1.183593,0.683594 -0.04256,-0.0019 -3.140789,-1.8330802 -3.13359,-1.8547302 2.286243,-1.3669377 4.618111,-2.6900166 6.926555,-4.028076 0.50858,-0.2948843 0.957404,-0.5507304 0.996094,-0.5683593 0.0044,-0.00201 0.0098,-0.00482 0.01563,-0.00586 z M 3.8320297,7.3964844 c 0.00934,0 0.424097,0.2424637 0.921875,0.5371094 0.4977781,0.2946456 1.1373921,0.6718026 1.421875,0.8398437 l 0.5175782,0.3066406 v 1.2050779 8.03125 C 6.5949414,18.257266 6.4977952,18.197969 6.4023423,18.140625 l -2.5859376,-1.552734 -0.00195,-4.595703 c -7.16e-4,-2.5272935 0.00824,-4.5955933 0.017578,-4.5957036 z m 16.3339853,0.013672 c 0.02684,-0.010301 0.03682,1.0748927 0.04492,4.5664056 0.01027,4.432048 0.0089,4.582217 -0.04492,4.628907 -0.03061,0.02655 -0.649361,0.410005 -1.375,0.851562 -1.85619,1.129515 -4.160625,2.532093 -5.416016,3.294922 -0.587652,0.357086 -1.075716,0.648438 -1.085938,0.648438 -0.01024,0 -0.01592,-2.088528 -0.01172,-4.640625 l 0.0078,-4.640625 0.554688,-0.332032 c 0.305097,-0.182688 1.331022,-0.795099 2.279297,-1.361328 0.948276,-0.5662291 2.462983,-1.4730558 3.367187,-2.0156246 0.904204,-0.5425684 1.660318,-0.99256 1.679688,-1 z M 8.6874985,10.248047 9.7519516,10.880859 c 0.5854574,0.348388 1.2938684,0.770633 1.5742194,0.9375 l 0.509766,0.302735 0.0059,4.640625 c 0.0042,2.551612 -0.0013,4.637463 -0.01367,4.636719 -0.01242,-6.84e-4 -0.656528,-0.384831 -1.431641,-0.853516 C 10.0267,20.321314 9.4236457,19.958225 8.740276,19.546875 Z"
+   sodipodi:nodetypes="ssccccccsssssscccccscsccccccccccccccssssccccccccccscscsccccccsscccccccccscsscccsscccccccccccccc" /></g>
 
     <!-- 2. ICON: ROTABLE ASSET SWAP / ROTATION (CMP-04 / SCR-INV-025) -->
     <g
-       inkscape:groupmode="layer"
-       id="icon-swap"
-       inkscape:label="icon-swap"
-       style="display:none">
+   inkscape:groupmode="layer"
+   id="icon-swap"
+   inkscape:label="icon-swap"
+   style="display:none">
       <!-- Cascarón: Dibujar en Inkscape flechas circulares en bucle de rotación de activo -->
-    </g>
+    <g
+   id="path8"
+   style="opacity:1"
+   transform="matrix(0.83333835,0,0,0.83648549,1.5189034,0.22450423)"><path
+     style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;stroke-linecap:square;stroke-miterlimit:30.3;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+     d="M 8,4.6875 C 4.5295188,4.6875 1.6875,7.5295188 1.6875,11 v 4.144531 1.310547 h 2.625 V 15.144531 11 C 4.3125,8.9476337 5.9476337,7.3125 8,7.3125 h 11 1.3125 V 4.6875 H 19 Z"
+     id="path17" /><g
+     id="g11"><g
+       id="path11"
+       style="opacity:1"><path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill-rule:evenodd;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="m 22.058272,6 -3.40464,1.9680001 V 4.0319999 Z"
+         id="path12" /><path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill-rule:evenodd;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="m 18.390625,3.578125 v 4.84375 L 22.582031,6 Z M 18.916016,4.4882812 21.535156,6 18.916016,7.5117187 Z"
+         id="path13" /></g><g
+       id="path14"
+       style="opacity:1"><path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill-rule:evenodd;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="M 3,18.202117 1.0319999,14.797477 H 4.9680001 Z"
+         id="path15" /><path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill-rule:evenodd;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="M 0.578125,14.535156 3,18.726562 5.421875,14.535156 Z m 0.9101562,0.525391 H 4.5117187 L 3,17.677734 Z"
+         id="path16" /></g></g></g><g
+   id="path9"
+   style="opacity:1"
+   transform="matrix(-0.83333835,0,0,-0.83648549,22.481097,23.775496)"><path
+     style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;stroke-linecap:square;stroke-miterlimit:30.3;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+     d="M 8,4.6875 C 4.5295188,4.6875 1.6875,7.5295188 1.6875,11 v 4.144531 1.310547 h 2.625 V 15.144531 11 C 4.3125,8.9476337 5.9476337,7.3125 8,7.3125 h 11 1.3125 V 4.6875 H 19 Z"
+     id="path10" /><g
+     id="g2"><g
+       id="path2"
+       style="opacity:1"><path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill-rule:evenodd;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="m 22.058272,6 -3.40464,1.9680001 V 4.0319999 Z"
+         id="path3" /><path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill-rule:evenodd;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="m 18.390625,3.578125 v 4.84375 L 22.582031,6 Z M 18.916016,4.4882812 21.535156,6 18.916016,7.5117187 Z"
+         id="path4" /></g><g
+       id="path5"
+       style="opacity:1"><path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill-rule:evenodd;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="M 3,18.202117 1.0319999,14.797477 H 4.9680001 Z"
+         id="path6" /><path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill-rule:evenodd;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="M 0.578125,14.535156 3,18.726562 5.421875,14.535156 Z m 0.9101562,0.525391 H 4.5117187 L 3,17.677734 Z"
+         id="path7" /></g></g></g></g>
 
     <!-- 3. ICON: ISO 14224 GEAR / FAILURE DIAGNOSTIC (CMP-05) -->
     <g
-       inkscape:groupmode="layer"
-       id="icon-gear"
-       inkscape:label="icon-gear"
-       style="display:none">
+   inkscape:groupmode="layer"
+   id="icon-gear"
+   inkscape:label="icon-gear"
+   style="display:none">
       <!-- Cascarón: Dibujar en Inkscape engranaje mecánico industrial de 8 dientes simétricos -->
-    </g>
+    <path
+   id="path1-5"
+   style="display:inline;opacity:1;fill:#000000;stroke-width:3.52363"
+   d="m 13.455717,2.0464184 c -0.07593,-0.076191 -2.850727,-0.052141 -2.927624,0.025391 -0.02473,0.024941 -0.123836,0.5096603 -0.218741,1.0761879 -0.215246,1.2846228 -0.160305,1.1984903 -0.9472296,1.4707251 -0.363542,0.1257669 -0.822429,0.3254449 -1.019494,0.4433659 L 7.9852214,5.2769353 7.0360384,4.5816124 C 6.5144434,4.1996087 6.0464904,3.8883931 5.9950614,3.8882427 5.9436314,3.8880923 5.4440284,4.353007 4.8857294,4.9214612 l -1.015587,1.0332185 0.136714,0.2304722 c 0.07475,0.1269566 0.395245,0.5805378 0.712863,1.0078275 L 5.2978234,7.9703347 5.0087714,8.556281 C 4.8500324,8.8782817 4.6550804,9.3529535 4.5751934,9.6129374 L 4.4306684,10.0856 4.0517764,10.14224 c -0.207617,0.03085 -0.728106,0.116078 -1.158159,0.189456 l -0.783173,0.132815 -0.05859,0.332036 c -0.07124,0.402068 -0.06824,2.137613 0.0039,2.474646 l 0.05273,0.244145 1.068319,0.189456 c 1.326418,0.234447 1.230521,0.190572 1.357371,0.619149 0.05864,0.198101 0.250352,0.665003 0.427718,1.039078 l 0.322259,0.679697 -0.707004,0.955093 -0.707005,0.955092 0.244132,0.308598 c 0.400762,0.504145 1.796376,1.840326 1.91985,1.837919 0.06279,-0.0012 0.529003,-0.315017 1.037069,-0.697277 l 0.923793,-0.695323 0.474591,0.257817 c 0.260726,0.141692 0.734549,0.354848 1.052695,0.472663 l 0.5781226,0.212894 0.183587,1.107439 c 0.10364,0.623679 0.226834,1.121292 0.289052,1.173845 l 0.002,0.002 c 0.145044,0.09215 2.716904,0.08704 2.863172,-0.0059 0.07387,-0.05799 0.179302,-0.484643 0.287099,-1.173845 l 0.173822,-1.101579 0.593727,-0.218753 c 0.326852,-0.121044 0.806862,-0.332906 1.066365,-0.468757 l 0.470686,-0.246097 0.931605,0.691416 c 0.51234,0.380376 0.976031,0.691417 1.029258,0.691417 0.109757,0 1.937278,-1.782778 2.060469,-2.009796 0.06461,-0.119075 -0.04554,-0.319523 -0.568338,-1.033218 -0.357036,-0.4874 -0.67393,-0.926599 -0.703128,-0.976577 -0.0249,-0.05619 0.07439,-0.334399 0.2246,-0.621103 0.152587,-0.291266 0.345222,-0.746821 0.427718,-1.013687 0.175997,-0.569285 0.05052,-0.502838 1.38862,-0.738292 l 1.068318,-0.189456 0.05664,-0.203128 c 0.0712,-0.256359 0.07298,-2.27058 0.002,-2.603554 l -0.05273,-0.246098 -1.048788,-0.177737 C 19.53429,10.067178 19.597515,10.094801 19.473057,9.6656724 19.415597,9.4675717 19.222298,8.9995177 19.043385,8.6246413 L 18.717226,7.9429906 19.428137,6.9937577 20.139047,6.0445248 19.973038,5.8140526 C 19.723838,5.466566 18.124541,3.912508 17.992635,3.8882427 h -0.002 -0.002 c -0.05286,0 -0.512456,0.3087825 -1.021446,0.6855571 L 16.041443,5.2574037 15.506307,4.9878685 C 15.211557,4.8389348 14.739061,4.6395629 14.455565,4.5445025 14.068672,4.4147683 13.930097,4.3255972 13.900898,4.1909816 13.879438,4.0923456 13.785552,3.5867642 13.693875,3.0659649 13.605035,2.5614405 13.501773,2.1137285 13.459509,2.0503247 l -0.002,-0.00195 z m -2.619042,0.3515677 h 1.179644 c 0.649387,0 1.181595,0.023462 1.181595,0.050782 0,0.2941785 0.370011,2.1637659 0.441389,2.2305019 0.05203,0.048619 0.315807,0.1562029 0.587868,0.2382852 0.272074,0.082082 0.782332,0.292352 1.132771,0.4687569 0.792344,0.3988593 0.614741,0.4363928 1.671811,-0.3398489 0.495661,-0.3639807 0.920297,-0.6621191 0.945277,-0.6621191 0.02509,0 0.411228,0.3670344 0.857389,0.8164184 l 0.81247,0.8183715 -0.710911,0.951186 c -0.829153,1.1131442 -0.773149,0.9276461 -0.44139,1.4804908 0.147376,0.2455974 0.374768,0.7609942 0.50584,1.1465015 0.303812,0.8936227 0.260212,0.8600957 1.328076,1.0273587 0.498805,0.07811 0.991693,0.161549 1.093708,0.18555 l 0.185539,0.04492 v 1.103532 c 0,1.308386 0.100946,1.193606 -1.257764,1.404318 -1.163117,0.180365 -1.052392,0.107687 -1.287062,0.865247 -0.105708,0.341229 -0.339472,0.89336 -0.51951,1.22658 l -0.328114,0.605478 0.714818,0.955093 0.71677,0.955092 -0.81247,0.818371 c -0.446183,0.44936 -0.837992,0.816419 -0.871061,0.816419 -0.03299,0 -0.447482,-0.298139 -0.92184,-0.662119 -1.005616,-0.77164 -0.903441,-0.751331 -1.697202,-0.33985 -0.341716,0.177136 -0.845081,0.389355 -1.117145,0.470711 -0.272072,0.08135 -0.538778,0.187731 -0.593726,0.236331 l -0.002,0.002 c -0.08407,0.120188 -0.433495,1.898891 -0.433579,2.21683 l -0.002,0.002 v 0.002 l -0.002,0.002 c -0.101649,0.102816 -2.237948,0.06521 -2.343661,-0.04297 l -0.002,-0.002 v -0.002 c -0.03348,-0.0962 -0.370891,-2.053225 -0.370891,-2.152369 v -0.002 h -0.002 v -0.0019 c -0.03071,-0.03178 -0.287413,-0.127964 -0.5956326,-0.220712 -0.328759,-0.09894 -0.896139,-0.341371 -1.259719,-0.537118 l -0.66013,-0.355474 -0.939418,0.69337 c -0.516568,0.381254 -0.962409,0.69337 -0.990198,0.69337 -0.02762,0 -0.417101,-0.369035 -0.8652,-0.820325 l -0.814423,-0.820325 0.408188,-0.523445 c 0.224801,-0.288047 0.547284,-0.718757 0.71677,-0.955093 l 0.308582,-0.429693 -0.412095,-0.851576 c -0.226621,-0.46886 -0.454815,-1.029471 -0.507792,-1.246112 -0.071868,-0.293849 -0.140544,-0.403222 -0.271475,-0.429694 -0.096517,-0.01948 -0.546502,-0.09459 -0.999963,-0.167971 -0.453458,-0.07338 -0.907711,-0.168799 -1.009726,-0.210941 l -0.18554,-0.07617 v -1.01564 c 7e-4,-0.558322 0.03429,-1.065638 0.07422,-1.128923 0.04457,-0.07062 0.490533,-0.186982 1.154253,-0.298832 0.594683,-0.100239 1.093503,-0.196494 1.109334,-0.214847 0.01597,-0.01849 0.111992,-0.294823 0.212881,-0.6132908 0.100887,-0.3184818 0.332928,-0.8677243 0.515606,-1.2207213 L 5.7958544,7.9390842 5.0771324,6.9781325 4.3584094,6.0191338 5.1689254,5.2007623 c 0.446181,-0.4493599 0.834206,-0.8164184 0.861295,-0.8164184 0.02706,0 0.465554,0.3126272 0.974573,0.6953227 l 0.925746,0.695323 0.675755,-0.3574272 c 0.371671,-0.1970639 0.940923,-0.4373439 1.265577,-0.5351643 l 0.5898216,-0.1796902 0.08788,-0.5097731 c 0.04855,-0.2811789 0.133106,-0.7997558 0.187493,-1.1523609 z m 1.164019,3.9063082 A 5.6946142,5.6949147 0 0 0 6.3055974,11.999692 5.6946142,5.6949147 0 0 0 12.000694,17.695089 5.6946142,5.6949147 0 0 0 17.69579,11.999692 5.6946142,5.6949147 0 0 0 12.000694,6.3042943 Z m -1.175737,1.2480655 h 2.351473 l 0.365221,1.1269699 h 0.002 a 3.6617592,3.6619525 0 0 1 2.11905,3.3203623 3.6617592,3.6619525 0 0 1 -3.661971,3.662163 3.6617592,3.6619525 0 0 1 -3.6619706,-3.662163 3.6617592,3.6619525 0 0 1 2.1190616,-3.3203623 z" /></g>
 
     <!-- 4. BACKGROUND REFERENCE LAYER (DESACTIVADA POR DEFECTO) -->
     <g
-       inkscape:groupmode="layer"
-       id="layer-reference"
-       inkscape:label="Reference-Image (JPG)"
-       style="display:none;opacity:0.35"
-       sodipodi:insensitive="true">
+   inkscape:groupmode="layer"
+   id="layer-reference"
+   inkscape:label="Reference-Image (JPG)"
+   style="display:none;opacity:0.35"
+   sodipodi:insensitive="true">
       <image
-         width="24"
-         height="24"
-         preserveAspectRatio="xMidYMid meet"
-         xlink:href="../../../../sena-evidence/00-Overview/Protoyping/reference-images/asset_logistics_icons.jpg"
-         id="image-ref-source"
-         x="0"
-         y="0"
-         style="opacity:1" />
+   width="24"
+   height="24"
+   preserveAspectRatio="xMidYMid"
+   xlink:href="../../../../sena-evidence/00-Overview/Protoyping/reference-images/asset_logistics_icons.jpg"
+   id="image-ref-source"
+   x="0"
+   y="0"
+   style="opacity:1" />
     </g>
   </g>
 </svg>
