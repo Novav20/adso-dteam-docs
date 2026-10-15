@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created for DTEAM Asset Performance Management (DT-UI-DS-DOC-001) -->
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   version="1.1"
+   id="svg-asset-logistics-diagnostics"
+   xml:space="preserve"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="24"
+     inkscape:cx="12"
+     inkscape:cy="12"
+     inkscape:current-layer="icon-package"
+     showguides="true"
+     showgrid="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid1"
+       spacingx="1"
+       spacingy="1"
+       empspacing="4"
+       originx="0"
+       originy="0"
+       units="px" />
+  </sodipodi:namedview>
+  <defs id="defs1" />
+
+  <g
+     inkscape:label="Asset-Logistics-Diagnostics-Icons"
+     inkscape:groupmode="layer"
+     id="layer-root"
+     style="display:inline">
+
+    <!-- 1. ICON: SPARE PARTS PACKAGE / BOX (CMP-04) -->
+    <g
+       inkscape:groupmode="layer"
+       id="icon-package"
+       inkscape:label="icon-package"
+       style="display:inline">
+      <!-- Cascarón: Dibujar en Inkscape caja/bulto de repuestos de almacén con etiqueta -->
+    </g>
+
+    <!-- 2. ICON: ROTABLE ASSET SWAP / ROTATION (CMP-04 / SCR-INV-025) -->
+    <g
+       inkscape:groupmode="layer"
+       id="icon-swap"
+       inkscape:label="icon-swap"
+       style="display:none">
+      <!-- Cascarón: Dibujar en Inkscape flechas circulares en bucle de rotación de activo -->
+    </g>
+
+    <!-- 3. ICON: ISO 14224 GEAR / FAILURE DIAGNOSTIC (CMP-05) -->
+    <g
+       inkscape:groupmode="layer"
+       id="icon-gear"
+       inkscape:label="icon-gear"
+       style="display:none">
+      <!-- Cascarón: Dibujar en Inkscape engranaje mecánico industrial de 8 dientes simétricos -->
+    </g>
+
+    <!-- 4. BACKGROUND REFERENCE LAYER (DESACTIVADA POR DEFECTO) -->
+    <g
+       inkscape:groupmode="layer"
+       id="layer-reference"
+       inkscape:label="Reference-Image (JPG)"
+       style="display:none;opacity:0.35"
+       sodipodi:insensitive="true">
+      <image
+         width="24"
+         height="24"
+         preserveAspectRatio="xMidYMid meet"
+         xlink:href="../../../../sena-evidence/00-Overview/Protoyping/reference-images/asset_logistics_icons.jpg"
+         id="image-ref-source"
+         x="0"
+         y="0"
+         style="opacity:1" />
+    </g>
+  </g>
+</svg>

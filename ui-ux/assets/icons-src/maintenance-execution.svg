@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created for DTEAM Asset Performance Management (DT-UI-DS-DOC-001) -->
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   version="1.1"
+   id="svg-maintenance-execution"
+   xml:space="preserve"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="24"
+     inkscape:cx="12"
+     inkscape:cy="12"
+     inkscape:current-layer="icon-checklist"
+     showguides="true"
+     showgrid="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid1"
+       spacingx="1"
+       spacingy="1"
+       empspacing="4"
+       originx="0"
+       originy="0"
+       units="px" />
+  </sodipodi:namedview>
+  <defs id="defs1" />
+
+  <g
+     inkscape:label="Maintenance-Execution-Icons"
+     inkscape:groupmode="layer"
+     id="layer-root"
+     style="display:inline">
+
+    <!-- 1. ICON: CHECKLIST / TASK LIST (CMP-03) -->
+    <g
+       inkscape:groupmode="layer"
+       id="icon-checklist"
+       inkscape:label="icon-checklist"
+       style="display:inline">
+      <!-- Cascarón: Dibujar en Inkscape tablilla portapapeles con casillas de verificación -->
+    </g>
+
+    <!-- 2. ICON: STOPWATCH / WRENCH TIME (CMP-03) -->
+    <g
+       inkscape:groupmode="layer"
+       id="icon-stopwatch"
+       inkscape:label="icon-stopwatch"
+       style="display:none">
+      <!-- Cascarón: Dibujar en Inkscape cronómetro de campo industrial con pulsador -->
+    </g>
+
+    <!-- 3. ICON: PAUSE TIMER (CMP-03) -->
+    <g
+       inkscape:groupmode="layer"
+       id="icon-pause"
+       inkscape:label="icon-pause"
+       style="display:none">
+      <!-- Cascarón: Dibujar en Inkscape glifo de pausa (dos barras verticales paralelas) -->
+    </g>
+
+    <!-- 4. ICON: PLAY / RESUME TIMER (CMP-03) -->
+    <g
+       inkscape:groupmode="layer"
+       id="icon-play"
+       inkscape:label="icon-play"
+       style="display:none">
+      <!-- Cascarón: Dibujar en Inkscape glifo de reanudación (triángulo equilátero a la derecha) -->
+    </g>
+
+    <!-- 5. BACKGROUND REFERENCE LAYER (DESACTIVADA POR DEFECTO) -->
+    <g
+       inkscape:groupmode="layer"
+       id="layer-reference"
+       inkscape:label="Reference-Image (JPG)"
+       style="display:none;opacity:0.35"
+       sodipodi:insensitive="true">
+      <image
+         width="24"
+         height="24"
+         preserveAspectRatio="xMidYMid meet"
+         xlink:href="../../../../sena-evidence/00-Overview/Protoyping/reference-images/maintenance_execution_icons.jpg"
+         id="image-ref-source"
+         x="0"
+         y="0"
+         style="opacity:1" />
+    </g>
+  </g>
+</svg>
