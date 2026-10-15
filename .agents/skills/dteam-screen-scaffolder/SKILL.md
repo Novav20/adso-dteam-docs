@@ -24,14 +24,15 @@ flowchart TD
     subgraph Inputs["SSoT Input Contract"]
         UC["1. Business Process & Use Case<br/>adso-dteam-docs/business-processes/use-cases/UC-*.md"]
         DM["2. Domain Model & Ubiquitous Language<br/>DT-DM-DOC-001.md, DT-DM-DOC-002.md, DT-UL-DOC-001.md"]
-        ERD["3. Relational Schema & Constraints<br/>DT-ERD-DOC-001.md"]
+        ERD["3. Relational Schema & Constraints (Markdown SSoT)<br/>DT-ERD-DOC-001.md (NEVER inspect .sql)"]
         NAV["4. Navigation Hierarchy & RBAC<br/>DT-UI-NAV-DOC-001.md"]
         DS["5. Design System & CSS Tokens<br/>DT-UI-DS-DOC-001.md & tokens.css"]
         TPL["6. Canonical Specification Template<br/>dteam-ui-coherence-audit/templates/SCR-TEMPLATE-screen-specification.md"]
         ASSETS["7. Prototype Core Infrastructure<br/>ui-prototype/assets/ (tokens, toolbar, drawer, viewport)"]
     end
 
-    Inputs --> Step1["Step 1: Archetype Classification"]
+    Inputs --> Step0["Step 0: SSoT Alignment & Pre-Flight Gap Report"]
+    Step0 --> Step1["Step 1: Archetype Classification"]
     Step1 --> Step2["Step 2: Generate SCR-*.md Specification"]
     Step2 --> Step3["Step 3: Build scr-*.html Prototype"]
     Step3 --> StepDone["Step 4: Deliverable Handover"]
@@ -39,7 +40,7 @@ flowchart TD
 
 1. **Use Case (`UC-*.md`):** Actors, pre-conditions, main transactional workflow, and alternate safety/error flows.
 2. **Domain Models (`DT-DM-001.md`, `DT-DM-002.md`, `DT-UL-001.md`):** Entity definitions, method signatures, invariants, and exact Ubiquitous Language terms (no generic synonyms).
-3. **Database Schema (`DT-ERD-DOC-001.md`):** Physical column names, nullability, unique keys, and referential cardinalities (`1:N`, `N:M`).
+3. **Database Schema (`DT-ERD-DOC-001.md`):** Physical column names, nullability, unique keys, and referential cardinalities (`1:N`, `N:M`). **CRITICAL RULE:** `DT-ERD-DOC-001.md` (markdown) is the SOLE Source of Truth for the relational schema. Never inspect generated `.sql` files, as they are downstream build artifacts that may be stale or out of sync.
 4. **Navigation Specification (`DT-UI-NAV-DOC-001.md`):** ANSI/ISA-101 level (`L1`, `L2`, `L3`, `L4`), authorized RBAC roles, transition triggers, and safety guards (Offline Guard, LOTO Interlock).
 5. **Design System & Tokens (`DT-UI-DS-DOC-001.md`, `tokens.css`):** Semantic tokens (`--dt-color-*`, `--dt-space-*`, `--dt-radius-*`, `--dt-z-*`), HPHMI grayscale philosophy, and alarm semantics.
 6. **Canonical Specification Template (`SCR-TEMPLATE-screen-specification.md`):** The exact 9-section structure.
@@ -48,6 +49,14 @@ flowchart TD
 ---
 
 ## 3. Step-by-Step Execution Workflow
+
+### Step 0: SSoT Alignment & Pre-Flight Gap Report
+
+Before scaffolding specifications or prototypes, the agent **MUST** perform an automated cross-check between the target use case / user story and the established repository SSoTs:
+1. **Relational Contract Reconciliation:** Verify that all data fields required by the screen align strictly with column types, nullability (`NOT NULL`), and CHECK constraints in `DT-ERD-DOC-001.md`.
+2. **Ubiquitous Language & Enum Hygiene:** Verify that entity statuses, roles, and terminology conform strictly to `DT-UL-DOC-001.md` and `DT-ERD-DOC-001.md` (e.g., catching terminology drift such as `Pending Review` vs. canonical `COMPLETE`).
+3. **Sequential Boundary Verification:** Verify input parameters, upstream preconditions, and downstream postconditions against adjacent screens in `DT-UI-NAV-DOC-001.md` (e.g., ensuring transitions from `SCR-VIS-011` properly pass active LOTO and WO context).
+4. **Output:** The agent outputs a concise **Gap & Reconciliation Report** in the planning/execution log and embeds the resolved mappings directly into **§5.3** (Domain Workflows) and **§9** (Traceability Matrix) of the generated specification.
 
 ### Step 1: Archetype & Layout Classification
 
