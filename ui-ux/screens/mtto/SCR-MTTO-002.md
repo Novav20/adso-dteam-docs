@@ -13,16 +13,16 @@ user_stories:
   - "[[MTTO-002]]"
 use_cases:
   - "[[UC-MTTO-002]]"
-version: 1.0
+version: 1
 date: 2026-10-15
-status: Approved
+status: In Review
 ---
 
 # SCR-MTTO-002: Mobile Work Order Execution, ISO 14224 Failure Coding, and Technical Closure
 
 ## 1. Purpose and Operational Context
 
-* **View Objective:** Mobile field technical execution, taxonomy failure diagnosis, and formal technical closure of active Work Orders (ANSI/ISA-101 Level 4). Enforces strict ISO 14224 reliability coding (Maintainable Item, Failure Mode, Mechanism, Cause, Detection Method, Operational Condition, and Operational Impact), actual Wrench Time capture, immutable photographic evidence acquisition with SHA-256 cryptographic hashing ([[TR-003]]), and atomic status transition to `COMPLETE` ([[DT-ERD-DOC-001.md §3.2.6]]), with full offline-first resilience via encrypted local database ([[TR-002]]) and transactional outbox synchronization ([[TR-007]]).
+* **View Objective:** Mobile field technical execution, taxonomy failure diagnosis, and formal technical closure of active Work Orders (ANSI/ISA-101 Level 4). Enforces strict ISO 14224 reliability coding (Maintainable Item, Failure Mode, Mechanism, Cause, Detection Method, Operational Condition, and Operational Impact), actual Wrench Time capture, immutable photographic evidence acquisition with SHA-256 cryptographic hashing ([[TR-003]]), and atomic status transition to `COMPLETE` ([[DT-ERD-DOC-001#3.2.6 work_orders|DT-ERD-DOC-001 §3.2.6]]), with full offline-first resilience via encrypted local database ([[TR-002]]) and transactional outbox synchronization ([[TR-007]]).
 * **Primary Target Persona:** Maintenance Technician (e.g., `TECH-4921 (J. Serrano)`) operating on rugged industrial tablets (`--dt-breakpoint-md`, `--dt-breakpoint-lg`) in Class I Div 2 hazardous process areas under adverse conditions (glare, noise, chemical-resistant gloves).
 * **Secondary Personas:**
   * **Maintenance Supervisor:** Reviews field execution metrics, verifies Wrench Time variance, and performs administrative closure (`CLOSED`).
@@ -52,13 +52,13 @@ status: Approved
 | :--- | :--- | :--- | :--- | :--- |
 | `CMP-01` | Mobile Execution Header | Work Order & Asset context strip | Surface: `--dt-color-surface-panel`<br>Border: `--dt-color-border-panel` | Anchored header displaying Work Order ID (`WO-2026-0842`), Target Equipment Unit (`P-0101A`), Functional Location (`TFA-CSS-P-0101A`), active LOTO safety badge (`[🔒 ZERO ENERGY CONFIRMED]`), and technician profile. Detailed in §5.1. |
 | `CMP-02` | Operational Tabs Controller | 4-channel segmented tab bar | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Active: `--dt-color-border-focus` | Top segmented navigation bar allowing instant switching between: `[1. Scope & Execution]`, `[2. Spares & Rotations]`, `[3. ISO 14224 Diagnosis]`, and `[4. Multimedia Evidence]`. Ergonomics and swipe physics in §5.2. |
-| `CMP-03` | Scope & Checklist Panel | Step-by-step task checklist & labor timer | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Displays planned task scope items with tactile completion checkboxes, actual start/finish timestamps, active Wrench Time stopwatch, and actual labor duration input (`actual_labor_hours` per `DT-ERD-DOC-001.md §3.2.6`). Rules in §5.3. |
+| `CMP-03` | Scope & Checklist Panel | Step-by-step task checklist & labor timer | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Displays planned task scope items with tactile completion checkboxes, actual start/finish timestamps, active Wrench Time stopwatch, and actual labor duration input (`actual_labor_hours` per [[DT-ERD-DOC-001#3.2.6 work_orders|DT-ERD-DOC-001 §3.2.6]]). Rules in §5.3. |
 | `CMP-04` | Materials & Spares Allocation Panel | Parts consumed & equipment rotation trigger | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Lists reserved warehouse spare parts (e.g., mechanical seals, O-rings) with quantity consumed inputs. Hosts high-priority action trigger `[Rotate Dismounted Equipment]`, launching modal [[SCR-INV-025]] when an asset swap is required. Specification in §5.3. |
-| `CMP-05` | ISO 14224 Multi-Tier Taxonomy Matrix Card | 7-tier standardized failure coding matrix | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-md` | The core reliability data collection container. Enforces sequential multi-tier dropdowns strictly bound to `DT-ERD-DOC-001.md §3.2.2`: Maintainable Item (`maintainable_item_id`), Failure Mode, Failure Mechanism, Failure Cause, Detection Method, Operational Condition, Operational Impact, and Downtime (`downtime`). Taxonomy logic in §5.3. |
+| `CMP-05` | ISO 14224 Multi-Tier Taxonomy Matrix Card | 7-tier standardized failure coding matrix | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-md` | The core reliability data collection container. Enforces sequential multi-tier dropdowns strictly bound to [[DT-ERD-DOC-001#3.2.2 failure_records|DT-ERD-DOC-001 §3.2.2]]: Maintainable Item (`maintainable_item_id`), Failure Mode, Failure Mechanism, Failure Cause, Detection Method, Operational Condition, Operational Impact, and Downtime (`downtime`). Taxonomy logic in §5.3. |
 | `CMP-06` | ISO 14224 Hard Lock Indicator | Quality gate completeness widget | Surface: `--dt-color-surface-raised`<br>Border: Dynamic (`--dt-color-alarm-warning` vs `--dt-color-state-success`) | Visual quality meter displaying taxonomic completeness ($0\%-100\%$). Employs redundant coding (symbol + text + contrast border) per WCAG 2.1 AA. Hard-disables finalization while any mandatory ISO field remains unclassified (`FR-012`). Logic in §5.3. |
 | `CMP-07` | Cryptographic Evidence Capture Card | Tactical camera trigger & SHA-256 verifier | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Hash: `--dt-font-family-mono` | Hosts hardware camera trigger button ($\ge 48\text{px}$), reactive thumbnail preview, file format validator (`JPG`, `PNG`, `PDF`), and asynchronous client-side SHA-256 hash calculator (`TR-003`). Automatically flags corrupt or unreadable files (`AF-003`). Protocol in §5.3. |
 | `CMP-08` | Offline Outbox & Sync Banner | Connection & local queue health indicator | Surface: Dynamic (`--dt-color-surface-card` vs `rgba(245, 158, 11, 0.12)`)<br>Border: `--dt-color-alarm-warning` | Priority 4 diagnostic alert banner deployed automatically upon network loss (`AF-002`, `ASR-001`). Displays offline status, cached transaction count, and unencrypted-in-transit zero-leakage guarantee via SQLCipher ([[TR-002]]). Specification in §5.3. |
-| `CMP-09` | Technical Finalization Action Bar | Sticky bottom closure controller | Surface: `--dt-color-surface-panel`<br>Elevation: `--dt-z-docked` ($40$)<br>Button: Dynamic | Fixed bottom action container hosting the primary control `[Finalize Work Order]`. Hard-gated by the Boolean conjunction of `CMP-06` and `CMP-07`. Persists atomic transition to `COMPLETE` in `mtto.work_orders` and chains cryptographic audit log in `adm.audit_logs`. Execution rules in §5.3. |
+| `CMP-09` | Technical Finalization Action Bar | Sticky bottom closure controller | Surface: `--dt-color-surface-panel`<br>Elevation: `--dt-z-header-sticky` ($500$)<br>Button: Dynamic | Fixed bottom action container hosting the primary control `[Finalize Work Order]`. Hard-gated by the Boolean conjunction of `CMP-06` and `CMP-07`. Persists atomic transition to `COMPLETE` in `mtto.work_orders` and chains cryptographic audit log in `adm.audit_logs`. Execution rules in §5.3. |
 | `CMP-10` | De-Isolation Safety Handover Strip | LOTO clearance acknowledgment strip | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Safety acknowledgment strip reminding the technician that physical padlocks remain locked until formal de-isolation handover is executed prior to operational start-up. Detailed in §6. |
 
 ---
@@ -91,10 +91,10 @@ status: Approved
 
 ### 5.2. Mobile Ergonomics & Tactile Mechanics
 
-1. **Gloved Touch Target Invariant (ISO 9241-110 Clause 5.3 / `TR-010`):**
+1. **Gloved Touch Target Invariant (ISO 9241-110 Clause 5.3 / `--dt-touch-target-mobile`):**
    * All interactive controls (checkboxes, dropdown triggers, camera buttons, tab headers) enforce a minimal bounding box of $48\times 48\text{px}$ with $\ge 8\text{px}$ separation, ensuring error-free operation with nitrile and leather field gloves.
 2. **Sticky Bottom Finalization Bar (`CMP-09`):**
-   * Pinned to the bottom viewport boundary (`bottom: 0; position: fixed; z-index: 40; height: 72px;`), elevated via border-top `$1.5\text{px}$ solid var(--dt-color-border-panel)`.
+   * Pinned to the bottom viewport boundary (`bottom: 0; position: fixed; z-index: var(--dt-z-header-sticky, 500); height: 72px;`), elevated via border-top `$1.5\text{px}$ solid var(--dt-color-border-panel)`.
    * Form content container enforces `padding-bottom: 96px` to prevent the sticky footer from occluding input fields or notes at maximal scroll extents.
 3. **Tab Navigation Physics (`CMP-02`):**
    * Segmented bar with discrete horizontal sliding indicator. Supports horizontal touch swipe gestures with a $40\text{px}$ displacement threshold to switch between tabs without causing accidental vertical scroll disruption.
@@ -102,7 +102,7 @@ status: Approved
 ### 5.3. Domain Workflows, Taxonomy Enums, and Cryptographic Mutation
 
 1. **ISO 14224 Multi-Tier Taxonomy Matrix (`CMP-05`):**
-   * Failure classification is strictly constrained by the relational contracts defined in [[DT-ERD-DOC-001.md §3.2.2]] (`mtto.failure_records`):
+   * Failure classification is strictly constrained by the relational contracts defined in [[DT-ERD-DOC-001#3.2.2 failure_records|DT-ERD-DOC-001 §3.2.2]] (`mtto.failure_records`):
      * **Tier 1: Maintainable Item (`maintainable_item_id`):** Filtered dynamically by the target equipment class (e.g., for Centrifugal Pump `P-0101A` per API 610: *Mechanical Seal*, *Impeller*, *Bearings*, *Shaft*, *Casing*, *Coupling*).
      * **Tier 2: Failure Mode (`failure_mode`):** Constrained by Maintainable Item (e.g., for Mechanical Seal: *External Leakage (EL)*, *Vibration Excursion (VE)*, *Overheating (OH)*).
      * **Tier 3: Failure Mechanism (`failure_mechanism`):** Observable physical degradation (e.g., *Mechanical Wear*, *Abrasive Erosion*, *Thermal Fatigue*, *Elastomer Degradation*).
@@ -359,8 +359,8 @@ public record MediaAttachmentDto
 | **TR-003** | `CMP-07` | Client-side cryptographic SHA-256 hash evaluation of all uploaded media files stored in metadata for tamper detection. |
 | **TR-006** | `CMP-01` | Device authorization and authenticated technician session validation (`TECH-4921`). |
 | **TR-007** | `CMP-08` | Transactional Offline Sync Outbox: Queues completed technical closures during disconnected operation with idempotent sync. |
-| **TR-008** | `CMP-05` | Multi-tier taxonomic validation in real time ensuring Maintainable Item belongs to equipment class. |
-| **TR-010** | `CMP-02`, `CMP-07`, `CMP-09` | Gloved touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ separation complying with mobile industrial ergonomics. |
+| **TR-010** | `CMP-01`, `CMP-08` | Real-time synchronization via WebSockets/SignalR for telemetry connection health and outbox reconciliation. |
+| **ISO 9241-110** | `CMP-02`, `CMP-07`, `CMP-09` | Gloved touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ separation complying with industrial ergonomics (`--dt-touch-target-mobile`). |
 | **TR-011** | `CMP-01` to `CMP-10` | ANSI/ISA-101 HPHMI: 90% neutral grayscale palette; saturated amber reserved for offline banner and missing fields; saturated red reserved for file corruption. |
 | **ADR-006** | `CMP-01`, `CMP-08` | Integration with Cryptographic Offline Lease protocol for disconnected field operations. |
 | **ADR-007** | `CMP-08`, `CMP-09` | Idempotency token generation (UUIDv7) attached to technical closure payloads to prevent duplicate commits. |
