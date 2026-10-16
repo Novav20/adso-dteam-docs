@@ -19,7 +19,7 @@ The system is designed under strict compliance with international standards:
 
 ## 2. Technology Stack
 
-In accordance with architecture decision **[[ADR-004]]** and traceability matrix **[[DT-ARQ-TECH-001]]**, the software is implemented under a unified **.NET** ecosystem:
+In accordance with architecture decision **[ADR-004](architecture/adr/ADR-004.md)** and traceability matrix **[DT-ARQ-TECH-001](architecture/DT-ARQ-TECH-001.md)**, the software is implemented under a unified **.NET** ecosystem:
 
 * **Backend:** Modular Monolith on .NET 10 structured with Hexagonal Architecture (*Ports & Adapters*) and Domain-Driven Design (DDD).
 * **Central Database:** PostgreSQL 18 + TimescaleDB extension (time series for telemetry). ISO 14224 taxonomic tree resolution is handled natively via recursive CTEs.
@@ -28,7 +28,7 @@ In accordance with architecture decision **[[ADR-004]]** and traceability matrix
 * **Component Library:** Shared Razor components in a Razor Class Library (RCL) consuming Design System tokens.
 * **Real-Time:** SignalR over WebSockets (WSS TLS 1.3) for LOTO safety heartbeat (2s) and process telemetry streaming.
 * **IoT Ingestion:** Azure IoT Hub consuming industrial telemetry via MQTT from SCADA and exposing it to the backend via AMQP.
-* **Graphic Canvas:** 2D-First strategy based on interactive SVG vector floor plans ([[ADR-001]]) with a roadmap towards 3D models.
+* **Graphic Canvas:** 2D-First strategy based on interactive SVG vector floor plans ([ADR-001](architecture/adr/ADR-001.md)) with a roadmap towards 3D models.
 
 ---
 

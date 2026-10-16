@@ -200,8 +200,8 @@ To comply with the HPHMI philosophy in dark interfaces, depth is not expressed t
 | Z-Index Token          | Value | Assigned Elements                                                  |
 | ---------------------- | ----- | -------------------------------------------------------------------- |
 | --dt-z-canvas          | 0     | SVG vector base layer (Floor plan).                           |
-| --dt-z-layer-ptw       | 10    | Work Permits overlapping graphic layer [[VIS-008]].         |
-| --dt-z-layer-loto      | 20    | LOTO Traceability graphic layer [[VIS-011]].                       |
+| --dt-z-layer-ptw       | 10    | Work Permits overlapping graphic layer [VIS-008](../requirements/user-stories/vis/VIS-008.md).         |
+| --dt-z-layer-loto      | 20    | LOTO Traceability graphic layer [VIS-011](../requirements/user-stories/vis/VIS-011.md).                       |
 | --dt-z-overlay-card    | 100   | Asset pop-up card (Asset Quick-Card L3 / VIS-033).         |
 | --dt-z-header-sticky   | 500   | Fixed top navigation bar and network status.                   |
 | --dt-z-drawer-sidebar  | 800   | Collapsible navigation side panel.                             |
@@ -217,9 +217,9 @@ To comply with the HPHMI philosophy in dark interfaces, depth is not expressed t
 In compliance with ISA-101.01 and *The High Performance HMI Handbook* (Hollifield et al., Ch. 7), continuous process variables (pressure, temperature, flow, vibration) must not be presented solely as numeric digits. They must use the Moving Analog Indicator (MAI) pattern to allow rapid condition evaluation in under 2 seconds.
 
 #### Light Theme (Control Room / Desktop - 500 Lux)
-![[assets/MAI-light.svg]]
+![Moving Analog Indicator - Light Theme](assets/MAI-light.svg)
 #### Dark Theme (Field Operation / Tablet / Night)
-![[assets/MAI-dark.svg]]
+![Moving Analog Indicator - Dark Theme](assets/MAI-dark.svg)
 
 #### 6.1.1. Dual-Theme Semantic Token Table for MAI
 To avoid direct coupling of hexadecimal codes and ensure compatibility between the Control Room (Light Theme) and Field Operation (Dark Theme), frontend interface components must consume the following token matrix:
@@ -247,7 +247,7 @@ To avoid direct coupling of hexadecimal codes and ensure compatibility between t
     * **High Deviation (High / High-High):** When crossing the upper threshold, a **separate alarm element** appears adjacent to the scale at the point of infraction. A red square (`--dt-color-alarm-critical`) with priority number 1 for Critical Alarm is presented.
     * **Low Deviation (Low / Low-Low):** When crossing the lower threshold, an **amber triangle** (`--dt-color-alarm-warning`) appears adjacent with priority number 2 for Warning.
 4. **Safety and Interlock Limits (Safety Interlock):** The ends of the scale that trigger automatic shutdowns (ESD) are marked with a solid rectangle (`--dt-color-mai-interlock`) at the corresponding end.
-5. **Stale Telemetry and Instrument Deactivation:** Upon loss of telemetry signal or device heartbeat timeout (Fail-Safe), the normal operating zone transmutates from vibrant light blue to a deactivated slate grayish-blue (`--dt-color-mai-stale-zone` / `--dt-color-mai-stale-zone-border`), visually conveying that the instrument is inactive/stale per ISO 11064 and [[TR-011]].
+5. **Stale Telemetry and Instrument Deactivation:** Upon loss of telemetry signal or device heartbeat timeout (Fail-Safe), the normal operating zone transmutates from vibrant light blue to a deactivated slate grayish-blue (`--dt-color-mai-stale-zone` / `--dt-color-mai-stale-zone-border`), visually conveying that the instrument is inactive/stale per ISO 11064 and [TR-011](../requirements/common/TR-011.md).
 
 ### 6.2. Redundant Coding Matrix for Permits and LOTO
 
@@ -272,7 +272,7 @@ In compliance with the principle of **Controllability** (ISO 9241-110:2020, Clau
 
 ### 6.4. Iconography and Redundant Symbology Standards
 
-To ensure compliance with WCAG 2.1 AA Redundant Coding and [[DT-ARQ-ASR-001#1. Offline-First Operation and Partition Tolerance|ASR-001]], all application icons follow a standardized vector grid:
+To ensure compliance with WCAG 2.1 AA Redundant Coding and [ASR-001](../architecture/asr/DT-ARQ-ASR-001.md#1-offline-first-operation-and-partition-tolerance), all application icons follow a standardized vector grid:
 
 #### 6.4.1. Vector Frame and Optical Padding
 * **Base ViewBox:** Strictly $24 \times 24\text{ px}$ (`viewBox="0 0 24 24"`).
