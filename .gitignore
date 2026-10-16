@@ -15,17 +15,11 @@
 *.fdb_latexmk
 *.pdf
 
-# Archivos generados de manera automatica
-requirements/common/
-requirements/user-stories/
-ui-ux/assets/tokens.css
-ui-ux/assets/tokens_penpot.json
-ui-ux/assets/icons.svg
-*.dsl
-scripts/temp/
-domain-models/class/DT-DM-001.puml
-domain-models/entity-relationship/DT-ERD-001.dbml
-domain-models/entity-relationship/DT-ERD-001.sql
-
+# Python bytecode and temporary caches
 __pycache__/
 *.pyc
+scripts/temp/
+
+# OS specific files
+.DS_Store
+Thumbs.db
