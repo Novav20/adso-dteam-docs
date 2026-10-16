@@ -134,42 +134,12 @@ status: In Review
      5. If file reading throws an I/O error or hash evaluation fails, the UI enters state `Evidence Corrupt` (`AF-003`), halts finalization, and forces recapture.
 
 4. **Atomic Technical Closure Mutation & Audit Chaining (`CMP-09`, `TR-001`):**
-   * Upon pressing `[Finalize Work Order]`, the application executes an atomic single-transaction commit:
-     ```sql
-     -- 1. Insert ISO 14224 Failure Diagnosis Record
-     INSERT INTO mtto.failure_records (
-         id, work_order_id, maintainable_item_id, failure_mode, failure_mechanism,
-         failure_cause, detection_method, operational_condition, operational_impact,
-         technician_notes, downtime, status
-     ) VALUES (
-         uuidv7(), 'WO-2026-0842', :maintainableItemId, :failureMode, :failureMechanism,
-         :failureCause, :detectionMethod, :operationalCondition, :operationalImpact,
-         :technicianNotes, :downtime, 'VERIFIED'
-     );
-
-     -- 2. Update Work Order Lifecycle to COMPLETE
-     UPDATE mtto.work_orders SET
-         current_status = 'COMPLETE',
-         actual_finish = clock_timestamp(),
-         actual_labor_hours = :actualLaborHours
-     WHERE id = 'WO-2026-0842';
-
-     -- 3. Append State History Audit Record
-     INSERT INTO mtto.work_order_histories (
-         id, work_order_id, old_status, new_status, timestamp, duration_seconds
-     ) VALUES (
-         uuidv7(), 'WO-2026-0842', 'IN_PROGRESS', 'COMPLETE', clock_timestamp(), :durationSeconds
-     );
-
-     -- 4. Append Immutable Cryptographic Audit Log (TR-001)
-     INSERT INTO adm.audit_logs (
-         id, entity_name, entity_id, timestamp, new_state, integrity_hash
-     ) VALUES (
-         uuidv7(), 'mtto.work_orders', 'WO-2026-0842', clock_timestamp(),
-         jsonb_build_object('status', 'COMPLETE', 'failure_mode', :failureMode, 'evidence_hash', :evidenceHash),
-         sha256_chain_hash(:previousHash, ...)
-     );
-     ```
+   * Upon pressing `[Finalize Work Order]`, the application dispatches an atomic technical closure command (`SubmitTechnicalClosureCommand`) against the backend API endpoint `POST /api/v1/work-orders/{id}/technical-closure`.
+   * The backend processes the closure within a single atomic database transaction governed by the physical integrity invariants of [[DT-ARQ-DB-DOC-001#2. Physical Integrity Invariants and Constraints|DT-ARQ-DB-DOC-001 §2]]:
+     * **Step 1 (Failure Diagnosis):** Inserts diagnosis record into `mtto.failure_records` adhering to the relational constraints in [[DT-ERD-DOC-001#3.2.2 failure_records|DT-ERD-DOC-001 §3.2.2]].
+     * **Step 2 (Work Order Lifecycle Transition):** Updates `mtto.work_orders` (`current_status = 'COMPLETE'`, `actual_finish = clock_timestamp()`, `actual_labor_hours = :hours`) per [[DT-ERD-DOC-001#3.2.6 work_orders|DT-ERD-DOC-001 §3.2.6]].
+     * **Step 3 (Lifecycle Audit Record):** Appends state history record into `mtto.work_order_histories` (`old_status = 'IN_PROGRESS'`, `new_status = 'COMPLETE'`) per [[DT-ERD-DOC-001#3.2.5 work_order_histories|DT-ERD-DOC-001 §3.2.5]].
+     * **Step 4 (Cryptographic Audit Chaining):** Appends immutable audit entry into `adm.audit_logs` calculating cryptographic SHA-256 chain integrity per [[DT-ERD-DOC-001#3.5.1 audit_logs|DT-ERD-DOC-001 §3.5.1]] and [[DT-ARQ-DB-DOC-001#3.8. GIN Indexing for JSONB Immutable Audit ([[ADM-032]])|DT-ARQ-DB-DOC-001 §3.8]].
 
 5. **Offline Operation Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-007`):**
    * If network connection is lost (`navigator.onLine == false` or heartbeat timeout):
