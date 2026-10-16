@@ -35,7 +35,7 @@ standard:
 ## 3. Behavioral Patterns
 
 ### Strategy
-* **Location:** `IRimeCalculator` contract and `RimeCalculatorService` implementation ([[ADR-002]]).
+* **Location:** `IRimeCalculator` contract and `RimeCalculatorService` implementation ([ADR-002](../adr/ADR-002.md)).
 * **Purpose:** Encapsulates the RIME prioritization algorithm. Allows replacing or extending the calculation in the future with one based on financial risk or inventory availability without modifying the `WorkRequest` entity or the aggregator rules.
 
 ### State
