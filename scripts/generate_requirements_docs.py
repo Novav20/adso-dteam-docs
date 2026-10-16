@@ -269,7 +269,7 @@ def build_tr_index_markdown(grouped: dict[str, list[dict]], metadata: dict[str, 
         fr_total = sum(1 for r in rows if clean(r.get("Type")).upper() == "FR" or "-FR-" in clean(r.get("Req ID")).upper())
         nfr_total = sum(1 for r in rows if clean(r.get("Type")).upper() == "NFR" or "-NFR-" in clean(r.get("Req ID")).upper())
         total = len(rows)
-        lines.append(f"| **{tr_id}** | {md_escape(title)} | {fr_total} | {nfr_total} | {total} | [[{tr_id}]] |")
+        lines.append(f"| **{tr_id}** | {md_escape(title)} | {fr_total} | {nfr_total} | {total} | [{tr_id}](./{tr_id}.md) |")
     lines.append("")
     return "\n".join(lines)
 
