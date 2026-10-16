@@ -41,8 +41,8 @@ This document is the consolidated source for identifying the target technology s
 
 ## Related Artifacts
 
-- [[ADR-004|ADR-004: Frontend Client with .NET MAUI Blazor Hybrid]]
+- [ADR-004: Frontend Client with .NET MAUI Blazor Hybrid](adr/ADR-004.md)
 - [Component Model](views/DT-ARQ-CMP-001-component-model.drawio)
-- [[DT-ARQ-CMP-DOC-001|Component Specification]]
+- [Component Specification](views/DT-ARQ-CMP-DOC-001.md)
 - [Deployment Model](views/DT-ARQ-DEP-001-deployment-model.drawio)
-- [[DT-ARQ-DEP-DOC-001|Deployment Specification]]
+- [Deployment Specification](views/DT-ARQ-DEP-DOC-001.md)

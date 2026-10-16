@@ -28,13 +28,13 @@ status: DRAFT
   * **SCADA / Automation Specialist:** Verifies telemetry signal mappings (`vis.telemetry_signals`), polling frequencies, and TLS 1.3 edge gateway ingestion pipelines.
 * **Operational Context:** Planning control rooms and reliability engineering workstations (`--dt-breakpoint-xl`, $\ge 1400\text{px}$) and supervisory industrial tablets in landscape orientation (`--dt-breakpoint-lg`, $901\text{px} - 1399\text{px}$).
 * **Mode of Operation:** Supervisory Technical Configuration mode. Focuses on master predictive plan definition, mathematical threshold formulation, and automated asynchronous work order rule evaluation. Direct DCS/SCADA process control manipulation is strictly excluded.
-* **Web Portal Workspace Invariant:** Operates as a Level 3 technical form within the Blazor Web Portal shell (`Pages/Maintenance/CreatePredictivePlanPage.razor`), accessible directly from the Maintenance menu or via drill-down from the RIME Backlog Dashboard ([[SCR-MTTO-026]]) by clicking "Schedule by Sensor".
+* **Web Portal Workspace Invariant:** Operates as a Level 3 technical form within the Blazor Web Portal shell (`Pages/Maintenance/CreatePredictivePlanPage.razor`), accessible directly from the Maintenance menu or via drill-down from the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)) by clicking "Schedule by Sensor".
 
 ---
 
 ## 2. Visual Artifact
 
-![[SCR-MTTO-023-wireframe.svg]]
+![SCR-MTTO-023 Wireframe](assets/SCR-MTTO-023-wireframe.svg)
 
 > *Note: Conceptual wireframe illustrating the Web Portal layout, cascading ISO 14224 asset selector, mapped telemetry signal selector, baseline accumulation indicator, interval cadence controller, initial target limit calculator, labor resource estimator, RIME score preview, and SCADA stream health badge.*
 
@@ -42,11 +42,11 @@ status: DRAFT
 
 ## 3. Functional Component Inventory
 
-> The base layout, typography, and design tokens are inherited from [[DT-UI-DS-DOC-001]]. This table defines the present components, semantic tokens, and architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
+> The base layout, typography, and design tokens are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, semantic tokens, and architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
-| `CMP-01` | Form Breadcrumbs & Header | Top breadcrumb navigation and form title | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Displays path (`Maintenance > Predictive Scheduling > Create Condition-Based Plan (Telemetry)`), active asset tag pill, and navigation backlink to [[SCR-MTTO-026]]. |
+| `CMP-01` | Form Breadcrumbs & Header | Top breadcrumb navigation and form title | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Displays path (`Maintenance > Predictive Scheduling > Create Condition-Based Plan (Telemetry)`), active asset tag pill, and navigation backlink to [SCR-MTTO-026](./SCR-MTTO-026.md). |
 | `CMP-02` | Cascading ISO 14224 Selector | 3-tier taxonomic dropdown hierarchy | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Cascading dropdowns: Equipment Unit L6 (`Compressor C-201`), Subunit L7 (`Bearing Assembly`), and Maintainable Item L8 (`Drive-End Journal Bearing`) (`FR-583`, `TR-008`). Enforces strict taxonomic parent-child linkage. |
 | `CMP-03` | Mapped Telemetry Signal Selector | Dropdown of registered IoT sensor streams | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Displays available telemetry signals mapped to the selected equipment unit in `vis.telemetry_signals` (e.g. `C201_RUN_HOURS`, `C201_STROKE_CYCLES`). Shows sensor tag, unit, and polling rate (`FR-583`, `FR-584`). |
 | `CMP-04` | Baseline Accumulation & SCADA Status | Live sensor telemetry reading & link state | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle` | Read-only numerical display of current historical accumulated usage (e.g., $4,500.00\text{ hrs}$) alongside real-time connection badge: *"SCADA STREAM: ONLINE"* (`--dt-color-state-success`) or *"OFFLINE"* (`--dt-color-alarm-warning`). |
@@ -54,7 +54,7 @@ status: DRAFT
 | `CMP-06` | Target Limit Mathematical Preview | Dynamic threshold preview & formula display | Surface: `--dt-color-surface-raised`<br>Font: `--dt-font-family-mono` | Displays calculated activation threshold: $\text{Target Limit} = \text{Baseline} (4,500) + \Delta (1,000) = 5,500.00\text{ hrs}$. Displays drift prevention formula indicator: $\text{Target}_{\text{next}} = \text{Target}_{\text{prev}} + \Delta$ (`FR-585`). |
 | `CMP-07` | Labor & Resource Estimation Grid | Man-Hours (Wrench Time) & Specialty | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Numeric input for Estimated Man-Hours (e.g., $6.0\text{ HH}$) and required technical craft dropdown (`MECHANICAL`, `ELECTRICAL`, `INSTRUMENTATION_AND_CONTROL`, `CONDITION_MONITORING`). Enforces non-zero numeric validation (`AF-001`). |
 | `CMP-08` | Task Scope Description Textarea | Narrative of predictive maintenance tasks | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Multiline text area capturing technical scope, vibration analysis SOP reference, lubrication tolerances, and LOTO isolation points. |
-| `CMP-09` | RIME Predictive Priority Score Card | Priority score breakdown & badge | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle` | Evaluates Asset Criticality ($1..10$) and sets Work Class weight to 7 ("Predictive Maintenance"). Computes dynamic RIME Score ($Criticality \times 7$) with redundant priority badge (`CMP-08` per [[SCR-MTTO-026]]). |
+| `CMP-09` | RIME Predictive Priority Score Card | Priority score breakdown & badge | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle` | Evaluates Asset Criticality ($1..10$) and sets Work Class weight to 7 ("Predictive Maintenance"). Computes dynamic RIME Score ($Criticality \times 7$) with redundant priority badge (`CMP-08` per [SCR-MTTO-026](./SCR-MTTO-026.md)). |
 | `CMP-10` | Monotonicity Guard & Inconsistency Alert | Anti-decrement rule status & alarm banner | Dynamic Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-alarm-warning` | Displays status of fail-safe monotonicity check (`FR-586`). In case of counter decrement (e.g., reading $4,300 < 4,500$), deploys high-visibility amber warning and locks processing (`AF-002`). |
 | `CMP-11` | Contingency Manual Reading Trigger | Button to open manual entry modal | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Opens `Modal-Contingency-Reading` allowing planners to manually record hour meter logs during SCADA outages (`AF-003`, `FR-587`). |
 | `CMP-12` | Plan Confirmation & Action Bar | Sticky bottom action controls | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Bottom bar hosting "Cancel" and "Save & Activate Predictive Plan" primary action button. Enforces completeness of mandatory parameters. |
@@ -171,10 +171,10 @@ flowchart TD
 
 ## 6. Industrial and Safety Considerations
 
-* **ANSI/ISA-101 HPHMI Compliance ([[TR-011]]):** Grayscale base surfaces (`--dt-color-surface-base`, `--dt-color-surface-card`). Color reserved exclusively for operational states:
+* **ANSI/ISA-101 HPHMI Compliance ([TR-011](../../../requirements/common/TR-011.md)):** Grayscale base surfaces (`--dt-color-surface-base`, `--dt-color-surface-card`). Color reserved exclusively for operational states:
   * Green (`--dt-color-state-success`) for active telemetry connection and verified stream.
   * Amber (`--dt-color-alarm-warning`) for monotonicity warnings (`AF-002`) and SCADA link offline states (`AF-003`).
-* **Negative Interlock & RIME Priority:** Predictive work orders are automatically assigned Work Class 7 ("Predictive Maintenance"). With an asset criticality of 8, $\text{RIME Score} = 8 \times 7 = 56$, ensuring prioritized backlog placement in [[SCR-MTTO-026]] without subjective human tampering.
+* **Negative Interlock & RIME Priority:** Predictive work orders are automatically assigned Work Class 7 ("Predictive Maintenance"). With an asset criticality of 8, $\text{RIME Score} = 8 \times 7 = 56$, ensuring prioritized backlog placement in [SCR-MTTO-026](./SCR-MTTO-026.md) without subjective human tampering.
 * **Fail-Safe Data Ingestion (NFR-588 / NFR-589):** Telemetry ingestion endpoints enforce TLS 1.3 encryption and evaluate trigger rules asynchronously in $< 3\text{ seconds}$ (`NFR-588`), preventing stream bottlenecks.
 
 ---
@@ -296,16 +296,16 @@ public enum MaintenanceCraft
 
 | Requirement | Addressed in Component | Verification & Implementation Mechanism |
 | :--- | :--- | :--- |
-| **FR-583** | `CMP-02`, `CMP-03`, `CMP-05` | Allows configuration of preventive plans associated with cumulative usage variables (hour meters, cycle counters). |
-| **FR-584** | `CMP-03`, `CMP-04` | Integrates with telemetry endpoint receiving external counter readings from SCADA/IoT devices. |
-| **FR-585** | `CMP-06` | Calculates cumulative usage value and projects automated Work Order trigger when threshold is reached. |
-| **FR-586** | `CMP-10` | Blocks processing of usage readings presenting values lower than historical cumulative (monotonicity check). |
-| **FR-587** | `CMP-11` | Provides manual contingency reading record mechanism from asset record during telemetry communication failures. |
-| **FR-590** | `CMP-05`, `CMP-06` | Preserves high precision of cumulative counters using `DECIMAL(12,2)` / `DECIMAL(18,6)` to prevent rounding errors. |
-| **NFR-588** | `CMP-04`, `CMP-06` | Ingestion and rule evaluation completed in $< 3\text{ seconds}$ from telemetry frame receipt. |
-| **NFR-589** | `CMP-03` | Telemetry data reception secured via authentication and TLS 1.3 encryption. |
-| **TR-005** | `CMP-01` | Adheres strictly to DDD Bounded Contexts (`mtto`, `tax`, `vis`). |
-| **TR-006** | `CMP-01`, `CMP-12` | Enforces RBAC permissions (`Reliability Engineer`, `Maintenance Planner`). |
-| **TR-008** | `CMP-02` | Enforces ISO 14224 taxonomy structure (Level 6 Equipment Unit, Level 7 Subunit, Level 8 Maintainable Item). |
-| **TR-010** | `CMP-03`, `CMP-04` | Integrates with SCADA / Historian module for automated data acquisition. |
-| **TR-011** | `CMP-01`..`CMP-12` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, functional alert color. |
+| [FR-583](../../../requirements/user-stories/mtto/MTTO-023.md#functional-requirements-fr) | `CMP-02`, `CMP-03`, `CMP-05` | Allows configuration of preventive plans associated with cumulative usage variables (hour meters, cycle counters). |
+| [FR-584](../../../requirements/user-stories/mtto/MTTO-023.md#functional-requirements-fr) | `CMP-03`, `CMP-04` | Integrates with telemetry endpoint receiving external counter readings from SCADA/IoT devices. |
+| [FR-585](../../../requirements/user-stories/mtto/MTTO-023.md#functional-requirements-fr) | `CMP-06` | Calculates cumulative usage value and projects automated Work Order trigger when threshold is reached. |
+| [FR-586](../../../requirements/user-stories/mtto/MTTO-023.md#functional-requirements-fr) | `CMP-10` | Blocks processing of usage readings presenting values lower than historical cumulative (monotonicity check). |
+| [FR-587](../../../requirements/user-stories/mtto/MTTO-023.md#functional-requirements-fr) | `CMP-11` | Provides manual contingency reading record mechanism from asset record during telemetry communication failures. |
+| [FR-590](../../../requirements/user-stories/mtto/MTTO-023.md#functional-requirements-fr) | `CMP-05`, `CMP-06` | Preserves high precision of cumulative counters using `DECIMAL(12,2)` / `DECIMAL(18,6)` to prevent rounding errors. |
+| [NFR-588](../../../requirements/user-stories/mtto/MTTO-023.md#non-functional-requirements-nfr) | `CMP-04`, `CMP-06` | Ingestion and rule evaluation completed in $< 3\text{ seconds}$ from telemetry frame receipt. |
+| [NFR-589](../../../requirements/user-stories/mtto/MTTO-023.md#non-functional-requirements-nfr) | `CMP-03` | Telemetry data reception secured via authentication and TLS 1.3 encryption. |
+| [TR-005](../../../requirements/common/TR-005.md) | `CMP-01` | Adheres strictly to DDD Bounded Contexts (`mtto`, `tax`, `vis`). |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-12` | Enforces RBAC permissions (`Reliability Engineer`, `Maintenance Planner`). |
+| [TR-008](../../../requirements/common/TR-008.md) | `CMP-02` | Enforces ISO 14224 taxonomy structure (Level 6 Equipment Unit, Level 7 Subunit, Level 8 Maintainable Item). |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-03`, `CMP-04` | Integrates with SCADA / Historian module for automated data acquisition. |
+| [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`..`CMP-12` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, functional alert color. |

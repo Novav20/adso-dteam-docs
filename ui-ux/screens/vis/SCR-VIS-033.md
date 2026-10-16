@@ -32,25 +32,25 @@ status: In Review
 
 ## 2. Visual Artifact
 
-![[SCR-VIS-033-asset-inspection-card.svg]]
+![SCR-VIS-033 Asset Inspection Card](assets/SCR-VIS-033-asset-inspection-card.svg)
 
 ---
 
 ## 3. Functional Component Inventory
 
-> The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [[DT-UI-DS-DOC-001]]. This table defines the present components, their semantic tokens, and their architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are specified in Section 5.
+> The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, their semantic tokens, and their architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are specified in Section 5.
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :------- | :---------------------- | :------------------------------- | :-------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CMP-01` | Canvas Viewport 2D      | Interactive SVG vector canvas & Cartographic HUD | Surface: `--dt-color-bg-canvas`<br>HUD: `--dt-color-surface-card`                                  | Renders the SVG map of the functional area (ISA-101 Level 2) with embedded Cartographic HUD overlays (compass and metric scale bar). Spatial gestures, focal zoom, and HUD calibration are specified in §5.2. |
 | `CMP-02` | Viewport Toolbar        | Spatial navigation bar | Surface: `--dt-color-surface-card`<br>Radius: `--dt-radius-full`                                    | Unified floating pill toolbar centered over `CMP-01`. Integrates `CMP-03`, fixed-width level badge ($144\text{px}$), and viewer controls (Reset, zoom, layer selector). Layout rules in §5.2. |
 | `CMP-03` | Command Palette Trigger | Quick search access | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-full`    | Embedded pill search input within `CMP-02` (`Ctrl + K` / `/`). Supports fuzzy equipment tag search. |
-| `CMP-04` | Equipment Hotspot       | Equipment symbol in SVG | Border: `--dt-color-border-subtle`<br>Background: `--dt-color-bg-canvas` | Level 6 geometry linked by `TagNumber`. Neutral outline in normal state; alarm conditions trigger halo and severity shapes per [[DT-UI-DS-DOC-001]]. |
+| `CMP-04` | Equipment Hotspot       | Equipment symbol in SVG | Border: `--dt-color-border-subtle`<br>Background: `--dt-color-bg-canvas` | Level 6 geometry linked by `TagNumber`. Neutral outline in normal state; alarm conditions trigger halo and severity shapes per [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). |
 | `CMP-05` | Context Container       | Level 3 Equipment Task Faceplate | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel` | Adaptable contextual container (lateral panel in landscape/desktop, bottom sheet in portrait/mobile). Hosts Level 3 operational blocks (`CMP-06` to `CMP-10`). Lifecycle, docking, dimensions, and gesture mechanics are specified in §5.2. |
 | `CMP-06` | Asset Header Block      | Identification and status | Surface: `--dt-color-surface-card` | Presents `TagNumber` (`--dt-font-mono-data`), technical description, criticality rating, and operational status (`EquipmentUnit.operationalStatus`). |
-| `CMP-07` | Live Telemetry Block    | MAI analog indicators | `--dt-color-mai-*`                                                                                  | Moving Analog Indicators (MAI) contextualizing process variables within calibrated normal operating zones and trip limits ([[DT-UI-DS-DOC-001#6.1]]). Dynamic SignalR update rules specified in §5.3. |
-| `CMP-08` | Safety Context Summary  | Safety boundaries summary | [[DT-UI-DS-DOC-001#6.2. Redundant Coding Matrix for Permits and LOTO\| DT-UI-DS-DOC-001]] | Summary badges of active PTW permit number and verified LOTO isolation tags applying mandatory redundant coding. |
-| `CMP-09` | Quick Action Buttons    | Primary actions button panel | Surface: `--dt-color-surface-base`<br>Text: `--dt-color-text-primary`                           | Direct drill-down actions: `[Locate on Map]`, `[View LOTO Route]` $\to$ SCR-VIS-011, `[Full WO History]` $\to$ SCR-MTTO-026, `[Level 4 Master Catalog / Datasheet]` $\to$ SCR-INV-005. |
+| `CMP-07` | Live Telemetry Block    | MAI analog indicators | `--dt-color-mai-*`                                                                                  | Moving Analog Indicators (MAI) contextualizing process variables within calibrated normal operating zones and trip limits ([DT-UI-DS-DOC-001 §6.1](../../DT-UI-DS-DOC-001.md#61-moving-analog-indicator-mai-specification)). Dynamic SignalR update rules specified in §5.3. |
+| `CMP-08` | Safety Context Summary  | Safety boundaries summary | [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) | Summary badges of active PTW permit number and verified LOTO isolation tags applying mandatory redundant coding. |
+| `CMP-09` | Quick Action Buttons    | Primary actions button panel | Surface: `--dt-color-surface-base`<br>Text: `--dt-color-text-primary`                           | Direct drill-down actions: `[Locate on Map]`, `[View LOTO Route]` $\to$ [SCR-VIS-011](./SCR-VIS-011.md), `[Full WO History]` $\to$ [SCR-MTTO-026](../mtto/SCR-MTTO-026.md), `[Level 4 Master Catalog / Datasheet]` $\to$ [SCR-INV-005](../inv/SCR-INV-005.md). |
 | `CMP-10` | Actionable Work Orders  | Active maintenance tasks list | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`                            | Compact list of active work orders showing WO ID, Type (PM/CM), Status, and Priority Score. Replaces un-actionable raw counters. |
 | `CMP-11` | User Profile Indicator  | Current user session access | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-full` | Independent circular floating button anchored at the top-left of the viewport. Displays active user initials. Click/Tap opens user settings and session management. |
 
@@ -64,8 +64,8 @@ status: In Review
 | **Loading** | Dimmed activity indicator over canvas; visual skeleton shimmer in contextual panel. | Functional area transition or initial SVG map retrieval. |
 | **Selected Asset** | Active equipment highlighted with informational selection border (`--dt-color-state-info`). `CMP-05` deployed. | Click / Tap on `CMP-04` or selection via `CMP-03`. |
 | **Critical Asset Alarm** | `CMP-04` acquires border and square symbol in `--dt-color-alarm-critical`. In `CMP-07`, MAI displays P1 severity marker. | Physical variable exceeding safety thresholds or equipment in `DOWN` condition. |
-| **Telemetry Loss** | `CMP-07` displays Priority 4 Diagnostic styling: muted italic values (`--dt-color-text-muted`), dimmed pointer/track (`--dt-color-mai-stale-zone`), and diagnostic stale banner in a fixed 28px slot. Process alarm colors (amber/red) are strictly prohibited. Behavioral and fallback rules specified in §5.3. | Interruption of real-time connection with SCADA source or heartbeat timeout ([[UC-VIS-033]], `AF-002`). |
-| **Pending Mapping** | `CMP-05` displays tabular asset information but disables spatial localization action with an informational badge. | Query of a master catalog equipment that lacks associated geometry in the current SVG ([[UC-VIS-033]], `AF-001`). |
+| **Telemetry Loss** | `CMP-07` displays Priority 4 Diagnostic styling: muted italic values (`--dt-color-text-muted`), dimmed pointer/track (`--dt-color-mai-stale-zone`), and diagnostic stale banner in a fixed 28px slot. Process alarm colors (amber/red) are strictly prohibited. Behavioral and fallback rules specified in §5.3. | Interruption of real-time connection with SCADA source or heartbeat timeout ([UC-VIS-033](../../../domain-models/use-cases/vis/UC-VIS-033.md), `AF-002`). |
+| **Pending Mapping** | `CMP-05` displays tabular asset information but disables spatial localization action with an informational badge. | Query of a master catalog equipment that lacks associated geometry in the current SVG ([UC-VIS-033](../../../domain-models/use-cases/vis/UC-VIS-033.md), `AF-001`). |
 
 ---
 
@@ -90,7 +90,7 @@ status: In Review
 6. **Responsive Layout & Container Dimensions:**
    - **Desktop / Landscape:** Full-height lateral sidebar ($440\text{px}$ width, $100\%$ viewport height, elevation `--dt-z-overlay-card`) docked to the right edge with inner rounded border.
    - **Portrait / Mobile:** Bottom sheet (elevation `--dt-z-drawer-sidebar`) with upper tactile drag handle, following tactile gesture mechanics in item 8.
-   - Layout transitions between drawer and bottom sheet follow [[DT-UI-NAV-DOC-001]].
+   - Layout transitions between drawer and bottom sheet follow [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md).
 7. **Overlay Drawer Lifecycle (Minimize vs Deselect):** When minimized via the chevron trigger, `CMP-05` retracts into a docked edge state leaving a protruding arrow/header peek trigger ($36\text{px}$) that allows instant re-expansion while preserving the active telemetry subscription. Clicking the close button ('X') explicitly dismisses the container, clears the equipment selection highlight on the canvas, and returns the view to the neutral macro supervisory state.
 8. **Bottom Sheet Tactile Gestures & Snap Mechanics (Portrait / Mobile):**
    - **Initial Natural Content Height:** Upon selection, `CMP-05` opens hugging its natural content height ($\le 40\%$, $\sim 480\text{px}$), ensuring over $60\%$ of the screen remains unoccluded for spatial map inspection without forced expansion to maximum height.
@@ -107,9 +107,9 @@ status: In Review
 ### 5.3. Inspection and Telemetry
 1. Selecting an asset on the map invokes the opening of `CMP-05` and real-time subscription to the equipment's telemetry channel.
 2. `CMP-05` renders strictly tactical Level 3 data: Asset Header (`CMP-06`), Analog Telemetry (`CMP-07`), Safety Boundaries (`CMP-08`), and Actionable Work Orders (`CMP-10`).
-3. **SignalR Subscription Management:** Subject to global *debouncing* policies to prevent network collisions due to rapid multiple selection ([[DT-ARQ-CMP-DOC-001]]).
-4. **Diagnostic Connection Resilience:** If the component detects a violation of the *Heartbeat* threshold or receives a packet with "Bad" quality ([[DT-ARQ-DEP-DOC-001]]), it immediately transitions to the "Telemetry Loss" state using Priority 4 Diagnostic coding, preventing the generation of misleading process alarms:
-   - Displays the top contextual diagnostic banner: *"Stale data. Connection interrupted at HH:mm:ss UTC"* (runtime presentation localized per [[ADR-009]]) occupying a fixed slot of $28\text{px}$ with a compact $14\times 14\text{px}$ diagnostic icon, eliminating vertical layout shift on the underlying MAI cards.
+3. **SignalR Subscription Management:** Subject to global *debouncing* policies to prevent network collisions due to rapid multiple selection ([DT-ARQ-CMP-DOC-001](../../../architecture/views/DT-ARQ-CMP-DOC-001.md)).
+4. **Diagnostic Connection Resilience:** If the component detects a violation of the *Heartbeat* threshold or receives a packet with "Bad" quality ([DT-ARQ-DEP-DOC-001](../../../architecture/views/DT-ARQ-DEP-DOC-001.md)), it immediately transitions to the "Telemetry Loss" state using Priority 4 Diagnostic coding, preventing the generation of misleading process alarms:
+   - Displays the top contextual diagnostic banner: *"Stale data. Connection interrupted at HH:mm:ss UTC"* (runtime presentation localized per [ADR-009](../../../architecture/adr/ADR-009.md)) occupying a fixed slot of $28\text{px}$ with a compact $14\times 14\text{px}$ diagnostic icon, eliminating vertical layout shift on the underlying MAI cards.
    - Transmutes the MAI safe operating zone to a deactivated slate grayish-blue (`--dt-color-mai-stale-zone` / `--dt-color-mai-stale-zone-border`), visually presenting the instrument as inactive/disabled without triggering process alarm colors.
    - Attenuates live values to muted italic typography (`--dt-color-text-muted`), pointer border to `--dt-color-mai-stale-zone-border`, and hides active alarm badges with layout box preservation (`visibility: hidden`).
 5. **Level 4 Drill-Down:** Deep master data (catalogs, specifications) and historical work order archives are deferred to full-screen views triggered via `CMP-09`.
@@ -118,7 +118,7 @@ status: In Review
 
 ## 6. Industrial and Safety Considerations
 
-* **HPHMI Philosophy ([[TR-011]]):** The use of the color green to denote normal operation is prohibited. The interface remains strictly in neutral grayscale; saturated colors are reserved for alarm and warning conditions with redundant shape coding.
+* **HPHMI Philosophy ([TR-011](../../../requirements/common/TR-011.md)):** The use of the color green to denote normal operation is prohibited. The interface remains strictly in neutral grayscale; saturated colors are reserved for alarm and warning conditions with redundant shape coding.
 * **Alarm vs. Diagnostic Segregation (ISA-101):** Communication failures, sensor disconnects, and stale data streams are categorized as Priority 4 Diagnostics. They must never use amber (`--dt-color-alarm-warning`) or red (`--dt-color-alarm-critical`), preventing operator cognitive distraction during real process upsets.
 * **Pre-Attentive Telemetry Scanning:** Telemetry must never be presented as disconnected numerical text alone. Moving Analog Indicators (MAI) provide immediate spatial assessment relative to high/low limits within <2 seconds.
 * **Level 3 Cognitive Boundary:** The contextual faceplate (`CMP-05`) is strictly an operational bridge. Overloading the faceplate with Level 4 static master catalog data or extensive CMMS logs is prohibited to prevent field operational errors.
@@ -256,7 +256,7 @@ public record ActiveWorkOrderSummaryDto
 ```
 
 ### 7.3. SVG DOM Interaction Bridge
-1. **Geometric Navigation (Panning & Zoom):** Encapsulated within a client-side viewport navigation interop module (Blazor JS Interop per [[ADR-001]]). Handles pointer tracking, middle-click panning, touch gesture thresholds ($4\text{px}$), focal mouse-wheel matrix transformations, and boundary-clamped popover positioning directly in the client runtime, eliminating SignalR roundtrip latency and avoiding network saturation.
+1. **Geometric Navigation (Panning & Zoom):** Encapsulated within a client-side viewport navigation interop module (Blazor JS Interop per [ADR-001](../../../architecture/adr/ADR-001.md)). Handles pointer tracking, middle-click panning, touch gesture thresholds ($4\text{px}$), focal mouse-wheel matrix transformations, and boundary-clamped popover positioning directly in the client runtime, eliminating SignalR roundtrip latency and avoiding network saturation.
 2. **Drawer Touch Physics & Gesture Bridge:** Client-side touch gesture handler managing pointer capture on the upper drag handle, height constraints (min $160\text{px}$, max $85\text{vh}$), snap thresholds, and single-tap collapse toggling.
 3. **Semantic Selection:** Hotspots in SVG share the exact `id` attribute matching the ISO 14224 Level 6 `TagNumber` (e.g., `<g id="tag-P-101" class="equipment-hotspot">`). Clicking or tapping an SVG node triggers the `OnEquipmentSelected(tagNumber)` callback. Stationary taps are disambiguated from canvas drags, suppressing selection if a drag motion exceeded the tactile threshold.
 
@@ -276,13 +276,13 @@ public record ActiveWorkOrderSummaryDto
 
 | Requirement | Addressed in Component | Verification & Implementation Mechanism |
 | :--- | :--- | :--- |
-| **FR-598** | `CMP-01` | Renders 2D vector plans ensuring interactive compatibility (panning and selection) across mobile tablets and desktop workstations. |
-| **FR-599** | `CMP-01`, `CMP-04` | Bidirectionally links SVG graphic elements (`id="tag-{TagNumber}"`) with physical Equipment Unit records in the master catalog. |
-| **FR-600** | `CMP-05`, `CMP-06` | Selecting a mapped geometry deploys contextual faceplate displaying Tag Number, Operational Status, Criticality, and telemetry. |
-| **FR-601** | `CMP-07` | Contextual panel presents real-time Moving Analog Indicators (MAI) updated dynamically via SignalR telemetry streams. |
-| **FR-602** | `CMP-01`, `CMP-04`, `CMP-07` | Implements ANSI/ISA-101 HPHMI: neutral grayscale baseline, reserving saturated colors strictly for alarms with redundant shape coding. |
-| **NFR-603** | `CMP-01` | Initial load of vector plan and asset mapping completes in $< 2\text{s}$ over standard industrial network conditions. |
-| **NFR-604** | `CMP-07` | Telemetry readings update and reflect in the contextual faceplate in $< 1\text{s}$ from data reception at the server (`TR-010`). |
-| **NFR-605** | `CMP-01` | Vector rendering engine maintains $\ge 30\text{ FPS}$ during continuous map panning and zooming on mobile tablets ($\ge 60\text{ FPS}$ on desktop). |
-| **TR-010** | `CMP-05`, `CMP-09`, `CMP-11` | All interactive touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`) for gloved field operation; SignalR WebSocket transport. |
-| **TR-011** | `CMP-01`, `CMP-04`, `CMP-07` | High-Performance HMI philosophy: eliminates green for normal status, applies Priority 4 Diagnostic coding for telemetry loss. |
+| [FR-598](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-01` | Renders 2D vector plans ensuring interactive compatibility (panning and selection) across mobile tablets and desktop workstations. |
+| [FR-599](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-01`, `CMP-04` | Bidirectionally links SVG graphic elements (`id="tag-{TagNumber}"`) with physical Equipment Unit records in the master catalog. |
+| [FR-600](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-05`, `CMP-06` | Selecting a mapped geometry deploys contextual faceplate displaying Tag Number, Operational Status, Criticality, and telemetry. |
+| [FR-601](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-07` | Contextual panel presents real-time Moving Analog Indicators (MAI) updated dynamically via SignalR telemetry streams. |
+| [FR-602](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-01`, `CMP-04`, `CMP-07` | Implements ANSI/ISA-101 HPHMI: neutral grayscale baseline, reserving saturated colors strictly for alarms with redundant shape coding. |
+| [NFR-603](../../../requirements/user-stories/vis/VIS-033.md#non-functional-requirements-nfr) | `CMP-01` | Initial load of vector plan and asset mapping completes in $< 2\text{s}$ over standard industrial network conditions. |
+| [NFR-604](../../../requirements/user-stories/vis/VIS-033.md#non-functional-requirements-nfr) | `CMP-07` | Telemetry readings update and reflect in the contextual faceplate in $< 1\text{s}$ from data reception at the server ([TR-010](../../../requirements/common/TR-010.md)). |
+| [NFR-605](../../../requirements/user-stories/vis/VIS-033.md#non-functional-requirements-nfr) | `CMP-01` | Vector rendering engine maintains $\ge 30\text{ FPS}$ during continuous map panning and zooming on mobile tablets ($\ge 60\text{ FPS}$ on desktop). |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-05`, `CMP-09`, `CMP-11` | All interactive touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`) for gloved field operation; SignalR WebSocket transport. |
+| [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-04`, `CMP-07` | High-Performance HMI philosophy: eliminates green for normal status, applies Priority 4 Diagnostic coding for telemetry loss. |

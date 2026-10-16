@@ -37,7 +37,7 @@ This division reduces coupling, avoids overloading business logic, and prevents 
 
 To comply with the risk management required by the ISO 55001 standard and best practices in maintenance engineering, the system adopts the RIME (Ranking Index for Maintenance Expenditure) standard.
 
-According to [[ADR-002]], the calculation of the priority score is encapsulated under the *Strategy* pattern through a domain service. The architecture decouples this algorithm from the Work Order, allowing future strategies adapted to economic or inventory factors to be incorporated without altering the core entities.
+According to [ADR-002](../../architecture/adr/ADR-002.md), the calculation of the priority score is encapsulated under the *Strategy* pattern through a domain service. The architecture decouples this algorithm from the Work Order, allowing future strategies adapted to economic or inventory factors to be incorporated without altering the core entities.
 
 ### 2.3 Multi-Source Isolation and Safety Extensibility
 
@@ -450,7 +450,7 @@ This segregation allows for:
 
 ## 5. Physical Mapping and Data Dictionary
 
-For details on the physical mapping and the relational schema, see [[DT-ERD-DOC-001]].
+For details on the physical mapping and the relational schema, see [DT-ERD-DOC-001](../entity-relationship/DT-ERD-DOC-001.md).
 
 ## 6. Final Notes
 

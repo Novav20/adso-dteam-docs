@@ -88,3 +88,24 @@ python scripts/generate_requirements_docs.py --only-tr --write
 | :--- | :--- | :--- |
 | `requirements/data/srs.csv` + `transversal-requirements.csv` | `requirements/common/TR-xxx.md` | Transversal context, FR/NFR tables, and normative references. |
 | `requirements/data/srs.csv` + `user-stories.csv` + `gherkin.csv` | `requirements/user-stories/{epic}/{US-ID}.md` | As/I want/So that, Gherkin acceptance criteria, FR/NFR tables, and traceability. |
+
+---
+
+## 🔍 `verify_markdown_links.py`
+
+Audits all Markdown documents across the repository to enforce the Docs-as-Code linking standard:
+1. **Universal Relative Links:** Validates relative target file paths.
+2. **Section Anchor Integrity:** Verifies that all `#anchor` fragments match slugified GFM headings in the target file.
+3. **Zero Body Wikilinks:** Prohibits Obsidian-style `[[...]]` links in document bodies while preserving YAML frontmatter metadata.
+4. **Asset Existence:** Verifies linked images/diagrams, gracefully handling planned wireframe/diagram stubs.
+
+```bash
+# Full repository link audit
+python3 scripts/verify_markdown_links.py
+
+# Verbose output (display all verified links)
+python3 scripts/verify_markdown_links.py -v
+
+# Strict mode (also fails if planned stubs are missing)
+python3 scripts/verify_markdown_links.py --strict-stubs
+```

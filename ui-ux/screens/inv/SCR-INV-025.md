@@ -36,7 +36,7 @@ status: DRAFT
 
 ## 2. Visual Artifact
 
-![[SCR-INV-025-wireframe.svg]]
+![SCR-INV-025 Wireframe](assets/SCR-INV-025-wireframe.svg)
 
 > *Note: Conceptual wireframe illustrating the Asset Swap container, dual equipment inspection cards (Asset A Dismounting vs. Asset B Installation), barcode scan trigger, taxonomic compatibility validation pill, and cryptographic audit summary.*
 
@@ -44,7 +44,7 @@ status: DRAFT
 
 ## 3. Functional Component Inventory
 
-> The base layout, typography, and design tokens are inherited from [[DT-UI-DS-DOC-001]]. This table defines the present components, semantic tokens, and architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
+> The base layout, typography, and design tokens are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, semantic tokens, and architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
@@ -149,12 +149,12 @@ The resulting hash is persisted in `adm.audit_logs.payload_hash`, linked to `pre
 
 ## 6. Industrial and Safety Considerations
 
-* **ANSI/ISA-101 HPHMI Compliance ([[TR-011]]):** The modal maintains a subdued grayscale palette (`--dt-color-surface-card`, `--dt-color-surface-base`). Saturated colors are restricted to:
+* **ANSI/ISA-101 HPHMI Compliance ([TR-011](../../../requirements/common/TR-011.md)):** The modal maintains a subdued grayscale palette (`--dt-color-surface-card`, `--dt-color-surface-base`). Saturated colors are restricted to:
   * Green (`--dt-color-state-success`) for verified taxonomic compatibility.
   * Amber (`--dt-color-alarm-warning`) for missing mandatory fields (`AF-002`).
   * Red (`--dt-color-alarm-critical`) for taxonomic class mismatches (`AF-001`).
 * **Taxonomic Safety Interlock:** Physical equipment rotation must never violate process engineering boundaries (e.g., mounting a low-pressure pump on a high-pressure crude export manifold). Hardware and taxonomic validation prevents operator error.
-* **Offline Fault Resilience ([[TR-007]]):** When executed on disconnected mobile tablets, the atomic swap payload is committed to local `sqlite-net-pcl` encrypted storage and queued in the Outbox with an offline lease token, synchronizing automatically upon reconnecting to plant Wi-Fi.
+* **Offline Fault Resilience ([TR-007](../../../requirements/common/TR-007.md)):** When executed on disconnected mobile tablets, the atomic swap payload is committed to local `sqlite-net-pcl` encrypted storage and queued in the Outbox with an offline lease token, synchronizing automatically upon reconnecting to plant Wi-Fi.
 
 ---
 
@@ -278,16 +278,16 @@ public record AssetSwapCompletedEvent(
 
 | Requirement | Addressed in Component | Verification & Implementation Mechanism |
 | :--- | :--- | :--- |
-| **FR-591** | `CMP-01`, `CMP-02`, `CMP-04` | Interface executes functional replacement of physical Level 6 equipment at Level 5 location. |
-| **FR-592** | `CMP-03`, `CMP-09` | Atomically updates uninstalled asset status to "In Repair", "In Storage", or "Damaged". |
-| **FR-593** | `CMP-04`, `CMP-06` | Validates replacement unit is "Available" / "In Storage" and matches `equipment_class_id` (`AF-001`). |
-| **FR-594** | `CMP-04`, `CMP-09` | Associates new unit to location, immediately switching status to "Operational" with current date. |
-| **FR-595** | `CMP-08`, `CMP-09` | Records rotation details in audit log: location tag, uninstalled serial, installed serial, user, WO reference. |
-| **NFR-596** | `CMP-09` | Single-commit database transaction ensuring atomic execution or complete rollback. |
-| **NFR-597** | `CMP-09` | Hierarchical update and status changes complete in $< 2\text{s}$ on server. |
-| **TR-001** | `CMP-08`, `CMP-09` | Immutable append-only audit trail logging with SHA-256 hash chaining. |
-| **TR-005** | `CMP-01` | Adheres to DDD Bounded Contexts (`tax`, `inv`, `adm`) without cross-boundary bleeding. |
-| **TR-006** | `CMP-01` | Enforces RBAC permissions (`Reliability Engineer`, `Technician`, `Supervisor`). |
-| **TR-008** | `CMP-06` | Enforces ISO 14224 taxonomic constraints and class parity in domain rules. |
-| **TR-010** | `CMP-03`, `CMP-05`, `CMP-09`| Tactile touch targets comply with $\ge 48\times 48\text{px}$ for gloved field operation. |
-| **TR-011** | `CMP-01`..`CMP-10` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, saturated color reserved for status and alerts. |
+| [FR-591](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-01`, `CMP-02`, `CMP-04` | Interface executes functional replacement of physical Level 6 equipment at Level 5 location. |
+| [FR-592](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-03`, `CMP-09` | Atomically updates uninstalled asset status to "In Repair", "In Storage", or "Damaged". |
+| [FR-593](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-06` | Validates replacement unit is "Available" / "In Storage" and matches `equipment_class_id` (`AF-001`). |
+| [FR-594](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-09` | Associates new unit to location, immediately switching status to "Operational" with current date. |
+| [FR-595](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-08`, `CMP-09` | Records rotation details in audit log: location tag, uninstalled serial, installed serial, user, WO reference. |
+| [NFR-596](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | `CMP-09` | Single-commit database transaction ensuring atomic execution or complete rollback. |
+| [NFR-597](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | `CMP-09` | Hierarchical update and status changes complete in $< 2\text{s}$ on server. |
+| [TR-001](../../../requirements/common/TR-001.md) | `CMP-08`, `CMP-09` | Immutable append-only audit trail logging with SHA-256 hash chaining. |
+| [TR-005](../../../requirements/common/TR-005.md) | `CMP-01` | Adheres to DDD Bounded Contexts (`tax`, `inv`, `adm`) without cross-boundary bleeding. |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01` | Enforces RBAC permissions (`Reliability Engineer`, `Technician`, `Supervisor`). |
+| [TR-008](../../../requirements/common/TR-008.md) | `CMP-06` | Enforces ISO 14224 taxonomic constraints and class parity in domain rules. |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-03`, `CMP-05`, `CMP-09`| Tactile touch targets comply with $\ge 48\times 48\text{px}$ for gloved field operation. |
+| [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`..`CMP-10` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, saturated color reserved for status and alerts. |

@@ -241,7 +241,7 @@ def build_tr_markdown(
         render_tr_req_table(rows_sorted, "NFR").rstrip(),
         "",
         "## Source",
-        "- Automatically generated from `srs.csv`.",
+        "- Automatically generated from [srs.csv](../data/srs.csv).",
         "",
     ]
     return "\n".join(parts)
@@ -269,7 +269,7 @@ def build_tr_index_markdown(grouped: dict[str, list[dict]], metadata: dict[str, 
         fr_total = sum(1 for r in rows if clean(r.get("Type")).upper() == "FR" or "-FR-" in clean(r.get("Req ID")).upper())
         nfr_total = sum(1 for r in rows if clean(r.get("Type")).upper() == "NFR" or "-NFR-" in clean(r.get("Req ID")).upper())
         total = len(rows)
-        lines.append(f"| **{tr_id}** | {md_escape(title)} | {fr_total} | {nfr_total} | {total} | [[{tr_id}]] |")
+        lines.append(f"| **{tr_id}** | {md_escape(title)} | {fr_total} | {nfr_total} | {total} | [{tr_id}](./{tr_id}.md) |")
     lines.append("")
     return "\n".join(lines)
 
@@ -419,7 +419,7 @@ def render_us_markdown(
         build_us_reqs_table(srs_rows, "NFR").rstrip(),
         "",
         "## Source",
-        "- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.",
+        "- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).",
         "",
     ]
     return "\n".join(frontmatter + [""] + body)
