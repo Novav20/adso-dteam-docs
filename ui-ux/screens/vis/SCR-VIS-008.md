@@ -32,19 +32,19 @@ status: In Review
 
 ## 2. Visual Artifact
 
-![[SCR-VIS-008-simops-layer.svg]]
+![SCR-VIS-008 SIMOPS Layer](assets/SCR-VIS-008-simops-layer.svg)
 
 ---
 
 ## 3. Functional Component Inventory
 
-> The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [[DT-UI-DS-DOC-001]]. This table defines the present components, their semantic tokens, and the link with the domain model.
+> The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, their semantic tokens, and the link with the domain model.
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Data Link / Behavior Rule |
 | :------- | :---------------------- | :------------------------------- | :-------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CMP-01` | L1 Plot Plan Canvas | Macro plant SVG vector canvas | Surface: `--dt-color-bg-canvas`<br>Elevation: `--dt-canvas` | Renders macro polygons representing Functional Locations (ISO 14224 Levels 1 to 4) and Level 6 equipment nodes. Implements semantic zoom clustering ($Z < 1.15$ to $Z \ge 2.30$). Panning rules in §5.4. |
-| `CMP-02` | Viewport Toolbar | Spatial navigation toolbar | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-full` | Floating navigation toolbar centered over viewable canvas. Hosts level badge (`L1: PLOT PLAN`, fixed $144\text{px}$), reset view (1:1), zoom (+ / −), layer selector (`[≡ Layers]`), and non-modal alert badges for SIMOPS conflicts and unmapped permits. Adaptive condensation in §5.2. Shared with [[SCR-VIS-033]]. |
-| `CMP-03` | User Profile Indicator | Active user session control | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-full` | Circular floating button anchored at top-left (`left: 16px; top: 16px;`). Displays user initials. Enforces `--dt-touch-target-mobile`. Aligned with `CMP-11` in [[SCR-VIS-033]]. |
+| `CMP-02` | Viewport Toolbar | Spatial navigation toolbar | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-full` | Floating navigation toolbar centered over viewable canvas. Hosts level badge (`L1: PLOT PLAN`, fixed $144\text{px}$), reset view (1:1), zoom (+ / −), layer selector (`[≡ Layers]`), and non-modal alert badges for SIMOPS conflicts and unmapped permits. Adaptive condensation in §5.2. Shared with [SCR-VIS-033](./SCR-VIS-033.md). |
+| `CMP-03` | User Profile Indicator | Active user session control | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-full` | Circular floating button anchored at top-left (`left: 16px; top: 16px;`). Displays user initials. Enforces `--dt-touch-target-mobile`. Aligned with `CMP-11` in [SCR-VIS-033](./SCR-VIS-033.md). |
 | `CMP-04` | Functional Zone Polygon | Plant zone boundaries in SVG | Border: `--dt-color-border-subtle`<br>Fill: transparent / neutral | Vector boundary representing a Functional Location. Rendered in neutral grayscale to maintain the 90/10 background rule. Hosts `CMP-09` cluster pills at centroids at macro zoom. |
 | `CMP-05` | PTW Overlay Badges | Active permit safety markers | Color: Security Matrix Tokens<br>Elevation: `--dt-z-layer-ptw` ($10$) | Vector safety hotspots dynamically positioned over affected equipment units at area zoom ($1.15 \le Z < 2.30$). Applies mandatory 4-channel redundant coding (color, shape, icon, text) and spatial hazard buffers. Specification in §5.1. |
 | `CMP-06` | Context Popover Card | Permit detail contextual card | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle`<br>Elevation: `--dt-z-overlay-card` ($100$) | Transient card deployed upon tapping a `CMP-05` badge. Displays permit metadata, schedule, contractor, associated LOTO reference, and `[View Details]` drill-down action (`FR-184`). Viewport collision rules in §5.4. |
@@ -90,7 +90,7 @@ status: In Review
       * Both affected `CMP-05` badges display a pulsing $4\text{px}$ conflict halo in `--dt-color-alarm-critical`.
       * `CMP-02` Toolbar activates a dedicated conflict pill: `[⚠️ SIMOPS CONFLICT: PTW-XXXX / PTW-YYYY]`. Tapping the pill centers the viewport over the conflict site and opens the conflict detail card.
 5. **Mandatory 4-Channel Redundant Coding Matrix (FR-183, TR-011, WCAG 2.1 AA):**
-   * To prevent single-channel color dependency and ensure pre-attentive salience, every `CMP-05` badge encodes its permit classification across four sensory channels (Color + Geometric Shape + Vector Icon + Alphanumeric Label) per [[DT-UI-DS-DOC-001#6.2]] and [[DT-DM-DOC-001#4.28]]:
+   * To prevent single-channel color dependency and ensure pre-attentive salience, every `CMP-05` badge encodes its permit classification across four sensory channels (Color + Geometric Shape + Vector Icon + Alphanumeric Label) per [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) and [DT-DM-DOC-001 §4.28](../../../domain-models/class/DT-DM-DOC-001.md#428-workpermitpermittype):
      * **HOT_WORK:** `--dt-color-alarm-critical` | Square ($20\times 20\text{px}$) | `#icon-hot-work` | `HOT WORK`
      * **WORK_AT_HEIGHT:** `--dt-color-state-info` | Triangle ($20\times 18\text{px}$) | `#icon-heights` | `HEIGHTS`
      * **CONFINED_SPACE:** `--dt-color-alarm-warning` | Circle ($\varnothing 20\text{px}$) | `#icon-confined-space` | `CONFINED`
@@ -112,7 +112,7 @@ status: In Review
    * Tapping `[View List]` or the toolbar badge expands `CMP-07`.
    * **Tablet Landscape ($1280 \times 800\text{ px}$):** `CMP-07` is constrained to a maximum width of **$\le 320\text{ px}$** (leaving $\ge 75\%$ of the map canvas visible).
    * **Tablet Portrait ($800 \times 1280\text{ px}$):** `CMP-07` renders as a **Bottom Sheet** occupying **$\le 40\%$** vertical screen height.
-   * Container toggling operates exclusively via **discrete single taps** on dedicated $48 \times 48\text{ px}$ handles (`--dt-touch-target-mobile` per [[DT-UI-DS-DOC-001#6.3]]). Continuous drag gestures are optional and never mandatory.
+   * Container toggling operates exclusively via **discrete single taps** on dedicated $48 \times 48\text{ px}$ handles (`--dt-touch-target-mobile` per [DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)). Continuous drag gestures are optional and never mandatory.
 5. Each orphan record presents: `Permit Identifier`, `Contractor`, `Expected TagNumber`, and the $48\text{px}$ `[Resolve Inconsistency]` button (`FR-186`), enabling the inspector to assign geometry or request spatial metadata updates.
 6. **Adaptive Toolbar Badge Condensation (`CMP-02`):**
    * On Industrial Tablet Landscape ($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`), opening `CMP-07` condenses the orphan badge to icon-only `[⚠️ 3]` format.
@@ -143,15 +143,15 @@ status: In Review
 6. **Hover vs. Tap Bifurcation:** Desktop pointers display a compact hover tooltip (`FR-189`). Touch devices deploy the persistent `CMP-06` card upon direct tap (`FR-184`), dismissible via tap-away, pan/zoom motion, or close ('X') button.
 
 ### 5.5. Hierarchical Escalation (L1 $\to$ L3 Transition)
-1. Clicking on `'View Details'` within `CMP-06` initiates an operational drill-down, transitioning the inspector directly into the Level 3 Equipment Task Faceplate ([[SCR-VIS-033]]) for the target equipment unit.
-2. Direct selection of an Equipment Unit on the canvas (outside a PTW badge) seamlessly deploys the [[SCR-VIS-033]] contextual drawer without changing screens.
+1. Clicking on `'View Details'` within `CMP-06` initiates an operational drill-down, transitioning the inspector directly into the Level 3 Equipment Task Faceplate ([SCR-VIS-033](./SCR-VIS-033.md)) for the target equipment unit.
+2. Direct selection of an Equipment Unit on the canvas (outside a PTW badge) seamlessly deploys the [SCR-VIS-033](./SCR-VIS-033.md) contextual drawer without changing screens.
 
 ---
 
 ## 6. Industrial and Safety Considerations
 
-* **90/10 HPHMI Philosophy ([[TR-011]]):** The plant layout operates in a neutral grayscale palette (`--dt-color-bg-canvas`). Saturated color is strictly quarantined to active safety permits, orphan alerts, and process anomalies. By clustering badges at $Z < 1.15$, pre-attentive salience for process alarms is strictly maintained. The use of industrial green for normal operation is strictly prohibited.
-* **Redundant Coding for Accessibility (WCAG 2.1 AA):** No hazard or permit class is communicated solely through color. Every `CMP-05` badge combines **Geometric Shape + Vector Icon + Saturated Token + Mandatory Alphanumeric Text** (`HOT WORK`, `HEIGHTS`, `CONFINED`) per [[DT-UI-DS-DOC-001#6.2]].
+* **90/10 HPHMI Philosophy ([TR-011](../../../requirements/common/TR-011.md)):** The plant layout operates in a neutral grayscale palette (`--dt-color-bg-canvas`). Saturated color is strictly quarantined to active safety permits, orphan alerts, and process anomalies. By clustering badges at $Z < 1.15$, pre-attentive salience for process alarms is strictly maintained. The use of industrial green for normal operation is strictly prohibited.
+* **Redundant Coding for Accessibility (WCAG 2.1 AA):** No hazard or permit class is communicated solely through color. Every `CMP-05` badge combines **Geometric Shape + Vector Icon + Saturated Token + Mandatory Alphanumeric Text** (`HOT WORK`, `HEIGHTS`, `CONFINED`) per [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto).
 * **Level 3 Situation Awareness & Automated Risk Control (Endsley & ISO 45001 §8.1):** Relying on passive human visual scanning to detect SIMOPS interferences fails cognitive projection. Automated buffer calculations ($D_{AB} < R_A + R_B$) enforce systematic OH&S operational controls.
 * **Alarm vs. Diagnostic Segregation (ISA-101):** Signal loss and data staleness are Priority 4 Diagnostics. They are represented with neutral slate styling and muted typography, strictly preventing the use of amber (`--dt-color-alarm-warning`) or red (`--dt-color-alarm-critical`) to avoid distracting operators during actual plant emergencies.
 * **SIMOPS Situational Awareness:** The `CMP-06` popover is dimensionally constrained so that inspecting a Hot Work permit never occludes nearby Confined Space or Height Work badges, preserving peripheral hazard visibility.
@@ -409,8 +409,8 @@ public record PlantZoneDto
 ```
 
 ### 7.3. SVG DOM Interaction Bridge
-1. **Geometric Viewport Navigation:** Panning, dragging, and wheel zooming are handled client-side via SVG `viewBox` coordinates or a high-performance JavaScript interop wrapper ([[ADR-001]]), maintaining $\ge 30\text{ FPS}$ on tablets and $\ge 60\text{ FPS}$ on desktop (`NFR-190`).
-2. **Semantic Event Dispatching:** Hotspot groups in the SVG declare data attributes (`data-tag="P-101"`, `data-permit-id="uuid"`). Clicks on permit badges trigger the `OnPermitBadgeClicked(permitId)` callback. Clicks on equipment geometry outside active badges trigger `OnEquipmentSelected(tagNumber)`, invoking the [[SCR-VIS-033]] Level 3 faceplate.
+1. **Geometric Viewport Navigation:** Panning, dragging, and wheel zooming are handled client-side via SVG `viewBox` coordinates or a high-performance JavaScript interop wrapper ([ADR-001](../../../architecture/adr/ADR-001.md)), maintaining $\ge 30\text{ FPS}$ on tablets and $\ge 60\text{ FPS}$ on desktop (`NFR-190`).
+2. **Semantic Event Dispatching:** Hotspot groups in the SVG declare data attributes (`data-tag="P-101"`, `data-permit-id="uuid"`). Clicks on permit badges trigger the `OnPermitBadgeClicked(permitId)` callback. Clicks on equipment geometry outside active badges trigger `OnEquipmentSelected(tagNumber)`, invoking the [SCR-VIS-033](./SCR-VIS-033.md) Level 3 faceplate.
 
 ---
 
@@ -428,19 +428,19 @@ public record PlantZoneDto
 
 | Requirement | Addressed in Component | Verification & Implementation Mechanism |
 | :--- | :--- | :--- |
-| **FR-182** | `CMP-01`, `CMP-02` | Toggling the "Work Permits" layer overlays active permits over the 2D plot plan without obscuring base context. |
-| **FR-183** | `CMP-05` | Renders redundant coding (Color + Geometric Shape) for each permit type against the neutral grayscale canvas. |
-| **FR-184** | `CMP-07` | Clicking a permit badge opens a compact popover card with type, contractor, supervisor, schedule, and drill-down action. |
-| **FR-185** | `CMP-08` | Automated integrity validation cross-references active permits against loaded SVG tags, flagging orphaned permits. |
-| **FR-186** | `CMP-08` | Collapsible lateral drawer displays visualization failures, allowing manual reassignment or resolution. |
-| **FR-187** | `CMP-01`, `CMP-05` | Near real-time SignalR synchronization adds, updates, and removes permit badges without full page reloads. |
-| **FR-188** | `CMP-02` | Horizontal filter controls allow toggling visibility by permit type, preserving filter state in user session. |
-| **FR-189** | `CMP-06` | Hovering over permit badges on desktop displays a compact tooltip with permit type, contractor, and action hint. |
-| **NFR-190** | `CMP-01` | SVG rendering maintains $\ge 30\text{ FPS}$ on mobile/tablets and $\ge 60\text{ FPS}$ on desktop during pan/zoom with up to 100 icons. |
-| **NFR-191** | `CMP-08` | Orphan detection integrity check completes in $< 5\text{s}$ for up to 100 active permits. |
-| **NFR-192** | `CMP-05` | Permit status updates reflect on the canvas within $< 5\text{s}$ from backend event publication. |
-| **NFR-193** | `CMP-05`, `CMP-07` | Visual coding complies with WCAG 2.1 AA redundant coding for color blindness with permanent visual legend. |
-| **NFR-194** | `CMP-01` | Displays last known state with a clear visual diagnostic banner if permit service is offline, without blocking navigation. |
-| **NFR-195** | `CMP-01` | 2D vector fallback rendering ensures full functionality on hardware lacking WebGL 3D acceleration. |
-| **TR-010** | `CMP-02`, `CMP-05`, `CMP-07` | Tactile touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`) for industrial field gloved operation. |
-| **TR-011** | `CMP-01`, `CMP-05` | High-Performance HMI (ANSI/ISA-101): Grayscale canvas, reserving color strictly for alarms and active permit types. |
+| [FR-182](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-01`, `CMP-02` | Toggling the "Work Permits" layer overlays active permits over the 2D plot plan without obscuring base context. |
+| [FR-183](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-05` | Renders redundant coding (Color + Geometric Shape) for each permit type against the neutral grayscale canvas. |
+| [FR-184](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-07` | Clicking a permit badge opens a compact popover card with type, contractor, supervisor, schedule, and drill-down action. |
+| [FR-185](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-08` | Automated integrity validation cross-references active permits against loaded SVG tags, flagging orphaned permits. |
+| [FR-186](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-08` | Collapsible lateral drawer displays visualization failures, allowing manual reassignment or resolution. |
+| [FR-187](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-01`, `CMP-05` | Near real-time SignalR synchronization adds, updates, and removes permit badges without full page reloads. |
+| [FR-188](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-02` | Horizontal filter controls allow toggling visibility by permit type, preserving filter state in user session. |
+| [FR-189](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-06` | Hovering over permit badges on desktop displays a compact tooltip with permit type, contractor, and action hint. |
+| [NFR-190](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | SVG rendering maintains $\ge 30\text{ FPS}$ on mobile/tablets and $\ge 60\text{ FPS}$ on desktop during pan/zoom with up to 100 icons. |
+| [NFR-191](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-08` | Orphan detection integrity check completes in $< 5\text{s}$ for up to 100 active permits. |
+| [NFR-192](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-05` | Permit status updates reflect on the canvas within $< 5\text{s}$ from backend event publication. |
+| [NFR-193](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-05`, `CMP-07` | Visual coding complies with WCAG 2.1 AA redundant coding for color blindness with permanent visual legend. |
+| [NFR-194](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | Displays last known state with a clear visual diagnostic banner if permit service is offline, without blocking navigation. |
+| [NFR-195](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | 2D vector fallback rendering ensures full functionality on hardware lacking WebGL 3D acceleration. |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-02`, `CMP-05`, `CMP-07` | Tactile touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`) for industrial field gloved operation. |
+| [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-05` | High-Performance HMI (ANSI/ISA-101): Grayscale canvas, reserving color strictly for alarms and active permit types. |
