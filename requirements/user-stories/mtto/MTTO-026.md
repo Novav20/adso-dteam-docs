@@ -5,7 +5,7 @@ priority: MUST
 points: 5
 role: Maintenance Planner
 epic: MTTO
-observations: "The system will calculate the RIME Score by delegating the operation to the configurable prioritization engine under the industrial RIME standard (according to the MVP strategy defined in ADR-002: Criticality × Work Class, range 1 to 100). Being a direct operation based on equipment master data and work type selection, sequential dependency with the inventory module is eliminated."
+observations: The system will calculate the RIME Score by delegating the operation to the configurable prioritization engine under the industrial RIME standard (according to the MVP strategy defined in ADR-002). Being a direct operation based on equipment master data and work type selection, sequential dependency with the inventory module is eliminated.
 applicable_trs:
   - "[[TR-001]]"
   - "[[TR-005]]"
