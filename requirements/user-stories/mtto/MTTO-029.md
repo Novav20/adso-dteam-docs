@@ -50,4 +50,4 @@ applicable_trs:
 | NFR-103 | The system shall feature data integrity verification routines to detect and report any historical hierarchical anomalies. | Reliability | High | ACID Database Transaction Properties (Integrity) |
 
 ## Source
-- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.
+- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).

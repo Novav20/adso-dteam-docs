@@ -53,4 +53,4 @@ applicable_trs:
 | NFR-073 | The visibility of technical priority scores shall be restricted to the roles defined in the system's governance policy. | Security | High | NIST SP 800-192 (RBAC Framework) |
 
 ## Source
-- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.
+- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).

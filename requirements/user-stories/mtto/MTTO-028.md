@@ -53,4 +53,4 @@ applicable_trs:
 | NFR-090 | The system shall maintain response latency as the available documentary repository grows. | Performance Efficiency | Medium | ISO/IEC 25010:2023 — Performance Efficiency (Capacity) |
 
 ## Source
-- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.
+- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).

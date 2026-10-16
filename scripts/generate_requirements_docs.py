@@ -241,7 +241,7 @@ def build_tr_markdown(
         render_tr_req_table(rows_sorted, "NFR").rstrip(),
         "",
         "## Source",
-        "- Automatically generated from `srs.csv`.",
+        "- Automatically generated from [srs.csv](../data/srs.csv).",
         "",
     ]
     return "\n".join(parts)
@@ -419,7 +419,7 @@ def render_us_markdown(
         build_us_reqs_table(srs_rows, "NFR").rstrip(),
         "",
         "## Source",
-        "- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.",
+        "- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).",
         "",
     ]
     return "\n".join(frontmatter + [""] + body)

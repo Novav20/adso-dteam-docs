@@ -51,4 +51,4 @@ applicable_trs:
 | NFR-029 | The system shall perform automated malware scanning on all uploaded files before allowing them to be viewed or downloaded by other users. | Security | Low | OWASP Application Security Verification Standard (V12) |
 
 ## Source
-- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.
+- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).

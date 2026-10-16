@@ -51,4 +51,4 @@ applicable_trs:
 | NFR-042 | The processing service must implement mitigation mechanisms (fallbacks) to handle potential outages of the external intelligence provider. | Reliability | Medium | ISO/IEC 25010:2023 - Reliability (Recoverability) |
 
 ## Source
-- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.
+- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).

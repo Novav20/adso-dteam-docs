@@ -45,4 +45,4 @@ applicable_trs:
 | NFR-589 | The IoT data reception channel must implement authentication and TLS 1.3 encryption to prevent the injection of malicious telemetry data. | Security | High | NIST SP 800-52 (TLS 1.3 Guidelines) / OWASP IoT Top 10 |
 
 ## Source
-- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.
+- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).

@@ -50,4 +50,4 @@ applicable_trs:
 | NFR-017 | The system must be compatible with standard mobile operating systems used in the industrial environment. | Flexibility | Medium | W3C Mobile Web Application Best Practices / PWA Core Criteria |
 
 ## Source
-- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.
+- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).

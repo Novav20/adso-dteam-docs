@@ -49,4 +49,4 @@ applicable_trs:
 | NFR-113 | The Equipment Unit's warranty data must be available during the consultation of the technical record in the field. | Flexibility | High | Offline-First Design Principles |
 
 ## Source
-- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.
+- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).

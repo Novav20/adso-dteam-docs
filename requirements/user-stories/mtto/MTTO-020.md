@@ -53,4 +53,4 @@ applicable_trs:
 | NFR-057 | The query interface must be compatible with the mobile devices and operating systems defined in the plant's standards. | Flexibility | High | Responsive Web Design Standards |
 
 ## Source
-- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.
+- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).

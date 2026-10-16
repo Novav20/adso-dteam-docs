@@ -46,4 +46,4 @@ applicable_trs:
 | NFR-009 | The system shall support the continuous growth of plan volumes without perceptible performance degradation. | Performance Efficiency | Medium | ISO/IEC 25010:2023 - Performance Efficiency (Capacity) |
 
 ## Source
-- Automatically generated from `user-stories.csv`, `gherkin.csv` and `srs.csv`.
+- Automatically generated from [user-stories.csv](../../data/user-stories.csv), [gherkin.csv](../../data/gherkin.csv) and [srs.csv](../../data/srs.csv).
