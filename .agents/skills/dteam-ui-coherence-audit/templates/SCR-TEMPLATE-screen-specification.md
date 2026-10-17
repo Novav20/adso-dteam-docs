@@ -30,7 +30,7 @@ status: Draft | In Review | Approved
 
 ## 2. Visual Artifact
 
-![[SCR-MOD-000-wireframe.svg]]
+![SCR-MOD-000 Wireframe](assets/SCR-MOD-000-wireframe.svg)
 
 > *Note: Vector wireframe or prototype screenshot illustrating the spatial layout and component placement.*
 
@@ -38,7 +38,7 @@ status: Draft | In Review | Approved
 
 ## 3. Functional Component Inventory
 
-> The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [[DT-UI-DS-DOC-001]]. This table defines the present components, their semantic tokens, and their architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
+> The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, their semantic tokens, and their architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
@@ -77,7 +77,7 @@ status: Draft | In Review | Approved
 
 ## 6. Industrial and Safety Considerations
 
-* **HPHMI Philosophy ([[TR-011]]):** Grayscale baseline; color reserved strictly for alarms with redundant shape coding.
+* **HPHMI Philosophy ([TR-011](../../../requirements/common/TR-011.md)):** Grayscale baseline; color reserved strictly for alarms with redundant shape coding.
 * **Alarm vs. Diagnostic Segregation (ISA-101):** Diagnostic failures must never masquerade as process alarms.
 * **Fail-Safe Integrity:** Pessimistic default states on communication loss or ambiguous data.
 

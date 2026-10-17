@@ -79,7 +79,7 @@ All screen specifications must strictly align with the canonical standard define
 1. **Canonical 9-Section Hierarchy:**
    * Verify presence and exact sequencing of all 9 sections:
      * §1 Purpose and Operational Context
-     * §2 Visual Artifact (Obsidian transclusion link `![[SCR-*.svg]]`)
+     * §2 Visual Artifact (Universal markdown link `![SCR-*](assets/SCR-*.svg)`)
      * §3 Functional Component Inventory
      * §4 Screen State Matrix
      * §5 Interaction Rules and Data Flow (Single Source of Truth)

@@ -80,7 +80,7 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
 
 1.  **Frontmatter:** `id`, `title`, `module`, `isa101_level`, `platform`, `target_device`, `roles`, `user_stories`, `use_cases`, `version: 1.0`, `date`, `status: Approved`.
 2.  **§1 Purpose and Operational Context:** Operational objective, primary persona, secondary personas, physical environment (e.g., Class I Div 2 hazardous area), and mode of operation.
-3.  **§2 Visual Artifact:** Obsidian transclusion link `![[SCR-[MOD]-[NUM]-wireframe.svg]]`.
+3.  **§2 Visual Artifact:** Universal markdown image link `![SCR-[MOD]-[NUM] Wireframe](assets/SCR-[MOD]-[NUM]-wireframe.svg)`.
 4.  **§3 Functional Component Inventory:** Table of `CMP-01`..`CMP-NN`.
     *   *Rule:* Table cells must strictly act as a visual catalog (Role, Content, Semantic Tokens, pointer to §5). **Never** write interaction algorithms, clamping math, or state machines inside §3 table cells.
 5.  **§4 Screen State Matrix:** Matrix of observable visual modifications in the DOM (`Normal`, `Loading`, `Selected`, `Alarm`, `Diagnostic/Offline`).
