@@ -57,8 +57,8 @@ status: Stable
 | `CMP-05` | ISO 14224 Multi-Tier Taxonomy Matrix Card | 7-tier standardized failure coding matrix | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-md` | The core reliability data collection container. Enforces sequential multi-tier dropdowns with dynamic mandatory indicators (`*`) strictly bound to [DT-ERD-DOC-001 §3.2.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#322-failure_records): Maintainable Item (`maintainable_item_id`), Failure Mode, Failure Mechanism, Failure Cause, Detection Method, Operational Condition, Operational Impact, Downtime (`downtime`), and full-width Technical Observations (`technician_notes`). Taxonomy logic in §5.3.1. |
 | `CMP-06` | ISO 14224 Hard Lock Indicator | Discrete 7-segment quality gate widget | Surface: `--dt-color-surface-raised`<br>Border: Dynamic (`--dt-color-border-panel` vs `--dt-color-state-success`) | Visual quality meter displaying taxonomic completeness via a 7-segment discrete mini-bar grid (`repeat(7, 1fr)`). Complies with ANSI/ISA-101.01 §6.2 by maintaining neutral borders during routine entry and transitioning contour to Muted Teal (`--dt-color-state-success`) upon 100% compliance. Hard-disables finalization while any mandatory ISO field remains unclassified (`FR-012`). Logic in §5.3.2. |
 | `CMP-07` | Cryptographic Evidence Capture Card | Multi-evidence array uploader ($1 : 0..N$) & SHA-256 verifier | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Hash: `--dt-font-family-mono` | Multi-evidence container supporting $0..N$ attachments. Hosts reserved dashed dropzone container for initial empty state, hardware camera trigger (`Capture Evidence`), file picker (`Select File`), dynamic gallery cards with individual deletion, and asynchronous client-side SHA-256 hash calculator ([TR-003](../../../requirements/common/TR-003.md)). Automatically flags corrupt or unreadable files (`AF-003`). Protocol in §5.3.3. |
-| `CMP-08` | Integrated Telemetry & Outbox Indicator | Zero-shift connection & local queue health indicator | Surface: Dynamic (`--dt-color-surface-panel` / `--dt-color-surface-drawer`)<br>Border: `--dt-color-border-subtle` | Zero-shift diagnostic telemetry chip integrated into execution header (`CMP-01`), eliminating intrusive sticky banners (CLS = 0). Displays offline status (`OFFLINE · 15:24`), queued transaction count (`[1 PENDING SYNC]`), and unencrypted-in-transit zero-leakage guarantee via SQLCipher ([TR-002](../../../requirements/common/TR-002.md)). Specification in §5.3.5. |
-| `CMP-09` | Technical Finalization Action Bar | Sticky bottom closure controller with arrow navigation | Surface: `--dt-color-surface-panel`<br>Elevation: `--dt-z-header-sticky` ($500$)<br>Button: Dynamic | Fixed bottom action container hosting wide $56\times 44\text{px}$ progressive navigation arrow buttons and primary control `[Finalize Work Order]`. Hard-gated by the Boolean conjunction of `CMP-06` and `CMP-07`. Persists atomic transition to `COMPLETE` in `mtto.work_orders` and chains cryptographic audit log in `adm.audit_logs`. Execution rules in §5.3.4. |
+| `CMP-08` | Integrated Telemetry & Outbox Indicator | Zero-shift connection & local queue health indicator | Surface: Dynamic (`--dt-color-surface-panel` / `--dt-color-surface-drawer`)<br>Border: `--dt-color-border-subtle` | Zero-shift diagnostic telemetry chip integrated into execution header (`CMP-01`), eliminating intrusive sticky banners (CLS = 0). Displays offline status (`OFFLINE · 15:24`), queued transaction count (`[1 PENDING SYNC]`), and offline persistence status ([TR-002](../../../requirements/common/TR-002.md)). Specification in §5.3.5. |
+| `CMP-09` | Technical Finalization Action Bar | Sticky bottom closure controller with arrow navigation | Surface: `--dt-color-surface-panel`<br>Elevation: `--dt-z-header-sticky` ($500$)<br>Button: Dynamic | Fixed bottom action container hosting wide $56\times 44\text{px}$ progressive navigation arrow buttons and primary control `[Finalize Work Order]`. Hard-gated by the Boolean conjunction of `CMP-06` and `CMP-07`. Dispatches technical closure command to transition Work Order to `COMPLETE` with cryptographic audit verification. Execution rules in §5.3.4. |
 | `CMP-10` | De-Isolation Safety Handover Strip | LOTO clearance acknowledgment strip | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel` | Flush safety acknowledgment strip reminding the technician that physical padlocks remain locked until formal de-isolation handover is executed prior to operational start-up. Detailed in §6. |
 
 ---
@@ -96,8 +96,8 @@ status: Stable
    * Step navigation directional arrow buttons enforce an enlarged footprint of $56\times 44\text{px}$ ($52\times 42\text{px}$ on mobile) with tactile elevated surface (`--dt-color-surface-raised`), panel border, and explicit SVG arrows (`#icon-arrow-left`, `#icon-arrow-right`).
    * Custom scope checkboxes enforce an enlarged $28\times 28\text{px}$ hit target with a centered $7\times 14\text{px}$ checkmark pseudo-element.
 2. **Decoupled Dual-Card Scope & Timing Architecture (`CMP-03`):**
-   * Decouples real-time diagnostic field timing from formal CMMS accounting entry into a responsive 2-card grid (`.scope-timing-cards-grid`):
-     * **Card A (`FieldStopwatchCard`):** Displays real-time field intervention timer (`00:00:00`), Start/Pause/Reset controls, and a high-contrast hero button `[Transfer to Actual Hours]` (`.btn-evidence-primary`).
+   * Decouples real-time diagnostic field timing from formal CMMS accounting entry into a responsive 2-card layout:
+     * **Card A (`FieldStopwatchCard`):** Displays real-time field intervention timer (`00:00:00`), Start/Pause/Reset controls, and a high-contrast hero button `[Transfer to Actual Hours]`.
      * **Card B (`ActualLaborHoursCard`):** Hosts the official CMMS accounting field (`actual_labor_hours`), featuring $48\times 48\text{px}$ tactile steppers (`−` / `+` with $0.25\text{h}$ increments), centered 20px monospace numeric input, quick preset pills (`2.0h`, `2.5h`, `3.0h`, `3.5h`), and plain-text planned duration reference (`Planned: 3.50 hrs`), eradicating badge inflation.
 3. **Sticky Bottom Finalization Bar (`CMP-09`):**
    * Pinned to the bottom viewport boundary (`bottom: 0; position: fixed; z-index: var(--dt-z-header-sticky, 500); height: 72px;`), elevated via border-top `$1.5\text{px}$ solid var(--dt-color-border-panel)`.
@@ -134,22 +134,22 @@ status: Stable
    * Any false term renders the button `disabled` with dynamic visual indicator (`*`) on omitted fields (`AF-001`).
 
 3. **Multi-Evidence Photographic Capture & Cryptographic Hashing Pipeline (`CMP-07`, `TR-003`):**
-   * Supports an array of $0..N$ attachments (`mtto.media_attachments` per [DT-ERD-DOC-001 §3.2.4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#324-media_attachments)):
-     1. Displays reserved dashed dropzone container (`.evidence-dropzone`) as empty-state placeholder with direct camera trigger.
+   * Supports an array of $0..N$ attachments (`List<MediaAttachmentDto>` per [DT-ERD-DOC-001 §3.2.4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#324-media_attachments)):
+     1. Displays a reserved dashed dropzone container as empty-state placeholder with direct camera trigger.
      2. Capturing photo via hardware camera or file picker downsamples image to maximum $1920\times 1080$ JPEG format (quality 0.85) to optimize offline storage footprint.
-     3. Computes cryptographic checksum asynchronously in a Web Worker using HTML5 Web Crypto API:
-        $$\text{hash} = \text{SubtleCrypto.digest}(\text{"SHA-256"}, \text{ArrayBuffer})$$
+     3. Computes cryptographic checksum asynchronously in a Web Worker using the HTML5 Web Crypto API (SHA-256).
      4. Renders individual gallery cards displaying image thumbnail ($120\times 120\text{px}$), metadata, delete trigger, and verified monospace hash stamp (`SHA-256: [hash]`).
-     5. Stores file metadata in `mtto.media_attachments`: `file_url`, `file_type = 'JPG'`, `uploaded_at = clock_timestamp()`, and links `failure_record_id`.
+     5. Packages validated media items into `MediaAttachmentDto` records linking image URI, file format, timestamp, and hash string to the failure record context.
      6. If file reading throws an I/O error or hash evaluation fails, the UI enters state `Evidence Corrupt` (`AF-003`), halts finalization, and forces recapture.
 
-4. **Atomic Technical Closure Mutation & Audit Chaining (`CMP-09`, `TR-001`):**
+4. **Atomic Technical Closure Command Dispatch (`CMP-09`, `TR-001`):**
    * Upon pressing `[Finalize Work Order]`, the application dispatches an atomic technical closure command (`SubmitTechnicalClosureCommand`) against the backend API endpoint `POST /api/v1/work-orders/{id}/technical-closure`.
-   * The backend processes the closure within a single atomic database transaction governed by the physical integrity invariants of [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints):
-     * **Step 1 (Failure Diagnosis):** Inserts diagnosis record into `mtto.failure_records` adhering to the relational constraints in [DT-ERD-DOC-001 §3.2.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#322-failure_records).
-     * **Step 2 (Work Order Lifecycle Transition):** Updates `mtto.work_orders` (`current_status = 'COMPLETE'`, `actual_finish = clock_timestamp()`, `actual_labor_hours = :hours`) per [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
-     * **Step 3 (Lifecycle Audit Record):** Appends state history record into `mtto.work_order_histories` (`old_status = 'IN_PROGRESS'`, `new_status = 'COMPLETE'`) per [DT-ERD-DOC-001 §3.2.5](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#325-work_order_histories).
-     * **Step 4 (Cryptographic Audit Chaining):** Appends immutable audit entry into `adm.audit_logs` calculating cryptographic SHA-256 chain integrity per [DT-ERD-DOC-001 §3.5.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#351-audit_logs) and [DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032).
+   * **Client Command Contract:**
+     * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries.
+     * **Command Payload:** Serializes `FailureRecordInputDto` (7-tier ISO 14224 classifications, downtime, technician notes), `ActualLaborHours`, and `List<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
+     * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (failure record insertion, Work Order status update to `COMPLETE`, history logging, and cryptographic audit chaining in `adm.audit_logs`) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
+     * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates downstream to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
+     * **Failure / Disconnected Handling:** On network timeout or HTTP 5xx error, the client writes the serialized command payload to the encrypted local outbox table (`AF-002`, [TR-007](../../../requirements/common/TR-007.md)), marks the local UI as `COMPLETE (Pending Sync)`, and schedules background synchronization.
 
 5. **Zero-Shift Offline Telemetry and Outbox Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-007`):**
    * If network connection is lost (`navigator.onLine == false` or heartbeat timeout):
@@ -157,7 +157,7 @@ status: Stable
      2. Amber badge `[1 PENDING SYNC]` illuminates directly in the header context.
      3. **Fail-Safe Zero-Energy Masking:** The safety badge `[🔒 ZERO ENERGY CONFIRMED]` is automatically suppressed from the UI during offline operation. While mechanical padlocks remain locked, real-time electrical zero-voltage and zero-current attestation cannot be confirmed via disconnected DCS telemetry; displaying a stale positive safety confirmation during telemetry blackout violates process safety integrity principles.
      4. Zero layout shift is incurred (CLS = 0), preventing disorienting viewport jumps or content displacement on tablet screens.
-     5. The full atomic transaction payload is serialized into JSON and written to the encrypted local SQLite table `offline_outbox` protected by SQLCipher (AES-256-CBC).
+     5. The full atomic command payload is serialized into JSON and written to the encrypted local SQLite outbox protected by SQLCipher (AES-256-CBC per [TR-002](../../../requirements/common/TR-002.md)).
      6. Assigns a unique `idempotency_key` (UUIDv7) per `ADR-007`.
      7. Marks the local UI view as `COMPLETE (Pending Sync)`.
      8. Background synchronization worker monitors connectivity; upon restoration, drains the outbox queue via idempotent `POST /api/v1/work-orders/WO-2026-0842/technical-closure` with `X-Idempotency-Key` header.
@@ -310,13 +310,13 @@ public record MediaAttachmentDto
 
 ### 7.3. Client-Side DOM & Interop Bridge
 
-1. **Hardware Camera & Image Compression Interop (`cameraInterop.js`):**
-   * Uses HTML5 MediaDevices API (`navigator.mediaDevices.getUserMedia`) with fallback to standard `<input type="file" accept="image/*" capture="environment">`.
+1. **Hardware Camera & Image Compression Interop (`ICameraInterop`):**
+   * Interfaces with HTML5 MediaDevices API (`getUserMedia`) with fallback to standard device file capture (`<input type="file" accept="image/*" capture="environment">`).
    * Downsamples and compresses bitmaps via OffscreenCanvas to guarantee file sizes $< 1.5\text{MB}$ prior to local persistence.
-2. **Web Crypto SHA-256 Hashing Bridge (`cryptoInterop.js`):**
-   * Computes the SHA-256 hash asynchronously via `crypto.subtle.digest('SHA-256', buffer)` in a dedicated Web Worker to prevent UI thread stuttering or frame drops on industrial tablets.
-3. **Encrypted SQLite / SQLCipher Interop:**
-   * Interfaces with client-side relational storage (`sqlite-net-pcl` + `SQLCipher`) for immediate transactional outbox queuing during offline partitions (`TR-002`, `TR-007`).
+2. **Web Crypto SHA-256 Hashing Bridge (`ICryptoInterop`):**
+   * Dispatches cryptographic SHA-256 checksum computation asynchronously to a dedicated Web Worker to prevent UI thread stuttering or frame drops on industrial tablets during binary processing.
+3. **Encrypted Offline Storage Interop (`IOfflineStorage`):**
+   * Interfaces with client-side encrypted relational storage (AES-256 via SQLCipher) for immediate transactional outbox queuing during disconnected field operations ([TR-002](../../../requirements/common/TR-002.md), [TR-007](../../../requirements/common/TR-007.md)).
 
 ---
 
