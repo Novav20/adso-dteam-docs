@@ -192,10 +192,10 @@ The following table defines the transition rules between screens, triggering eve
 | [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)      | Technical Closing Confirmation                              | [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md)           |  L4 $\to$ L2  | Technician, Supervisor                           |
 | [SCR-INV-027](screens/inv/SCR-INV-027.md)       | Location Node Selection                           | [SCR-INV-005](screens/inv/SCR-INV-005.md)            |  L2 $\to$ L3  | All Roles                               |
 | [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Check Kardex"                               | [SCR-INV-006](screens/inv/SCR-INV-006.md)            |  L3 $\to$ L3  | Warehouse Manager, Planner, Auditor           |
-| [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Define Boundaries"                              | [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md)           |  L3 $\to$ L3  | Ing. Confiabilidad, Planificador              |
+| [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Define Boundaries"                              | [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md)           |  L3 $\to$ L3  | Reliability Eng., Planner                     |
 | [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Physical Replacement"                               | [SCR-INV-025](screens/inv/SCR-INV-025.md)            |  L3 $\to$ L4  | Technician, Supervisor, Warehouse Manager             |
 | [SCR-ADM-014](screens/adm/SCR-ADM-014.md)       | Click on "Edit Privileges"                             | [SCR-ADM-013](screens/adm/SCR-ADM-013.md)            |  L2 $\to$ L2  | Administrator                                 |
-| [SCR-ADM-013](screens/adm/SCR-ADM-013.md)       | Click on "Audit Modification"                           | [SCR-ADM-032](screens/adm/SCR-ADM-032.md)            |  L2 $\to$ L2  | Administrator, Auditor, Gerente               |
+| [SCR-ADM-013](screens/adm/SCR-ADM-013.md)       | Click on "Audit Modification"                           | [SCR-ADM-032](screens/adm/SCR-ADM-032.md)            |  L2 $\to$ L2  | Administrator, Auditor, Manager               |
 
 ---
 

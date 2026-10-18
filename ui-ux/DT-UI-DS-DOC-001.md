@@ -107,7 +107,7 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-primitive-blue-700  | #0369A1   | Normal MAI operation zone on dark background                         |
 | --dt-primitive-blue-600  | #2563EB   | Informational blue on light background                                      |
 | --dt-primitive-blue-450  | #4881A4   | Informational blue on dark background (Adjusted WCAG AA 3.15:1)           |
-| --dt-primitive-blue-400  | #457B9D   | Azul informativo base                                                |
+| --dt-primitive-blue-400  | #457B9D   | Base informational blue                                              |
 | --dt-primitive-blue-200  | #BAE6FD   | Normal MAI operation zone on light background                          |
 | --dt-primitive-teal-700  | #0B857A   | Documentary confirmation on light background (Adjusted WCAG AA 3.25:1)     |
 | --dt-primitive-teal-600  | #0D9488   | Base Documentary Confirmation                                         |

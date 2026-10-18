@@ -12,7 +12,7 @@ user_stories:
   - "[[VIS-008]]"
 use_cases:
   - "[[UC-VIS-008]]"
-version: 1.3
+version: 1.4
 date: 2026-10-18
 status: Stable
 ---
@@ -94,9 +94,9 @@ status: Stable
      * **HOT_WORK:** `--dt-color-alarm-critical` | Square ($20\times 20\text{px}$) | `#icon-hot-work` | `HOT WORK`
      * **WORK_AT_HEIGHT:** `--dt-color-state-info` | Triangle ($20\times 18\text{px}$) | `#icon-heights` | `HEIGHTS`
      * **CONFINED_SPACE:** `--dt-color-alarm-warning` | Circle ($\varnothing 20\text{px}$) | `#icon-confined-space` | `CONFINED`
-     * **ELECTRICAL:** `--dt-color-alarm-critical` | Hexagon ($20\times 20\text{px}$) | `#icon-electrical` | `ELECTRICAL`
-     * **CHEMICAL:** `--dt-color-alarm-warning` | Diamond ($20\times 20\text{px}$) | `#icon-chemical` | `CHEMICAL`
-     * **COLD_WORK:** `--dt-color-state-info` | Rounded Rectangle ($20\times 16\text{px}$) | `#icon-cold-work` | `COLD WORK`
+     * **ELECTRICAL:** `--dt-color-alarm-critical` | Octagon ($20\times 20\text{px}$) | `#icon-electrical` | `ELECTRICAL`
+     * **CHEMICAL:** `--dt-color-alarm-warning` | Rhombus ($20\times 20\text{px}$) | `#icon-chemical` | `CHEMICAL`
+     * **COLD_WORK:** `--dt-color-state-info` | Hexagon ($20\times 20\text{px}$) | `#icon-cold-work` | `COLD WORK`
    * Spatial hazard buffers, collision halos, and hatch patterns render with click-through transparency to guarantee continuous pan drag gestures across permit zones.
    * Each badge includes an invisible $48\times 48\text{px}$ tactile touch target (`--dt-touch-target-mobile`) for gloved operation and an expiring warning cue ($< 60\text{ min}$).
 
@@ -115,8 +115,8 @@ status: Stable
    * Container toggling operates exclusively via **discrete single taps** on dedicated $48 \times 48\text{ px}$ handles (`--dt-touch-target-mobile` per [DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)). Continuous drag gestures are optional and never mandatory.
 5. Each orphan record presents: `Permit Identifier`, `Contractor`, `Expected TagNumber`, and the $48\text{px}$ `[Resolve Inconsistency]` button (`FR-186`), enabling the inspector to assign geometry or request spatial metadata updates.
 6. **Adaptive Toolbar Badge Condensation (`CMP-02`):**
-   * On Industrial Tablet Landscape ($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`), opening `CMP-07` condenses the orphan badge to icon-only `[⚠️ 3]` format.
-   * On Desktop Workstations ($\ge 1400\text{px}$), in tablet portrait, and whenever `CMP-07` is closed, the badge retains its full alphanumeric label `[⚠️ 3 Unmapped]`.
+   * On Industrial Tablet Landscape ($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$), opening `CMP-07` condenses the orphan badge to icon-only `[⚠️ 3]` format.
+   * On Desktop Workstations ($\ge 1920\text{px}$, `--dt-breakpoint-xl` / Full HD), in tablet portrait, and whenever `CMP-07` is closed, the badge retains its full alphanumeric label `[⚠️ 3 Unmapped]`.
 
 ### 5.3. Real-Time Synchronization (`TR-010`)
 1. The client subscribes to the SignalR hub for work permit domain events:
@@ -401,9 +401,9 @@ public record PlantZoneDto
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1400\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full viewport. Floating pill toolbar `CMP-02` displays uncompressed filter chips (`HOT_WORK`, `CONFINED_SPACE`, etc.) and fixed $144\text{px}$ badge. Non-modal integrity drawer `CMP-07` docks as lateral right panel ($440\text{px}$). | Mouse wheel focal zoom; middle-click canvas pan; cursor tooltips enabled on hover; popover cards `CMP-06` clamp within viewport bounds. |
-| **Industrial Tablet Landscape**<br>($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`) | Canvas `CMP-01` full screen. Toolbar `CMP-02` applies adaptive badge condensation, collapsing individual text chips into a single filter dropdown trigger. Integrity drawer `CMP-07` slides over right flank ($\le 320\text{px}$, leaving $\ge 75\%$ canvas visible). | Touch pan threshold ($4\text{px}$); touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); hover tooltips disabled, direct tap opens popover card. |
-| **Industrial Tablet Portrait**<br>($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`) | Canvas `CMP-01` full screen. Toolbar `CMP-02` wraps to compact icon-only controls. Integrity drawer `CMP-07` operates as a bottom sheet with tactile drag handle ($\le 40\%$ vertical height). | Single-finger drag pan; pinch-to-zoom; bottom-sheet snap mechanics; floating HUD elements dock to lower corners. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full viewport. Floating pill toolbar `CMP-02` displays uncompressed filter chips (`HOT_WORK`, `CONFINED_SPACE`, etc.) and fixed $144\text{px}$ badge. Non-modal integrity drawer `CMP-07` docks as lateral right panel ($440\text{px}$). | Mouse wheel focal zoom; middle-click canvas pan; cursor tooltips enabled on hover; popover cards `CMP-06` clamp within viewport bounds. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Canvas `CMP-01` full screen. Toolbar `CMP-02` applies adaptive badge condensation, collapsing individual text chips into a single filter dropdown trigger. Integrity drawer `CMP-07` slides over right flank ($\le 320\text{px}$, leaving $\ge 75\%$ canvas visible). | Touch pan threshold ($4\text{px}$); touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); hover tooltips disabled, direct tap opens popover card. |
+| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $768\times 1024\text{px}$) | Canvas `CMP-01` full screen. Toolbar `CMP-02` wraps to compact icon-only controls. Integrity drawer `CMP-07` operates as a bottom sheet with tactile drag handle ($\le 40\%$ vertical height). | Single-finger drag pan; pinch-to-zoom; bottom-sheet snap mechanics; floating HUD elements dock to lower corners. |
 
 ---
 

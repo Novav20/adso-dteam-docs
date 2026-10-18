@@ -127,9 +127,9 @@ public record ScreenDataDto
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1400\text{px}$, `--dt-breakpoint-xl`) | Full horizontal layout; lateral docked panels. | Mouse wheel focal zoom; middle-click pan; dense dual-column data inspection. |
-| **Industrial Tablet Landscape**<br>($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`) | Split canvas and side panel layout. | Touch pan threshold ($4\text{px}$); gloved touch targets $\ge 48\text{px}$. |
-| **Industrial Tablet Portrait**<br>($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`) | Vertical stacked layout; bottom sheet drawer. | Drag handle gesture mechanics; sticky action buttons. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Full horizontal layout; lateral docked panels. | Mouse wheel focal zoom; middle-click pan; dense dual-column data inspection. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Split canvas and side panel layout. | Touch pan threshold ($4\text{px}$); gloved touch targets $\ge 48\text{px}$. |
+| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $768\times 1024\text{px}$) | Vertical stacked layout; bottom sheet drawer. | Drag handle gesture mechanics; sticky action buttons. |
 
 ---
 
