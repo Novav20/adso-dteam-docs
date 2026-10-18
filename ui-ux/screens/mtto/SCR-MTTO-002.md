@@ -13,8 +13,8 @@ user_stories:
   - "[[MTTO-002]]"
 use_cases:
   - "[[UC-MTTO-002]]"
-version: 1.1
-date: 2026-10-17
+version: 1.2
+date: 2026-10-18
 status: Stable
 ---
 
@@ -50,15 +50,15 @@ status: Stable
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
-| `CMP-01` | Mobile Execution Header | Work Order & Asset context strip | Surface: `--dt-color-surface-panel`<br>Border: `--dt-color-border-panel` | Anchored header displaying Work Order ID (`WO-2026-0842`), Target Equipment Name and Tag (`Feed Centrifugal Pump P-0101A`), Functional Location (`TFA-CSS-P-0101A`), technician profile (`TECH-4921 · J. Serrano`), active status badge (`[IN PROGRESS]`), fail-safe LOTO safety badge (`[🔒 ZERO ENERGY CONFIRMED]` - hidden during offline mode to prevent false certainty of unverified live telemetry), integrated telemetry chip (`ONLINE · 15:24` / `OFFLINE · 15:24`), and queued outbox badge (`[1 PENDING SYNC]`). Detailed in §5.1 and §5.3.5. |
+| `CMP-01` | Mobile Execution Header | Work Order & Asset context strip | Surface: `--dt-color-surface-panel`<br>Border: `--dt-color-border-panel` | Anchored header displaying Work Order ID (e.g., `WO-2026-0842`), Target Equipment Name and Tag (e.g., `Feed Centrifugal Pump P-0101A`), Functional Location (e.g., `TFA-CSS-P-0101A`), active technician session (e.g., `TECH-4921 · J. Serrano`), active status badge (`[IN PROGRESS]`), fail-safe LOTO safety badge (`[🔒 ZERO ENERGY CONFIRMED]` - hidden during offline mode to prevent false certainty of unverified live telemetry), integrated telemetry chip (`ONLINE · 15:24` / `OFFLINE · 15:24`), and queued outbox badge (`[1 PENDING SYNC]`). Detailed in §5.1 and §5.3.5. |
 | `CMP-02` | Operational Tabs Controller | 4-channel flush tab bar | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Active: `--dt-color-border-focus` | Edge-to-edge flush navigation bar allowing instant switching between: `[1. Scope]`, `[2. Spares]`, `[3. ISO Diagnosis]`, and `[4. Evidence]`. Visual count badges (`[5/7]`, `[3 items]`, `[0/7]`, `[0/1]`) reserved strictly for quantifiable items. Detailed in §5.2. |
-| `CMP-03` | Scope & Timing Panel | Step checklist & decoupled dual-card timing | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Displays planned task scope items with tactile completion checkboxes ($28\times 28\text{px}$) and a decoupled 2-card timing grid: Left card `FieldStopwatchCard` with field intervention stopwatch and transfer action; Right card `ActualLaborHoursCard` with $48\times 48\text{px}$ tactile steppers, quick preset pills, and plain planned labor reference (`Planned: 3.50 hrs`) feeding `actual_labor_hours` ([DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders)). Rules in §5.2 and §5.3.1. |
+| `CMP-03` | Scope & Timing Panel | Step checklist & decoupled dual-card timing | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Displays planned task scope items with tactile completion checkboxes ($28\times 28\text{px}$) and a decoupled 2-card timing grid: Left card `FieldStopwatchCard` with field intervention stopwatch and transfer action; Right card `ActualLaborHoursCard` with $48\times 48\text{px}$ tactile steppers, quick preset pills, and plain planned labor reference (`Planned: 3.50 hrs`) feeding actual labor duration ([DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders)). Rules in §5.2 and §5.3.1. |
 | `CMP-04` | Materials & Spares Allocation Panel | Parts consumed cards & equipment rotation trigger | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Lists reserved warehouse spare parts with $48\times 48\text{px}$ tactile quantity steppers and plain-text warehouse metadata. Hosts neutral-styled trigger `[Rotate Dismounted Equipment]`, launching modal [SCR-INV-025](../inv/SCR-INV-025.md) when an asset swap is required. Specification in §5.3. |
-| `CMP-05` | ISO 14224 Multi-Tier Taxonomy Matrix Card | 7-tier standardized failure coding matrix | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-md` | The core reliability data collection container. Enforces sequential multi-tier dropdowns with dynamic mandatory indicators (`*`) strictly bound to [DT-ERD-DOC-001 §3.2.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#322-failure_records): Maintainable Item (`maintainable_item_id`), Failure Mode, Failure Mechanism, Failure Cause, Detection Method, Operational Condition, Operational Impact, Downtime (`downtime`), and full-width Technical Observations (`technician_notes`). Taxonomy logic in §5.3.1. |
-| `CMP-06` | ISO 14224 Hard Lock Indicator | Discrete 7-segment quality gate widget | Surface: `--dt-color-surface-raised`<br>Border: Dynamic (`--dt-color-border-panel` vs `--dt-color-state-success`) | Visual quality meter displaying taxonomic completeness via a 7-segment discrete mini-bar grid (`repeat(7, 1fr)`). Complies with ANSI/ISA-101.01 §6.2 by maintaining neutral borders during routine entry and transitioning contour to Muted Teal (`--dt-color-state-success`) upon 100% compliance. Hard-disables finalization while any mandatory ISO field remains unclassified (`FR-012`). Logic in §5.3.2. |
+| `CMP-05` | ISO 14224 Multi-Tier Taxonomy Matrix Card | 7-tier standardized failure coding matrix | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-md` | The core reliability data collection container. Enforces sequential multi-tier dropdowns with dynamic mandatory indicators (`*`) strictly bound to [DT-ERD-DOC-001 §3.2.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#322-failure_records): Maintainable Item, Failure Mode, Failure Mechanism, Failure Cause, Detection Method, Operational Condition, Operational Impact, Downtime Hours, and full-width Technical Observations. Taxonomy logic in §5.3.1. |
+| `CMP-06` | ISO 14224 Hard Lock Indicator | Discrete 7-segment quality gate widget | Surface: `--dt-color-surface-raised`<br>Border: Dynamic (`--dt-color-border-panel` vs `--dt-color-state-success`) | Visual quality meter displaying taxonomic completeness via a 7-segment discrete mini-bar grid. Complies with ANSI/ISA-101.01 §6.2 by maintaining neutral borders during routine entry and transitioning contour to Muted Teal (`--dt-color-state-success`) upon 100% compliance. Hard-disables finalization while any mandatory ISO field remains unclassified (`FR-012`). Logic in §5.3.2. |
 | `CMP-07` | Cryptographic Evidence Capture Card | Multi-evidence array uploader ($1 : 0..N$) & SHA-256 verifier | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Hash: `--dt-font-family-mono` | Multi-evidence container supporting $0..N$ attachments. Hosts reserved dashed dropzone container for initial empty state, hardware camera trigger (`Capture Evidence`), file picker (`Select File`), dynamic gallery cards with individual deletion, and asynchronous client-side SHA-256 hash calculator ([TR-003](../../../requirements/common/TR-003.md)). Automatically flags corrupt or unreadable files (`AF-003`). Protocol in §5.3.3. |
 | `CMP-08` | Integrated Telemetry & Outbox Indicator | Zero-shift connection & local queue health indicator | Surface: Dynamic (`--dt-color-surface-panel` / `--dt-color-surface-drawer`)<br>Border: `--dt-color-border-subtle` | Zero-shift diagnostic telemetry chip integrated into execution header (`CMP-01`), eliminating intrusive sticky banners (CLS = 0). Displays offline status (`OFFLINE · 15:24`), queued transaction count (`[1 PENDING SYNC]`), and offline persistence status ([TR-002](../../../requirements/common/TR-002.md)). Specification in §5.3.5. |
-| `CMP-09` | Technical Finalization Action Bar | Sticky bottom closure controller with arrow navigation | Surface: `--dt-color-surface-panel`<br>Elevation: `--dt-z-header-sticky` ($500$)<br>Button: Dynamic | Fixed bottom action container hosting wide $56\times 44\text{px}$ progressive navigation arrow buttons and primary control `[Finalize Work Order]`. Hard-gated by the Boolean conjunction of `CMP-06` and `CMP-07`. Dispatches technical closure command to transition Work Order to `COMPLETE` with cryptographic audit verification. Execution rules in §5.3.4. |
+| `CMP-09` | Technical Finalization Action Bar | Sticky bottom closure controller with arrow navigation | Surface: `--dt-color-surface-panel`<br>Elevation: `--dt-z-header-sticky`<br>Button: Dynamic | Fixed bottom action container hosting wide $56\times 44\text{px}$ progressive navigation arrow buttons and primary control `[Finalize Work Order]`. Hard-gated by the Boolean conjunction of `CMP-06` and `CMP-07`. Dispatches technical closure command to transition Work Order to `COMPLETE` with cryptographic audit verification. Execution rules in §5.3.4. |
 | `CMP-10` | De-Isolation Safety Handover Strip | LOTO clearance acknowledgment strip | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel` | Flush safety acknowledgment strip reminding the technician that physical padlocks remain locked until formal de-isolation handover is executed prior to operational start-up. Detailed in §6. |
 
 ---
@@ -67,7 +67,7 @@ status: Stable
 
 | State | Visual Modification in the Interface | Activation Condition |
 | :--- | :--- | :--- |
-| **Normal / In Progress (Default)** | Header displays `IN_PROGRESS` in neutral blue/gray badge. Checklist editable. Stopwatch counter increments. Tab 3 shows incomplete taxonomy. `CMP-09` `[Finalize Work Order]` is hard-disabled (`disabled`, opacity 0.45). | Initial load of `SCR-MTTO-002` following work authorization from `SCR-VIS-011`. |
+| **Normal / In Progress (Default)** | Header displays `IN_PROGRESS` in neutral blue/gray badge. Checklist editable. Stopwatch counter increments. Tab 3 shows incomplete taxonomy. `CMP-09` `[Finalize Work Order]` is hard-disabled via the ISO Lock. | Initial load of `SCR-MTTO-002` following work authorization from `SCR-VIS-011`. |
 | **Loading / Synchronizing** | Skeleton shimmer on form fields and spares table (`--dt-color-surface-raised`). Taxonomy dropdowns show animated loading indicator while hydrating local SQLite cache. Controls locked. | Initial data hydration from local SQLCipher cache or background delta synchronization in progress. |
 | **Taxonomy Incomplete / Missing Fields (AF-001)** | Missing mandatory taxonomy selectors highlighted with dynamic red asterisk (`*`). Discrete mini-bar meter `CMP-06` displays incomplete segments ($< 7/7$) with neutral panel borders per ANSI/ISA-101.01. Action button `CMP-09` remains disabled. | Technician attempts to finalize or navigates away while any of the 7 mandatory ISO fields or downtime is empty. |
 | **Evidence Capturing & Hashing** | Camera viewfinder overlay active or file upload progress bar visible. Monospace hash chip displays animated status *"Computing SHA-256..."*. Validated photos display thumbnail, file metadata, and tamper-resistant digital stamp (`SHA-256: [hash]`). Reserved dashed dropzone remains available for additional attachments ($0..N$). | Technician captures or selects photo evidence in `CMP-07`. |
@@ -83,26 +83,27 @@ status: Stable
 ### 5.1. Initial Load & Lifecycle
 
 1. **Context Ingestion Contract:**
-   * When navigated from [SCR-VIS-011](../vis/SCR-VIS-011.md), the route receives the validated parameter payload:
-     $$\mathcal{P}_{\text{init}} = \langle \text{WorkOrderId}: \text{"WO-2026-0842"}, \text{EquipId}: \text{"P-0101A"}, \text{FuncLoc}: \text{"TFA-CSS-P-0101A"}, \text{TechId}: \text{"TECH-4921"}, \text{LotoStatus}: \text{"VERIFIED\_ZERO\_ENERGY"} \rangle$$
-   * If `mtto.work_orders.current_status == 'SCHEDULED'`, the client immediately emits an atomic transition event to `IN_PROGRESS`, logging `actual_start = clock_timestamp()` and creating an audit record in `mtto.work_order_histories` (`old_status = 'SCHEDULED'`, `new_status = 'IN_PROGRESS'`).
+   * When navigated from [SCR-VIS-011](../vis/SCR-VIS-011.md), the route receives the initial execution context payload:
+     $$\mathcal{P}_{\text{init}} = \langle \text{WorkOrderId}: \text{Guid}, \text{EquipmentTag}: \text{string}, \text{FunctionalLocation}: \text{string}, \text{TechnicianId}: \text{string}, \text{LotoStatus}: \text{LotoLockoutState} \rangle$$
+     *(e.g., $\text{WorkOrderId} = \text{"WO-2026-0842"}$, $\text{EquipmentTag} = \text{"P-0101A"}$, $\text{FunctionalLocation} = \text{"TFA-CSS-P-0101A"}$, $\text{TechnicianId} = \text{"TECH-4921"}$, $\text{LotoStatus} = \text{"VERIFIED\_ZERO\_ENERGY"}$)*.
+   * If the initial Work Order status is `SCHEDULED`, the client dispatches an execution start command, transitioning the Work Order status to `IN_PROGRESS` with server-side audit timestamp logging.
 2. **Local Cache Pre-Hydration (Offline Readiness):**
-   * Pre-hydrates the ISO 14224 taxonomic tables (`tax.maintainable_items`, equipment class failure modes) from the local SQLite/SQLCipher encrypted database ([TR-002](../../../requirements/common/TR-002.md)), guaranteeing zero network latency when populating dropdowns in field dead-zones.
+   * Pre-hydrates the ISO 14224 taxonomic datasets (maintainable items catalog, equipment class failure modes) from the local encrypted database ([TR-002](../../../requirements/common/TR-002.md)), guaranteeing zero network latency when populating dropdowns in field dead-zones.
 
 ### 5.2. Mobile Ergonomics & Tactile Mechanics
 
 1. **Gloved Touch Target Invariant (ISO 9241-110 Clause 5.3 / `--dt-touch-target-mobile`):**
    * All interactive controls (checkboxes, dropdown triggers, camera buttons, tab headers, spare parts quantity steppers) enforce a minimal bounding box of $48\times 48\text{px}$ with $\ge 8\text{px}$ separation, ensuring error-free operation with nitrile and leather field gloves.
    * Step navigation directional arrow buttons enforce an enlarged footprint of $56\times 44\text{px}$ ($52\times 42\text{px}$ on mobile) with tactile elevated surface (`--dt-color-surface-raised`), panel border, and explicit SVG arrows (`#icon-arrow-left`, `#icon-arrow-right`).
-   * Custom scope checkboxes enforce an enlarged $28\times 28\text{px}$ hit target with a centered $7\times 14\text{px}$ checkmark pseudo-element.
+   * Custom scope checkboxes enforce an enlarged $28\times 28\text{px}$ hit target with a centered checkmark icon.
 2. **Decoupled Dual-Card Scope & Timing Architecture (`CMP-03`):**
    * Decouples real-time diagnostic field timing from formal CMMS accounting entry into a responsive 2-card layout:
      * **Card A (`FieldStopwatchCard`):** Displays real-time field intervention timer (`00:00:00`), Start/Pause/Reset controls, and a high-contrast hero button `[Transfer to Actual Hours]`.
-     * **Card B (`ActualLaborHoursCard`):** Hosts the official CMMS accounting field (`actual_labor_hours`), featuring $48\times 48\text{px}$ tactile steppers (`−` / `+` with $0.25\text{h}$ increments), centered 20px monospace numeric input, quick preset pills (`2.0h`, `2.5h`, `3.0h`, `3.5h`), and plain-text planned duration reference (`Planned: 3.50 hrs`), eradicating badge inflation.
+     * **Card B (`ActualLaborHoursCard`):** Hosts the official CMMS accounting field (Actual Labor Hours), featuring $48\times 48\text{px}$ tactile steppers (`−` / `+` with $0.25\text{h}$ increments), centered 20px monospace numeric input, quick preset pills (`2.0h`, `2.5h`, `3.0h`, `3.5h`), and plain-text planned duration reference (`Planned: 3.50 hrs`), eradicating badge inflation.
 3. **Sticky Bottom Finalization Bar (`CMP-09`):**
-   * Pinned to the bottom viewport boundary (`bottom: 0; position: fixed; z-index: var(--dt-z-header-sticky, 500); height: 72px;`), elevated via border-top `$1.5\text{px}$ solid var(--dt-color-border-panel)`.
-   * Form content container enforces `padding-bottom: 96px` to prevent the sticky footer from occluding input fields or notes at maximal scroll extents.
-   * Guided workflow: Progressive navigation (`← Previous` and `Next →`) guides technician sequentially; primary action `[Finalize Work Order]` unlocks strictly on Step 4 (Evidence) once quality gates are satisfied.
+   * Pinned to the bottom viewport boundary ($72\text{px}$ height, elevation `--dt-z-header-sticky`), elevated via border-top with `--dt-color-border-panel`.
+   * Form content container enforces a $96\text{px}$ bottom scroll clearance to prevent the sticky footer from occluding input fields or observations at maximal scroll extents.
+   * Guided workflow: Progressive navigation (`← Previous` and `Next →`) guides the technician sequentially; primary action `[Finalize Work Order]` unlocks strictly on Step 4 (Evidence) once quality gates are satisfied.
 4. **Flush Tab Navigation Physics (`CMP-02`):**
    * Edge-to-edge flush tab bar with zero inter-tab gap or rounded corners, sitting directly adjacent to the LOTO handover strip and workspace bounds.
    * Supports horizontal touch swipe gestures with a $40\text{px}$ displacement threshold. Badges are strictly reserved for quantifiable counters (`[5/7]`, `[3 items]`, `[0/7]`, `[0/1]`), purging decorative pseudo-badges per ANSI/ISA-101.01 §6.2.
@@ -110,19 +111,19 @@ status: Stable
 ### 5.3. Domain Workflows, Taxonomy Enums, and Cryptographic Mutation
 
 1. **ISO 14224 Multi-Tier Taxonomy Matrix (`CMP-05`):**
-   * Failure classification is strictly constrained by the relational contracts defined in [DT-ERD-DOC-001 §3.2.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#322-failure_records) (`mtto.failure_records`):
-     * **Tier 1: Maintainable Item (`maintainable_item_id`):** Filtered dynamically by the target equipment class (e.g., for Centrifugal Pump `P-0101A` per API 610: *Mechanical Seal*, *Impeller*, *Bearings*, *Shaft*, *Casing*, *Coupling*).
-     * **Tier 2: Failure Mode (`failure_mode`):** Constrained by Maintainable Item (e.g., for Mechanical Seal: *External Leakage (EL)*, *Vibration Excursion (VE)*, *Overheating (OH)*).
-     * **Tier 3: Failure Mechanism (`failure_mechanism`):** Observable physical degradation (e.g., *Mechanical Wear*, *Abrasive Erosion*, *Thermal Fatigue*, *Elastomer Degradation*).
-     * **Tier 4: Failure Cause (`failure_cause`):** Root engineering origin (e.g., *Lubrication Deficiency*, *Shaft Misalignment*, *Cavitation Erosion*, *Operational Off-Design*).
-     * **Tier 5: Detection Method (`detection_method`):** Strictly restricted by `ck_failure_records_detection_method` in `DT-ERD-DOC-001.md`:
-       $$\text{detection\_method} \in \{\text{'PERIODIC\_MAINTENANCE'}, \text{'FUNCTIONAL\_TESTING'}, \text{'INSPECTION'}, \text{'PERIODIC\_CBM'}, \text{'PRESSURE\_TESTING'}, \text{'CONTINUOUS\_CBM'}, \text{'PRODUCTION\_INTERFERENCE'}, \text{'CASUAL\_OBSERVATION'}, \text{'CORRECTIVE\_MAINTENANCE'}, \text{'ON\_DEMAND'}, \text{'OTHER'}\}$$
-     * **Tier 6: Operational Condition (`operational_condition`):** Strictly restricted by `ck_failure_records_operational_condition` in `DT-ERD-DOC-001.md`:
-       $$\text{operational\_condition} \in \{\text{'RUNNING'}, \text{'START\_UP'}, \text{'RUN\_DOWN'}, \text{'HOT\_STANDBY'}, \text{'COLD\_STANDBY'}, \text{'IDLE'}, \text{'TESTING'}\}$$
-     * **Tier 7: Operational Impact (`operational_impact`):** Strictly restricted by `ck_failure_records_operational_impact` in `DT-ERD-DOC-001.md`:
-       $$\text{operational\_impact} \in \{\text{'EXTENSIVE\_STOP'}, \text{'STOP\_ABOVE\_ACCEPTABLE'}, \text{'STOP\_BELOW\_ACCEPTABLE'}, \text{'STOP\_MINOR'}\}$$
-     * **Quantitative Metric: Downtime (`downtime`):** Numeric field `DECIMAL(10,2) NOT NULL` recording hours of lost operational availability.
-     * **Technical Observations (`technician_notes`):** Full-width field capturing empirical observations and diagnostic notes directly tied to the failure record.
+   * Failure classification is strictly constrained by ISO 14224 reliability standards and domain model contracts ([DT-ERD-DOC-001 §3.2.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#322-failure_records)):
+     * **Tier 1: Maintainable Item:** Filtered dynamically by the target equipment class (e.g., for Centrifugal Pump `P-0101A` per API 610: *Mechanical Seal*, *Impeller*, *Bearings*, *Shaft*, *Casing*, *Coupling*).
+     * **Tier 2: Failure Mode:** Constrained by Maintainable Item (e.g., for Mechanical Seal: *External Leakage (EL)*, *Vibration Excursion (VE)*, *Overheating (OH)*).
+     * **Tier 3: Failure Mechanism:** Observable physical degradation (e.g., *Mechanical Wear*, *Abrasive Erosion*, *Thermal Fatigue*, *Elastomer Degradation*).
+     * **Tier 4: Failure Cause:** Root engineering origin (e.g., *Lubrication Deficiency*, *Shaft Misalignment*, *Cavitation Erosion*, *Operational Off-Design*).
+     * **Tier 5: Detection Method:** Controlled vocabulary mapped to enum `DetectionMethod` (§7.2.3):
+       $$\text{DetectionMethod} \in \{\text{PERIODIC\_MAINTENANCE}, \text{FUNCTIONAL\_TESTING}, \text{INSPECTION}, \text{PERIODIC\_CBM}, \text{PRESSURE\_TESTING}, \text{CONTINUOUS\_CBM}, \text{PRODUCTION\_INTERFERENCE}, \text{CASUAL\_OBSERVATION}, \text{CORRECTIVE\_MAINTENANCE}, \text{ON\_DEMAND}, \text{OTHER}\}$$
+     * **Tier 6: Operational Condition:** Controlled vocabulary mapped to enum `OperationalCondition` (§7.2.3):
+       $$\text{OperationalCondition} \in \{\text{RUNNING}, \text{START\_UP}, \text{RUN\_DOWN}, \text{HOT\_STANDBY}, \text{COLD\_STANDBY}, \text{IDLE}, \text{TESTING}\}$$
+     * **Tier 7: Operational Impact:** Controlled vocabulary mapped to enum `OperationalImpact` (§7.2.3):
+       $$\text{OperationalImpact} \in \{\text{EXTENSIVE\_STOP}, \text{STOP\_ABOVE\_ACCEPTABLE}, \text{STOP\_BELOW\_ACCEPTABLE}, \text{STOP\_MINOR}\}$$
+     * **Quantitative Metric: Downtime Hours:** Numeric field recording hours of lost operational availability ($\ge 0.0\text{h}$).
+     * **Technical Observations:** Full-width field capturing empirical observations and diagnostic notes directly tied to the failure record.
 
 2. **The ISO 14224 Hard Lock Formula (`CMP-06`, `FR-012`):**
    * The primary action button `CMP-09` `[Finalize Work Order]` is governed by the asymmetric Boolean lock:
@@ -147,37 +148,37 @@ status: Stable
    * **Client Command Contract:**
      * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries.
      * **Command Payload:** Serializes `FailureRecordInputDto` (7-tier ISO 14224 classifications, downtime, technician notes), `ActualLaborHours`, and `List<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
-     * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (failure record insertion, Work Order status update to `COMPLETE`, history logging, and cryptographic audit chaining in `adm.audit_logs`) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
+     * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (failure record insertion, Work Order status update to `COMPLETE`, history logging, and cryptographic audit chaining) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
      * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates downstream to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
      * **Failure / Disconnected Handling:** On network timeout or HTTP 5xx error, the client writes the serialized command payload to the encrypted local outbox table (`AF-002`, [TR-007](../../../requirements/common/TR-007.md)), marks the local UI as `COMPLETE (Pending Sync)`, and schedules background synchronization.
 
 5. **Zero-Shift Offline Telemetry and Outbox Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-007`):**
-   * If network connection is lost (`navigator.onLine == false` or heartbeat timeout):
+   * If network connection is lost or heartbeat timeout occurs:
      1. Telemetry indicator in header transitions from `ONLINE · [HH:MM]` to `OFFLINE · [HH:MM]` with disconnected network glyph.
      2. Amber badge `[1 PENDING SYNC]` illuminates directly in the header context.
      3. **Fail-Safe Zero-Energy Masking:** The safety badge `[🔒 ZERO ENERGY CONFIRMED]` is automatically suppressed from the UI during offline operation. While mechanical padlocks remain locked, real-time electrical zero-voltage and zero-current attestation cannot be confirmed via disconnected DCS telemetry; displaying a stale positive safety confirmation during telemetry blackout violates process safety integrity principles.
      4. Zero layout shift is incurred (CLS = 0), preventing disorienting viewport jumps or content displacement on tablet screens.
-     5. The full atomic command payload is serialized into JSON and written to the encrypted local SQLite outbox protected by SQLCipher (AES-256-CBC per [TR-002](../../../requirements/common/TR-002.md)).
+     5. The full atomic command payload is serialized into JSON and written to the encrypted local outbox protected by database encryption at rest ([TR-002](../../../requirements/common/TR-002.md)).
      6. Assigns a unique `idempotency_key` (UUIDv7) per `ADR-007`.
      7. Marks the local UI view as `COMPLETE (Pending Sync)`.
-     8. Background synchronization worker monitors connectivity; upon restoration, drains the outbox queue via idempotent `POST /api/v1/work-orders/WO-2026-0842/technical-closure` with `X-Idempotency-Key` header.
+     8. Background synchronization worker monitors connectivity; upon restoration, drains the outbox queue via idempotent `POST /api/v1/work-orders/{id}/technical-closure` with `X-Idempotency-Key` header.
 
 6. **Rotable Asset Swap Branching (`CMP-04`):**
-   * If the physical repair requires unmounting the pump unit, tapping `[Rotate Dismounted Equipment]` preserves the in-flight form draft in local memory and deploys the in-situ overlay modal [SCR-INV-025](../inv/SCR-INV-025.md). Upon completing the asset swap, `SCR-INV-025` returns the new mounted equipment serial number (`P-0101B`) and stamps the replacement reference into `technician_notes`.
+   * If the physical repair requires unmounting the pump unit, tapping `[Rotate Dismounted Equipment]` preserves the in-flight form draft in local memory and deploys the in-situ overlay modal [SCR-INV-025](../inv/SCR-INV-025.md). Upon completing the asset swap, `SCR-INV-025` returns the new mounted equipment serial number (`P-0101B`) and stamps the replacement reference into technical observations.
 
 ---
 
 ## 6. Industrial and Safety Considerations
 
 * **High-Performance HMI (ANSI/ISA-101 / [TR-011](../../../requirements/common/TR-011.md)):**
-  * Grayscale visual discipline: $90\%$ of the screen utilizes neutral dark slate tones (`--dt-color-surface-base`, `--dt-color-surface-card`, `--dt-color-border-subtle`).
-  * Saturated amber (`--dt-color-alarm-warning`) is reserved exclusively for the offline sync indicator badge (`[1 PENDING SYNC]`) and missing required fields.
-  * Saturated red (`--dt-color-alarm-critical`) is reserved strictly for corrupt file integrity errors or process safety emergency breaches. Green is never used for generic "active" status or in-progress forms, only for verified completion gates (`--dt-color-state-success: #14B8A6`).
+   * Grayscale visual discipline: $90\%$ of the screen utilizes neutral dark slate tones (`--dt-color-surface-base`, `--dt-color-surface-card`, `--dt-color-border-subtle`).
+   * Saturated amber (`--dt-color-alarm-warning`) is reserved exclusively for the offline sync indicator badge (`[1 PENDING SYNC]`) and missing required fields.
+   * Saturated red (`--dt-color-alarm-critical`) is reserved strictly for corrupt file integrity errors or process safety emergency breaches. Green is never used for generic "active" status or in-progress forms, only for verified completion gates (`--dt-color-state-success`).
 * **Diagnostic (Priority 4) vs. Process Alarm Segregation:**
-  * Network disconnection chip (`CMP-08`) in the header is styled strictly as a Priority 4 Diagnostic indicator with muted borders and informational icons. It is strictly prohibited from masquerading as a high-priority process emergency.
+   * Network disconnection chip (`CMP-08`) in the header is styled strictly as a Priority 4 Diagnostic indicator with muted borders and informational icons. It is strictly prohibited from masquerading as a high-priority process emergency.
 * **De-Isolation / De-LOTO Safety Handover Protocol:**
-  * Technical closure (`COMPLETE`) of the Work Order does **NOT** equate to plant re-energization.
-  * Flush banner `CMP-10` explicitly enforces the safety invariant:
+   * Technical closure (`COMPLETE`) of the Work Order does **NOT** equate to plant re-energization.
+   * Flush banner `CMP-10` explicitly enforces the safety invariant:
     > *"CAUTION: Hazardous energy isolations established in SCR-VIS-011 remain locked. Physical padlock removal and de-isolation must be executed via formal Operations Handover prior to commissioning."*
 
 ---
@@ -211,56 +212,184 @@ Pages/
 #### 7.2.1. `MobileWorkOrderClosingPage.razor` (Root View)
 
 ```csharp
-public partial class MobileWorkOrderClosingPage : ComponentBase
-{
-    [Parameter]
-    public required Guid WorkOrderId { get; set; }
+[Parameter]
+public required Guid WorkOrderId { get; set; }
 
-    [Parameter, SupplyParameterFromQuery]
-    public string? ReturnUrl { get; set; }
-
-    private WorkOrderClosingContextDto? Context { get; set; }
-    private FailureRecordInputDto FailureInput { get; set; } = new();
-    private List<MediaAttachmentDto> Attachments { get; set; } = [];
-    private bool IsOffline { get; set; }
-    private bool IsIsoLockActive => !FailureInput.IsValidIso14224(Attachments.Count);
-}
+[Parameter, SupplyParameterFromQuery]
+public string? ReturnUrl { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameters
 
 ```csharp
-public partial class IsoTaxonomyDiagnosisTab : ComponentBase
-{
-    [Parameter, EditorRequired]
-    public required FailureRecordInputDto Model { get; set; }
+// CMP-01: MobileWorkOrderHeader.razor
+[Parameter, EditorRequired]
+public required WorkOrderClosingContextDto Context { get; set; }
 
-    [Parameter, EditorRequired]
-    public required EventCallback<FailureRecordInputDto> ModelChanged { get; set; }
+[Parameter]
+public bool IsOffline { get; set; }
 
-    [Parameter, EditorRequired]
-    public required Guid EquipmentClassId { get; set; }
+[Parameter]
+public int PendingSyncCount { get; set; }
 
-    [Parameter]
-    public bool IsReadOnly { get; set; }
-}
+// CMP-02: WorkOrderTabStrip.razor
+[Parameter, EditorRequired]
+public required int ActiveTabIndex { get; set; }
 
-public partial class TechnicalFinalizeBar : ComponentBase
-{
-    [Parameter, EditorRequired]
-    public bool CanFinalize { get; set; }
+[Parameter, EditorRequired]
+public EventCallback<int> ActiveTabIndexChanged { get; set; }
 
-    [Parameter, EditorRequired]
-    public EventCallback OnFinalizeTriggered { get; set; }
+[Parameter]
+public int CompletedScopeItems { get; set; }
 
-    [Parameter]
-    public bool IsSubmitting { get; set; }
-}
+[Parameter]
+public int TotalScopeItems { get; set; }
+
+[Parameter]
+public int CompletedIsoTiers { get; set; }
+
+[Parameter]
+public int AttachmentCount { get; set; }
+
+// CMP-03: WorkOrderScopeExecutionTab.razor
+[Parameter, EditorRequired]
+public required IReadOnlyList<ScopeTaskItemDto> Tasks { get; set; }
+
+[Parameter, EditorRequired]
+public EventCallback<Guid> OnTaskToggled { get; set; }
+
+[Parameter, EditorRequired]
+public decimal ActualLaborHours { get; set; }
+
+[Parameter, EditorRequired]
+public EventCallback<decimal> ActualLaborHoursChanged { get; set; }
+
+[Parameter]
+public decimal PlannedLaborHours { get; set; }
+
+// CMP-04: MaterialSparesInventoryTab.razor
+[Parameter, EditorRequired]
+public required IReadOnlyList<SparePartAllocationDto> SpareParts { get; set; }
+
+[Parameter, EditorRequired]
+public EventCallback<SparePartAllocationDto> OnQuantityChanged { get; set; }
+
+[Parameter]
+public EventCallback OnRotateEquipmentRequested { get; set; }
+
+// CMP-05: IsoTaxonomyDiagnosisTab.razor
+[Parameter, EditorRequired]
+public required FailureRecordInputDto Model { get; set; }
+
+[Parameter, EditorRequired]
+public EventCallback<FailureRecordInputDto> ModelChanged { get; set; }
+
+[Parameter, EditorRequired]
+public required Guid EquipmentClassId { get; set; }
+
+[Parameter]
+public bool IsReadOnly { get; set; }
+
+// CMP-06: IsoComplianceLockBadge.razor
+[Parameter, EditorRequired]
+public int CompletedTierCount { get; set; }
+
+[Parameter]
+public int TotalTiers { get; set; } = 7;
+
+[Parameter]
+public bool IsLocked { get; set; }
+
+// CMP-07: MultimediaEvidenceTab.razor
+[Parameter, EditorRequired]
+public required IReadOnlyList<MediaAttachmentDto> Attachments { get; set; }
+
+[Parameter, EditorRequired]
+public EventCallback<MediaAttachmentDto> OnAttachmentAdded { get; set; }
+
+[Parameter, EditorRequired]
+public EventCallback<Guid> OnAttachmentRemoved { get; set; }
+
+[Parameter]
+public bool IsCapturing { get; set; }
+
+// CMP-08: OfflineTelemetryIndicator.razor
+[Parameter]
+public bool IsOffline { get; set; }
+
+[Parameter]
+public int PendingSyncCount { get; set; }
+
+[Parameter]
+public DateTime? LastSyncTime { get; set; }
+
+// CMP-09: TechnicalFinalizeBar.razor
+[Parameter, EditorRequired]
+public int CurrentStep { get; set; }
+
+[Parameter, EditorRequired]
+public int TotalSteps { get; set; } = 4;
+
+[Parameter]
+public bool CanFinalize { get; set; }
+
+[Parameter]
+public bool IsSubmitting { get; set; }
+
+[Parameter]
+public EventCallback OnPreviousStep { get; set; }
+
+[Parameter]
+public EventCallback OnNextStep { get; set; }
+
+[Parameter]
+public EventCallback OnFinalizeTriggered { get; set; }
+
+// CMP-10: DeIsolationHandoverStrip.razor
+[Parameter]
+public bool IsLotoNeutralized { get; set; }
+
+[Parameter]
+public string? LotoTagReference { get; set; }
 ```
 
-#### 7.2.3. Data Transfer Objects (DTOs)
+#### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
 ```csharp
+public enum DetectionMethod
+{
+    PeriodicMaintenance,
+    FunctionalTesting,
+    Inspection,
+    PeriodicCbm,
+    PressureTesting,
+    ContinuousCbm,
+    ProductionInterference,
+    CasualObservation,
+    CorrectiveMaintenance,
+    OnDemand,
+    Other
+}
+
+public enum OperationalCondition
+{
+    Running,
+    StartUp,
+    RunDown,
+    HotStandby,
+    ColdStandby,
+    Idle,
+    Testing
+}
+
+public enum OperationalImpact
+{
+    ExtensiveStop,
+    StopAboveAcceptable,
+    StopBelowAcceptable,
+    StopMinor
+}
+
 public record WorkOrderClosingContextDto
 {
     public required Guid WorkOrderId { get; init; }
@@ -280,22 +409,28 @@ public record FailureRecordInputDto
     public string? FailureMode { get; set; }
     public string? FailureMechanism { get; set; }
     public string? FailureCause { get; set; }
-    public string? DetectionMethod { get; set; } // Enforced by ck_failure_records_detection_method
-    public string? OperationalCondition { get; set; } // ck_failure_records_operational_condition
-    public string? OperationalImpact { get; set; } // ck_failure_records_operational_impact
+    public DetectionMethod? DetectionMethod { get; set; }
+    public OperationalCondition? OperationalCondition { get; set; }
+    public OperationalImpact? OperationalImpact { get; set; }
     public decimal DowntimeHours { get; set; }
     public string? TechnicianNotes { get; set; }
+}
 
-    public bool IsValidIso14224(int attachmentCount) =>
-        MaintainableItemId.HasValue &&
-        !string.IsNullOrWhiteSpace(FailureMode) &&
-        !string.IsNullOrWhiteSpace(FailureMechanism) &&
-        !string.IsNullOrWhiteSpace(FailureCause) &&
-        !string.IsNullOrWhiteSpace(DetectionMethod) &&
-        !string.IsNullOrWhiteSpace(OperationalCondition) &&
-        !string.IsNullOrWhiteSpace(OperationalImpact) &&
-        DowntimeHours >= 0.0m &&
-        attachmentCount >= 1;
+public record ScopeTaskItemDto
+{
+    public required Guid TaskId { get; init; }
+    public required string Description { get; init; }
+    public required bool IsCompleted { get; init; }
+}
+
+public record SparePartAllocationDto
+{
+    public required Guid PartId { get; init; }
+    public required string PartNumber { get; init; }
+    public required string Description { get; init; }
+    public required decimal QuantityReserved { get; init; }
+    public decimal QuantityConsumed { get; init; }
+    public required string WarehouseLocation { get; init; }
 }
 
 public record MediaAttachmentDto
@@ -311,8 +446,8 @@ public record MediaAttachmentDto
 ### 7.3. Client-Side DOM & Interop Bridge
 
 1. **Hardware Camera & Image Compression Interop (`ICameraInterop`):**
-   * Interfaces with HTML5 MediaDevices API (`getUserMedia`) with fallback to standard device file capture (`<input type="file" accept="image/*" capture="environment">`).
-   * Downsamples and compresses bitmaps via OffscreenCanvas to guarantee file sizes $< 1.5\text{MB}$ prior to local persistence.
+   * Encapsulates device media capture capabilities with fallback to native OS camera file picker.
+   * Performs client-side image downsampling and JPEG compression asynchronously off the main UI thread to guarantee media payloads $< 1.5\text{MB}$ prior to local persistence.
 2. **Web Crypto SHA-256 Hashing Bridge (`ICryptoInterop`):**
    * Dispatches cryptographic SHA-256 checksum computation asynchronously to a dedicated Web Worker to prevent UI thread stuttering or frame drops on industrial tablets during binary processing.
 3. **Encrypted Offline Storage Interop (`IOfflineStorage`):**
@@ -334,15 +469,15 @@ public record MediaAttachmentDto
 
 | Requirement | Addressed in Component | Verification & Implementation Mechanism |
 | :--- | :--- | :--- |
-| [FR-010](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-03`, `CMP-09` | Registration of actual labor duration (`actual_labor_hours`) and Wrench Time tracking from mobile interface. |
-| [FR-011](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-05` | Mandatory 7-tier classification strictly using ISO 14224 taxonomy tables (`tax.maintainable_items`, `mtto.failure_records`). |
+| [FR-010](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-03`, `CMP-09` | Registration of actual labor duration and Wrench Time tracking from mobile interface. |
+| [FR-011](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-05` | Mandatory 7-tier classification strictly using ISO 14224 maintainable item catalog and failure record entities. |
 | [FR-012](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-06`, `CMP-09` | **ISO 14224 Hard Lock:** Hard-disables finalization button until all mandatory taxonomy fields and downtime are complete. |
-| [FR-013](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-07` | Multimedia photographic attachment capture, preview thumbnail generation, and persistent linkage to `mtto.media_attachments`. |
-| [FR-014](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-09` | Atomic transition of Work Order state to `COMPLETE` in `mtto.work_orders` and dispatch of event notification to Reliability Engineer. |
-| [NFR-015](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-09` | Offline-First persistence using encrypted SQLCipher local database with crash-resilient write-ahead logging (WAL). |
+| [FR-013](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-07` | Multimedia photographic attachment capture, preview thumbnail generation, and persistent linkage to media attachment records. |
+| [FR-014](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-09` | Atomic transition of Work Order state to `COMPLETE` and dispatch of domain event notification to Reliability Engineer. |
+| [NFR-015](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-09` | Offline-First persistence using encrypted SQLCipher local storage with crash-resilient transactional journaling. |
 | [NFR-016](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-02`, `CMP-05` | Mobile response latency $< 2\text{s}$ achieved via pre-hydrated local taxonomy caches and Web Worker SHA-256 hashing. |
 | [NFR-017](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-01` to `CMP-10` | Cross-platform mobile suitability on Android industrial tablets and iOS/Windows devices via responsive CSS tokens. |
-| [TR-001](../../../requirements/common/TR-001.md) | `CMP-09` | Append-only immutable audit trail logging in `adm.audit_logs` with SHA-256 hash chaining upon Work Order finalization. |
+| [TR-001](../../../requirements/common/TR-001.md) | `CMP-09` | Append-only immutable audit trail logging with SHA-256 hash chaining upon Work Order finalization. |
 | [TR-002](../../../requirements/common/TR-002.md) | `CMP-08` | Local database encryption at rest using AES-256 (SQLCipher) for all cached work order and failure records. |
 | [TR-003](../../../requirements/common/TR-003.md) | `CMP-07` | Client-side cryptographic SHA-256 hash evaluation of all uploaded media files stored in metadata for tamper detection. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-01` | Device authorization and authenticated technician session validation (`TECH-4921`). |
@@ -352,3 +487,4 @@ public record MediaAttachmentDto
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-10` | ANSI/ISA-101 HPHMI: 90% neutral grayscale palette; saturated amber reserved for offline banner and missing fields; saturated red reserved for file corruption. |
 | [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-01`, `CMP-08` | Integration with Cryptographic Offline Lease protocol for disconnected field operations. |
 | [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-08`, `CMP-09` | Idempotency token generation (UUIDv7) attached to technical closure payloads to prevent duplicate commits. |
+
