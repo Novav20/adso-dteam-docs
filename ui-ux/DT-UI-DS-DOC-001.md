@@ -75,7 +75,7 @@ To guarantee predictability in responsive split-screen viewports across industri
 | :------------------------------- | :------------------------------------: | :----------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | --dt-layout-drawer-width-desktop | 440px | --dt-breakpoint-xl ($\ge 1920\text{px}$) | Fixed lateral inspection drawer on high-resolution monitors; preserves multi-column tabular visibility and backlog split views. |
 | --dt-layout-drawer-width-tablet | 320px | --dt-breakpoint-lg ($1280\text{px} - 1919\text{px}$) | Fixed contextual side panel on tablet landscape; strictly enforces $\ge 75\%$ viewport allocation ($960\text{px}$) for the 2D spatial Digital Twin canvas. |
-| --dt-layout-drawer-width | var(--dt-layout-drawer-width-tablet) | Responsive Semantic Base | Semantic drawer width variable; defaults to tablet dimension and dynamically resolves to `--dt-layout-drawer-width-desktop` on desktop displays ($\ge 1920\text{px}$). |
+| --dt-layout-drawer-width | --dt-layout-drawer-width-tablet | Responsive Semantic Base | Semantic drawer width variable; defaults to tablet dimension and dynamically resolves to `--dt-layout-drawer-width-desktop` on desktop displays ($\ge 1920\text{px}$). |
 
 ---
 

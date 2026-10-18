@@ -2,7 +2,7 @@
 id: SCR-VIS-011
 title: LOTO Isolation Boundary Matrix and Zero Energy Verification (LOTO-TryOut)
 module: VIS
-isa101_level: L2 (Process Area Isolation Route) | L3 (Equipment Isolation Boundary Matrix)
+isa101_level: L4 (Diagnostic, Detail & Task Execution) | Spatial L2/L3 Context
 platform: Shared Component
 target_device: Industrial Tablet (Primary) | Desktop Workstation
 roles:
@@ -22,7 +22,7 @@ status: Stable
 
 ## 1. Purpose and Operational Context
 
-* **View Objective:** Spatial and procedural verification of hazardous energy isolation boundaries (LOTO) over the plant 2D plot plan (ANSI/ISA-101 Level 2/3). Corroborates physical field lockouts and absence-of-energy tests with real-time IoT telemetry, enforcing active software interlocking to guarantee a proven Zero Energy State prior to Equipment Unit intervention (OSHA 1910.147, ISO 45001).
+* **View Objective:** Spatial and procedural verification of hazardous energy isolation boundaries (LOTO) over the plant 2D plot plan (ANSI/ISA-101 Level 4 Task Execution with Level 2/3 spatial context). Corroborates physical field lockouts and absence-of-energy tests with real-time IoT telemetry, enforcing active software interlocking to guarantee a proven Zero Energy State prior to Equipment Unit intervention (OSHA 1910.147, ISO 45001).
 * **Primary Target Persona:** Maintenance Technician executing field cutoffs, registering physical padlocks, performing Try-Out tests, and requesting work authorization.
 * **Secondary Personas:**
   * **HSEQ Inspector:** Audits isolation boundaries, verifies cryptographic compliance trails, and monitors SIMOPS interactions.
@@ -48,10 +48,10 @@ status: Stable
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
 | `CMP-01` | Canvas Viewport 2D & LOTO Layer | Spatial SVG canvas with LOTO overlay | Surface: `--dt-color-bg-canvas`<br>Elevation: `--dt-z-canvas` | Renders the 2D plot plan with dynamic LOTO vector overlays tracing energy paths to target Equipment Unit (`data-equip-id`). Employs Focal Island De-emphasis to dim non-isolated plant sectors. Spatial kinematics, focal zoom, and clamping specified in §5.1 and §5.2. |
-| `CMP-02` | Viewport Toolbar | Contextual LOTO toolbar | Surface: `--dt-color-surface-card`<br>Radius: `--dt-radius-full` | Floating pill toolbar centered over viewport. Hosts level badge (`L3: LOTO MATRIX`, fixed $144\text{px}$ width), zoom controls (+ / − / 1:1), and safety status badge (`[⚡ HAZARDOUS ENERGY DETECTED]` or `[🔒 TELEMETRY CORROBORATES ZERO STATE (PHYSICAL TRY-OUT REQUIRED)]`). Shared structure with [SCR-VIS-008](./SCR-VIS-008.md) and [SCR-VIS-033](./SCR-VIS-033.md). Details in §5.2. |
+| `CMP-02` | Viewport Toolbar | Contextual LOTO toolbar | Surface: `--dt-color-surface-card`<br>Radius: `--dt-radius-full` | Floating pill toolbar centered over viewport. Hosts level badge (`L4: LOTO MATRIX`, fixed $144\text{px}$ width), zoom controls (+ / − / 1:1), and safety status badge (`[⚡ HAZARDOUS ENERGY DETECTED]` or `[🔒 TELEMETRY CORROBORATES ZERO STATE (PHYSICAL TRY-OUT REQUIRED)]`). Shared structure with [SCR-VIS-008](./SCR-VIS-008.md) and [SCR-VIS-033](./SCR-VIS-033.md). Details in §5.2. |
 | `CMP-03` | User Profile Button | Active user session indicator | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-full` | Circular floating button anchored at top-left margin per layout grid. Displays technician initials. Touch target complies with `--dt-touch-target-mobile`. Detailed in §5.2. |
 | `CMP-04` | Isolation Cutoff Nodes | Cutoff points on SVG canvas | Border: `--dt-color-border-subtle`<br>Elevation: `--dt-z-layer-loto` | Vector hotspots over physical cutoff points (breakers, valves, blinds, bleeds). Applies 4-channel redundant coding (`#icon-loto-locked` vs `#icon-loto-energized`). Touch disambiguation in §5.2; cross-selection behavior in §5.3. |
-| `CMP-05` | LOTO Isolation Drawer | Contextual safety panel | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel` | Contextual container (lateral drawer in landscape/desktop, $440\text{px}$; bottom sheet in portrait). Hosts Equipment Unit header, Work Order reference, SOP documentation link, PPE requirements, and subcomponents `CMP-06` through `CMP-10`. Snap physics and discrete toggling in §5.2. |
+| `CMP-05` | LOTO Isolation Drawer | Contextual safety panel | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel` | Contextual container (lateral drawer in landscape/desktop sized via `--dt-layout-drawer-width`; bottom sheet in portrait). Hosts Equipment Unit header, Work Order reference, SOP documentation link, PPE requirements, and subcomponents `CMP-06` through `CMP-10`. Snap physics and discrete toggling in §5.2. |
 | `CMP-06` | Sequential Isolation Checklist | Physical lockout step-by-step list | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Ordered list of physical isolation actions. Enforces sequential padlock Tag ID validation and technician sign-off (`FR-228`). Validation rules in §5.3. |
 | `CMP-07` | Telemetry Verification Matrix | Real-time multi-sensor MAI scale bars | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Track: `--dt-color-mai-track`<br>Zone: `--dt-color-mai-normal-zone`<br>Pointer: `--dt-color-mai-pointer`<br>Interlock: `--dt-color-mai-interlock` | Moving Analog Indicators (MAI) contextualizing continuous process variables ($V, I, P, Q$) against calibrated scale bars with zero-energy trip thresholds ($0\text{V}$, $0\text{psig}$). Header explicitly establishes: *Secondary Telemetry (Advisory / Corroborative Only) — Physical Try-Out Required per OSHA 1910.147 §(d)(6)*. Sensor update latency $< 1\text{s}$ (`NFR-233`). Mathematical mapping and threshold rules in §5.3. |
 | `CMP-08` | Physical Try-Out Verification Card | Absence-of-energy test card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-focus` | Card mandating physical absence-of-energy test (OSHA 1910.147 §(d)(6)). Hosts verification method selector (`MultimeterProbe`, `AtmosphericVentBleed`, `LocalPushbuttonAttempt`), observed physical reading input (`0.00 V`, `0.0 psig`, `Zero Motion Confirmed`), technician digital signature hash (`signature_hash`), and telemetry snapshot persistence. Workflow in §5.3. |
@@ -131,7 +131,7 @@ sequenceDiagram
 
 1. **Initial View State & Unselected Baseline:**
    * Upon activation from a Work Order or [SCR-VIS-033](./SCR-VIS-033.md), the canvas view centers the target Equipment Unit (`data-equip-id`) at baseline zoom factor $s = 1.0$.
-   * Non-isolated plant equipment elements have opacity reduced to $0.25$ via design system de-emphasis token (`--dt-opacity-de-emphasized`) (Focal Island De-emphasis).
+   * Non-isolated plant equipment elements have opacity attenuated to $0.25$ under Focal Island De-emphasis, preserving high-contrast visual focus exclusively on active cutoff nodes and isolated equipment.
    * LOTO vector overlay path is rendered in solid red (`--dt-color-alarm-critical`) with width $3\text{px}$, indicating active hazardous energy.
    * Drawer `CMP-05` initializes in baseline state with checklist step 1 highlighted and Try-Out card disabled.
 
@@ -160,7 +160,7 @@ sequenceDiagram
 
 4. **Layout Shift Invariants & Dimension Enforcements:**
    * Toolbar `CMP-02`: Safety status badge is assigned a fixed-width container slot of $260\text{px}$ with text truncation, preventing horizontal toolbar layout shifts when toggling between `[⚡ HAZARDOUS ENERGY DETECTED]`, `[🔒 TELEMETRY CORROBORATES ZERO STATE (PHYSICAL TRY-OUT REQUIRED)]`, and `[🔒 ZERO ENERGY VERIFIED (READY TO START)]`.
-   * Drawer `CMP-05`: Fixed width of $440\text{px}$ in desktop and landscape tablet orientations, preserving canvas viewport aspect ratio.
+   * Drawer `CMP-05`: Sized by normative layout token `--dt-layout-drawer-width` ($440\text{px}$ on desktop workstations via `--dt-layout-drawer-width-desktop`; $320\text{px}$ on tablet landscape via `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 75\%$ canvas visibility).
 
 5. **Bottom Sheet Snap Physics & Discrete Switching (`CMP-05`):**
    * In portrait tablet orientation (`--dt-breakpoint-md`), `CMP-05` operates as an ergonomic bottom sheet.
@@ -168,7 +168,7 @@ sequenceDiagram
      * Collapsed / Natural Height: $y_{\text{natural}} = 45\text{vh}$ ($45\%$ of viewport height, exposing checklist and MAIs while keeping the target cutoff node visible on canvas).
      * Expanded Height: $y_{\text{expanded}} = 85\text{vh}$ ($85\%$ of viewport height, maximizing scrollable checklist and telemetry matrix).
    * **Gesture Snap Physics:** Dragging past velocity threshold $> 0.5\text{px/ms}$ or displacement $> 25\%$ distance snaps to destination state via spring animation.
-   * **Discrete Switching Invariant (ISO 9241-110 Clause 5.5 / [DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)):** To guarantee usability under adverse field conditions (e.g., rain droplets, gloved operation), container deployment is NEVER conditioned exclusively to drag gestures. A single discrete tap on the touch drag handle immediately toggles sheet elevation between $45\text{vh}$ and $85\text{vh}$ via standard sheet transition token (`--dt-transition-drawer`).
+   * **Discrete Switching Invariant (ISO 9241-110 Clause 5.5 / [DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)):** To guarantee usability under adverse field conditions (e.g., rain droplets, gloved operation), container deployment is NEVER conditioned exclusively to drag gestures. A single discrete tap on the touch drag handle immediately toggles sheet elevation between $45\text{vh}$ and $85\text{vh}$ via standard cubic-bezier sheet transition ($280\text{ms}$).
 
 6. **Overlay Drawer Lifecycle (Minimize vs. Deselect / Close Contract):**
    * Inheriting the canonical lifecycle contract defined in [SCR-VIS-033 §5.2.7](./SCR-VIS-033.md#52-spatial-navigation-and-mobile-ergonomics) and [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md):
@@ -441,8 +441,8 @@ public enum PhysicalVerificationMethod
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full left workspace; LOTO Drawer `CMP-05` docks as fixed lateral panel ($440\text{px}$, $100\text{vh}$) on right flank. | Mouse wheel focal zoom; middle-click pan; dual-column checklist and telemetry matrix. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Canvas `CMP-01` occupies left workspace; LOTO Drawer `CMP-05` occupies right panel ($440\text{px}$). Viewport toolbar `CMP-02` auto-centers over viewable canvas. | Touch pan threshold ($4\text{px}$); gloved touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); drawer minimizes to $36\text{px}$ peek tab. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full left workspace; LOTO Drawer `CMP-05` docks as fixed lateral panel ($440\text{px}$, `--dt-layout-drawer-width-desktop`, $100\text{vh}$) on right flank. | Mouse wheel focal zoom; middle-click pan; dual-column checklist and telemetry matrix. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Canvas `CMP-01` occupies left workspace; LOTO Drawer `CMP-05` docks as lateral panel ($320\text{px}$, `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 75\%$ canvas visibility). Viewport toolbar `CMP-02` auto-centers over viewable canvas. | Touch pan threshold ($4\text{px}$); gloved touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); drawer minimizes to $36\text{px}$ peek tab. |
 | **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Canvas `CMP-01` occupies full width; LOTO Drawer `CMP-05` operates as **Bottom Sheet** docked at bottom, initializing at natural content height ($45\text{vh}$), expandable via drag handle to $85\text{vh}$. | Drag handle gesture support with hysteresis; mandatory discrete tap toggling between $45\text{vh}$ and $85\text{vh}$; sticky `[Start Work]` footer button always visible above viewport edge. |
 
 ---

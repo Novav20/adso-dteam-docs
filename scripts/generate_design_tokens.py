@@ -108,7 +108,7 @@ def emit_table_tokens(rows: list[list[str]], value_index: int = 1) -> list[str]:
     output = []
     for row in rows:
         if len(row) > value_index and row[0].startswith("--"):
-            output.append(f"  {row[0]}: {css_value(row[value_index])};")
+            output.append(f"  {row[0]}: {semantic_value(row[value_index])};")
     return output
 
 
@@ -332,6 +332,11 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             val = css_value(row[1])
             if val.startswith("var(--dt-"):
                 ref = "{" + val.removeprefix("var(--dt-").removesuffix(")") + "}"
+                penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
+                    ref, "dimension"
+                )
+            elif val.startswith("--dt-"):
+                ref = "{" + val.removeprefix("--dt-") + "}"
                 penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
                     ref, "dimension"
                 )
