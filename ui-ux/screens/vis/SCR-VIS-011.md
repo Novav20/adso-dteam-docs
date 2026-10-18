@@ -160,7 +160,7 @@ sequenceDiagram
 
 4. **Layout Shift Invariants & Dimension Enforcements:**
    * Toolbar `CMP-02`: Safety status badge is assigned a fixed-width container slot of $260\text{px}$ with text truncation, preventing horizontal toolbar layout shifts when toggling between `[⚡ HAZARDOUS ENERGY DETECTED]`, `[🔒 TELEMETRY CORROBORATES ZERO STATE (PHYSICAL TRY-OUT REQUIRED)]`, and `[🔒 ZERO ENERGY VERIFIED (READY TO START)]`.
-   * Drawer `CMP-05`: Sized by normative layout token `--dt-layout-drawer-width` ($440\text{px}$ on desktop workstations via `--dt-layout-drawer-width-desktop`; $320\text{px}$ on tablet landscape via `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 75\%$ canvas visibility).
+   * Drawer `CMP-05`: Sized by normative layout token `--dt-layout-drawer-width` (`--dt-layout-drawer-width-desktop` on desktop workstations; `--dt-layout-drawer-width-tablet` on tablet landscape, strictly preserving $\ge 75\%$ canvas visibility).
 
 5. **Bottom Sheet Snap Physics & Discrete Switching (`CMP-05`):**
    * In portrait tablet orientation (`--dt-breakpoint-md`), `CMP-05` operates as an ergonomic bottom sheet.
@@ -441,8 +441,8 @@ public enum PhysicalVerificationMethod
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full left workspace; LOTO Drawer `CMP-05` docks as fixed lateral panel ($440\text{px}$, `--dt-layout-drawer-width-desktop`, $100\text{vh}$) on right flank. | Mouse wheel focal zoom; middle-click pan; dual-column checklist and telemetry matrix. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Canvas `CMP-01` occupies left workspace; LOTO Drawer `CMP-05` docks as lateral panel ($320\text{px}$, `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 75\%$ canvas visibility). Viewport toolbar `CMP-02` auto-centers over viewable canvas. | Touch pan threshold ($4\text{px}$); gloved touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); drawer minimizes to $36\text{px}$ peek tab. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full left workspace; LOTO Drawer `CMP-05` docks as fixed lateral panel (sized by `--dt-layout-drawer-width-desktop`, $100\text{vh}$) on right flank. | Mouse wheel focal zoom; middle-click pan; dual-column checklist and telemetry matrix. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Canvas `CMP-01` occupies left workspace; LOTO Drawer `CMP-05` docks as lateral panel (sized by `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 75\%$ canvas visibility). Viewport toolbar `CMP-02` auto-centers over viewable canvas. | Touch pan threshold ($4\text{px}$); gloved touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); drawer minimizes to $36\text{px}$ peek tab. |
 | **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Canvas `CMP-01` occupies full width; LOTO Drawer `CMP-05` operates as **Bottom Sheet** docked at bottom, initializing at natural content height ($45\text{vh}$), expandable via drag handle to $85\text{vh}$. | Drag handle gesture support with hysteresis; mandatory discrete tap toggling between $45\text{vh}$ and $85\text{vh}$; sticky `[Start Work]` footer button always visible above viewport edge. |
 
 ---

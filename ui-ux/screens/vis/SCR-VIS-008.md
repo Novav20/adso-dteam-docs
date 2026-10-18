@@ -110,7 +110,7 @@ status: Stable
      `"SIMOPS Alert: 3 Permits lack spatial mapping. [View List] [Dismiss]"`
 4. **Explicit Operator Deployment & Tablet Physical Constraints:**
    * Tapping `[View List]` or the toolbar badge expands `CMP-07`.
-   * **Tablet Landscape ($1280 \times 800\text{ px}$):** `CMP-07` is constrained to a maximum width of **$\le 320\text{ px}$** (leaving $\ge 75\%$ of the map canvas visible).
+   * **Tablet Landscape ($1280 \times 800\text{ px}$):** `CMP-07` is constrained by `--dt-layout-drawer-width-tablet` (strictly preserving $\ge 75\%$ canvas visibility).
    * **Tablet Portrait ($800 \times 1280\text{ px}$):** `CMP-07` renders as a **Bottom Sheet** occupying **$\le 40\%$** vertical screen height.
    * Container toggling operates exclusively via **discrete single taps** on dedicated $48 \times 48\text{ px}$ handles (`--dt-touch-target-mobile` per [DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)). Continuous drag gestures are optional and never mandatory.
 5. Each orphan record presents: `Permit Identifier`, `Contractor`, `Expected TagNumber`, and the $48\text{px}$ `[Resolve Inconsistency]` button (`FR-186`), enabling the inspector to assign geometry or request spatial metadata updates.
@@ -173,7 +173,7 @@ Pages/
     ├── ViewportToolbar.razor                 # CMP-02: Floating navigation & layer bar
     ├── UserProfileButton.razor               # CMP-03: Top-left user profile indicator
     ├── PtwContextPopover.razor               # CMP-06: Compact permit popover card
-    ├── SimopsIntegrityDrawer.razor           # CMP-07: Visualization failures side drawer (<= 320px)
+    ├── SimopsIntegrityDrawer.razor           # CMP-07: Visualization failures side drawer (--dt-layout-drawer-width)
     ├── PtwFilterChips.razor                  # CMP-08: Bottom floating risk filter chips
     └── StaleCacheBanner.razor                # Diagnostic stale cache banner (AF-002)
 ```
@@ -401,8 +401,8 @@ public record PlantZoneDto
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full viewport. Floating pill toolbar `CMP-02` displays uncompressed filter chips (`HOT_WORK`, `CONFINED_SPACE`, etc.) and fixed $144\text{px}$ badge. Non-modal integrity drawer `CMP-07` docks as lateral right panel ($440\text{px}$). | Mouse wheel focal zoom; middle-click canvas pan; cursor tooltips enabled on hover; popover cards `CMP-06` clamp within viewport bounds. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Canvas `CMP-01` full screen. Toolbar `CMP-02` applies adaptive badge condensation, collapsing individual text chips into a single filter dropdown trigger. Integrity drawer `CMP-07` slides over right flank ($\le 320\text{px}$, leaving $\ge 75\%$ canvas visible). | Touch pan threshold ($4\text{px}$); touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); hover tooltips disabled, direct tap opens popover card. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full viewport. Floating pill toolbar `CMP-02` displays uncompressed filter chips (`HOT_WORK`, `CONFINED_SPACE`, etc.) and fixed $144\text{px}$ badge. Non-modal integrity drawer `CMP-07` docks as lateral right panel (sized by `--dt-layout-drawer-width-desktop`). | Mouse wheel focal zoom; middle-click canvas pan; cursor tooltips enabled on hover; popover cards `CMP-06` clamp within viewport bounds. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Canvas `CMP-01` full screen. Toolbar `CMP-02` applies adaptive badge condensation, collapsing individual text chips into a single filter dropdown trigger. Integrity drawer `CMP-07` slides over right flank (sized by `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 75\%$ canvas visibility). | Touch pan threshold ($4\text{px}$); touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); hover tooltips disabled, direct tap opens popover card. |
 | **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Canvas `CMP-01` full screen. Toolbar `CMP-02` wraps to compact icon-only controls. Integrity drawer `CMP-07` operates as a bottom sheet with tactile drag handle ($\le 40\%$ vertical height). | Single-finger drag pan; pinch-to-zoom; bottom-sheet snap mechanics; floating HUD elements dock to lower corners. |
 
 ---
