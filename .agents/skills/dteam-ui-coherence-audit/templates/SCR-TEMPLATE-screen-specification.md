@@ -129,7 +129,7 @@ public record ScreenDataDto
 | :--- | :--- | :--- |
 | **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Full horizontal layout; lateral docked panels. | Mouse wheel focal zoom; middle-click pan; dense dual-column data inspection. |
 | **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Split canvas and side panel layout. | Touch pan threshold ($4\text{px}$); gloved touch targets $\ge 48\text{px}$. |
-| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $768\times 1024\text{px}$) | Vertical stacked layout; bottom sheet drawer. | Drag handle gesture mechanics; sticky action buttons. |
+| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Vertical stacked layout; bottom sheet drawer. | Drag handle gesture mechanics; sticky action buttons. |
 
 ---
 

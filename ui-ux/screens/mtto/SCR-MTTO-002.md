@@ -461,7 +461,7 @@ public record MediaAttachmentDto
 | :--- | :--- | :--- |
 | **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Dual-column side-by-side layout ($50\% / 50\%$). Left: Scope, Spares, and Multimedia. Right: Full ISO 14224 Taxonomy Matrix and audit logs. Sticky footer spans bottom width. | Mouse click focus; keyboard numeric navigation; dense multi-tier dropdown grids; full-resolution image preview modal. |
 | **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Asymmetric dual-column layout ($45\% / 55\%$). Segmented tab bar `CMP-02` allows grouped inspection. Sticky footer `CMP-09` pinned at bottom. | Gloved touch targets $\ge 48\times 48\text{px}$; scrollable taxonomy matrix; camera trigger anchored for dual-thumb reachability. |
-| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $768\times 1024\text{px}$) | Single-column stacked layout. Segmented tab bar `CMP-02` hosts swipeable tab views. Form items span full width ($100\%$). Action bar `CMP-09` sticky at bottom ($72\text{px}$). | Large touch input fields; single-hand thumb navigation; sticky ISO lock completeness meter pinned above action button. |
+| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Single-column stacked layout. Segmented tab bar `CMP-02` hosts swipeable tab views. Form items span full width ($100\%$). Action bar `CMP-09` sticky at bottom ($72\text{px}$). | Large touch input fields; single-hand thumb navigation; sticky ISO lock completeness meter pinned above action button. |
 
 ---
 

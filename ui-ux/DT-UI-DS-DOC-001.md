@@ -63,7 +63,7 @@ The designs and responsive adaptation rules in CSS are calibrated against the fo
 | Breakpoint Token | Min Width (px) | Base Canvas Dimensions (W x H) | Aspect Ratio | Reference Device | Layout and Container Disposition |
 | :------------------ | :---------------: | :-----------------------------: | :-----------------: | :--------------------------------------------------- | :--------------------------------------------- |
 | --dt-breakpoint-sm  |       390px       |          390 x 844 px           |      $9:19.5$       | Vertical Smartphone (iOS / Android)                  | 1 column; bottom bar navigation.      |
-| --dt-breakpoint-md  |       768px       |          768 x 1024 px          |        $3:4$        | Vertical Tablet / Industrial Collector                | 1 to 2 columns; collapsible drawer.             |
+| --dt-breakpoint-md  |       768px       |          800 x 1280 px          |       $10:16$       | **Industrial Tablet Portrait (Zebra ET51 / Honeywell RT10A)** | 1 to 2 columns; collapsible drawer / bottom sheet. |
 | --dt-breakpoint-lg  |      1280px       |          1280 x 800 px          |       $16:10$       | **Industrial Tablet (Zebra ET51 / Honeywell RT10A)** | 2 columns (SVG Canvas + Contextual panel).    |
 | --dt-breakpoint-xl  |      1920px       |         1920 x 1080 px          |       $16:9$        | Desktop Workstation (Full HD)                | 3 columns (Sidebar + Central Panel + Drawer). |
 
