@@ -14,7 +14,7 @@ user_stories:
   - "[[VIS-033]]"
 use_cases:
   - "[[UC-VIS-033]]"
-version: 1.9
+version: 2.0
 date: 2026-10-18
 status: Stable
 ---
@@ -74,7 +74,7 @@ status: Stable
 ### 5.1. Initial Load
 1. The system retrieves the vector map corresponding to the functional location and renders the base canvas.
 2. Interactive graphic nodes are bidirectionally linked with the registered equipment entities (FR-599).
-3. The map is initialized centered on its Level 1 macro view (`L1: Terminal`) with bounded pan limits ($X \in [280, 1670]$, $Y \in [225, 1330]$), no equipment hotspot is selected, and `CMP-05` resides in its closed state without visual intrusion over the cartographic HUD.
+3. The map is initialized centered on its Level 1 macro view (`L1: Terminal`) with pan limits bounded to the calibrated SVG viewBox operational boundaries, no equipment hotspot is selected, and `CMP-05` resides in its closed state without visual intrusion over the cartographic HUD.
 
 ### 5.2. Spatial Navigation and Mobile Ergonomics
 1. **Dual-Modality Continuous Panning:**
@@ -99,10 +99,10 @@ status: Stable
    - **Smooth Minimize Transition:** Pulling downward firmly past the minimize threshold ($> 100\text{px}$ pull or height $< 260\text{px}$) smoothly translates the container into the docked peek tab ($36\text{px}$) without upward bounce or layout oscillation.
    - **Discrete Tap Navigation:** A single tap on the drag handle or protruding peek tab toggles between the natural height and the docked minimized state. Re-selecting an asset from the canvas always resets the faceplate to its natural height.
 9. **Cartographic HUD Dynamic Synchronization:**
-   - The orientation compass and adaptive metric scale bar are rendered as non-intrusive floating HUD elements docked at the bottom-left corner (`bottom: 12px; left: 12px;` and `left: 56px; bottom: 12px;`).
+   - The orientation compass and adaptive metric scale bar are rendered as non-intrusive floating HUD elements docked at the bottom-left margin of the viewport per layout grid rules.
    - The compass is a circular $36\text{px}$ indicator (`--dt-radius-full`). The scale ruler dynamically calculates metric distance against the SVG calibration vector, choosing standard metric denominations ($10\text{m}, 20\text{m}, 50\text{m}, 100\text{m}$) and resizing the visual ruler bar with zero latency during pan and zoom gestures.
 10. **Toolbar Level Badge Fixed Width Invariant:**
-   - The Level Badge element within `CMP-02` enforces a strict fixed width of $144\text{px}$ (`flex: 0 0 144px; text-overflow: ellipsis;`) to eliminate horizontal layout shifts when transitioning between semantic zoom levels (`L1: Terminal`, `L2: Process Area`, `L3: Equipment`).
+   - The Level Badge element within `CMP-02` enforces a strict fixed width invariant of $144\text{px}$ with text truncation to eliminate horizontal layout shifts when transitioning between semantic zoom levels (`L1: Terminal`, `L2: Process Area`, `L3: Equipment`).
   
 ### 5.3. Inspection and Telemetry
 1. Selecting an asset on the map invokes the opening of `CMP-05` and real-time subscription to the equipment's telemetry channel.
@@ -111,7 +111,7 @@ status: Stable
 4. **Diagnostic Connection Resilience:** If the component detects a violation of the *Heartbeat* threshold or receives a packet with "Bad" quality ([DT-ARQ-DEP-DOC-001](../../../architecture/views/DT-ARQ-DEP-DOC-001.md)), it immediately transitions to the "Telemetry Loss" state using Priority 4 Diagnostic coding, preventing the generation of misleading process alarms:
    - Displays the top contextual diagnostic banner: *"Stale data. Connection interrupted at HH:mm:ss UTC"* (runtime presentation localized per [ADR-009](../../../architecture/adr/ADR-009.md)) occupying a fixed slot of $28\text{px}$ with a compact $14\times 14\text{px}$ diagnostic icon, eliminating vertical layout shift on the underlying MAI cards.
    - Transmutes the MAI safe operating zone to a deactivated slate grayish-blue (`--dt-color-mai-stale-zone` / `--dt-color-mai-stale-zone-border`), visually presenting the instrument as inactive/disabled without triggering process alarm colors.
-   - Attenuates live values to muted italic typography (`--dt-color-text-muted`), pointer border to `--dt-color-mai-stale-zone-border`, and hides active alarm badges with layout box preservation (`visibility: hidden`).
+   - Attenuates live values to muted italic typography (`--dt-color-text-muted`), pointer border to `--dt-color-mai-stale-zone-border`, and hides active alarm badges while preserving their allocated layout dimensions to prevent layout shifts.
 5. **Level 4 Drill-Down:** Deep master data (catalogs, specifications) and historical work order archives are deferred to full-screen views triggered via `CMP-09`.
 
 ---
@@ -133,6 +133,7 @@ status: Stable
 ```text
 Pages/
 └── AssetInspectionPage.razor                 # Root View (SCR-VIS-033)
+    ├── UserProfileButton.razor               # CMP-11: User session indicator
     ├── CanvasViewport2D.razor                # CMP-01: Vector map with zoom/pan
     ├── ViewportToolbar.razor                 # CMP-02: Unified floating navigation pill
     │   └── CommandPaletteTrigger.razor       # CMP-03: Fuzzy tag search trigger
@@ -146,7 +147,16 @@ Pages/
 
 ### 7.2. Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)
 
-#### 7.2.1. `CanvasViewport2D.razor` (`CMP-01`)
+#### 7.2.1. `AssetInspectionPage.razor` (Root View)
+```csharp
+[Parameter]
+public string? FunctionalLocationCode { get; set; }
+
+[Parameter]
+public string? InitialEquipmentTag { get; set; }
+```
+
+#### 7.2.2. `CanvasViewport2D.razor` (`CMP-01`)
 ```csharp
 [Parameter]
 public required string FunctionalLocationCode { get; set; }
@@ -164,7 +174,7 @@ public IReadOnlyDictionary<string, OperationalStatus> EquipmentStatuses { get; s
 public EventCallback<string> OnEquipmentSelected { get; set; }
 ```
 
-#### 7.2.2. `AssetTaskFaceplate.razor` (`CMP-05`)
+#### 7.2.3. `AssetTaskFaceplate.razor` (`CMP-05`)
 ```csharp
 [Parameter]
 public required EquipmentFaceplateDto FaceplateData { get; set; }
@@ -179,7 +189,7 @@ public EventCallback<bool> OnCollapseToggled { get; set; }
 public EventCallback<string> OnDrillDownRequested { get; set; }
 ```
 
-#### 7.2.3. Subcomponent Parameters (`CMP-06` to `CMP-10`)
+#### 7.2.4. Subcomponent Parameters (`CMP-06` to `CMP-10`)
 ```csharp
 // CMP-06: AssetHeaderBlock.razor
 [Parameter]
@@ -205,7 +215,7 @@ public required string TagNumber { get; set; }
 public EventCallback<string> OnActionTriggered { get; set; }
 ```
 
-#### 7.2.4. Data Transfer Objects (DTOs)
+#### 7.2.5. Data Transfer Objects (DTOs)
 ```csharp
 public record EquipmentFaceplateDto
 {
@@ -263,7 +273,7 @@ public record ActiveWorkOrderSummaryDto
 2. **Context Drawer Touch Gesture Interop (`IDrawerGestureInterop`):**
    * Manages pointer capture on the upper tactile drag handle, continuous height dragging ($160\text{px}$ to $85\text{vh}$), hysteresis snap thresholds, and single-tap height toggling.
 3. **Semantic Selection:**
-   * Hotspots in SVG declare standardized data attributes and identifier bindings matching the ISO 14224 Level 6 `TagNumber` (e.g., `<g id="tag-P-101" data-equip-id="{Guid}">`).
+   * Hotspots in the SVG declare standardized data attributes (`data-equip-id`, `data-tag`) matching the ISO 14224 Level 6 Equipment Unit metadata.
    * Clicking or tapping an SVG node dispatches the `OnEquipmentSelected(tagNumber)` callback. Stationary taps are disambiguated from canvas drags, suppressing selection if drag displacement exceeded the $4\text{px}$ tactile threshold.
 
 ---
@@ -283,12 +293,12 @@ public record ActiveWorkOrderSummaryDto
 | Requirement | Addressed in Component | Verification & Implementation Mechanism |
 | :--- | :--- | :--- |
 | [FR-598](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-01` | Renders 2D vector plans ensuring interactive compatibility (panning and selection) across mobile tablets and desktop workstations. |
-| [FR-599](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-01`, `CMP-04` | Bidirectionally links SVG graphic elements (`id="tag-{TagNumber}"`) with physical Equipment Unit records in the master catalog. |
+| [FR-599](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-01`, `CMP-04` | Bidirectionally links SVG graphic nodes (`data-tag`, `data-equip-id`) with physical Equipment Unit records in the master catalog. |
 | [FR-600](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-05`, `CMP-06` | Selecting a mapped geometry deploys contextual faceplate displaying Tag Number, Operational Status, Criticality, and telemetry. |
 | [FR-601](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-07` | Contextual panel presents real-time Moving Analog Indicators (MAI) updated dynamically via SignalR telemetry streams. |
 | [FR-602](../../../requirements/user-stories/vis/VIS-033.md#functional-requirements-fr) | `CMP-01`, `CMP-04`, `CMP-07` | Implements ANSI/ISA-101 HPHMI: neutral grayscale baseline, reserving saturated colors strictly for alarms with redundant shape coding. |
 | [NFR-603](../../../requirements/user-stories/vis/VIS-033.md#non-functional-requirements-nfr) | `CMP-01` | Initial load of vector plan and asset mapping completes in $< 2\text{s}$ over standard industrial network conditions. |
 | [NFR-604](../../../requirements/user-stories/vis/VIS-033.md#non-functional-requirements-nfr) | `CMP-07` | Telemetry readings update and reflect in the contextual faceplate in $< 1\text{s}$ from data reception at the server ([TR-010](../../../requirements/common/TR-010.md)). |
 | [NFR-605](../../../requirements/user-stories/vis/VIS-033.md#non-functional-requirements-nfr) | `CMP-01` | Vector rendering engine maintains $\ge 30\text{ FPS}$ during continuous map panning and zooming on mobile tablets ($\ge 60\text{ FPS}$ on desktop). |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-05`, `CMP-09`, `CMP-11` | All interactive touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`) for gloved field operation; SignalR WebSocket transport. |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-02`, `CMP-05`, `CMP-09`, `CMP-11` | All interactive touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`) for gloved field operation; SignalR WebSocket transport. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-04`, `CMP-07` | High-Performance HMI philosophy: eliminates green for normal status, applies Priority 4 Diagnostic coding for telemetry loss. |
