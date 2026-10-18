@@ -72,6 +72,7 @@ status: Draft | In Review | Approved
 ### 5.3. Domain Workflows & Telemetry
 1. Real-time subscription, debouncing, and payload mapping rules.
 2. State validation, business rule evaluation, and fail-safe handling.
+3. Command dispatch contracts (API endpoint, typed DTO payload, idempotency headers, and HTTP response handling). Avoid detailing backend SQL/database transaction orchestration steps.
 
 ---
 
@@ -116,8 +117,9 @@ public record ScreenDataDto
 ```
 
 ### 7.3. Client-Side DOM & Interop Bridge
-1. **Pointer & Viewport Tracking:** Client-side JavaScript interop for performance-critical gestures and matrix transforms.
+1. **Pointer & Viewport Tracking (`IPointerInterop`):** Architectural boundary for client-side JavaScript interop handling performance-critical gestures and matrix transforms.
 2. **Event Throttling & Debouncing:** Policies preventing network saturation during continuous manipulations.
+3. **Encrypted Offline Storage (`IOfflineStorage`):** Interop interface for local encrypted cache and transactional outbox queuing.
 
 ---
 

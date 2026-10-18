@@ -124,6 +124,13 @@ All screen specifications must strictly align with the canonical standard define
    * Must be written in 100% Technical English. **[FAIL]** if Spanish words, accents, or untranslated domain phrases are present.
    * Must maintain concise, senior engineering tone without parenthetical filler, conversational fluff, or premature design rationales.
 
+8. **Implementation Leak Prevention (Architectural Abstraction):**
+   * Screen specifications govern presentation behavior, ergonomic targets, client quality gates, and data contracts. They must remain strictly decoupled from backend persistence internals and transient frontend prototype artifacts:
+     * **[FAIL] Prototype CSS Artifacts:** Specification text (especially in §3, §5, and §6) must not reference HTML/CSS prototype class names (e.g., `.scope-timing-cards-grid`, `.btn-evidence-primary`, `.evidence-dropzone`, `.labor-timing-grid`). Layout and styling must be expressed strictly in terms of Blazor subcomponents and Design System semantic tokens (`tokens.css`).
+     * **[FAIL] Backend Database Transaction Orchestration:** In §5.3, the specification must declare the client command dispatch contract (`SubmitCommand`, endpoint, payload DTO, `X-Idempotency-Key`, HTTP 200 vs. offline/error handling). It is strictly forbidden from detailing backend SQL transactions, multi-table insert/update sequences (e.g., `INSERT INTO failure_records... UPDATE work_orders...`), or database index mechanics (e.g., GIN indexing in `adm.audit_logs`), which belong exclusively to `DT-ARQ-DB-DOC-001`.
+     * **[FAIL] Direct DB Writes in UI Workflows:** Workflows must describe data encapsulation into typed DTOs/commands, not direct database column mutations (e.g., *"stores metadata in `mtto.media_attachments: file_url, ...`"*).
+     * **[FAIL] Low-Level Runtime & Package Coupling:** Section 7.3 must define capability interfaces (`ICameraInterop`, `ICryptoInterop`, `IOfflineStorage`) rather than concrete JavaScript API call snippets (e.g., `SubtleCrypto.digest(...)`) or third-party NuGet package names (e.g., `sqlite-net-pcl`).
+
 ---
 
 ### Step 5: Audit Report Generation & Persistence
