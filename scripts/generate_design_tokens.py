@@ -150,6 +150,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     spacing = table_for(tables, "Spacing Scale", "CSS Token")
     controls = table_for(tables, "Dimensions of Controls", "Control Token")
     breakpoints = table_for(tables, "Responsive Breakpoints", "Breakpoint Token")
+    layout = table_for(tables, "Structural Layout and Drawer Dimensions", "Layout Token")
     primitives = table_for(tables, "Primitive Palette", "Primitive Token")
     semantic = table_for(tables, "Semantic Tokens", "Semantic Token")
     alarms = table_for(tables, "Alarm and Safety Semantics", "State / Severity")
@@ -193,6 +194,9 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         [
             "",
             *emit_table_tokens(breakpoints),
+            "",
+            "  /* Structural layout and drawer dimensions */",
+            *emit_table_tokens(layout),
             "",
             "  /* Typography */",
             f"  --dt-font-family-base: {css_value(font_base_css)};",
@@ -252,6 +256,17 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             _, token, dark, _ = row[:4]
             lines.append(f"  {token}: {semantic_value(dark)};")
     lines.extend(["}", ""])
+    lines.extend(
+        [
+            "/* Responsive layout overrides */",
+            "@media (min-width: 1920px) {",
+            "  :root {",
+            "    --dt-layout-drawer-width: var(--dt-layout-drawer-width-desktop);",
+            "  }",
+            "}",
+            "",
+        ]
+    )
 
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines), encoding="utf-8")
@@ -312,6 +327,18 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
                 css_value(row[1]), "dimension"
             )
+    for row in layout:
+        if row and row[0].startswith("--dt-"):
+            val = css_value(row[1])
+            if val.startswith("var(--dt-"):
+                ref = "{" + val.removeprefix("var(--dt-").removesuffix(")") + "}"
+                penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
+                    ref, "dimension"
+                )
+            else:
+                penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
+                    val, "dimension"
+                )
     for row in radii:
         if row and row[0].startswith("--dt-radius-"):
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(

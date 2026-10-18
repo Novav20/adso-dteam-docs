@@ -138,7 +138,7 @@ status: Stable
    * Supports an array of $0..N$ attachments (`List<MediaAttachmentDto>` per [DT-ERD-DOC-001 §3.2.4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#324-media_attachments)):
      1. Displays a reserved dashed dropzone container as empty-state placeholder with direct camera trigger.
      2. Capturing photo via hardware camera or file picker downsamples image to maximum $1920\times 1080$ JPEG format (quality 0.85) to optimize offline storage footprint.
-     3. Computes cryptographic checksum asynchronously in a Web Worker using the HTML5 Web Crypto API (SHA-256).
+     3. Computes cryptographic checksum asynchronously in a Web Worker via ICryptoInterop (SHA-256).
      4. Renders individual gallery cards displaying image thumbnail ($120\times 120\text{px}$), metadata, delete trigger, and verified monospace hash stamp (`SHA-256: [hash]`).
      5. Packages validated media items into `MediaAttachmentDto` records linking image URI, file format, timestamp, and hash string to the failure record context.
      6. If file reading throws an I/O error or hash evaluation fails, the UI enters state `Evidence Corrupt` (`AF-003`), halts finalization, and forces recapture.
@@ -222,7 +222,7 @@ public string? ReturnUrl { get; set; }
 #### 7.2.2. Subcomponent Parameters
 
 ```csharp
-// CMP-01: MobileWorkOrderHeader.razor
+// CMP-01: ExecutionHeader.razor
 [Parameter, EditorRequired]
 public required WorkOrderClosingContextDto Context { get; set; }
 
@@ -232,7 +232,7 @@ public bool IsOffline { get; set; }
 [Parameter]
 public int PendingSyncCount { get; set; }
 
-// CMP-02: WorkOrderTabStrip.razor
+// CMP-02: OperationalTabsBar.razor
 [Parameter, EditorRequired]
 public required int ActiveTabIndex { get; set; }
 
@@ -251,7 +251,7 @@ public int CompletedIsoTiers { get; set; }
 [Parameter]
 public int AttachmentCount { get; set; }
 
-// CMP-03: WorkOrderScopeExecutionTab.razor
+// CMP-03: ScopeExecutionTab.razor
 [Parameter, EditorRequired]
 public required IReadOnlyList<ScopeTaskItemDto> Tasks { get; set; }
 
@@ -267,7 +267,7 @@ public EventCallback<decimal> ActualLaborHoursChanged { get; set; }
 [Parameter]
 public decimal PlannedLaborHours { get; set; }
 
-// CMP-04: MaterialSparesInventoryTab.razor
+// CMP-04: SparesAllocationTab.razor
 [Parameter, EditorRequired]
 public required IReadOnlyList<SparePartAllocationDto> SpareParts { get; set; }
 
@@ -358,36 +358,36 @@ public string? LotoTagReference { get; set; }
 ```csharp
 public enum DetectionMethod
 {
-    PeriodicMaintenance,
-    FunctionalTesting,
-    Inspection,
-    PeriodicCbm,
-    PressureTesting,
-    ContinuousCbm,
-    ProductionInterference,
-    CasualObservation,
-    CorrectiveMaintenance,
-    OnDemand,
-    Other
+    PERIODIC_MAINTENANCE,
+    FUNCTIONAL_TESTING,
+    INSPECTION,
+    PERIODIC_CBM,
+    PRESSURE_TESTING,
+    CONTINUOUS_CBM,
+    PRODUCTION_INTERFERENCE,
+    CASUAL_OBSERVATION,
+    CORRECTIVE_MAINTENANCE,
+    ON_DEMAND,
+    OTHER
 }
 
 public enum OperationalCondition
 {
-    Running,
-    StartUp,
-    RunDown,
-    HotStandby,
-    ColdStandby,
-    Idle,
-    Testing
+    RUNNING,
+    START_UP,
+    RUN_DOWN,
+    HOT_STANDBY,
+    COLD_STANDBY,
+    IDLE,
+    TESTING
 }
 
 public enum OperationalImpact
 {
-    ExtensiveStop,
-    StopAboveAcceptable,
-    StopBelowAcceptable,
-    StopMinor
+    EXTENSIVE_STOP,
+    STOP_ABOVE_ACCEPTABLE,
+    STOP_BELOW_ACCEPTABLE,
+    STOP_MINOR
 }
 
 public record WorkOrderClosingContextDto

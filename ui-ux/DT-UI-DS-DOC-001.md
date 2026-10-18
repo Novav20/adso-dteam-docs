@@ -67,6 +67,16 @@ The designs and responsive adaptation rules in CSS are calibrated against the fo
 | --dt-breakpoint-lg  |      1280px       |          1280 x 800 px          |       $16:10$       | **Industrial Tablet (Zebra ET51 / Honeywell RT10A)** | 2 columns (SVG Canvas + Contextual panel).    |
 | --dt-breakpoint-xl  |      1920px       |         1920 x 1080 px          |       $16:9$        | Desktop Workstation (Full HD)                | 3 columns (Sidebar + Central Panel + Drawer). |
 
+### 2.4. Structural Layout and Drawer Dimensions
+
+To guarantee predictability in responsive split-screen viewports across industrial field tablets and desktop workstations, lateral drawers and contextual inspection panels must adhere to normative dimensional constraints:
+
+| Layout Token | Value | Target Breakpoint / Context | Functional Justification |
+| :------------------------------- | :------------------------------------: | :----------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| --dt-layout-drawer-width-desktop | 440px | --dt-breakpoint-xl ($\ge 1920\text{px}$) | Fixed lateral inspection drawer on high-resolution monitors; preserves multi-column tabular visibility and backlog split views. |
+| --dt-layout-drawer-width-tablet | 320px | --dt-breakpoint-lg ($1280\text{px} - 1919\text{px}$) | Fixed contextual side panel on tablet landscape; strictly enforces $\ge 75\%$ viewport allocation ($960\text{px}$) for the 2D spatial Digital Twin canvas. |
+| --dt-layout-drawer-width | var(--dt-layout-drawer-width-tablet) | Responsive Semantic Base | Semantic drawer width variable; defaults to tablet dimension and dynamically resolves to `--dt-layout-drawer-width-desktop` on desktop displays ($\ge 1920\text{px}$). |
+
 ---
 
 ## 3. Color Tokens and Surfaces
@@ -269,6 +279,7 @@ In compliance with the principle of **Controllability** (ISO 9241-110:2020, Clau
 1. **Exclusive Gesture Prohibition:** It is forbidden to condition the deployment, collapse, or closure of a container exclusively to continuous drag or swipe gestures (*swipe/drag*).
 2. **Dedicated Physical Trigger:** Every container must integrate an explicit interactive element (handle or touch header) whose touch area dimensions inherit the `--dt-touch-target-mobile` token.
 3. **Discrete Switching:** A simple press (*tap*) on this element must sequentially toggle between the defined states for the component (Collapsed, Partial View, Expanded), guaranteeing operation without requiring fine motor skills.
+4. **Responsive Orientation Transition:** In tablet landscape (`--dt-breakpoint-lg`), sliding bottom sheets transition to fixed right-hand drawers sized by `--dt-layout-drawer-width`, preserving $\ge 75\%$ viewport allocation for the 2D spatial canvas.
 
 ### 6.4. Iconography and Redundant Symbology Standards
 

@@ -235,7 +235,7 @@ flowchart TD
 
 * **Activation Trigger:** Executed automatically before transitioning to the closing/execution screen ([SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)) or when attempting to change the order status to `IN_PROGRESS`.
 * **Lockout Conditions:**
-  1. Work Permit status (`WorkPermit.status`) other than `APPROVED`.
-  2. Presence of unverified isolation points (`is_isolated = FALSE` in the `WorkOrderIsolation` table).
+  1. Associated Work Permit status other than `APPROVED`.
+  2. Presence of unverified isolation cutoff points in the active LOTO Isolation Plan.
   3. Real-time telemetry reading above zero or network heartbeat loss (greater than 2 seconds) without a validated Cryptographic Manual Override.
 * **Screen Behavior:** Interrupts navigation and deploys a red blocking modal overlay (`--dt-color-alarm-critical`) at the maximum stacking level (`--dt-z-modal-fail-safe` = `1500`). This window is **non-dismissible**; it cannot be closed or bypassed via gestures or keyboard until the field safety conditions are physically rectified and verified by the system.

@@ -70,6 +70,21 @@
       "$type": "dimension",
       "$description": ""
     },
+    "layout-drawer-width-desktop": {
+      "$value": "440px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-drawer-width-tablet": {
+      "$value": "320px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-drawer-width": {
+      "$value": "{layout-drawer-width-tablet}",
+      "$type": "dimension",
+      "$description": ""
+    },
     "radius-none": {
       "$value": "0px",
       "$type": "borderRadius",

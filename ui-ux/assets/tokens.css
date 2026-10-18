@@ -66,6 +66,11 @@
   --dt-breakpoint-lg: 1280px;
   --dt-breakpoint-xl: 1920px;
 
+  /* Structural layout and drawer dimensions */
+  --dt-layout-drawer-width-desktop: 440px;
+  --dt-layout-drawer-width-tablet: 320px;
+  --dt-layout-drawer-width: var(--dt-layout-drawer-width-tablet);
+
   /* Typography */
   --dt-font-family-base: Segoe UI, Inter, Roboto, -apple-system, sans-serif;
   --dt-font-family-mono: Cascadia Code, SF Mono, Consolas, monospace;
@@ -182,4 +187,11 @@
   --dt-color-state-info: var(--dt-primitive-blue-450);
   --dt-color-state-success: var(--dt-primitive-teal-400);
   --dt-color-state-disabled: var(--dt-primitive-gray-580);
+}
+
+/* Responsive layout overrides */
+@media (min-width: 1920px) {
+  :root {
+    --dt-layout-drawer-width: var(--dt-layout-drawer-width-desktop);
+  }
 }
