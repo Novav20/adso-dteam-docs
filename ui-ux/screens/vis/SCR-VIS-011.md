@@ -13,9 +13,9 @@ user_stories:
   - "[[VIS-011]]"
 use_cases:
   - "[[UC-VIS-011]]"
-version: 1.2
-date: 2026-10-11
-status: In Review
+version: 1.3
+date: 2026-10-18
+status: Stable
 ---
 
 # SCR-VIS-011: LOTO Isolation Boundary Matrix and Zero Energy Verification (LOTO-TryOut)
@@ -75,7 +75,7 @@ status: In Review
 | **Work Order In Progress** | Header status badge reflects active execution (`IN_PROGRESS`). Primary button `CMP-09` transitions to `[Complete Work & De-isolate]` (`--dt-color-surface-raised`). Boundary route stays locked in slate dashed. | Technician activates `[Start Work]`. |
 | **Re-energization Emergency (AF-003)** | Full-screen non-interactive passive evacuation beacon deployed (`EvacuationBeaconOverlay.razor`). Touchscreen input completely locked out (zero buttons/dismissals to eliminate cognitive friction under acute threat per ISO 11064-5). Display flashes high-contrast diagonal red/black hazard stripes (`--dt-color-alarm-critical` at $2\text{Hz}$) with large-format imperative message: "⚡ DANGER: HAZARDOUS ENERGY BREACH — EVACUATE AREA IMMEDIATELY". Emits pulsed audio sweep alarm ($85\text{ dBA}$) via Web Audio API. Status badge changes to `[⚡ CRITICAL EVACUATION]`. Offending node and energy path flash critical red. | Telemetry detects hazardous energy flow ($V > 0\text{V}$ or $P > 0.5\text{psig}$) during active execution (`FR-232`, `AF-003`). |
 | **Disconnectivity / Fail-Safe (AF-002)** | Diagnostic banner `CMP-11` deployed at top of drawer (`--dt-color-surface-raised`, `--dt-color-text-muted`). If lease is valid: displays offline mode badge with countdown expiration timer. If lease is expired/missing: `CMP-09` renders locked glyph with fail-safe lockout notification. | Telemetry communication lost prior to work start (`ADR-006`, `NFR-238`). |
-| **Unmapped / Offline (Geometry Unresolved)** | Cutoff node on canvas displays neutral unmapped diagnostic pin glyph (`--dt-color-text-muted`). Drawer item shows informational fallback pill `[Coordinates Pending CAD Ingestion]`. Spatial pan-to-node disabled for unmapped point. | Cutoff point defined in work order isolation plan lacks valid coordinate mapping in `vis.mesh_mappings`. |
+| **Unmapped / Offline (Geometry Unresolved)** | Cutoff node on canvas displays neutral unmapped diagnostic pin glyph (`--dt-color-text-muted`). Drawer item shows informational fallback pill `[Coordinates Pending CAD Ingestion]`. Spatial pan-to-node disabled for unmapped point. | Cutoff point defined in work order isolation plan lacks valid coordinate mapping in spatial metadata repository (`MeshMapping`). |
 
 ---
 
@@ -90,7 +90,7 @@ sequenceDiagram
     participant UI as SCR-VIS-011 Interface
     participant IoT as Telemetry Service (IoT)
     participant SEC as Active Safety Interlock
-    participant DB as Audit Trail & Work Orders
+    participant API as Safety Application Service
 
     Tech->>UI: Opens "LOTO Route" from Work Order
     UI->>UI: Renders isolation boundary on SVG and initializes drawer (CMP-05)
@@ -99,10 +99,12 @@ sequenceDiagram
     UI->>UI: Maps readings to MAI scale bars (CMP-07)
     
     Tech->>UI: Inputs Padlock Tag IDs sequentially into CMP-06
-    UI->>DB: Updates vis.work_order_isolations (is_isolated = TRUE)
+    UI->>API: Dispatches ConfirmCutoffPointCommand(cutoffId, padlockTag)
+    API-->>UI: Isolation step confirmed & acknowledged
     
     Tech->>UI: Selects verification method, enters reading, signs Try-Out (CMP-08)
-    UI->>DB: Persists Try-Out attestation, signature hash, and sensor snapshot
+    UI->>API: Dispatches AttestTryOutCommand(attestationDto)
+    API-->>UI: Attestation & cryptographic hash registered
     
     alt Hazardous Energy Detected (> threshold)
         UI->>SEC: Maintains HARD LOCK (disabled="disabled")
@@ -110,14 +112,14 @@ sequenceDiagram
     else Zero Energy Corroborated & Try-Out Attested
         UI->>SEC: Enables [Start Work] control (CMP-09)
         Tech->>UI: Presses [Start Work]
-        UI->>DB: Logs immutable execution record with SHA-256 hash (TR-001)
-        UI->>DB: Transitions WorkOrder to IN_PROGRESS
+        UI->>API: Dispatches StartWorkOrderExecutionCommand(workOrderId)
+        API-->>UI: WorkOrder transitioned to IN_PROGRESS (TR-001 audit logged)
         UI->>IoT: Initiates continuous 2s background monitoring (FR-232)
     end
 
     opt Re-energization Breach during Execution (AF-003)
         IoT-->>UI: Energy surge detected (V > 0V or P > 0.5psig)
-        UI->>DB: Invokes WorkOrder.SuspendExecution(reason) -> SUSPENDED
+        UI->>API: Dispatches SuspendWorkOrderExecutionCommand(workOrderId, reason)
         UI->>UI: Deploys non-interactive emergency beacon (touch locked out)
         UI->>Tech: Emits 85 dBA audio sweep & visual strobe alarm (AF-003)
     end
@@ -125,13 +127,13 @@ sequenceDiagram
 
 1. **Initial View State & Unselected Baseline:**
    * Upon activation from a Work Order or [SCR-VIS-033](./SCR-VIS-033.md), the canvas view centers the target Equipment Unit (`data-equip-id`) at baseline zoom factor $s = 1.0$.
-   * Non-isolated plant equipment elements have opacity reduced to $0.25$ via the `.de-emphasized-zone` CSS class (Focal Island De-emphasis).
+   * Non-isolated plant equipment elements have opacity reduced to $0.25$ via design system de-emphasis token (`--dt-opacity-de-emphasized`) (Focal Island De-emphasis).
    * LOTO vector overlay path is rendered in solid red (`--dt-color-alarm-critical`) with width $3\text{px}$, indicating active hazardous energy.
    * Drawer `CMP-05` initializes in baseline state with checklist step 1 highlighted and Try-Out card disabled.
 
 2. **Data Subscriptions & Cache Initialization:**
    * Establishes real-time duplex WebSocket stream via SignalR (`/hubs/telemetry`) subscribing to sensor topics corresponding to `CutoffPoints.Select(c => c.SensorTopic)`.
-   * Queries local secure storage (`sqlite-net-pcl` on tablets, IndexedDB in desktop browsers) for an active `CryptographicOfflineLeaseDto` issued to the device (`TR-006`).
+   * Queries local secure storage (`ISecureStorage` / `IOfflineStorage`) for an active `CryptographicOfflineLeaseDto` issued to the device (`TR-006`).
 
 ### 5.2. Spatial Navigation & Tactile Mechanics
 
@@ -167,7 +169,7 @@ sequenceDiagram
 6. **Overlay Drawer Lifecycle (Minimize vs. Deselect / Close Contract):**
    * Inheriting the canonical lifecycle contract defined in [SCR-VIS-033 §5.2.7](./SCR-VIS-033.md#52-spatial-navigation-and-mobile-ergonomics) and [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md):
      * **Minimization (Chevron Trigger / Tactical Pull-Down):** Retracts `CMP-05` to the edge boundary while preserving an exposed protruding peek tab ($36\text{px}$) that facilitates immediate re-expansion. The active equipment selection halo, active checklist cursor, and real-time SignalR telemetry subscriptions are strictly retained in memory.
-     * **Explicit Dismissal / Deselection (Close 'X' Button):** Fully closes and dismisses `CMP-05` (`.drawer-panel.collapsed.closed`), completely suppressing the floating peek trigger (`display: none !important`). Clears equipment selection halo and cutoff hotspot focus (`.selected`) on the SVG canvas, returning the viewport to the neutral macro supervisory baseline.
+     * **Explicit Dismissal / Deselection (Close 'X' Button):** Fully closes and dismisses `CMP-05` (setting `IsCollapsed = true` and `IsClosed = true`), completely suppressing the floating peek trigger (`display: none !important`). Clears equipment selection halo and cutoff hotspot focus on the SVG canvas, returning the viewport to the neutral macro supervisory baseline.
 
 ### 5.3. Domain Workflows, Interlocks, and Telemetry
 
@@ -175,7 +177,7 @@ sequenceDiagram
    * Checklist `CMP-06` enforces strict thermodynamic and procedural sequencing:
      $$\text{Electrical Cutoff} \longrightarrow \text{Mechanical Upstream Isolation} \longrightarrow \text{Mechanical Downstream Isolation} \longrightarrow \text{Bleed / Venting}$$
    * Physical Padlock Tag IDs must conform to regex mask `^PAD-[A-Z0-9]{4,8}$` or be captured via NFC / barcode scan.
-   * Step $N+1$ cannot be confirmed until Step $N$ is marked and verified. Upon step verification, the system writes `is_isolated = TRUE`, `isolated_at = NOW()`, and `padlock_tag_id` to `vis.work_order_isolations`.
+   * Step $N+1$ cannot be confirmed until Step $N$ is marked and verified. Upon step verification, the client dispatches `ConfirmCutoffPointCommand` encapsulating `CutoffNodeId`, `PadlockTagId`, and UTC timestamp to the application service.
 
 2. **Moving Analog Indicator (MAI) Zero-Energy Verification (`CMP-07`):**
    * Continuous telemetry variables ($V, I, P, Q$) are rendered using Moving Analog Indicators (MAI) per `DT-UI-DS-DOC-001 §6.1` and ISA-101.
@@ -194,9 +196,9 @@ sequenceDiagram
      * **Observed Value / State Field:** Recorded field metric (e.g., `0.00 V`, `0.0 psig`, or `Zero Motion Confirmed`).
      * **Technician Attestation Signature:** Mandatory field technician cryptographic sign-off.
    * Upon attestation submission, the client captures:
-     * Digital signature hash: SHA-256 HMAC generated from technician ID, timestamp, and local authentication token (`adm.audit_logs`).
-     * Telemetry verification snapshot: JSONB payload capturing instantaneous sensor values across all cutoff points at attestation time.
-   * Persisted directly to `vis.work_order_isolations` (`try_out_confirmed = TRUE`, `try_out_at = NOW()`, `signature_hash = ...`, `telemetry_snapshot = ...`). Transaction is mirrored to `adm.audit_logs` with SHA-256 hash chaining (`TR-001`).
+     * Digital signature hash: SHA-256 HMAC generated from technician ID, timestamp, and local authentication token.
+     * Telemetry verification snapshot: Structured payload capturing instantaneous sensor values across all cutoff points at attestation time.
+   * Encapsulated into `AttestTryOutCommand` containing `PhysicalVerificationMethod`, `ObservedValue`, `TechnicianSignatureHash`, and `TelemetrySnapshot`. The application service processes the command, updating isolation state and appending an immutable audit record with SHA-256 hash chaining (`TR-001`).
 
 4. **Active Safety Interlock Logic (`NFR-229`, `FR-230`):**
    * Work initiation button `CMP-09` `[Start Work]` is governed by asymmetric Boolean interlock logic:
@@ -207,7 +209,7 @@ sequenceDiagram
 5. **Continuous In-Execution Monitoring & Auto-Suspension (`FR-232`, `AF-003`):**
    * While the Work Order is `IN_PROGRESS`, background telemetry polling continues at $2\text{s}$ intervals.
    * If hazardous energy flow ($V > 0.0\text{V}$ or $P > 0.5\text{psig}$) is detected on any cutoff sensor during execution, the system immediately trips the emergency safety protocol:
-     1. Invokes domain method `WorkOrder.SuspendExecution("Re-energization safety breach detected")`, transitioning `mtto.work_orders.current_status` to `SUSPENDED` (conforming to `ck_work_orders_current_status` in `DT-ERD-DOC-001`).
+     1. Invokes domain method `WorkOrder.SuspendExecution("Re-energization safety breach detected")`, transitioning `WorkOrder.Status` to `SUSPENDED` per domain lifecycle invariants (`DT-DM-DOC-001`).
      2. Deploys a **non-interactive passive evacuation beacon overlay** (`EvacuationBeaconOverlay.razor`). All touchscreen/mouse interactions are completely locked out (zero confirmation buttons or dismiss controls) to eliminate cognitive friction, panic freezing, or dangerous attempts to acknowledge/interact with the tablet under acute life-threatening stress (ISO 11064-5).
      3. The tablet screen strobes high-contrast diagonal safety hazard stripes (alternating `--dt-color-alarm-critical` and `#000000` at $2\text{Hz}$) displaying large-format typography: `⚡ DANGER: HAZARDOUS ENERGY BREACH — EVACUATE AREA IMMEDIATELY`.
      4. Triggers an autonomous pulsed audio frequency sweep ($800\text{Hz} - 1200\text{Hz}$ at peak device volume, calibrated to $\approx 85\text{ dBA}$) via the HTML5 Web Audio API.
@@ -447,11 +449,17 @@ public enum PhysicalVerificationMethod
 ```
 
 ### 7.3. Client-Side DOM & Interop Bridge
-1. **Dynamic Energy Path & Route Rendering:** Interop module manipulating SVG path stroke attributes (red solid for active hazardous energy vs. slate dashed for confirmed isolated lines), updating segment classes in real time without triggering full SVG re-parsing or DOM thrashing.
-2. **Cutoff Node Hotspot Binding:** Direct client-side event binding on `<g id="cutoff-{nodeId}">` SVG elements. Disambiguates canvas middle-click dragging from discrete touch taps on cutoff nodes, highlighting corresponding checklist steps in `CMP-06` and MAI cards in `CMP-07`.
-3. **JavaScript Interop for Canvas Gestures & Tactile Mechanics (`lotoCanvasInterop.js`):** Client-side gesture engine tracking PointerEvents for continuous panning and zooming. Applies the $4\text{px}$ threshold filter before initiating pan, calculates focal zoom matrix transforms, enforces viewport bounding box clamping ($X \in [280, 1670]$, $Y \in [225, 1330]$), and binds discrete tap toggling to the bottom sheet handle.
-4. **Client-Side Cryptographic Lease & Offline Outbox Interop (`ADR-006`, `TR-007`):** Local evaluation of offline cryptographic lease timestamp and AES-GCM token validity in client storage (`sqlite-net-pcl` / IndexedDB), locking or unlocking the `[Start Work]` action button in disconnected mode and queueing verified records to the transactional offline sync outbox without requiring server roundtrip latency.
-5. **Non-Interactive Evacuation Strobe & Audio Sweep Engine (`AF-003`, `EvacuationBeaconOverlay.razor`):** Client-side audio synthesizer leveraging Web Audio API `AudioContext` (`OscillatorNode` linear frequency sweep from $800\text{Hz}$ to $1200\text{Hz}$ at $2\text{Hz}$ modulation frequency). Traps all DOM pointer and keyboard events (`pointerdown`, `keydown`, `touchstart` with `e.stopImmediatePropagation()` and `e.preventDefault()`), ensuring complete non-interactive passivity to enforce immediate field retreat without UI cognitive engagement.
+
+1. **SVG Viewport & LOTO Route Interop (`ILotoCanvasInterop`):**
+   * Manipulates SVG path stroke attributes (red solid for active hazardous energy vs. slate dashed for confirmed isolated lines) in real time without triggering full SVG re-parsing or DOM thrashing.
+   * Tracks PointerEvents for continuous panning and zooming, enforces the $4\text{px}$ tactile threshold filter, calculates focal zoom matrix transforms, and binds discrete tap toggling to the bottom sheet handle.
+2. **Cutoff Node Hotspot Binding:**
+   * Direct client-side event binding on `<g id="cutoff-{nodeId}">` SVG elements. Disambiguates canvas middle-click dragging from discrete touch taps on cutoff nodes, dispatching node selection to highlight corresponding checklist steps in `CMP-06` and MAI cards in `CMP-07`.
+3. **Encrypted Offline Storage & Lease Interop (`IOfflineStorage`):**
+   * Interfaces with client-side encrypted local storage (`TR-002`, `TR-006`, `TR-007`) for offline cryptographic lease evaluation (`ADR-006`) and immediate transactional outbox queuing of verification commands during network disconnections.
+4. **Emergency Evacuation Audio Interop (`IEvacuationAudioInterop`):**
+   * Client-side audio synthesizer leveraging HTML5 Web Audio API `AudioContext` (`OscillatorNode` linear frequency sweep from $800\text{Hz}$ to $1200\text{Hz}$ at $2\text{Hz}$ modulation frequency) calibrated to $\approx 85\text{ dBA}$.
+   * Traps all DOM pointer and keyboard events (`pointerdown`, `keydown`, `touchstart` with `stopImmediatePropagation()` and `preventDefault()`), ensuring complete non-interactive passivity during life-safety evacuation (`AF-003`).
 
 ---
 
@@ -479,7 +487,7 @@ public enum PhysicalVerificationMethod
 | [NFR-229](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-09` | ACTIVE LOCK: interface disables work initiation on active energy; cannot be bypassed on client. |
 | [NFR-233](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-07` | Telemetry processing and UI update latency $< 1\text{s}$ via SignalR WebSocket stream. |
 | [NFR-234](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-09` | Fail-safe design: uncertain energy status assumes hazardous condition and maintains lock. |
-| [NFR-235](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-05`, `CMP-09` | Transactional synchronization with central database (`vis.work_order_isolations`) upon isolation confirmation. |
+| [NFR-235](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-05`, `CMP-09` | Transactional synchronization via `ConfirmCutoffPointCommand` upon isolation confirmation. |
 | [NFR-236](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-01` | Fluid SVG rendering $\ge 30\text{ FPS}$ on tablets, $\ge 60\text{ FPS}$ on desktop workstations. |
 | [NFR-237](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-07` | Out-of-range sensor readings trigger automated pessimistic hazardous energy lock. |
 | [NFR-238](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-11` | Disconnectivity fail-safe: blocks initiation unless unexpired Cryptographic Offline Lease exists ([ADR-006](../../../architecture/adr/ADR-006.md)). |

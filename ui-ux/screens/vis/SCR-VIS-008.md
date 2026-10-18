@@ -12,9 +12,9 @@ user_stories:
   - "[[VIS-008]]"
 use_cases:
   - "[[UC-VIS-008]]"
-version: 1.2
-date: 2026-10-09
-status: In Review
+version: 1.3
+date: 2026-10-18
+status: Stable
 ---
 
 # SCR-VIS-008: General Plant Map with Work Permits Layer (SIMOPS)
@@ -408,9 +408,17 @@ public record PlantZoneDto
 }
 ```
 
-### 7.3. SVG DOM Interaction Bridge
-1. **Geometric Viewport Navigation:** Panning, dragging, and wheel zooming are handled client-side via SVG `viewBox` coordinates or a high-performance JavaScript interop wrapper ([ADR-001](../../../architecture/adr/ADR-001.md)), maintaining $\ge 30\text{ FPS}$ on tablets and $\ge 60\text{ FPS}$ on desktop (`NFR-190`).
-2. **Semantic Event Dispatching:** Hotspot groups in the SVG declare data attributes (`data-tag="P-101"`, `data-permit-id="uuid"`). Clicks on permit badges trigger the `OnPermitBadgeClicked(permitId)` callback. Clicks on equipment geometry outside active badges trigger `OnEquipmentSelected(tagNumber)`, invoking the [SCR-VIS-033](./SCR-VIS-033.md) Level 3 faceplate.
+### 7.3. Client-Side DOM & Interop Bridge
+
+1. **SVG Viewport Navigation Interop (`ISvgViewportInterop`):**
+   * Encapsulates client-side coordinate transformations, pointer capture, middle-click panning, tactile drag thresholding ($4\text{px}$), and focal mouse-wheel matrix evaluation ([ADR-001](../../../architecture/adr/ADR-001.md)).
+   * Maintains $\ge 30\text{ FPS}$ on tablets and $\ge 60\text{ FPS}$ on desktop consoles (`NFR-190`) without generating roundtrip network traffic.
+2. **SIMOPS Spatial & Proximity Engine (`ISimopsSpatialEngine`):**
+   * Computes Euclidean distance matrix ($D_{AB} < R_A + R_B$) and dynamic buffer geometries across active permits in client memory.
+   * Manages SVG layer rendering for hazard buffers and conflict diagonal hatching with `pointer-events: none` optimization.
+3. **Semantic Event Dispatching:**
+   * Hotspot groups in the SVG declare standardized data attributes (`data-tag="P-101"`, `data-permit-id="uuid"`).
+   * Direct clicks or taps on permit badges dispatch `OnPermitBadgeClicked(permitId)`. Taps on equipment geometry outside active badges dispatch `OnEquipmentSelected(tagNumber)`, invoking the [SCR-VIS-033](./SCR-VIS-033.md) Level 3 faceplate.
 
 ---
 

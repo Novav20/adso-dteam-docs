@@ -14,9 +14,9 @@ user_stories:
   - "[[VIS-033]]"
 use_cases:
   - "[[UC-VIS-033]]"
-version: 1.8
-date: 2026-10-10
-status: In Review
+version: 1.9
+date: 2026-10-18
+status: Stable
 ---
 
 # SCR-VIS-033: Asset Inspection on the 2D Base Map
@@ -255,10 +255,16 @@ public record ActiveWorkOrderSummaryDto
 }
 ```
 
-### 7.3. SVG DOM Interaction Bridge
-1. **Geometric Navigation (Panning & Zoom):** Encapsulated within a client-side viewport navigation interop module (Blazor JS Interop per [ADR-001](../../../architecture/adr/ADR-001.md)). Handles pointer tracking, middle-click panning, touch gesture thresholds ($4\text{px}$), focal mouse-wheel matrix transformations, and boundary-clamped popover positioning directly in the client runtime, eliminating SignalR roundtrip latency and avoiding network saturation.
-2. **Drawer Touch Physics & Gesture Bridge:** Client-side touch gesture handler managing pointer capture on the upper drag handle, height constraints (min $160\text{px}$, max $85\text{vh}$), snap thresholds, and single-tap collapse toggling.
-3. **Semantic Selection:** Hotspots in SVG share the exact `id` attribute matching the ISO 14224 Level 6 `TagNumber` (e.g., `<g id="tag-P-101" class="equipment-hotspot">`). Clicking or tapping an SVG node triggers the `OnEquipmentSelected(tagNumber)` callback. Stationary taps are disambiguated from canvas drags, suppressing selection if a drag motion exceeded the tactile threshold.
+### 7.3. Client-Side DOM & Interop Bridge
+
+1. **SVG Viewport Navigation Interop (`ISvgViewportInterop`):**
+   * Encapsulates client-side coordinate transformations, pointer capture, middle-click panning, tactile drag thresholding ($4\text{px}$), and focal mouse-wheel matrix evaluation ([ADR-001](../../../architecture/adr/ADR-001.md)).
+   * Executes smooth animated centering (`locateAssetOnMap`) to target equipment centroids $(X, Y)$ with lateral drawer offset compensation, eliminating SignalR roundtrip latency and avoiding network saturation.
+2. **Context Drawer Touch Gesture Interop (`IDrawerGestureInterop`):**
+   * Manages pointer capture on the upper tactile drag handle, continuous height dragging ($160\text{px}$ to $85\text{vh}$), hysteresis snap thresholds, and single-tap height toggling.
+3. **Semantic Selection:**
+   * Hotspots in SVG declare standardized data attributes and identifier bindings matching the ISO 14224 Level 6 `TagNumber` (e.g., `<g id="tag-P-101" data-equip-id="{Guid}">`).
+   * Clicking or tapping an SVG node dispatches the `OnEquipmentSelected(tagNumber)` callback. Stationary taps are disambiguated from canvas drags, suppressing selection if drag displacement exceeded the $4\text{px}$ tactile threshold.
 
 ---
 
