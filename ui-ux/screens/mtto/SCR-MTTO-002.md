@@ -13,9 +13,9 @@ user_stories:
   - "[[MTTO-002]]"
 use_cases:
   - "[[UC-MTTO-002]]"
-version: 1
-date: 2026-10-15
-status: In Review
+version: 1.1
+date: 2026-10-17
+status: Stable
 ---
 
 # SCR-MTTO-002: Mobile Work Order Execution, ISO 14224 Failure Coding, and Technical Closure
@@ -50,18 +50,16 @@ status: In Review
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
-| `CMP-01` | Mobile Execution Header | Work Order & Asset context strip | Surface: `--dt-color-surface-panel`<br>Border: `--dt-color-border-panel` | Anchored header displaying Work Order ID (`WO-2026-0842`), Target Equipment Unit (`P-0101A`), Functional Location (`TFA-CSS-P-0101A`), active LOTO safety badge (`[🔒 ZERO ENERGY CONFIRMED]`), and technician profile. Detailed in §5.1. |
-| `CMP-02` | Operational Tabs Controller | 4-channel segmented tab bar | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Active: `--dt-color-border-focus` | Top segmented navigation bar allowing instant switching between: `[1. Scope & Execution]`, `[2. Spares & Rotations]`, `[3. ISO 14224 Diagnosis]`, and `[4. Multimedia Evidence]`. Ergonomics and swipe physics in §5.2. |
-| `CMP-03` | Scope & Checklist Panel | Step-by-step task checklist & labor timer | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Displays planned task scope items with tactile completion checkboxes, actual start/finish timestamps, active Wrench Time stopwatch, and actual labor duration input (`actual_labor_hours` per [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders)). Rules in §5.3. |
-| `CMP-04` | Materials & Spares Allocation Panel | Parts consumed & equipment rotation trigger | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Lists reserved warehouse spare parts (e.g., mechanical seals, O-rings) with quantity consumed inputs. Hosts high-priority action trigger `[Rotate Dismounted Equipment]`, launching modal [SCR-INV-025](../inv/SCR-INV-025.md) when an asset swap is required. Specification in §5.3. |
-| `CMP-05` | ISO 14224 Multi-Tier Taxonomy Matrix Card | 7-tier standardized failure coding matrix | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-md` | The core reliability data collection container. Enforces sequential multi-tier dropdowns strictly bound to [DT-ERD-DOC-001 §3.2.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#322-failure_records): Maintainable Item (`maintainable_item_id`), Failure Mode, Failure Mechanism, Failure Cause, Detection Method, Operational Condition, Operational Impact, and Downtime (`downtime`). Taxonomy logic in §5.3. |
-| `CMP-06` | ISO 14224 Hard Lock Indicator | Quality gate completeness widget | Surface: `--dt-color-surface-raised`<br>Border: Dynamic (`--dt-color-alarm-warning` vs `--dt-color-state-success`) | Visual quality meter displaying taxonomic completeness ($0\%-100\%$). Employs redundant coding (symbol + text + contrast border) per WCAG 2.1 AA. Hard-disables finalization while any mandatory ISO field remains unclassified (`FR-012`). Logic in §5.3. |
-| `CMP-07` | Cryptographic Evidence Capture Card | Tactical camera trigger & SHA-256 verifier | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Hash: `--dt-font-family-mono` | Hosts hardware camera trigger button ($\ge 48\text{px}$), reactive thumbnail preview, file format validator (`JPG`, `PNG`, `PDF`), and asynchronous client-side SHA-256 hash calculator ([TR-003](../../../requirements/common/TR-003.md)). Automatically flags corrupt or unreadable files (`AF-003`). Protocol in §5.3. |
-| `CMP-08` | Offline Outbox & Sync Banner | Connection & local queue health indicator | Surface: Dynamic (`--dt-color-surface-card` vs `rgba(245, 158, 11, 0.12)`)<br>Border: `--dt-color-alarm-warning` | Priority 4 diagnostic alert banner deployed automatically upon network loss (`AF-002`, [ASR-001](../../../architecture/asr/DT-ARQ-ASR-001.md)). Displays offline status, cached transaction count, and unencrypted-in-transit zero-leakage guarantee via SQLCipher ([TR-002](../../../requirements/common/TR-002.md)). Specification in §5.3. |
-| `CMP-09` | Technical Finalization Action Bar | Sticky bottom closure controller | Surface: `--dt-color-surface-panel`<br>Elevation: `--dt-z-header-sticky` ($500$)<br>Button: Dynamic | Fixed bottom action container hosting the primary control `[Finalize Work Order]`. Hard-gated by the Boolean conjunction of `CMP-06` and `CMP-07`. Persists atomic transition to `COMPLETE` in `mtto.work_orders` and chains cryptographic audit log in `adm.audit_logs`. Execution rules in §5.3. |
-| `CMP-10` | De-Isolation Safety Handover Strip | LOTO clearance acknowledgment strip | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Safety acknowledgment strip reminding the technician that physical padlocks remain locked until formal de-isolation handover is executed prior to operational start-up. Detailed in §6. |on in §5.3. |
-| `CMP-09` | Technical Finalization Action Bar | Sticky bottom closure controller | Surface: `--dt-color-surface-panel`<br>Elevation: `--dt-z-header-sticky` ($500$)<br>Button: Dynamic | Fixed bottom action container hosting the primary control `[Finalize Work Order]`. Hard-gated by the Boolean conjunction of `CMP-06` and `CMP-07`. Persists atomic transition to `COMPLETE` in `mtto.work_orders` and chains cryptographic audit log in `adm.audit_logs`. Execution rules in §5.3. |
-| `CMP-10` | De-Isolation Safety Handover Strip | LOTO clearance acknowledgment strip | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Safety acknowledgment strip reminding the technician that physical padlocks remain locked until formal de-isolation handover is executed prior to operational start-up. Detailed in §6. |
+| `CMP-01` | Mobile Execution Header | Work Order & Asset context strip | Surface: `--dt-color-surface-panel`<br>Border: `--dt-color-border-panel` | Anchored header displaying Work Order ID (`WO-2026-0842`), Target Equipment Name and Tag (`Feed Centrifugal Pump P-0101A`), Functional Location (`TFA-CSS-P-0101A`), technician profile (`TECH-4921 · J. Serrano`), active status badge (`[IN PROGRESS]`), fail-safe LOTO safety badge (`[🔒 ZERO ENERGY CONFIRMED]` - hidden during offline mode to prevent false certainty of unverified live telemetry), integrated telemetry chip (`ONLINE · 15:24` / `OFFLINE · 15:24`), and queued outbox badge (`[1 PENDING SYNC]`). Detailed in §5.1 and §5.3.5. |
+| `CMP-02` | Operational Tabs Controller | 4-channel flush tab bar | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Active: `--dt-color-border-focus` | Edge-to-edge flush navigation bar allowing instant switching between: `[1. Scope]`, `[2. Spares]`, `[3. ISO Diagnosis]`, and `[4. Evidence]`. Visual count badges (`[5/7]`, `[3 items]`, `[0/7]`, `[0/1]`) reserved strictly for quantifiable items. Detailed in §5.2. |
+| `CMP-03` | Scope & Timing Panel | Step checklist & decoupled dual-card timing | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Displays planned task scope items with tactile completion checkboxes ($28\times 28\text{px}$) and a decoupled 2-card timing grid: Left card `FieldStopwatchCard` with field intervention stopwatch and transfer action; Right card `ActualLaborHoursCard` with $48\times 48\text{px}$ tactile steppers, quick preset pills, and plain planned labor reference (`Planned: 3.50 hrs`) feeding `actual_labor_hours` ([DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders)). Rules in §5.2 and §5.3.1. |
+| `CMP-04` | Materials & Spares Allocation Panel | Parts consumed cards & equipment rotation trigger | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Lists reserved warehouse spare parts with $48\times 48\text{px}$ tactile quantity steppers and plain-text warehouse metadata. Hosts neutral-styled trigger `[Rotate Dismounted Equipment]`, launching modal [SCR-INV-025](../inv/SCR-INV-025.md) when an asset swap is required. Specification in §5.3. |
+| `CMP-05` | ISO 14224 Multi-Tier Taxonomy Matrix Card | 7-tier standardized failure coding matrix | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-md` | The core reliability data collection container. Enforces sequential multi-tier dropdowns with dynamic mandatory indicators (`*`) strictly bound to [DT-ERD-DOC-001 §3.2.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#322-failure_records): Maintainable Item (`maintainable_item_id`), Failure Mode, Failure Mechanism, Failure Cause, Detection Method, Operational Condition, Operational Impact, Downtime (`downtime`), and full-width Technical Observations (`technician_notes`). Taxonomy logic in §5.3.1. |
+| `CMP-06` | ISO 14224 Hard Lock Indicator | Discrete 7-segment quality gate widget | Surface: `--dt-color-surface-raised`<br>Border: Dynamic (`--dt-color-border-panel` vs `--dt-color-state-success`) | Visual quality meter displaying taxonomic completeness via a 7-segment discrete mini-bar grid (`repeat(7, 1fr)`). Complies with ANSI/ISA-101.01 §6.2 by maintaining neutral borders during routine entry and transitioning contour to Muted Teal (`--dt-color-state-success`) upon 100% compliance. Hard-disables finalization while any mandatory ISO field remains unclassified (`FR-012`). Logic in §5.3.2. |
+| `CMP-07` | Cryptographic Evidence Capture Card | Multi-evidence array uploader ($1 : 0..N$) & SHA-256 verifier | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Hash: `--dt-font-family-mono` | Multi-evidence container supporting $0..N$ attachments. Hosts reserved dashed dropzone container for initial empty state, hardware camera trigger (`Capture Evidence`), file picker (`Select File`), dynamic gallery cards with individual deletion, and asynchronous client-side SHA-256 hash calculator ([TR-003](../../../requirements/common/TR-003.md)). Automatically flags corrupt or unreadable files (`AF-003`). Protocol in §5.3.3. |
+| `CMP-08` | Integrated Telemetry & Outbox Indicator | Zero-shift connection & local queue health indicator | Surface: Dynamic (`--dt-color-surface-panel` / `--dt-color-surface-drawer`)<br>Border: `--dt-color-border-subtle` | Zero-shift diagnostic telemetry chip integrated into execution header (`CMP-01`), eliminating intrusive sticky banners (CLS = 0). Displays offline status (`OFFLINE · 15:24`), queued transaction count (`[1 PENDING SYNC]`), and unencrypted-in-transit zero-leakage guarantee via SQLCipher ([TR-002](../../../requirements/common/TR-002.md)). Specification in §5.3.5. |
+| `CMP-09` | Technical Finalization Action Bar | Sticky bottom closure controller with arrow navigation | Surface: `--dt-color-surface-panel`<br>Elevation: `--dt-z-header-sticky` ($500$)<br>Button: Dynamic | Fixed bottom action container hosting wide $56\times 44\text{px}$ progressive navigation arrow buttons and primary control `[Finalize Work Order]`. Hard-gated by the Boolean conjunction of `CMP-06` and `CMP-07`. Persists atomic transition to `COMPLETE` in `mtto.work_orders` and chains cryptographic audit log in `adm.audit_logs`. Execution rules in §5.3.4. |
+| `CMP-10` | De-Isolation Safety Handover Strip | LOTO clearance acknowledgment strip | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel` | Flush safety acknowledgment strip reminding the technician that physical padlocks remain locked until formal de-isolation handover is executed prior to operational start-up. Detailed in §6. |
 
 ---
 
@@ -69,14 +67,14 @@ status: In Review
 
 | State | Visual Modification in the Interface | Activation Condition |
 | :--- | :--- | :--- |
-| **Normal / In Progress (Default)** | Header displays `IN_PROGRESS` in neutral blue/gray badge. Checklist editable. Wrench Time counter increments. Tab 3 shows incomplete taxonomy. `CMP-09` `[Finalize Work Order]` is hard-disabled (`disabled`, opacity 0.45). | Initial load of `SCR-MTTO-002` following work authorization from `SCR-VIS-011`. |
+| **Normal / In Progress (Default)** | Header displays `IN_PROGRESS` in neutral blue/gray badge. Checklist editable. Stopwatch counter increments. Tab 3 shows incomplete taxonomy. `CMP-09` `[Finalize Work Order]` is hard-disabled (`disabled`, opacity 0.45). | Initial load of `SCR-MTTO-002` following work authorization from `SCR-VIS-011`. |
 | **Loading / Synchronizing** | Skeleton shimmer on form fields and spares table (`--dt-color-surface-raised`). Taxonomy dropdowns show animated loading indicator while hydrating local SQLite cache. Controls locked. | Initial data hydration from local SQLCipher cache or background delta synchronization in progress. |
-| **Taxonomy Incomplete / Missing Fields (AF-001)** | Missing mandatory taxonomy selectors highlighted with saturated amber borders (`--dt-color-alarm-warning`, $2\text{px}$) and warning icon `⚠️`. `CMP-06` displays completeness $< 100\%$ with message *"ISO 14224 Lock Active"*. `CMP-09` remains disabled. | Technician attempts to finalize or navigates away while any of the 7 mandatory ISO fields or downtime is empty. |
-| **Evidence Capturing & Hashing** | Camera viewfinder overlay active or file upload progress bar visible. SHA-256 calculation shows animated pulsing badge *"Computing Hash..."* in monospace font. | Technician captures or selects photo evidence in `CMP-07`. |
-| **Evidence Corrupt / Hash Mismatch (AF-003)** | File preview replaced by critical red border (`--dt-color-alarm-critical`) and error icon `🚫`. Banner displays: *"File integrity error. SHA-256 mismatch detected. Please recapture evidence"*. Form progression blocked. | Cryptographic verification detects corrupted binary stream or zero-byte payload (`TR-003-NFR-380`). |
-| **Offline Mode (AF-002)** | Persistent amber diagnostic banner `CMP-08` pinned below header: *"[⚡ OFFLINE MODE] Local SQLCipher cache active. 1 transaction pending sync"*. Zero process alarm red used. | Device loses Wi-Fi/cellular connectivity in field process areas (`ASR-001`). |
-| **Ready to Finalize (Unlocked)** | `CMP-06` badge transitions to solid Teal `[100% ISO COMPLIANT]`. Evidence thumbnail displays validated SHA-256 hash stamp. Action button `CMP-09` unlocks in solid Teal (`--dt-color-state-success`). | All 7 ISO 14224 fields selected + Downtime specified + Photo evidence captured with valid hash + Checklist attested. |
-| **Technical Closure Complete** | Form transitions to read-only state. Header badge updates to `COMPLETE`. Full-screen non-disruptive success banner: *"Work Order WO-2026-0842 technically completed. Handed over for supervisory review"*. | Technician confirms `[Finalize Work Order]`. System commits atomic transaction. |
+| **Taxonomy Incomplete / Missing Fields (AF-001)** | Missing mandatory taxonomy selectors highlighted with dynamic red asterisk (`*`). Discrete mini-bar meter `CMP-06` displays incomplete segments ($< 7/7$) with neutral panel borders per ANSI/ISA-101.01. Action button `CMP-09` remains disabled. | Technician attempts to finalize or navigates away while any of the 7 mandatory ISO fields or downtime is empty. |
+| **Evidence Capturing & Hashing** | Camera viewfinder overlay active or file upload progress bar visible. Monospace hash chip displays animated status *"Computing SHA-256..."*. Validated photos display thumbnail, file metadata, and tamper-resistant digital stamp (`SHA-256: [hash]`). Reserved dashed dropzone remains available for additional attachments ($0..N$). | Technician captures or selects photo evidence in `CMP-07`. |
+| **Evidence Corrupt / Hash Mismatch (AF-003)** | File preview replaced by critical red border (`--dt-color-alarm-critical`) and error icon `🚫`. Banner displays: *"File integrity error. SHA-256 discrepancy detected. Please recapture evidence"*. Form progression blocked. | Cryptographic verification detects corrupted binary stream or zero-byte payload (`TR-003-NFR-380`). |
+| **Offline Mode (AF-002)** | Zero layout shift (CLS = 0). Header telemetry chip updates to `OFFLINE · [HH:MM]`, `[1 PENDING SYNC]` amber badge illuminates, and `[ZERO ENERGY CONFIRMED]` badge is automatically hidden to avoid false certainty of unverified live telemetry. Local SQLCipher cache active. | Device loses Wi-Fi/cellular connectivity in field process areas (`ASR-001`). |
+| **Ready to Finalize (Unlocked)** | `CMP-06` discrete mini-bar grid fills solid Muted Teal `[7/7 ISO DIAGNOSIS COMPLETE]` with matching Teal card contour (`--dt-color-state-success`). All media attachments display validated cryptographic seal. Action button `CMP-09` unlocks in solid Teal. | All 7 ISO 14224 fields selected + Downtime specified + Photo evidence captured with valid hash + Checklist attested. |
+| **Technical Closure Complete** | Form transitions to read-only state. Header badge updates to `COMPLETE`. Non-disruptive success modal: *"Work Order WO-2026-0842 technically completed. Handed over for supervisory review"*. Redirects to `SCR-MTTO-026`. | Technician confirms `[Finalize Work Order]`. System commits atomic transaction. |
 
 ---
 
@@ -94,12 +92,20 @@ status: In Review
 ### 5.2. Mobile Ergonomics & Tactile Mechanics
 
 1. **Gloved Touch Target Invariant (ISO 9241-110 Clause 5.3 / `--dt-touch-target-mobile`):**
-   * All interactive controls (checkboxes, dropdown triggers, camera buttons, tab headers) enforce a minimal bounding box of $48\times 48\text{px}$ with $\ge 8\text{px}$ separation, ensuring error-free operation with nitrile and leather field gloves.
-2. **Sticky Bottom Finalization Bar (`CMP-09`):**
+   * All interactive controls (checkboxes, dropdown triggers, camera buttons, tab headers, spare parts quantity steppers) enforce a minimal bounding box of $48\times 48\text{px}$ with $\ge 8\text{px}$ separation, ensuring error-free operation with nitrile and leather field gloves.
+   * Step navigation directional arrow buttons enforce an enlarged footprint of $56\times 44\text{px}$ ($52\times 42\text{px}$ on mobile) with tactile elevated surface (`--dt-color-surface-raised`), panel border, and explicit SVG arrows (`#icon-arrow-left`, `#icon-arrow-right`).
+   * Custom scope checkboxes enforce an enlarged $28\times 28\text{px}$ hit target with a centered $7\times 14\text{px}$ checkmark pseudo-element.
+2. **Decoupled Dual-Card Scope & Timing Architecture (`CMP-03`):**
+   * Decouples real-time diagnostic field timing from formal CMMS accounting entry into a responsive 2-card grid (`.scope-timing-cards-grid`):
+     * **Card A (`FieldStopwatchCard`):** Displays real-time field intervention timer (`00:00:00`), Start/Pause/Reset controls, and a high-contrast hero button `[Transfer to Actual Hours]` (`.btn-evidence-primary`).
+     * **Card B (`ActualLaborHoursCard`):** Hosts the official CMMS accounting field (`actual_labor_hours`), featuring $48\times 48\text{px}$ tactile steppers (`−` / `+` with $0.25\text{h}$ increments), centered 20px monospace numeric input, quick preset pills (`2.0h`, `2.5h`, `3.0h`, `3.5h`), and plain-text planned duration reference (`Planned: 3.50 hrs`), eradicating badge inflation.
+3. **Sticky Bottom Finalization Bar (`CMP-09`):**
    * Pinned to the bottom viewport boundary (`bottom: 0; position: fixed; z-index: var(--dt-z-header-sticky, 500); height: 72px;`), elevated via border-top `$1.5\text{px}$ solid var(--dt-color-border-panel)`.
    * Form content container enforces `padding-bottom: 96px` to prevent the sticky footer from occluding input fields or notes at maximal scroll extents.
-3. **Tab Navigation Physics (`CMP-02`):**
-   * Segmented bar with discrete horizontal sliding indicator. Supports horizontal touch swipe gestures with a $40\text{px}$ displacement threshold to switch between tabs without causing accidental vertical scroll disruption.
+   * Guided workflow: Progressive navigation (`← Previous` and `Next →`) guides technician sequentially; primary action `[Finalize Work Order]` unlocks strictly on Step 4 (Evidence) once quality gates are satisfied.
+4. **Flush Tab Navigation Physics (`CMP-02`):**
+   * Edge-to-edge flush tab bar with zero inter-tab gap or rounded corners, sitting directly adjacent to the LOTO handover strip and workspace bounds.
+   * Supports horizontal touch swipe gestures with a $40\text{px}$ displacement threshold. Badges are strictly reserved for quantifiable counters (`[5/7]`, `[3 items]`, `[0/7]`, `[0/1]`), purging decorative pseudo-badges per ANSI/ISA-101.01 §6.2.
 
 ### 5.3. Domain Workflows, Taxonomy Enums, and Cryptographic Mutation
 
@@ -116,24 +122,26 @@ status: In Review
      * **Tier 7: Operational Impact (`operational_impact`):** Strictly restricted by `ck_failure_records_operational_impact` in `DT-ERD-DOC-001.md`:
        $$\text{operational\_impact} \in \{\text{'EXTENSIVE\_STOP'}, \text{'STOP\_ABOVE\_ACCEPTABLE'}, \text{'STOP\_BELOW\_ACCEPTABLE'}, \text{'STOP\_MINOR'}\}$$
      * **Quantitative Metric: Downtime (`downtime`):** Numeric field `DECIMAL(10,2) NOT NULL` recording hours of lost operational availability.
+     * **Technical Observations (`technician_notes`):** Full-width field capturing empirical observations and diagnostic notes directly tied to the failure record.
 
 2. **The ISO 14224 Hard Lock Formula (`CMP-06`, `FR-012`):**
    * The primary action button `CMP-09` `[Finalize Work Order]` is governed by the asymmetric Boolean lock:
      $$\text{CanFinalize} = \mathcal{T}_{\text{complete}} \land \mathcal{E}_{\text{valid}} \land \mathcal{W}_{\text{valid}}$$
      where:
      $$\mathcal{T}_{\text{complete}} = (\text{Item} \ne \varnothing) \land (\text{Mode} \ne \varnothing) \land (\text{Mech} \ne \varnothing) \land (\text{Cause} \ne \varnothing) \land (\text{Method} \ne \varnothing) \land (\text{Condition} \ne \varnothing) \land (\text{Impact} \ne \varnothing) \land (\text{Downtime} \ge 0.0)$$
-     $$\mathcal{E}_{\text{valid}} = (\text{MediaAttachmentCount} \ge 1) \land (\text{SHA256HashVerified} == \text{true})$$
+     $$\mathcal{E}_{\text{valid}} = (\text{MediaAttachmentCount} \ge 1) \land (\forall e \in \text{Attachments}, e.\text{SHA256HashVerified} == \text{true})$$
      $$\mathcal{W}_{\text{valid}} = (\text{ActualLaborHours} > 0.0) \land (\text{AllChecklistItemsChecked} == \text{true})$$
-   * Any false term renders the button `disabled` with visual error flags on omitted fields (`AF-001`).
+   * Any false term renders the button `disabled` with dynamic visual indicator (`*`) on omitted fields (`AF-001`).
 
-3. **Cryptographic Multimedia Evidence Pipeline (`CMP-07`, `TR-003`):**
-   * Capturing a photograph via device camera triggers local asynchronous processing:
-     1. Downsamples image to maximum $1920\times 1080$ resolution in JPEG format (quality 0.85) to optimize storage.
-     2. Generates an instant thumbnail ($120\times 120\text{px}$) rendered in the UI preview slot.
-     3. Computes the cryptographic checksum using the HTML5 Web Crypto API:
+3. **Multi-Evidence Photographic Capture & Cryptographic Hashing Pipeline (`CMP-07`, `TR-003`):**
+   * Supports an array of $0..N$ attachments (`mtto.media_attachments` per [DT-ERD-DOC-001 §3.2.4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#324-media_attachments)):
+     1. Displays reserved dashed dropzone container (`.evidence-dropzone`) as empty-state placeholder with direct camera trigger.
+     2. Capturing photo via hardware camera or file picker downsamples image to maximum $1920\times 1080$ JPEG format (quality 0.85) to optimize offline storage footprint.
+     3. Computes cryptographic checksum asynchronously in a Web Worker using HTML5 Web Crypto API:
         $$\text{hash} = \text{SubtleCrypto.digest}(\text{"SHA-256"}, \text{ArrayBuffer})$$
-     4. Stores file metadata in `mtto.media_attachments`: `file_url`, `file_type = 'JPG'`, `uploaded_at = clock_timestamp()`, and links `failure_record_id`.
-     5. If file reading throws an I/O error or hash evaluation fails, the UI enters state `Evidence Corrupt` (`AF-003`), halts finalization, and forces recapture.
+     4. Renders individual gallery cards displaying image thumbnail ($120\times 120\text{px}$), metadata, delete trigger, and verified monospace hash stamp (`SHA-256: [hash]`).
+     5. Stores file metadata in `mtto.media_attachments`: `file_url`, `file_type = 'JPG'`, `uploaded_at = clock_timestamp()`, and links `failure_record_id`.
+     6. If file reading throws an I/O error or hash evaluation fails, the UI enters state `Evidence Corrupt` (`AF-003`), halts finalization, and forces recapture.
 
 4. **Atomic Technical Closure Mutation & Audit Chaining (`CMP-09`, `TR-001`):**
    * Upon pressing `[Finalize Work Order]`, the application dispatches an atomic technical closure command (`SubmitTechnicalClosureCommand`) against the backend API endpoint `POST /api/v1/work-orders/{id}/technical-closure`.
@@ -143,16 +151,19 @@ status: In Review
      * **Step 3 (Lifecycle Audit Record):** Appends state history record into `mtto.work_order_histories` (`old_status = 'IN_PROGRESS'`, `new_status = 'COMPLETE'`) per [DT-ERD-DOC-001 §3.2.5](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#325-work_order_histories).
      * **Step 4 (Cryptographic Audit Chaining):** Appends immutable audit entry into `adm.audit_logs` calculating cryptographic SHA-256 chain integrity per [DT-ERD-DOC-001 §3.5.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#351-audit_logs) and [DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032).
 
-5. **Offline Operation Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-007`):**
+5. **Zero-Shift Offline Telemetry and Outbox Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-007`):**
    * If network connection is lost (`navigator.onLine == false` or heartbeat timeout):
-     1. Banner `CMP-08` illuminates in amber warning tone (`rgba(245, 158, 11, 0.12)`).
-     2. The full atomic transaction payload is serialized into JSON and written to the encrypted local SQLite table `offline_outbox` protected by SQLCipher (AES-256-CBC).
-     3. Assigns a unique `idempotency_key` (UUIDv7) per `ADR-007`.
-     4. Marks the local UI view as `COMPLETE (Pending Sync)`.
-     5. Background synchronization worker monitors connectivity; upon restoration, drains the outbox queue via idempotent `POST /api/v1/work-orders/WO-2026-0842/technical-closure` with `X-Idempotency-Key` header.
+     1. Telemetry indicator in header transitions from `ONLINE · [HH:MM]` to `OFFLINE · [HH:MM]` with disconnected network glyph.
+     2. Amber badge `[1 PENDING SYNC]` illuminates directly in the header context.
+     3. **Fail-Safe Zero-Energy Masking:** The safety badge `[🔒 ZERO ENERGY CONFIRMED]` is automatically suppressed from the UI during offline operation. While mechanical padlocks remain locked, real-time electrical zero-voltage and zero-current attestation cannot be confirmed via disconnected DCS telemetry; displaying a stale positive safety confirmation during telemetry blackout violates process safety integrity principles.
+     4. Zero layout shift is incurred (CLS = 0), preventing disorienting viewport jumps or content displacement on tablet screens.
+     5. The full atomic transaction payload is serialized into JSON and written to the encrypted local SQLite table `offline_outbox` protected by SQLCipher (AES-256-CBC).
+     6. Assigns a unique `idempotency_key` (UUIDv7) per `ADR-007`.
+     7. Marks the local UI view as `COMPLETE (Pending Sync)`.
+     8. Background synchronization worker monitors connectivity; upon restoration, drains the outbox queue via idempotent `POST /api/v1/work-orders/WO-2026-0842/technical-closure` with `X-Idempotency-Key` header.
 
 6. **Rotable Asset Swap Branching (`CMP-04`):**
-   * If the physical repair requires unmounting the pump unit, tapping `[Rotate Dismounted Equipment]` preserves the in-flight form draft in local memory and deploys the modal [SCR-INV-025](../inv/SCR-INV-025.md). Upon completing the asset swap, `SCR-INV-025` returns the new mounted equipment serial number (`P-0101B`) and stamps the replacement reference into `technician_notes`.
+   * If the physical repair requires unmounting the pump unit, tapping `[Rotate Dismounted Equipment]` preserves the in-flight form draft in local memory and deploys the in-situ overlay modal [SCR-INV-025](../inv/SCR-INV-025.md). Upon completing the asset swap, `SCR-INV-025` returns the new mounted equipment serial number (`P-0101B`) and stamps the replacement reference into `technician_notes`.
 
 ---
 
@@ -160,13 +171,13 @@ status: In Review
 
 * **High-Performance HMI (ANSI/ISA-101 / [TR-011](../../../requirements/common/TR-011.md)):**
   * Grayscale visual discipline: $90\%$ of the screen utilizes neutral dark slate tones (`--dt-color-surface-base`, `--dt-color-surface-card`, `--dt-color-border-subtle`).
-  * Saturated amber (`--dt-color-alarm-warning`) is reserved exclusively for the offline diagnostic banner and missing taxonomy flags.
-  * Saturated red (`--dt-color-alarm-critical`) is reserved strictly for corrupt file integrity errors or process safety emergency breaches. Green is never used for generic "active" status, only for verified completion gates (`--dt-color-state-success`).
+  * Saturated amber (`--dt-color-alarm-warning`) is reserved exclusively for the offline sync indicator badge (`[1 PENDING SYNC]`) and missing required fields.
+  * Saturated red (`--dt-color-alarm-critical`) is reserved strictly for corrupt file integrity errors or process safety emergency breaches. Green is never used for generic "active" status or in-progress forms, only for verified completion gates (`--dt-color-state-success: #14B8A6`).
 * **Diagnostic (Priority 4) vs. Process Alarm Segregation:**
-  * Network disconnection banner (`CMP-08`) is styled strictly as a Priority 4 Diagnostic indicator with muted borders and informational icons. It is strictly prohibited from masquerading as a high-priority process emergency.
+  * Network disconnection chip (`CMP-08`) in the header is styled strictly as a Priority 4 Diagnostic indicator with muted borders and informational icons. It is strictly prohibited from masquerading as a high-priority process emergency.
 * **De-Isolation / De-LOTO Safety Handover Protocol:**
   * Technical closure (`COMPLETE`) of the Work Order does **NOT** equate to plant re-energization.
-  * Banner `CMP-10` explicitly enforces the safety invariant:
+  * Flush banner `CMP-10` explicitly enforces the safety invariant:
     > *"CAUTION: Hazardous energy isolations established in SCR-VIS-011 remain locked. Physical padlock removal and de-isolation must be executed via formal Operations Handover prior to commissioning."*
 
 ---
@@ -178,16 +189,21 @@ status: In Review
 ```text
 Pages/
 └── MobileWorkOrderClosingPage.razor                 # Root View (SCR-MTTO-002)
-    ├── ExecutionHeader.razor                        # CMP-01: Work Order & Asset context header
-    ├── OperationalTabsBar.razor                     # CMP-02: 4-channel tab selector
-    ├── ScopeExecutionTab.razor                      # CMP-03: Checklist & Wrench Time timer
-    ├── SparesAllocationTab.razor                    # CMP-04: Spares logging & Asset Swap trigger
-    ├── IsoTaxonomyDiagnosisTab.razor                # CMP-05: 7-tier ISO 14224 dropdown matrix
-    │   └── IsoComplianceLockBadge.razor             # CMP-06: Quality gate meter & alert
-    ├── MultimediaEvidenceTab.razor                  # CMP-07: Camera capture & SHA-256 verifier
-    ├── OfflineOutboxBanner.razor                    # CMP-08: Diagnostic connectivity banner
-    ├── TechnicalFinalizeBar.razor                   # CMP-09: Sticky bottom action bar
-    └── DeIsolationHandoverStrip.razor               # CMP-10: LOTO safety acknowledgment strip
+    ├── ExecutionHeader.razor                        # CMP-01: Header with fail-safe LOTO & telemetry
+    ├── OperationalTabsBar.razor                     # CMP-02: Flush 4-channel tab selector
+    ├── ScopeExecutionTab.razor                      # CMP-03: Scope & Decoupled timing container
+    │   ├── TaskChecklistCard.razor                  # Step-by-step checklist with 28x28px checks
+    │   ├── FieldStopwatchCard.razor                 # Field intervention stopwatch & transfer hero action
+    │   └── ActualLaborHoursCard.razor               # Actual labor input with 48x48px steppers & presets
+    ├── SparesAllocationTab.razor                    # CMP-04: Spares card list & Asset Swap trigger
+    ├── IsoTaxonomyDiagnosisTab.razor                # CMP-05: 7-tier ISO 14224 matrix & observations
+    │   └── IsoComplianceLockBadge.razor             # CMP-06: 7-segment discrete quality gate mini-bars
+    ├── MultimediaEvidenceTab.razor                  # CMP-07: Multi-evidence array uploader & SHA-256 verifier
+    │   ├── EvidenceDropzone.razor                   # Reserved dashed empty-state container
+    │   └── EvidenceCard.razor                       # Reactive photo card with thumbnail & hash stamp
+    ├── OfflineTelemetryIndicator.razor              # CMP-08: Zero-shift header telemetry & outbox badge
+    ├── TechnicalFinalizeBar.razor                   # CMP-09: Sticky bottom bar with 56x44px nav arrows
+    └── DeIsolationHandoverStrip.razor               # CMP-10: Flush LOTO safety acknowledgment strip
 ```
 
 ### 7.2. Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)
