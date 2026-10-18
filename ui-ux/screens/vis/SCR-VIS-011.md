@@ -13,7 +13,7 @@ user_stories:
   - "[[VIS-011]]"
 use_cases:
   - "[[UC-VIS-011]]"
-version: 1.3
+version: 1.4
 date: 2026-10-18
 status: Stable
 ---
@@ -58,6 +58,7 @@ status: Stable
 | `CMP-09` | Active Safety Interlock Button | Work initiation locking control | Surface: Dynamic (`--dt-color-state-success` or `--dt-color-alarm-critical`) | Primary action control `[Start Work]`. Enforces active hardware/software interlocking (`NFR-229`): hard-disabled until Zero Energy Boolean conjunction is fully satisfied. Governing Boolean formula in §5.3. |
 | `CMP-10` | SIMOPS Awareness Ribbon | Concurrent permits alert strip | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Informative ribbon in drawer header displaying active concurrent permits in the area without obstructing the LOTO workflow. Specification in §5.3. |
 | `CMP-11` | Fail-Safe Diagnostic Banner | Connection / Offline Lease status | Surface: `--dt-color-surface-raised`<br>Color: `--dt-color-text-muted` | Priority 4 diagnostic banner indicating connection health and Cryptographic Offline Lease status (`NFR-238`, `ADR-006`). Protocol rules in §5.3. |
+| `CMP-12` | Evacuation Beacon Overlay | Passive emergency evacuation beacon | Surface: `--dt-color-alarm-critical`<br>Elevation: `--dt-z-overlay-modal` | Fullscreen non-interactive passive emergency overlay deployed autonomously upon unexpected re-energization breach (`AF-003`, `FR-232`). Completely locks out user input, displays high-contrast diagonal hazard strobing, and triggers acoustic sweep. Behavioral specifications in §5.3.5. |
 
 ---
 
@@ -65,7 +66,7 @@ status: Stable
 
 | State | Visual Modification in the Interface | Activation Condition |
 | :--- | :--- | :--- |
-| **Normal / Energized (Default Baseline)** | Energy routes render solid red (`--dt-color-alarm-critical`). Cutoff nodes show `#icon-loto-energized`. Checklist shows pending steps. `CMP-09` is hard-disabled (`disabled`, opacity 0.45). Status badge in `CMP-02` displays `[⚡ HAZARDOUS ENERGY DETECTED]`. | Initial opening of LOTO mode for a scheduled Work Order prior to field cutoff. |
+| **Normal / Energized (Default Baseline)** | Energy routes render solid red (`--dt-color-alarm-critical`). Cutoff nodes show `#icon-loto-energized`. Checklist shows pending steps. `CMP-09` is hard-disabled via safety interlock. Status badge in `CMP-02` displays `[⚡ HAZARDOUS ENERGY DETECTED]`. | Initial opening of LOTO mode for a scheduled Work Order prior to field cutoff. |
 | **Loading** | Canvas vector overlays and drawer content display animated skeleton shimmer (`--dt-color-surface-raised`). Telemetry MAIs render neutral placeholder tracks without pointers. Action controls disabled. | Initial view load, asynchronous SVG layer parsing, or SignalR/WebSocket connection handshake in progress. |
 | **Selected** | Selected cutoff node in `CMP-04` renders high-contrast focus ring (`--dt-color-border-focus`, $2\text{px}$). Corresponding checklist item in `CMP-06` and MAI card in `CMP-07` smoothly scroll into view with elevated background (`--dt-color-surface-raised`). | Technician taps/clicks a cutoff node on the canvas or selects an item in the checklist. |
 | **Field Cutoff in Progress** | Energy routes transition to amber dashed as cutoffs are registered. Checklist items show confirmed padlocks with Teal checkmarks (`--dt-color-state-success`). Telemetry MAIs show pointers moving toward zero-energy zone. `CMP-09` remains hard-disabled. | Technician applies physical padlocks and enters Tag IDs sequentially in `CMP-06`. |
@@ -73,7 +74,7 @@ status: Stable
 | **Zero Energy Verified (Pre-Start)** | All cutoff nodes show `#icon-loto-locked` in Teal (`--dt-color-state-success`). Energy boundary lines render in neutral slate dashed (`--dt-color-border-subtle`). MAI pointers rest in normal zero-energy zone ($0\text{V}$, $0\text{psig}$). Status badge in `CMP-02` displays `[🔒 TELEMETRY CORROBORATES ZERO STATE (PHYSICAL TRY-OUT REQUIRED)]`. Try-Out card `CMP-08` becomes actionable with focus border (`--dt-color-border-focus`). `CMP-09` remains disabled. | Telemetry confirms all points below threshold ($0\text{V}$, $0\text{psig}$) AND all checklist padlocks are validated. |
 | **Ready to Execute (Unlocked)** | `CMP-09` `[Start Work]` unlocks with solid Teal background (`--dt-color-state-success`) and active elevation. Status badge in `CMP-02` transitions to `[🔒 ZERO ENERGY VERIFIED (READY TO START)]`. | Zero Energy corroborated by telemetry + Checklist 100% complete + Physical Try-Out attested and cryptographically signed (`FR-230`). |
 | **Work Order In Progress** | Header status badge reflects active execution (`IN_PROGRESS`). Primary button `CMP-09` transitions to `[Complete Work & De-isolate]` (`--dt-color-surface-raised`). Boundary route stays locked in slate dashed. | Technician activates `[Start Work]`. |
-| **Re-energization Emergency (AF-003)** | Full-screen non-interactive passive evacuation warning deployed (`EvacuationBeaconOverlay.razor`). Touchscreen input completely locked out (zero buttons/dismissals to eliminate cognitive friction under acute threat per ISO 11064-5). Display flashes high-contrast diagonal red/black hazard stripes (`--dt-color-alarm-critical` at $2\text{Hz}$) with large-format imperative message: "⚡ DANGER: HAZARDOUS ENERGY BREACH — EVACUATE AREA IMMEDIATELY". Emits pulsed high-urgency audio sweep via HTML5 Web Audio API at maximum device volume. Serves as local supplementary warning alongside certified plant sirens. Status badge changes to `[⚡ CRITICAL EVACUATION]`. Offending node and energy path flash critical red. | Backend telemetry processing detects hazardous energy flow ($V > 0\text{V}$ or $P > 0.5\text{psig}$) during active execution and broadcasts emergency alert (`FR-232`, `AF-003`). |
+| **Re-energization Emergency (AF-003)** | Full-screen non-interactive passive evacuation warning deployed via `CMP-12`. Touchscreen input completely locked out (zero buttons/dismissals to eliminate cognitive friction under acute threat per ISO 11064-5). Display flashes high-contrast diagonal red/black hazard stripes (`--dt-color-alarm-critical` at $2\text{Hz}$) with large-format imperative message: "⚡ DANGER: HAZARDOUS ENERGY BREACH — EVACUATE AREA IMMEDIATELY". Emits pulsed high-urgency audio sweep via HTML5 Web Audio API at maximum device volume. Serves as local supplementary warning alongside certified plant sirens. Status badge changes to `[⚡ CRITICAL EVACUATION]`. Offending node and energy path flash critical red. | Backend telemetry processing detects hazardous energy flow ($V > 0\text{V}$ or $P > 0.5\text{psig}$) during active execution and broadcasts emergency alert (`FR-232`, `AF-003`). |
 | **Disconnectivity / Fail-Safe (AF-002)** | Diagnostic banner `CMP-11` deployed at top of drawer (`--dt-color-surface-raised`, `--dt-color-text-muted`). If lease is valid: displays offline mode badge with countdown expiration timer. If lease is expired/missing: `CMP-09` renders locked glyph with fail-safe lockout notification. | Telemetry communication lost prior to work start (`ADR-006`, `NFR-238`). |
 | **Unmapped / Offline (Geometry Unresolved)** | Cutoff node on canvas displays neutral unmapped diagnostic pin glyph (`--dt-color-text-muted`). Drawer item shows informational fallback pill `[Coordinates Pending CAD Ingestion]`. Spatial pan-to-node disabled for unmapped point. | Cutoff point defined in work order isolation plan lacks valid coordinate mapping in spatial metadata repository (`MeshMapping`). |
 
@@ -108,7 +109,7 @@ sequenceDiagram
     
     alt Hazardous Energy Detected (> threshold)
         API-->>UI: Safety Interlock Denied (Energy Detected / Uncertain)
-        UI->>SEC: Maintains HARD LOCK (disabled="disabled")
+        UI->>SEC: Maintains HARD LOCK (interlock active)
         UI->>Tech: Deploys Critical Alert "Hazardous Energy Detected"
     else Zero Energy Corroborated & Try-Out Attested
         API-->>UI: Safety Interlock Authorized (Zero State Proven)
@@ -141,7 +142,7 @@ sequenceDiagram
 ### 5.2. Spatial Navigation & Tactile Mechanics
 
 1. **Desktop vs. Tablet Interaction Modality:**
-   * **Desktop Workstation:** Continuous canvas panning is activated exclusively via middle-mouse button drag (`e.button === 1`), setting cursor to `grabbing`. Mouse scroll wheel performs continuous focal zooming around pointer coordinate $(cx, cy)$.
+   * **Desktop Workstation:** Continuous canvas panning is activated exclusively via middle-mouse button drag with an active grabbing cursor. Mouse scroll wheel performs continuous focal zooming around pointer coordinate $(cx, cy)$.
    * **Industrial Tablet:** Single-finger touch pan requires exceeding a tactile drag threshold of $4\text{px}$ ($\Delta d = \sqrt{\Delta x^2 + \Delta y^2} > 4\text{px}$). Gestures with $\Delta d \le 4\text{px}$ are treated as discrete taps, ensuring reliable selection of cutoff hotspot nodes (`CMP-04`) without unwanted canvas displacement.
 
 2. **Viewport Coordinate Transformations & Zoom Mathematics:**
@@ -155,7 +156,7 @@ sequenceDiagram
    * Canvas translation is strictly clamped within the calibrated operational bounds of the plant area, preventing the SVG geometry from panning into void:
      $$X_{\text{min}} \le \text{viewBox}.x \le X_{\text{max}} - \text{viewBox}.w$$
      $$Y_{\text{min}} \le \text{viewBox}.y \le Y_{\text{max}} - \text{viewBox}.h$$
-   * For the standard process unit model, the operational bounding limits are $X \in [280, 1670]\text{px}$ and $Y \in [225, 1330]\text{px}$.
+   * Operational bounding limits are dynamically derived from the calibrated SVG metadata (`viewBox` extents).
 
 4. **Layout Shift Invariants & Dimension Enforcements:**
    * Toolbar `CMP-02`: Safety status badge is assigned a fixed-width container slot of $260\text{px}$ with text truncation, preventing horizontal toolbar layout shifts when toggling between `[⚡ HAZARDOUS ENERGY DETECTED]`, `[🔒 TELEMETRY CORROBORATES ZERO STATE (PHYSICAL TRY-OUT REQUIRED)]`, and `[🔒 ZERO ENERGY VERIFIED (READY TO START)]`.
@@ -172,7 +173,7 @@ sequenceDiagram
 6. **Overlay Drawer Lifecycle (Minimize vs. Deselect / Close Contract):**
    * Inheriting the canonical lifecycle contract defined in [SCR-VIS-033 §5.2.7](./SCR-VIS-033.md#52-spatial-navigation-and-mobile-ergonomics) and [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md):
      * **Minimization (Chevron Trigger / Tactical Pull-Down):** Retracts `CMP-05` to the edge boundary while preserving an exposed protruding peek tab ($36\text{px}$) that facilitates immediate re-expansion. The active equipment selection halo, active checklist cursor, and real-time SignalR telemetry subscriptions are strictly retained in memory.
-     * **Explicit Dismissal / Deselection (Close 'X' Button):** Fully closes and dismisses `CMP-05` (setting `IsCollapsed = true` and `IsClosed = true`), completely suppressing the floating peek trigger (`display: none !important`). Clears equipment selection halo and cutoff hotspot focus on the SVG canvas, returning the viewport to the neutral macro supervisory baseline.
+     * **Explicit Dismissal / Deselection (Close 'X' Button):** Fully closes and dismisses `CMP-05`, completely suppressing the floating peek trigger. Clears equipment selection halo and cutoff hotspot focus on the SVG canvas, returning the viewport to the neutral macro supervisory baseline.
 
 ### 5.3. Domain Workflows, Interlocks, and Telemetry
 
@@ -213,10 +214,10 @@ sequenceDiagram
 5. **Continuous In-Execution Monitoring & Auto-Suspension (`FR-232`, `AF-003`):**
    * While the Work Order is `IN_PROGRESS`, the backend telemetry engine maintains continuous real-time surveillance of all isolation cutoff sensors.
    * If hazardous energy flow ($V > 0.0\text{V}$ or $P > 0.5\text{psig}$) is detected on any cutoff sensor during execution, the system trips the emergency safety protocol:
-     1. **Autonomous Server Suspension:** The backend service immediately invokes domain method `WorkOrder.SuspendExecution("Re-energization safety breach detected")`, transitioning `WorkOrder.Status` to `SUSPENDED` and logging an immutable incident record (`TR-001`).
+     1. **Autonomous Server Suspension:** The backend telemetry processing service autonomously transitions the Work Order state to `SUSPENDED` and logs an immutable incident record (`TR-001`).
      2. **Emergency Broadcast Dispatch:** Dispatches an immediate high-priority SignalR push alert (`EmergencyEvacuationBroadcast`) to all subscribed field tablets and central DCS / HSEQ consoles.
-     3. **Local Supplementary Warning Overlay (`EvacuationBeaconOverlay.razor`):** The field tablet intercepts the broadcast and immediately deploys a non-interactive passive evacuation warning. All touchscreen/mouse interactions are locked out (zero confirmation buttons or dismiss controls) to eliminate cognitive friction, panic freezing, or dangerous attempts to interact with the tablet under acute life-threatening stress (ISO 11064-5).
-     4. **Multimodal Strobe & Warning Sweep:** The tablet screen strobes high-contrast diagonal safety hazard stripes (alternating `--dt-color-alarm-critical` and `#000000` at $2\text{Hz}$) displaying large-format typography: `⚡ DANGER: HAZARDOUS ENERGY BREACH — EVACUATE AREA IMMEDIATELY`. Concurrently, it triggers an autonomous pulsed audio frequency sweep ($800\text{Hz} - 1200\text{Hz}$) via HTML5 Web Audio API at maximum device volume as a local supplemental cue alongside plant evacuation sirens.
+     3. **Local Supplementary Warning Overlay (`CMP-12`):** The field tablet intercepts the broadcast and immediately deploys the `CMP-12` non-interactive passive evacuation overlay. All touchscreen and pointer interactions are locked out (zero confirmation buttons or dismiss controls) to eliminate cognitive friction, panic freezing, or dangerous attempts to interact with the device under acute life-threatening stress (ISO 11064-5).
+     4. **Multimodal Strobe & Warning Sweep:** The tablet screen strobes high-contrast diagonal safety hazard stripes (alternating `--dt-color-alarm-critical` and `--dt-color-surface-inverse` at $2\text{Hz}$) displaying large-format typography: `⚡ DANGER: HAZARDOUS ENERGY BREACH — EVACUATE AREA IMMEDIATELY`. Concurrently, client interop triggers an autonomous pulsed audio frequency sweep ($800\text{Hz} - 1200\text{Hz}$) at maximum device volume as a local supplemental cue alongside plant evacuation sirens.
 
 6. **Cryptographic Offline Lease Protocol (`ADR-006`, `NFR-238`, `AF-002`, `TR-006`, `TR-007`):**
    * Upon network telemetry disconnection, the client inspects its secure local cache for an active cryptographic lease issued to an authorized hardware device (`TR-006`).
@@ -233,7 +234,7 @@ sequenceDiagram
 * **Fail-Safe Design Invariant (Safety over Availability):** Sensor errors, stale data, or connection drops strictly default to an energized state unless validated by an unexpired Cryptographic Offline Lease ([ADR-006](../../../architecture/adr/ADR-006.md)).
 * **High-Performance HMI (ANSI/ISA-101 / [TR-011](../../../requirements/common/TR-011.md)):** Saturated red is reserved exclusively for live hazardous energy, active alarms, and interlock blocks. Non-energized boundaries use neutral slate tokens. Industrial green is strictly banned; Teal (`--dt-color-state-success`) is used to denote confirmed zero-energy states. Moving analog indicators contextualize all continuous telemetry.
 * **Tactile Ergonomics for Gloved Operation ([TR-010](../../../requirements/common/TR-010.md)):** All interactive touch targets enforce `--dt-touch-target-mobile` ($\ge 48\times 48\text{px}$) with minimum $8\text{px}$ separation to eliminate accidental field activations. Bottom sheet drawer provides discrete tap switching to accommodate wet or gloved touch interactions.
-* **Local Supplementary Warning vs. Plant SIS (IEC 61508 / ISA-84 / OSHA):** Commercial industrial tablets running web client runtimes are not certified Safety Instrumented Systems (SIS) or plant emergency sirens. The `EvacuationBeaconOverlay` functions strictly as an immediate, supplementary personal warning cue for the technician in the field. Primary life-safety evacuation alarms remain the exclusive regulatory domain of certified plant audible sirens and DCS annunciators.
+* **Local Supplementary Warning vs. Plant SIS (IEC 61508 / ISA-84 / OSHA):** Commercial industrial tablets running web client runtimes are not certified Safety Instrumented Systems (SIS) or plant emergency sirens. The `CMP-12` evacuation beacon overlay functions strictly as an immediate, supplementary personal warning cue for the technician in the field. Primary life-safety evacuation alarms remain the exclusive regulatory domain of certified plant audible sirens and DCS annunciators.
 
 ---
 
@@ -256,53 +257,21 @@ Pages/
     │   ├── PhysicalTryOutCard.razor           # CMP-08: Absence-of-energy verification card
     │   └── ActiveSafetyInterlockButton.razor  # CMP-09: Interlocked [Start Work] action button
     ├── FailSafeDiagnosticBanner.razor         # CMP-11: Offline lease / connection warning
-    └── EvacuationBeaconOverlay.razor          # AF-003: Non-interactive passive emergency evacuation beacon
+    └── EvacuationBeaconOverlay.razor          # CMP-12: Non-interactive passive emergency evacuation beacon
 ```
 
 ### 7.2. Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)
 
 #### 7.2.1. `LotoIsolationMatrixPage.razor` (Root View)
 ```csharp
-public partial class LotoIsolationMatrixPage : ComponentBase
-{
-    [Parameter]
-    public string WorkOrderId { get; set; } = string.Empty;
+[Parameter]
+public string? WorkOrderId { get; set; }
 
-    [Parameter]
-    public string EquipmentUnitTag { get; set; } = string.Empty;
-
-    [Inject]
-    public required ILotoSafetyService LotoService { get; set; }
-
-    [Inject]
-    public required ITelemetrySubscriptionService TelemetryService { get; set; }
-
-    // State properties
-    public LotoIsolationPlanDto? LotoPlan { get; private set; }
-    public IReadOnlyList<CutoffPointStatusDto> CutoffPoints { get; private set; } = [];
-    public IReadOnlyList<ChecklistStepDto> ChecklistSteps { get; private set; } = [];
-    public ZeroEnergyState TelemetryEnergyState { get; private set; } = ZeroEnergyState.Uncertain;
-    public bool IsTryOutAttested { get; private set; }
-    public TryOutAttestationDto? TryOutAttestation { get; private set; }
-    public bool IsEmergencyEvacuationActive { get; private set; }
-
-    // Optimistic UI Affordance: Reflects server-authoritative safety gate
-    // Negative Interlock Primacy: Telemetry is strictly a negative veto; Try-Out & Checklist are affirmative enablers
-    public bool IsTelemetryNotEnergized => TelemetryEnergyState != ZeroEnergyState.Energized 
-                                           && TelemetryEnergyState != ZeroEnergyState.Uncertain;
-
-    // Client affordance projection: Activating dispatches StartWorkOrderExecutionCommand, authoritatively re-checked by backend
-    public bool CanStartWork => ChecklistSteps.Count > 0 
-                                && ChecklistSteps.All(s => s.IsVerified) 
-                                && IsTryOutAttested 
-                                && (IsOffline ? HasValidOfflineLease : IsTelemetryNotEnergized);
-
-    public bool IsOffline { get; private set; }
-    public bool HasValidOfflineLease { get; private set; }
-}
+[Parameter]
+public string? EquipmentUnitTag { get; set; }
 ```
 
-#### 7.2.2. Subcomponent Parameters (`CMP-04` to `CMP-11`, `AF-003`)
+#### 7.2.2. Subcomponent Parameters (`CMP-04` to `CMP-12`)
 ```csharp
 // CMP-04: IsolationCutoffNode.razor
 [Parameter]
@@ -365,7 +334,7 @@ public bool HasValidOfflineLease { get; set; }
 [Parameter]
 public int RemainingLeaseSeconds { get; set; }
 
-// AF-003: EvacuationBeaconOverlay.razor
+// CMP-12: EvacuationBeaconOverlay.razor
 [Parameter]
 public bool IsActive { get; set; }
 
@@ -460,12 +429,11 @@ public enum PhysicalVerificationMethod
    * Manipulates SVG path stroke attributes (red solid for active hazardous energy vs. slate dashed for confirmed isolated lines) in real time without triggering full SVG re-parsing or DOM thrashing.
    * Tracks PointerEvents for continuous panning and zooming, enforces the $4\text{px}$ tactile threshold filter, calculates focal zoom matrix transforms, and binds discrete tap toggling to the bottom sheet handle.
 2. **Cutoff Node Hotspot Binding:**
-   * Direct client-side event binding on `<g id="cutoff-{nodeId}">` SVG elements. Disambiguates canvas middle-click dragging from discrete touch taps on cutoff nodes, dispatching node selection to highlight corresponding checklist steps in `CMP-06` and MAI cards in `CMP-07`.
+   * Standardized SVG data attribute binding (`data-cutoff-id`, `data-equip-id`). Disambiguates canvas middle-click dragging from discrete touch taps on cutoff nodes, dispatching node selection to highlight corresponding checklist steps in `CMP-06` and MAI cards in `CMP-07`.
 3. **Encrypted Offline Storage & Lease Interop (`IOfflineStorage`):**
    * Interfaces with client-side encrypted local storage (`TR-002`, `TR-006`, `TR-007`) for offline cryptographic lease evaluation (`ADR-006`) and immediate transactional outbox queuing of verification commands during network disconnections.
-4. **Emergency Evacuation Audio Interop (`IEvacuationAudioInterop`):**
-   * Client-side audio synthesizer leveraging HTML5 Web Audio API `AudioContext` (`OscillatorNode` linear frequency sweep from $800\text{Hz}$ to $1200\text{Hz}$ at $2\text{Hz}$ modulation frequency) calibrated to $\approx 85\text{ dBA}$.
-   * Traps all DOM pointer and keyboard events (`pointerdown`, `keydown`, `touchstart` with `stopImmediatePropagation()` and `preventDefault()`), ensuring complete non-interactive passivity during life-safety evacuation (`AF-003`).
+4. **Emergency Evacuation Interop (`IEvacuationAudioInterop`):**
+   * Encapsulates client-side acoustic sweep generation ($800\text{Hz} - 1200\text{Hz}$ at $2\text{Hz}$ modulation) calibrated to $\approx 85\text{ dBA}$ alongside full viewport pointer and keyboard event trapping, guaranteeing complete non-interactive passivity during life-safety evacuation (`CMP-12`, `AF-003`).
 
 ---
 
@@ -473,8 +441,8 @@ public enum PhysicalVerificationMethod
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1400\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full left workspace ($1480\text{px}$); LOTO Drawer `CMP-05` docks as fixed lateral panel ($440\text{px}$, $100\text{vh}$) on right flank. | Mouse wheel focal zoom; middle-click pan; dual-column checklist and telemetry matrix. |
-| **Industrial Tablet Landscape**<br>($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`) | Canvas `CMP-01` occupies left area ($840\text{px}$); LOTO Drawer `CMP-05` occupies right panel ($440\text{px}$). Viewport toolbar `CMP-02` auto-centers over viewable canvas. | Touch pan threshold ($4\text{px}$); gloved touch targets $\ge 48\text{px}$; floating filter chips collapse gracefully. |
+| **Desktop Workstation**<br>($\ge 1400\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full left workspace; LOTO Drawer `CMP-05` docks as fixed lateral panel ($440\text{px}$, $100\text{vh}$) on right flank. | Mouse wheel focal zoom; middle-click pan; dual-column checklist and telemetry matrix. |
+| **Industrial Tablet Landscape**<br>($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`) | Canvas `CMP-01` occupies left workspace; LOTO Drawer `CMP-05` occupies right panel ($440\text{px}$). Viewport toolbar `CMP-02` auto-centers over viewable canvas. | Touch pan threshold ($4\text{px}$); gloved touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); drawer minimizes to $36\text{px}$ peek tab. |
 | **Industrial Tablet Portrait**<br>($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`) | Canvas `CMP-01` occupies full width; LOTO Drawer `CMP-05` operates as **Bottom Sheet** docked at bottom, initializing at natural content height ($45\text{vh}$), expandable via drag handle to $85\text{vh}$. | Drag handle gesture support with hysteresis; mandatory discrete tap toggling between $45\text{vh}$ and $85\text{vh}$; sticky `[Start Work]` footer button always visible above viewport edge. |
 
 ---
@@ -489,7 +457,7 @@ public enum PhysicalVerificationMethod
 | [FR-228](../../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr) | `CMP-06` | Mandatory sequential checklist with strict order and physical Padlock Tag ID validation. |
 | [FR-230](../../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr) | `CMP-08`, `CMP-09` | Start work control enables ONLY AFTER physical checklist completion, rich Try-Out attestation with signature hash, and corroborative telemetry zero state. |
 | [FR-231](../../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr) | `CMP-08`, `CMP-09` | Audit trail logging of technician signature hash, padlock IDs, timestamps, and sensor telemetry snapshot upon start. |
-| [FR-232](../../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr) | `CMP-01`, `CMP-09`, `EvacuationBeaconOverlay.razor` | Continuous in-execution telemetry monitoring; auto-suspension via `WorkOrder.SuspendExecution` (setting status to `SUSPENDED`) and non-interactive passive evacuation beacon on re-energization. |
+| [FR-232](../../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr) | `CMP-01`, `CMP-09`, `CMP-12` | Continuous in-execution telemetry monitoring; automated server-side Work Order suspension to `SUSPENDED` and deployment of non-interactive passive evacuation beacon on re-energization breach. |
 | [NFR-229](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-09` | ACTIVE LOCK: interface disables work initiation on active energy; cannot be bypassed on client. |
 | [NFR-233](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-07` | Telemetry processing and UI update latency $< 1\text{s}$ via SignalR WebSocket stream. |
 | [NFR-234](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-09` | Fail-safe design: uncertain energy status assumes hazardous condition and maintains lock. |
