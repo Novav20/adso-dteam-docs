@@ -14,7 +14,7 @@ user_stories:
   - "[[INV-025]]"
 use_cases:
   - "[[UC-INV-025]]"
-version: 1.3
+version: 1.4
 date: 2026-10-19
 status: Stable
 ---

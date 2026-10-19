@@ -13,8 +13,8 @@ user_stories:
   - "[[MTTO-002]]"
 use_cases:
   - "[[UC-MTTO-002]]"
-version: 1.2
-date: 2026-10-18
+version: 1.3
+date: 2026-10-19
 status: Stable
 ---
 

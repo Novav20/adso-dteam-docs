@@ -12,8 +12,8 @@ user_stories:
   - "[[VIS-008]]"
 use_cases:
   - "[[UC-VIS-008]]"
-version: 1.4
-date: 2026-10-18
+version: 1.5
+date: 2026-10-19
 status: Stable
 ---
 
