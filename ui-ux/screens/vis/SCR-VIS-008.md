@@ -25,7 +25,7 @@ status: Stable
 * **Target Personas:** 
   * **HSEQ Inspector (Primary):** Audits safety compliance, monitors redundant hazard cues, resolves unmapped orphan permits, and analyzes SIMOPS spatial intersections.
   * **Maintenance Supervisor:** Maintains situational awareness, coordinates concurrent contractor tasks, and escalates to Level 3 equipment inspection.
-* **Operational Context:** Rugged industrial field tablets in landscape and portrait modes (`--dt-breakpoint-lg`), and central maintenance desktop consoles (`--dt-breakpoint-xl`).
+* **Operational Context:** Rugged industrial field tablets in landscape and portrait orientations, and central maintenance desktop consoles.
 * **Mode of Operation:** Spatial supervision, safety audit, and passive contextual navigation. The interface does not issue industrial control maneuvers or manipulate process setpoints.
 
 ---
@@ -43,7 +43,7 @@ status: Stable
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :------- | :---------------------- | :------------------------------- | :-------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CMP-01` | L1 Plot Plan Canvas | Macro plant SVG vector canvas | Surface: `--dt-color-bg-canvas`<br>Elevation: `--dt-z-canvas` | Renders macro polygons representing Functional Locations (ISO 14224 Levels 1 to 4) and Level 6 equipment nodes. Implements semantic zoom clustering. Detailed panning and zoom rules in §5.4. |
-| `CMP-02` | Viewport Toolbar | Spatial navigation toolbar | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-full` | Floating navigation toolbar centered over viewable canvas. Hosts level badge (`L1: PLOT PLAN`, fixed $144\text{px}$ width invariant), reset view (1:1), zoom (+ / −), layer selector (`[≡ Layers]`), and non-modal alert badges for SIMOPS conflicts and unmapped permits. Adaptive condensation in §5.2. Shared with [SCR-VIS-033](./SCR-VIS-033.md). |
+| `CMP-02` | Viewport Toolbar | Spatial navigation toolbar | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-full` | Floating navigation toolbar centered over viewable canvas. Hosts level badge (`L1: PLOT PLAN`), reset view (1:1), zoom (+ / −), layer selector (`[≡ Layers]`), and non-modal alert badges for SIMOPS conflicts and unmapped permits. Adaptive condensation in §5.2. Shared with [SCR-VIS-033](./SCR-VIS-033.md). |
 | `CMP-03` | User Profile Indicator | Active user session control | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-full` | Circular floating button anchored at top-left margin per layout grid. Displays user initials. Enforces `--dt-touch-target-mobile`. Aligned with `CMP-11` in [SCR-VIS-033](./SCR-VIS-033.md). |
 | `CMP-04` | Functional Zone Polygon | Plant zone boundaries in SVG | Border: `--dt-color-border-subtle`<br>Fill: transparent / neutral | Vector boundary representing a Functional Location. Rendered in neutral grayscale to maintain the 90/10 background rule. Hosts `CMP-09` cluster pills at centroids at macro zoom. |
 | `CMP-05` | PTW Overlay Badges | Active permit safety markers | Color: Security Matrix Tokens<br>Elevation: `--dt-z-layer-ptw` | Vector safety hotspots dynamically positioned over affected equipment units at area zoom. Applies mandatory 4-channel redundant coding (color, shape, icon, text) and spatial hazard buffers. Specification in §5.1. |
@@ -63,7 +63,7 @@ status: Stable
 | **Active PTW Layer** | Renders `CMP-09` cluster pills at $Z < 1.15$, or discrete `CMP-05` badges with spatial hazard buffers at $1.15 \le Z < 2.30$. Layer button in `CMP-02` highlights with `--dt-color-state-info`. | Activation of the "Work Permits" layer switch in `CMP-02` (`FR-182`). |
 | **Selected Permit (Popover Active)** | Target `CMP-05` badge highlights with informational halo (`--dt-color-state-info`). Card `CMP-06` deploys adjacent to badge. Clamps inside viewport margins and dismisses upon pan/zoom. | Tap / Click on `CMP-05` badge on the canvas (`FR-184`). |
 | **SIMOPS Spatial Conflict Active** | Overlapping hazard buffers render pulsing diagonal hatch pattern. Conflicting badges display $4\text{px}$ pulsing red halo (`--dt-color-alarm-critical`). Viewport toolbar displays `[⚠️ SIMOPS CONFLICT: PTW-XXXX / PTW-YYYY]` pill. Top toast banner slides down non-modally. | Automated Spatial Integrity Engine detects Euclidean distance $D_{AB} < R_A + R_B$ between incompatible permits. |
-| **Expiring Soon Warning** | Target `CMP-05` badge displays amber pulsing border; status in `CMP-06` displays "EXPIRING SOON" in `--dt-color-alarm-warning`. | System detects permit time window has $< 60\text{ min}$ remaining until `valid_to`. |
+| **Expiring Soon Warning** | Target `CMP-05` badge displays amber pulsing border; status in `CMP-06` displays "EXPIRING SOON" in `--dt-color-alarm-warning`. | System detects permit time window has $< 60\text{ min}$ remaining until `ValidTo`. |
 | **Detected Orphanhood (SIMOPS Alert)** | Toolbar badge highlights in `--dt-color-alarm-critical` with unmapped count (e.g., `[⚠️ 3]`). Non-modal top toast banner ($\le 40\text{px}$) notifies operator. Explicit tap opens `CMP-07` without viewport hijacking. | Approved permits detected lacking SVG `MeshMapping` (`FR-185`, `AF-001`). |
 | **Loss of Synchronization** | Priority 4 Diagnostic banner deployed at screen top with neutral stale icon (`wifi-off`) and last sync timestamp. Badges remain visible in cached state. Process alarm colors (amber/red) prohibited. | Interruption of real-time SignalR connection or heartbeat timeout (`FR-187`, `NFR-194`, `AF-002`). |
 
@@ -75,7 +75,7 @@ status: Stable
 1. Upon loading the view, the system retrieves the vector layout representing the facility's Functional Locations (ISO 14224 Levels 1 to 4).
 2. When the Work Permits layer is active, the system queries all `WorkPermits` in the `APPROVED` lifecycle state.
 3. **Referential Resolution Path:**
-   $$\text{WorkPermit} \xrightarrow{\text{equipment\_unit\_id}} \text{EquipmentUnit} \xrightarrow{\text{MeshMapping}} \text{SVG Coordinates / Centroid}$$
+   $$\text{WorkPermit} \xrightarrow{\text{EquipmentUnitId}} \text{EquipmentUnit} \xrightarrow{\text{MeshMapping}} \text{SVG Coordinates / Centroid}$$
    * If the Equipment Unit has an explicit `MeshMapping` node in the SVG, the `CMP-05` badge is centered over that equipment hotspot.
    * If the Equipment Unit is mapped to a parent Functional Location without discrete geometry, the badge is placed in the designated zone cluster header (`CMP-04`).
 4. **Automated SIMOPS Proximity & Collision Detection Engine (ISO 45001 §8.1 / Endsley SA Level 3):**
