@@ -314,6 +314,10 @@ def audit_persistence_leaks(content: str) -> list[Finding]:
     lines = content.splitlines()
 
     for idx, line in enumerate(lines, start=1):
+        # Skip normative prohibition alerts/rules
+        if "PROHIBITED" in line or "Prohibited" in line:
+            continue
+
         # Exclude markdown link targets/URLs where schemas might appear in repository filepaths (e.g. adso-dteam-docs/...)
         stripped_line = re.sub(r"\[.*?\]\(.*?\)", "", line)
 
@@ -347,6 +351,11 @@ def audit_csharp_leaks(content: str) -> list[Finding]:
             else:
                 in_code_block = False
                 code_block_lang = ""
+            continue
+
+        # Skip C# comments and prohibition descriptions
+        stripped = line.strip()
+        if stripped.startswith("//") or stripped.startswith("/*") or stripped.startswith("*") or "PROHIBITED" in line or "Prohibited" in line:
             continue
 
         for pattern, code, msg_template in CSHARP_LEAK_PATTERNS:

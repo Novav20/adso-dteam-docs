@@ -14,9 +14,9 @@ user_stories:
   - "[[INV-025]]"
 use_cases:
   - "[[UC-INV-025]]"
-version: 1
-date: 2026-10-15
-status: DRAFT
+version: 1.1
+date: 2026-10-19
+status: In Review
 ---
 
 # SCR-INV-025: Rotable Asset Rotation and Replacement Modal (Asset Swap)
@@ -30,7 +30,7 @@ status: DRAFT
   * **Warehouse Manager:** Reconciles rotable inventory movements and receives dismantled units into the repair workshop.
   * **Maintenance Supervisor:** Approves equipment substitutions associated with high-priority corrective work orders.
 * **Operational Context:** Accessible both in the field via rugged industrial tablets (`--dt-breakpoint-md`, `--dt-breakpoint-lg`) during physical dismounting, and in engineering control offices on desktop workstations (`--dt-breakpoint-xl`).
-* **Mode of Operation:** Contextual Transactional Modal Task. Operates as an interruptive modal overlay on desktop workstations ($640\text{px}$ dialog) and as a responsive bottom sheet on industrial mobile/portrait viewports (`height: min(45vh, 440px)` up to $85\text{vh}$). Excludes continuous process telemetry manipulation, focusing strictly on asset lifecycle state transitions, barcode scanning, and cryptographic audit persistence.
+* **Mode of Operation:** Contextual Transactional Modal Task. Operates as an interruptive modal overlay on desktop workstations ($640\text{px}$ dialog) and as a responsive bottom sheet on industrial mobile/portrait viewports (initial height: `min(45vh, var(--dt-layout-drawer-width-desktop))`, expandable up to $85\text{vh}$). Excludes continuous process telemetry manipulation, focusing strictly on asset lifecycle state transitions, barcode scanning, and cryptographic audit persistence.
 
 ---
 
@@ -45,17 +45,19 @@ status: DRAFT
 ## 3. Functional Component Inventory
 
 > The base layout, typography, and design tokens are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, semantic tokens, and architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
+>
+> *Rule:* Table cells must strictly serve as a visual catalog of roles, semantic tokens, and pointers to Section 5. Never embed interaction algorithms, clamping math, state machine logic, or raw CSS styles in table cells.
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
-| `CMP-01` | Modal Container & Header | Modal shell / Bottom sheet header | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` ($1000$) | Hosts title ("Rotable Asset Swap"), Functional Location tag (`P-0101A`), Equipment Class badge, and close button. Adapts from desktop centered dialog ($640\text{px}$) to tactile bottom sheet on mobile portrait. |
+| `CMP-01` | Modal Container & Header | Modal shell / Bottom sheet header | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Hosts title ("Rotable Asset Swap"), Functional Location tag (`P-0101A`), Equipment Class badge, and close button. Adapts from desktop centered dialog ($640\text{px}$) to tactile bottom sheet on mobile portrait. |
 | `CMP-02` | Asset A Dismounting Card | Currently installed machine card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Displays active asset details: Serial Number (`SN-2024-P0101A`), Model, Current Running Hours, and Installation Date. Hosts mandatory destination controls (`CMP-03`). |
 | `CMP-03` | Destination Status & Warehouse Controls | Status selector and warehouse picker | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Dropdown pair requiring destination operational status (`IN_REPAIR`, `IN_STORAGE`, `DAMAGED`) and holding warehouse (`WH-01`, `WH-02`). Hard-blocks submission if left unassigned (`AF-002`). |
 | `CMP-04` | Asset B Selection Card | Replacement rotable picker card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Hosts replacement equipment selector, serial number display, optical scan trigger (`CMP-05`), and live taxonomic compatibility badge (`CMP-06`). |
 | `CMP-05` | Barcode / NFC Scan Trigger | Tactile camera/scanner button | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle`<br>Height: $\ge 48\text{px}$ | Activates camera-based barcode scanning or Web NFC reader to instantly select Asset B by physical asset barcode tag (`FR-592`). Touch target complies with `--dt-touch-target-mobile`. |
 | `CMP-06` | Taxonomic Compatibility Indicator | Real-time validation badge | Dynamic Surface: `--dt-color-state-success` or `--dt-color-alarm-critical` | Validates that Asset B matches the exact `equipment_class_id` of the Functional Location and is currently in `IN_STORAGE`/`AVAILABLE` status (`AF-001`, `FR-593`). |
 | `CMP-07` | Work Order Linkage Field | Optional justifying WO input | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Searchable input linking the equipment swap transaction to a justifying work order (e.g. `WO-2026-0841`). |
-| `CMP-08` | Cryptographic Audit Hash Strip | Chained SHA-256 preview strip | Surface: `--dt-color-surface-raised`<br>Font: `--dt-font-family-mono` | Displays real-time generated SHA-256 hash chaining payload (`TR-001`), visualizing the immutable record to be committed in `adm.audit_logs`. |
+| `CMP-08` | Cryptographic Audit Hash Strip | Chained SHA-256 preview strip | Surface: `--dt-color-surface-raised`<br>Font: `--dt-font-family-mono` | Displays real-time generated SHA-256 hash chaining payload (`TR-001`), visualizing the immutable cryptographic audit record dispatched with the transaction. |
 | `CMP-09` | Atomic Commit Action Button | Primary transactional confirm button | Surface: Dynamic (`--dt-color-state-info` or disabled opacity 0.45) | Primary action `[Confirm Asset Swap]`. Enforces single-commit atomic execution (`NFR-596`); disabled until all taxonomic and destination constraints are satisfied. |
 | `CMP-10` | Cancellation & Dismiss Button | Secondary cancellation control | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle` | Safely dismisses the modal without altering database configuration or location links. |
 
@@ -103,29 +105,35 @@ sequenceDiagram
     UI-->>Tech: Displays success confirmation and refreshes parent hierarchy
 ```
 
-1. **Initial Context Binding:** The modal initializes with the context of the active Functional Location (`functional_location_id`). It queries `tax.equipment_units` joined with `tax.asset_installations` where `removal_date IS NULL` to populate Asset A.
-2. **Rotable Spares Filtering:** The system queries `tax.equipment_units` for spare units where:
+1. **Initial Context Binding:** The modal initializes with the context of the active Functional Location (`functional_location_id`). It queries the active mounted equipment unit details (`InstalledAssetDetailsDto`) currently mapped to the target location tag.
+2. **Rotable Spares Filtering:** The system queries available rotable spare units (`RotableSpareSummaryDto`) satisfying taxonomic compatibility:
    $$\text{equipment\_class\_id} = \text{FL.equipment\_class\_id} \quad \land \quad \text{operational\_status} = \text{'IN\_STORAGE'} \quad \land \quad \text{functional\_location\_id IS NULL}$$
-3. **Atomic Single-Commit Invariant (`NFR-596`):** The swap operation executes inside a single database transaction:
-   * **Step A:** Update Asset A: `operational_status = :destination_status`, `warehouse_id = :warehouse_id`, `functional_location_id = NULL`.
-   * **Step B:** Close active installation record for Asset A: `removal_date = clock_timestamp()`.
-   * **Step C:** Update Asset B: `operational_status = 'OPERATIONAL'`, `functional_location_id = :fl_id`, `operation_start_date = CURRENT_DATE`.
-   * **Step D:** Insert new installation record for Asset B in `tax.asset_installations`: `equipment_unit_id = :asset_b_id`, `functional_location_id = :fl_id`, `installation_date = clock_timestamp()`, `work_order_id = :wo_id`, `technician_id = :user_id`.
-   * **Step E:** Append audit record in `adm.audit_logs` with SHA-256 hash chaining (`TR-001`).
+3. **Atomic Single-Commit Invariant (`NFR-596`):** The swap operation executes via the `ExecuteAssetSwapCommand` payload dispatched to `POST /api/v1/inventory/rotable-swaps`:
+   * **Step A:** Disassociates Asset A from the location, updating its operational status to the selected destination status (`IN_REPAIR`, `IN_STORAGE`, or `DAMAGED`) and assigning it to the designated holding warehouse.
+   * **Step B:** Terminates the active mounting interval for Asset A with the current UTC timestamp.
+   * **Step C:** Mounts replacement Asset B to the target functional location, transitioning its operational status to `OPERATIONAL` with current operational commencement date.
+   * **Step D:** Establishes the new active mounting record associating Asset B, the functional location tag, justifying work order reference, and technician credentials.
+   * **Step E:** Appends a cryptographically chained audit record with SHA-256 hash verification (`TR-001`).
 
 ---
 
 ### 5.2. Modal Mechanics & Tactile Ergonomics
 
 1. **Desktop vs. Mobile Viewport Adaptation:**
-   * **Desktop Workstation ($\ge 1400\text{px}$):** Centered modal window ($640\text{px}$ width, max-height $80\text{vh}$) with dark backdrop dimming (`rgba(0,0,0,0.65)`). Keyboard navigation: `Escape` cancels, `Enter` confirms when form is valid.
-   * **Industrial Tablet Portrait ($600\text{px} - 900\text{px}$):** Renders as a **Bottom Sheet**, docking at the bottom edge with initial height `min(45vh, 440px)` expandable via drag handle to $85\text{vh}$.
+   * **Desktop Workstation ($\ge 1400\text{px}$, `--dt-breakpoint-xl`):** Centered modal window ($640\text{px}$ width, max-height $80\text{vh}$) with dark backdrop dimming (`rgba(0,0,0,0.65)`). Keyboard navigation: `Escape` cancels, `Enter` confirms when form is valid.
+   * **Industrial Tablet Portrait ($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`):** Renders as a **Bottom Sheet**, docking at the bottom edge with initial height `min(45vh, var(--dt-layout-drawer-width-desktop))` expandable via drag handle to $85\text{vh}$.
 2. **Tactile Targets:** All interactive controls (status dropdowns, barcode scan button, confirm action) enforce touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ margin separation to ensure comfortable operation with industrial gloves (`TR-010`).
 3. **Barcode Scanning Mechanics:** Tapping `CMP-05` triggers the Web MediaDevices camera API or industrial laser scan event listener. Scanning an asset barcode immediately resolves the serial number against the inventory catalog, populating Asset B in $< 300\text{ms}$.
 
 ---
 
 ### 5.3. Domain Workflows & Validation Rules
+
+> [!IMPORTANT]
+> **Architectural Boundary Rule (Persistence Decoupling):**
+> Screen specifications define presentation behaviors, local client validations, and over-the-wire communication contracts only.
+> - **PROHIBITED:** Database schema qualifiers (`mtto.`, `tax.`, `adm.`, `ops.`), physical table names, DDL check constraint names (`ck_*`), SQL functions (`clock_timestamp()`, `NOW()`), and internal database transaction sequences.
+> - **MANDATORY:** Formulate data mutations strictly as command dispatch invocations via typed DTO payloads, HTTP endpoints, and idempotent queuing.
 
 #### 5.3.1. Taxonomic Compatibility Validation (AF-001)
 When Asset B is selected:
@@ -137,13 +145,13 @@ When Asset B is selected:
 #### 5.3.2. Dismantling Destination Enforcement (AF-002)
 To eliminate logical asset orphanhood:
 1. Destination status `CMP-03` requires an explicit selection from `{IN_REPAIR, IN_STORAGE, DAMAGED}`.
-2. Holding warehouse `CMP-03` requires an explicit selection from active storage warehouses (`inv.warehouses`).
+2. Holding warehouse `CMP-03` requires an explicit selection from active storage warehouses.
 3. If either field is omitted, clicking `[Confirm Asset Swap]` applies WCAG 2.1 AA redundant coding (amber focus ring + warning icon `#icon-warning` + inline text label), blocking submission.
 
 #### 5.3.3. Cryptographic Audit Trail Chaining (TR-001)
 Upon confirmation, the client computes the candidate payload hash:
 $$\text{payload\_hash} = \text{SHA-256}(\text{prev\_hash} \parallel \text{user\_id} \parallel \text{fl\_tag} \parallel \text{serial\_a} \parallel \text{serial\_b} \parallel \text{wo\_id} \parallel \text{timestamp})$$
-The resulting hash is persisted in `adm.audit_logs.payload_hash`, linked to `previous_hash` to guarantee unalterable lifecycle traceability.
+The resulting cryptographic hash is bound to the transaction payload, chained to `previous_hash` to guarantee unalterable lifecycle traceability.
 
 ---
 
@@ -154,7 +162,7 @@ The resulting hash is persisted in `adm.audit_logs.payload_hash`, linked to `pre
   * Amber (`--dt-color-alarm-warning`) for missing mandatory fields (`AF-002`).
   * Red (`--dt-color-alarm-critical`) for taxonomic class mismatches (`AF-001`).
 * **Taxonomic Safety Interlock:** Physical equipment rotation must never violate process engineering boundaries (e.g., mounting a low-pressure pump on a high-pressure crude export manifold). Hardware and taxonomic validation prevents operator error.
-* **Offline Fault Resilience ([TR-007](../../../requirements/common/TR-007.md)):** When executed on disconnected mobile tablets, the atomic swap payload is committed to local `sqlite-net-pcl` encrypted storage and queued in the Outbox with an offline lease token, synchronizing automatically upon reconnecting to plant Wi-Fi.
+* **Offline Fault Resilience ([TR-007](../../../requirements/common/TR-007.md)):** When executed on disconnected mobile tablets, the atomic swap payload is committed to local encrypted storage (`IOfflineStorage` / SQLCipher) and queued in the Outbox with an offline lease token, synchronizing automatically upon reconnecting to plant Wi-Fi.
 
 ---
 
@@ -177,38 +185,47 @@ Components/Inventory/
 
 ### 7.2. Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)
 
+```csharp
+// =========================================================================
+// ARCHITECTURAL BOUNDARY RULES FOR SECTION 7:
+// [PROHIBITED]:
+//   - C# `namespace` declarations (to prevent premature assembly coupling).
+//   - Full Blazor `ComponentBase` class declarations (`class Foo : ComponentBase`).
+//   - Dependency injection annotations (`[Inject]`).
+//   - Private mutable component state fields (`private bool _isLoading;`).
+//   - Blazor lifecycle method overrides (`OnInitializedAsync`, `OnParametersSetAsync`).
+// [ALLOWED ONLY]:
+//   - Pure `[Parameter]` properties defining the component's public input/output contract.
+//   - Immutable C# `record` types defining presentation DTOs.
+//   - Strongly-typed presentation `enum`s.
+// =========================================================================
+```
+
 #### 7.2.1. `AssetSwapModal.razor` (Root View)
 
 ```csharp
-namespace Dteam.Ui.Components.Inventory;
+[Parameter, EditorRequired]
+public required string FunctionalLocationId { get; set; }
 
-public partial class AssetSwapModal : ComponentBase
-{
-    [Parameter, EditorRequired]
-    public required string FunctionalLocationId { get; set; }
+[Parameter, EditorRequired]
+public required string FunctionalLocationTag { get; set; }
 
-    [Parameter, EditorRequired]
-    public required string FunctionalLocationTag { get; set; }
+[Parameter]
+public string? PreselectedWorkOrderId { get; set; }
 
-    [Parameter]
-    public string? PreselectedWorkOrderId { get; set; }
+[Parameter]
+public bool IsVisible { get; set; }
 
-    [Parameter]
-    public bool IsVisible { get; set; }
+[Parameter]
+public EventCallback<AssetSwapCompletedEvent> OnSwapCompleted { get; set; }
 
-    [Parameter]
-    public EventCallback<AssetSwapCompletedEvent> OnSwapCompleted { get; set; }
-
-    [Parameter]
-    public EventCallback OnCancelled { get; set; }
-}
+[Parameter]
+public EventCallback OnCancelled { get; set; }
 ```
 
 #### 7.2.2. DTOs and Transaction Commands
 
 ```csharp
-namespace Dteam.Domain.Inventory.Dtos;
-
 public record InstalledAssetDetailsDto(
     Guid EquipmentUnitId,
     string SerialNumber,
@@ -268,9 +285,9 @@ public record AssetSwapCompletedEvent(
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1400\text{px}$, `--dt-breakpoint-xl`) | Centered modal dialog ($640\text{px}$ width, max-height $80\text{vh}$); dual-card horizontal layout comparing Asset A vs. Asset B. | Mouse click interaction; `Tab` key focus cycling; `Enter` to commit; `Escape` to cancel. |
-| **Industrial Tablet Landscape**<br>($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`) | Centered modal container ($580\text{px}$ width); vertically stacked Asset A and Asset B cards. | Touch targets $\ge 44\text{px}$; large barcode scan button; clear contrast borders. |
-| **Industrial Tablet Portrait**<br>($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`) | **Bottom Sheet Container** docking at bottom; initial compact height `min(45vh, 440px)`, expandable via touch drag handle to $85\text{vh}$. | Drag handle gesture support; gloved touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ margin; sticky footer button `[Confirm Asset Swap]` always visible. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Centered modal dialog ($640\text{px}$ width, max-height $80\text{vh}$); dual-card horizontal layout comparing Asset A vs. Asset B. | Mouse click interaction; `Tab` key focus cycling; `Enter` to commit; `Escape` to cancel. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Centered modal container ($580\text{px}$ width); vertically stacked Asset A and Asset B cards. | Touch targets $\ge 48\text{px}$; large barcode scan button; clear contrast borders. |
+| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | **Bottom Sheet Container** docking at bottom; initial compact height `min(45vh, var(--dt-layout-drawer-width-desktop))`, expandable via touch drag handle to $85\text{vh}$. | Drag handle gesture support; gloved touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ margin; sticky footer button `[Confirm Asset Swap]` always visible. |
 
 ---
 
