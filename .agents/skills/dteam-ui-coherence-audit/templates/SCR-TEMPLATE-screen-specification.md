@@ -74,13 +74,7 @@ status: Draft | In Review | Approved
 ### 5.3. Domain Workflows & Telemetry
 1. Real-time subscription, debouncing, and payload mapping rules.
 2. State validation, business rule evaluation, and fail-safe handling.
-3. Command dispatch contracts (API endpoint, typed DTO payload, idempotency headers, and HTTP response handling).
-
-> [!IMPORTANT]
-> **Architectural Boundary Rule (Persistence Decoupling):**
-> Screen specifications define presentation behaviors, local client validations, and over-the-wire communication contracts only.
-> - **PROHIBITED:** Database schema qualifiers (`mtto.`, `tax.`, `adm.`, `ops.`), physical table names, DDL check constraint names (`ck_*`), SQL functions (`clock_timestamp()`, `NOW()`), and internal database transaction sequences.
-> - **MANDATORY:** Formulate data mutations strictly as command dispatch invocations via typed DTO payloads, HTTP endpoints, and idempotent queuing.
+3. Command dispatch contracts (API endpoint, typed DTO payload, idempotency headers, and HTTP response handling). Formulate data mutations strictly as command dispatch invocations via typed DTO payloads, HTTP endpoints, and idempotent queuing.
 
 ---
 
@@ -105,22 +99,6 @@ Pages/
 
 ### 7.2. Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)
 
-```csharp
-// =========================================================================
-// ARCHITECTURAL BOUNDARY RULES FOR SECTION 7:
-// [PROHIBITED]:
-//   - C# `namespace` declarations (to prevent premature assembly coupling).
-//   - Full Blazor `ComponentBase` class declarations (`class Foo : ComponentBase`).
-//   - Dependency injection annotations (`[Inject]`).
-//   - Private mutable component state fields (`private bool _isLoading;`).
-//   - Blazor lifecycle method overrides (`OnInitializedAsync`, `OnParametersSetAsync`).
-// [ALLOWED ONLY]:
-//   - Pure `[Parameter]` properties defining the component's public input/output contract.
-//   - Immutable C# `record` types defining presentation DTOs.
-//   - Strongly-typed presentation `enum`s.
-// =========================================================================
-```
-
 #### 7.2.1. `ScreenNamePage.razor` (Root View)
 ```csharp
 [Parameter]
@@ -129,7 +107,7 @@ public required string EntityId { get; set; }
 
 #### 7.2.2. Subcomponent Parameters (`CMP-01` to `CMP-XX`)
 ```csharp
-// Parameters for child razor components
+// Pure [Parameter] properties for child razor components
 ```
 
 #### 7.2.3. Data Transfer Objects (DTOs)

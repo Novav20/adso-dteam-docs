@@ -101,6 +101,7 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
     *   *§7.2 Physical Parameters & DTOs (.NET 10 / C# 14):* Strongly-typed C# records, component `[Parameter]` contracts, and view enums.
         *   **STRICT PROHIBITION:** Never declare C# `namespace` statements, full `ComponentBase` class declarations (`class Foo : ComponentBase`), `[Inject]` services, private mutable state fields (`private bool _isLoading;`), or lifecycle overrides (`OnInitializedAsync`). Specifications define external parameter contracts, not internal code-behind implementations.
     *   *§7.3 Client-Side DOM & Interop Bridge:* JSInterop capability interfaces (`IPointerInterop`, `IOfflineStorage`), event throttling, and touch listener lifecycles. Prohibit direct browser globals (`window.`, `document.`, `AudioContext`).
+    *   *Rule on Clean Deliverables:* Never copy-paste scaffolding rules, prohibition alert boxes (`[!IMPORTANT]`), or architectural boundary comments into the generated screen specification. Deliverables must contain purely normative technical specifications.
 9.  **§8 Layout and Responsive Adaptability:**
     *   Explicit 3-tier breakpoint table: Desktop ($\ge 1400\text{px}$, `--dt-breakpoint-xl`), Tablet Landscape ($901\text{px}-1399\text{px}$, `--dt-breakpoint-lg`), Tablet Portrait ($600\text{px}-900\text{px}$, `--dt-breakpoint-md`). Bound to canonical tokens `--dt-layout-drawer-width-desktop` and `--dt-layout-drawer-width-tablet`.
 10. **§9 Traceability and Requirements Matrix:**

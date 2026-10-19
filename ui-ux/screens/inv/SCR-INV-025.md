@@ -129,12 +129,6 @@ sequenceDiagram
 
 ### 5.3. Domain Workflows & Validation Rules
 
-> [!IMPORTANT]
-> **Architectural Boundary Rule (Persistence Decoupling):**
-> Screen specifications define presentation behaviors, local client validations, and over-the-wire communication contracts only.
-> - **PROHIBITED:** Database schema qualifiers (`mtto.`, `tax.`, `adm.`, `ops.`), physical table names, DDL check constraint names (`ck_*`), SQL functions (`clock_timestamp()`, `NOW()`), and internal database transaction sequences.
-> - **MANDATORY:** Formulate data mutations strictly as command dispatch invocations via typed DTO payloads, HTTP endpoints, and idempotent queuing.
-
 #### 5.3.1. Taxonomic Compatibility Validation (AF-001)
 When Asset B is selected:
 1. The client verifies:
@@ -184,22 +178,6 @@ Components/Inventory/
 ---
 
 ### 7.2. Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)
-
-```csharp
-// =========================================================================
-// ARCHITECTURAL BOUNDARY RULES FOR SECTION 7:
-// [PROHIBITED]:
-//   - C# `namespace` declarations (to prevent premature assembly coupling).
-//   - Full Blazor `ComponentBase` class declarations (`class Foo : ComponentBase`).
-//   - Dependency injection annotations (`[Inject]`).
-//   - Private mutable component state fields (`private bool _isLoading;`).
-//   - Blazor lifecycle method overrides (`OnInitializedAsync`, `OnParametersSetAsync`).
-// [ALLOWED ONLY]:
-//   - Pure `[Parameter]` properties defining the component's public input/output contract.
-//   - Immutable C# `record` types defining presentation DTOs.
-//   - Strongly-typed presentation `enum`s.
-// =========================================================================
-```
 
 #### 7.2.1. `AssetSwapModal.razor` (Root View)
 
