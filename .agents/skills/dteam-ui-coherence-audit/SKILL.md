@@ -114,21 +114,26 @@ All screen specifications must strictly align with the canonical standard define
      * §9 Traceability and Requirements Matrix
    * **[FAIL]** if sections are omitted, merged, or out of order.
 
-2. **Section 3 Anti-Redundancy (Clean Cataloging):**
+2. **Section 1 & Section 3 Anti-Redundancy (Clean Cataloging & Scoping):**
+   * Section 1 must state operational and environmental contexts qualitatively. **[FAIL]** if Section 1 embeds breakpoint tokens (`--dt-breakpoint-*`), container pixel/vh dimensions, or domain enum lists.
    * Table cells in §3 must strictly serve as a catalog of visual roles, semantic tokens, and pointers to Section 5.
-   * **[FAIL]** if table cells in §3 contain detailed algorithms, mathematical formulas (e.g., coordinate calculations, clamping bounds), or multi-step interaction workflows. These belong exclusively in Section 5.
+   * **[FAIL]** if table cells in §3 contain detailed algorithms, mathematical formulas (e.g., coordinate calculations, clamping bounds), multi-step interaction workflows, hardware layout dimensions (e.g., `640px`, `45vh`), domain enum string lists, status strings, or NFR citations.
+   * Column 4 ("Semantic Token") must reference explicit Design System tokens (`--dt-*`). **[FAIL]** if placeholder text (e.g., `Color: Security Matrix Tokens`) is used.
 
 3. **Section 4 DOM/Visual-Only Delta Integrity:**
    * State descriptions in §4 must define observable visual modifications in the DOM (e.g., muted typography, halo additions, container transitions).
    * **[FAIL]** if §4 cells duplicate backend business rules, state machine transitions, or detailed interaction logic.
 
-4. **Section 5 Single Source of Truth (SSoT) Completeness:**
+4. **Section 5 Single Source of Truth (SSoT) & Presentation Boundary Integrity:**
    * Section 5 is the sole SSoT for interaction mechanics, gesture physics, and calculations:
      * Viewport math, focal zooming, bounding box clamping, and coordinate transformations.
      * Layout shift invariants (e.g., fixed badge widths, fixed slot heights).
      * Tactile mechanics: touch thresholds (e.g., $4\text{px}$ pan threshold), sheet snap heights, drag handle hysteresis, and minimize transitions.
      * Real-time subscription policies, debouncing thresholds, and fail-safe diagnostic fallbacks.
-   * **[FAIL]** if technical behaviors mentioned in §3 or §4 are missing from §5.
+   * **[FAIL] Presentation Layer Sequence Diagram Leaks:** UI sequence diagrams in §5.1 must model interactions strictly between `Tech`, `UI`, `Interop`, and the boundary `API` Gateway. Flag any backend worker hops (e.g., `API ->> Worker`, `API ->> DB`) or internal backend self-calls (`API ->> API`).
+   * **[FAIL] Exhaustive Enum Duplication:** §5.3 must reference strongly-typed C# enums in §7.2.3. Flag exhaustive string literals in prose or LaTeX set equations enumerating enum literals.
+   * **[FAIL] Duplicate Outbox Flows:** If §5.3.5 exists, §5.3.4 command dispatch must point directly to §5.3.5 instead of repeating local outbox serialization and sync retry steps.
+   * **[FAIL] Parenthetical Type Contradictions:** Flag parenthetical fixtures in prose (e.g., `*(e.g., WorkOrderId = "WO-...")*`) that contradict strongly-typed DTOs (`Guid` vs `string`).
 
 5. **Section 7 Tripartite Contract Conformance:**
    * Section 7 must follow the structured tripartite hierarchy:
@@ -138,11 +143,13 @@ All screen specifications must strictly align with the canonical standard define
    * **Decoupled Namespaces:** Snippets define UI contracts, parameters, and DTO signatures without premature C# `namespace` declarations.
    * **[FAIL]** if Section 7 dumps unstructured monolithic code, hardcodes speculative namespaces, or omits the client-side bridge (`7.3`).
 
-6. **Sections 8 & 9 Completeness:**
+6. **Sections 8 & 9 Completeness & Consistency:**
    * **Section 8 (Layout & Responsive Adaptability):** Must tabulate layout organization and ergonomic rules across all 3 standard viewports:
-     * Desktop Workstation ($\ge 1400\text{px}$)
-     * Industrial Tablet Landscape ($901\text{px} - 1399\text{px}$)
-     * Industrial Tablet Portrait ($600\text{px} - 900\text{px}$)
+     * Desktop Workstation ($\ge 1920\text{px}$, `--dt-breakpoint-xl`)
+     * Industrial Tablet Landscape ($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$)
+     * Industrial Tablet Portrait ($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$)
+   * **[FAIL] Component Responsibility Mismatch:** Verify that `CMP-XX` references in Section 8 match their cataloged roles in Section 3 (e.g., toolbar vs floating filter bar).
+   * **[FAIL] Raw CSS Expressions:** Section 8 must not contain raw CSS `calc()` expressions; use descriptive architectural offsets.
    * **Section 9 (Traceability and Requirements Matrix):** Serves as the Single Source of Truth (SSoT) for screen-level requirements mapping. Must tabulate all functional and non-functional requirements associated with the screen's user story (sourced from Notion/backups: `srs.csv` / `transversal-requirements.csv`), mapping each requirement (`FR-*`, `NFR-*`, `TR-*`, `ADR-*`) to its implementing `CMP-*` component and concrete verification mechanism. The YAML frontmatter excludes raw requirement arrays to prevent duplicate bookkeeping.
 
 7. **Language and Persona Tone Guardrails:**

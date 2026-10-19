@@ -382,7 +382,15 @@ def audit_css_and_dimension_leaks(content: str) -> list[Finding]:
     hex_pattern = re.compile(r"(?<![a-zA-Z0-9_\(\[/\$-])#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b(?![-a-zA-Z0-9_])")
     drawer_magic_pattern = re.compile(r"(?:drawer|sidebar|bottom\s*sheet|width).*?(?:\$?(?:440|320)\\?text\{px\}\$?|\b(?:440|320)px\b)", re.IGNORECASE)
 
+    in_sec8 = False
     for idx, line in enumerate(lines, start=1):
+        if re.search(r"^##\s+8\.\s+Layout and Responsive Adaptability", line, re.IGNORECASE):
+            in_sec8 = True
+            continue
+        elif line.startswith("## "):
+            in_sec8 = False
+            continue
+
         clean_line = re.sub(r"\[.*?\]\([^\)]*#[^\)]*\)", "", line)
         clean_line = re.sub(r"\]\([^)]+\)", "", clean_line)
 
@@ -418,6 +426,16 @@ def audit_css_and_dimension_leaks(content: str) -> list[Finding]:
                     line=idx
                 ))
 
+        # 4. Check raw CSS calc() in Section 8
+        if in_sec8 and not line.strip().startswith(">") and not line.strip().startswith("<!--"):
+            if re.search(r"\bcalc\(", line):
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="CSS-005",
+                    message="Raw CSS 'calc()' expression found in Section 8. Use descriptive architectural offsets (e.g., 'offsets leftward by 50% of active drawer width (§5.2.3)').",
+                    line=idx
+                ))
+
     return findings
 
 
@@ -442,44 +460,12 @@ def audit_runtime_leaks(content: str) -> list[Finding]:
 
 
 def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
-    """Validates that all referenced --dt-* tokens exist in tokens.css."""
+    """Validates that all referenced --dt-* tokens exist in tokens.css and Section 3 uses valid tokens."""
     findings: list[Finding] = []
-    if not valid_tokens:
-        return findings
-
     lines = content.splitlines()
     token_pattern = re.compile(r"(--dt-[a-z0-9-]+(?:\*)?)")
 
-    for idx, line in enumerate(lines, start=1):
-        matches = token_pattern.findall(line)
-        for tok in matches:
-            if tok.endswith("*"):
-                prefix = tok[:-1]
-                if not any(t.startswith(prefix) for t in valid_tokens):
-                    findings.append(Finding(
-                        severity="WARNING",
-                        code="TOK-001",
-                        message=f"Wildcard token prefix '{tok}' does not match any tokens in 'tokens.css'.",
-                        line=idx
-                    ))
-            elif tok not in valid_tokens:
-                findings.append(Finding(
-                    severity="WARNING",
-                    code="TOK-001",
-                    message=f"Referenced design token '{tok}' is not defined in 'tokens.css'. Verify token name against DT-UI-DS-DOC-001.",
-                    line=idx
-                ))
-
-    return findings
-
-
-def audit_anti_redundancy(content: str) -> list[Finding]:
-    """Verifies that §3 cells do not contain interaction algorithms or complex math."""
-    findings: list[Finding] = []
-    lines = content.splitlines()
-
     in_sec3 = False
-
     for idx, line in enumerate(lines, start=1):
         if re.search(r"^##\s+3\.\s+Functional Component Inventory", line, re.IGNORECASE):
             in_sec3 = True
@@ -489,11 +475,168 @@ def audit_anti_redundancy(content: str) -> list[Finding]:
             continue
 
         if in_sec3 and line.strip().startswith("|") and not line.strip().startswith("| :---"):
-            if re.search(r"\bMath\.(?:min|max|clamp)\b", line) or re.search(r"\bclamp\(", line):
+            if re.match(r"\|\s*`CMP-\d+`", line):
+                parts = [p.strip() for p in line.split("|")]
+                if len(parts) >= 5:
+                    col4 = parts[4]
+                    if not ("--dt-" in col4 or "DT-UI-DS" in col4):
+                        findings.append(Finding(
+                            severity="BLOCKER",
+                            code="TOK-002",
+                            message=f"Section 3 component '{parts[1]}' lacks explicit Design System token in Semantic Token column ('{col4}'). Prohibit placeholder text; bind directly to '--dt-*' tokens.",
+                            line=idx
+                        ))
+
+        if valid_tokens:
+            matches = token_pattern.findall(line)
+            for tok in matches:
+                if tok.endswith("*"):
+                    prefix = tok[:-1]
+                    if not any(t.startswith(prefix) for t in valid_tokens):
+                        findings.append(Finding(
+                            severity="WARNING",
+                            code="TOK-001",
+                            message=f"Wildcard token prefix '{tok}' does not match any tokens in 'tokens.css'.",
+                            line=idx
+                        ))
+                elif tok not in valid_tokens:
+                    findings.append(Finding(
+                        severity="WARNING",
+                        code="TOK-001",
+                        message=f"Referenced design token '{tok}' is not defined in 'tokens.css'. Verify token name against DT-UI-DS-DOC-001.",
+                        line=idx
+                    ))
+
+    return findings
+
+
+def audit_anti_redundancy(content: str) -> list[Finding]:
+    """Verifies SSoT separation and anti-redundancy rules across Section 1, 3, and 5."""
+    findings: list[Finding] = []
+    lines = content.splitlines()
+
+    current_section = 0
+
+    for idx, line in enumerate(lines, start=1):
+        # Section boundary tracking
+        sec_match = re.match(r"^##\s+(\d+)\.", line)
+        if sec_match:
+            current_section = int(sec_match.group(1))
+            continue
+        elif line.startswith("## "):
+            current_section = 0
+            continue
+
+        # Skip blockquotes (guidance rules) and comments
+        stripped = line.strip()
+        if stripped.startswith(">") or stripped.startswith("<!--"):
+            continue
+
+        # 1. Section 1 SSoT: Qualitative operational context only
+        if current_section == 1:
+            if re.search(r"--dt-breakpoint-[a-z0-9]+", line):
                 findings.append(Finding(
                     severity="BLOCKER",
-                    code="RED-001",
-                    message="Section 3 table cell contains mathematical calculation or clamping logic. §3 is a catalog; interaction algorithms belong exclusively in §5.",
+                    code="RED-002",
+                    message="Section 1 contains design system breakpoint token. Operational context in §1 must be qualitative; responsive breakpoints belong exclusively in §8.",
+                    line=idx
+                ))
+            if re.search(r"\b\d+px\b|\b\d+vh\b", line):
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="RED-002",
+                    message="Section 1 contains explicit pixel/vh dimensions. Operational context in §1 must be qualitative; layout dimensions belong in §5 and §8.",
+                    line=idx
+                ))
+            if re.search(r"\([A-Z_]{3,}(?:,\s*[A-Z_]{3,})+\)", line):
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="RED-002",
+                    message="Section 1 contains domain enum list. Domain enums belong exclusively in §5.3 and §7.2.3.",
+                    line=idx
+                ))
+
+        # 2. Section 3 SSoT: Clean component cataloging
+        elif current_section == 3:
+            if stripped.startswith("|") and not stripped.startswith("| :---"):
+                if re.search(r"\bMath\.(?:min|max|clamp)\b", line) or re.search(r"\bclamp\(", line):
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="RED-001",
+                        message="Section 3 table cell contains mathematical calculation or clamping logic. §3 is a catalog; interaction algorithms belong exclusively in §5.",
+                        line=idx
+                    ))
+                if re.match(r"\|\s*`CMP-\d+`", line):
+                    if re.search(r"--dt-layout-drawer-width[a-z-]*", line):
+                        findings.append(Finding(
+                            severity="BLOCKER",
+                            code="RED-003",
+                            message="Section 3 table cell contains layout drawer token. Layout dimensions belong in §5.2 and §8.",
+                            line=idx
+                        ))
+                    if re.search(r"\b\d+vh\b", line):
+                        findings.append(Finding(
+                            severity="BLOCKER",
+                            code="RED-003",
+                            message="Section 3 table cell contains viewport height (vh). Container dimensions and gesture physics belong in §5.2 and §8.",
+                            line=idx
+                        ))
+                    if re.search(r"\([A-Z_]{3,}(?:,\s*[A-Z_]{3,})+\)", line):
+                        findings.append(Finding(
+                            severity="BLOCKER",
+                            code="RED-003",
+                            message="Section 3 table cell contains domain enum list. Domain enums belong in §7.2.3.",
+                            line=idx
+                        ))
+
+        # 3. Section 5 SSoT: Zero exhaustive LaTeX enum sets
+        elif current_section == 5:
+            if re.search(r"\\in\s*\\\{[^\}]+\}", line):
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="RED-004",
+                    message="Section 5 contains exhaustive LaTeX enum set enumeration. Reference strongly-typed C# enums in §7.2.3 instead of enumerating string literals in prose or LaTeX.",
+                    line=idx
+                ))
+
+    return findings
+
+
+def audit_presentation_boundaries(content: str) -> list[Finding]:
+    """Verifies presentation boundaries in UI sequence diagrams (Mermaid)."""
+    findings: list[Finding] = []
+    lines = content.splitlines()
+
+    in_mermaid_seq = False
+
+    for idx, line in enumerate(lines, start=1):
+        if re.match(r"^```mermaid\s*$", line.strip()):
+            continue
+        if "sequenceDiagram" in line:
+            in_mermaid_seq = True
+            continue
+        elif in_mermaid_seq and line.strip().startswith("```"):
+            in_mermaid_seq = False
+            continue
+
+        if in_mermaid_seq:
+            # 1. Check prohibited backend worker/DB participants
+            worker_match = re.search(r"(?:participant|actor)\s+(?:[A-Za-z0-9_]+\s+as\s+)?(AUD|AuditWorker|Worker|DB|Database)\b", line)
+            if worker_match:
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="DIAG-001",
+                    message=f"Presentation sequence diagram leaks private backend participant '{worker_match.group(1)}'. UI sequence diagrams must only model interactions between Tech, UI, Interop, and the API gateway.",
+                    line=idx
+                ))
+
+            # 2. Check prohibited backend internal self-calls
+            backend_self_match = re.search(r"\b(API|INV|SVC|SRV|APP|BACKEND)\s*->>\s*\1\s*:", line)
+            if backend_self_match:
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="DIAG-002",
+                    message=f"Presentation sequence diagram leaks internal backend self-call '{backend_self_match.group(0).rstrip(':')}'. Internal domain execution must not be modeled as client sequence transitions.",
                     line=idx
                 ))
 
@@ -517,6 +660,7 @@ def run_screen_audit(content: str, repo_root: Path) -> list[Finding]:
     findings += audit_runtime_leaks(content)
     findings += audit_tokens(content, valid_tokens)
     findings += audit_anti_redundancy(content)
+    findings += audit_presentation_boundaries(content)
 
     # Deduplicate findings by (code, line, message)
     seen: set[tuple[str, int | None, str]] = set()

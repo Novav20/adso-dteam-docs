@@ -26,6 +26,8 @@ status: Draft | In Review | Approved
 * **Operational Context:** Physical environment and hardware contexts (e.g., Desktop web workstation in control room, Industrial tablet in field).
 * **Mode of Operation:** Nature of interaction (e.g., Supervisory monitoring, passive navigation, transactional execution, safety interlock). Explicitly state if industrial control commands (DCS/SCADA) are excluded.
 
+> *Rule:* State operational environment and hardware context qualitatively (e.g., industrial tablet in field dead-zones, engineering desktop workstation). Never embed breakpoint tokens (`--dt-breakpoint-*`), container pixel/vh dimensions, or domain enum lists in Section 1. These belong strictly to Section 5, Section 7, and Section 8.
+
 ---
 
 ## 2. Visual Artifact
@@ -40,11 +42,11 @@ status: Draft | In Review | Approved
 
 > The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, their semantic tokens, and their architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
 >
-> *Rule:* Table cells must strictly serve as a visual catalog of roles, semantic tokens, and pointers to Section 5. Never embed interaction algorithms, clamping math, state machine logic, or raw CSS styles in table cells.
+> *Rule:* Table cells must strictly serve as a visual catalog of roles, semantic tokens, and pointers to Section 5. Never embed interaction algorithms, clamping math, state machine logic, raw CSS styles, hardware layout dimensions (e.g., `640px`, `45vh`), status strings, domain enum lists, or NFR citations in table cells. Column 4 ("Semantic Token") must reference explicit Design System tokens (`--dt-*`).
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
-| `CMP-01` | Component Name | High-level content and visual representation | Surface / Border / Radius semantic tokens | High-level architectural purpose and pointer to §5 for behavioral logic. |
+| `CMP-01` | Component Name | High-level content and visual representation | Surface: `--dt-color-surface-*`<br>Border: `--dt-color-border-*` | High-level architectural purpose and pointer to §5 for behavioral logic. |
 
 ---
 
@@ -65,8 +67,10 @@ status: Draft | In Review | Approved
 ### 5.1. Initial Load & Lifecycle
 1. Description of initial view state, default zoom/coordinates, and unselected baseline.
 2. Initial data subscriptions and local caching retrieval policies.
+3. **Presentation Layer Boundary Invariant:** UI sequence diagrams (Mermaid) must model interactions strictly between the User/Technician (`Tech`), the presentation component (`UI`), external client hardware/interop (`Scanner`/`Sensor`), and the boundary Application Service API (`API`). Private backend-to-backend hops (e.g., `API ->> Worker`, `API ->> DB`, or internal `API ->> API` self-calls) are prohibited presentation leaks.
 
 ### 5.2. Spatial Navigation & Tactile Mechanics
+> *Rule:* Section 5.2 is the SSoT for tactile gesture physics, drag handle hysteresis thresholds, natural drawer heights, and focal pan/zoom offsets. Container widths, breakpoint-to-device mappings, and overall layout organization belong strictly to Section 8.
 1. **Desktop vs. Tablet Interaction Modality:** Explicit input disambiguation (e.g., middle-click panning vs. tactile gesture threshold).
 2. **Layout Shift Invariants:** Explicit fixed dimensions (e.g., badge widths, slot heights) preventing layout thrashing.
 3. **Gesture Physics & Snap Thresholds:** Tactile physics, drag handle hysteresis, natural heights, and minimize transitions.
@@ -75,6 +79,8 @@ status: Draft | In Review | Approved
 1. Real-time subscription, debouncing, and payload mapping rules.
 2. State validation, business rule evaluation, and fail-safe handling.
 3. Command dispatch contracts (API endpoint, typed DTO payload, idempotency headers, and HTTP response handling). Formulate data mutations strictly as command dispatch invocations via typed DTO payloads, HTTP endpoints, and idempotent queuing.
+4. **Controlled Vocabulary & Enum Hygiene:** Reference domain enums directly by their strongly-typed C# enum name defined in §7.2.3 (e.g., "Controlled vocabulary mapped to enum `DetectionMethod` (§7.2.3)"). Prohibit exhaustive string literals in prose or LaTeX set equations.
+5. **Offline Protocol Referencing:** When an offline protocol is formalized in §5.3.5, command dispatch error handling in §5.3.4 must point directly to it rather than duplicating outbox persistence steps.
 
 ---
 
@@ -126,6 +132,8 @@ public record ScreenDataDto
 ---
 
 ## 8. Layout and Responsive Adaptability
+
+> *Rule:* Section 8 is the SSoT for responsive breakpoint ranges, container widths, and layout stacking across viewports. Ergonomic interaction physics, drag thresholds, and mathematical centering offsets belong to §5.2 and must be referenced, not duplicated. Prohibit raw CSS `calc()` expressions in table cells; use descriptive architectural offsets.
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |

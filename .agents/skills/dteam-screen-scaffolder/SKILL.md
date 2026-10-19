@@ -83,15 +83,19 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
 
 1.  **Frontmatter:** `id`, `title`, `module`, `isa101_level`, `platform`, `target_device`, `roles`, `user_stories`, `use_cases`, `version: 1.0`, `date`, `status: Approved`.
 2.  **§1 Purpose and Operational Context:** Operational objective, primary persona, secondary personas, physical environment (e.g., Class I Div 2 hazardous area), and mode of operation.
+    *   *Rule:* Qualitative operational environment and hardware context only. Strictly prohibit breakpoint tokens (`--dt-breakpoint-*`), container pixel/vh dimensions, and domain enum lists in §1.
 3.  **§2 Visual Artifact:** Universal markdown image link `![SCR-[MOD]-[NUM] Wireframe](assets/SCR-[MOD]-[NUM]-wireframe.svg)`.
 4.  **§3 Functional Component Inventory:** Table of `CMP-01`..`CMP-NN`.
-    *   *Rule:* Table cells must strictly act as a visual catalog (Role, Content, Semantic Tokens, pointer to §5). **Never** write interaction algorithms, clamping math, or state machines inside §3 table cells.
+    *   *Rule:* Table cells must strictly act as a visual catalog (Role, Content, Semantic Tokens, pointer to §5). **Never** write interaction algorithms, clamping math, state machines, hardware layout dimensions (e.g., `640px`, `45vh`), status strings, domain enum lists, or NFR citations in §3 table cells. Column 4 ("Semantic Token") must reference explicit Design System tokens (`--dt-*`).
 5.  **§4 Screen State Matrix:** Matrix of observable visual modifications in the DOM (`Normal`, `Loading`, `Selected`, `Alarm`, `Diagnostic/Offline`).
     *   *Rule:* Focus purely on visual rendering changes. Do not duplicate backend business logic.
 6.  **§5 Interaction Rules and Data Flow (The Single Source of Truth - SSoT):**
     *   *§5.1 Initial Load & Lifecycle:* Default coordinates, zoom level, closed drawer state, initial subscriptions.
-    *   *§5.2 Navigation & Mechanics:* Spatial interactions, touch thresholds ($4\text{px}$ pan), layout shift invariants, gesture physics.
+        *   **Presentation Layer Boundary Invariant:** UI sequence diagrams (Mermaid) must model interactions strictly between the User/Technician (`Tech`), the presentation component (`UI`), external client hardware/interop (`Scanner`/`Sensor`), and the boundary Application Service API (`API`). Private backend-to-backend hops (e.g., `API ->> Worker`, `API ->> DB`) and internal backend self-loops (`API ->> API`) are prohibited presentation leaks.
+    *   *§5.2 Navigation & Mechanics:* Spatial interactions, touch thresholds ($4\text{px}$ pan), layout shift invariants, gesture physics. SSoT for gesture physics, drag hysteresis, natural drawer heights, and focal pan/zoom offsets. Delegate container widths, viewport breakpoint ranges, and column stacking strictly to Section 8.
     *   *§5.3 Domain Workflows & Data Mutation:* Method payloads, validation constraints, cryptographic hashing, and fail-safe handling. Bound exclusively to Presentation DTOs.
+        *   **Controlled Vocabulary & Enum Hygiene:** Bind dropdowns directly to C# enum types in §7.2.3. Never write exhaustive LaTeX set equations or prose lists enumerating enum string literals. Prohibit parenthetical mock fixtures in prose (`*(e.g., WorkOrderId = "WO-...")*`) that risk type clashes.
+        *   **Offline Protocol Pointer:** When §5.3.5 exists, §5.3.4 command dispatch error handling must point directly to it rather than duplicating outbox steps.
 7.  **§6 Industrial and Safety Considerations:**
     *   HPHMI compliance (90/10 grayscale rule, no green for "normal running").
     *   Diagnostic (Priority 4) vs Process Alarm segregation.
@@ -103,7 +107,8 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
     *   *§7.3 Client-Side DOM & Interop Bridge:* JSInterop capability interfaces (`IPointerInterop`, `IOfflineStorage`), event throttling, and touch listener lifecycles. Prohibit direct browser globals (`window.`, `document.`, `AudioContext`).
     *   *Rule on Clean Deliverables:* Never copy-paste scaffolding rules, prohibition alert boxes (`[!IMPORTANT]`), or architectural boundary comments into the generated screen specification. Deliverables must contain purely normative technical specifications.
 9.  **§8 Layout and Responsive Adaptability:**
-    *   Explicit 3-tier breakpoint table: Desktop ($\ge 1400\text{px}$, `--dt-breakpoint-xl`), Tablet Landscape ($901\text{px}-1399\text{px}$, `--dt-breakpoint-lg`), Tablet Portrait ($600\text{px}-900\text{px}$, `--dt-breakpoint-md`). Bound to canonical tokens `--dt-layout-drawer-width-desktop` and `--dt-layout-drawer-width-tablet`.
+    *   Explicit 3-tier breakpoint table: Desktop ($\ge 1920\text{px}$, `--dt-breakpoint-xl`), Tablet Landscape ($1280\text{px}-1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$), Tablet Portrait ($768\text{px}-1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$). Bound to canonical tokens `--dt-layout-drawer-width-desktop` and `--dt-layout-drawer-width-tablet`.
+    *   *Rule:* SSoT for responsive breakpoint ranges, container widths, and layout stacking. Reference §5.2 for gesture physics and offsets; prohibit repeating snap math or raw CSS `calc()` expressions.
 10. **§9 Traceability and Requirements Matrix:**
     *   Mapping table: Requirement ID (`FR-*`, `NFR-*`, `TR-*`) $\to$ Component ID (`CMP-*`) $\to$ Verification Mechanism.
 
