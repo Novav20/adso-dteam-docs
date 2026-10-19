@@ -16,7 +16,7 @@ use_cases:
   - "[[UC-INV-025]]"
 version: 1.3
 date: 2026-10-19
-status: In Review
+status: Stable
 ---
 
 # SCR-INV-025: Rotable Asset Rotation and Replacement Modal (Asset Swap)
@@ -29,8 +29,8 @@ status: In Review
   * **Maintenance Technician:** Performs physical field swap, scans replacement serial barcodes, and confirms dismantling destination.
   * **Warehouse Manager:** Reconciles rotable inventory movements and receives dismantled units into the repair workshop.
   * **Maintenance Supervisor:** Approves equipment substitutions associated with high-priority corrective work orders.
-* **Operational Context:** Accessible both in the field via rugged industrial tablets (`--dt-breakpoint-md`, `--dt-breakpoint-lg`) during physical dismounting, and in engineering control offices on desktop workstations (`--dt-breakpoint-xl`).
-* **Mode of Operation:** Contextual Transactional Modal Task. Operates as an interruptive modal overlay on desktop workstations ($640\text{px}$ dialog) and as a responsive bottom sheet on industrial mobile/portrait viewports (natural initial height: $45\text{vh}$, expandable up to $85\text{vh}$ via discrete tap or drag gesture). Excludes continuous process telemetry manipulation, focusing strictly on asset lifecycle state transitions, barcode scanning, and cryptographic audit persistence.
+* **Operational Context:** Accessible in field environments on rugged industrial tablets during physical equipment dismounting, and in control offices on desktop workstations. Detailed responsive profiles and breakpoints are specified in Section 8.
+* **Mode of Operation:** Contextual Transactional Modal Task. Deploys as an interruptive dialog on desktop workstations and adapts to a touch-first bottom sheet on mobile and portrait tablet viewports. Excludes continuous process telemetry manipulation, focusing strictly on asset lifecycle state transitions, barcode scanning, and cryptographic audit persistence. Detailed interaction rules and dimensions are specified in §5.2 and §8.
 
 ---
 
@@ -48,13 +48,13 @@ status: In Review
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
-| `CMP-01` | Modal Container & Header | Modal shell / Bottom sheet header | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Hosts title ("Rotable Asset Swap"), Functional Location tag (`P-0101A`), Equipment Class badge, and close button. Adapts from desktop centered dialog ($640\text{px}$) to tactile bottom sheet on mobile portrait. Detailed in §5.2. |
-| `CMP-02` | Asset A Dismounting Card | Currently installed machine card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Displays active asset details: Serial Number (`SN-2024-P0101A`), Model, Current Running Hours, and Installation Date. Hosts mandatory destination controls (`CMP-03`). Detailed in §5.1. |
-| `CMP-03` | Destination Status & Warehouse Controls | Status selector and warehouse picker | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Dropdown pair requiring destination operational status (`IN_REPAIR`, `IN_STORAGE`, `DAMAGED`) and holding warehouse (`WH-01`, `WH-02`). Hard-blocks submission if left unassigned (`AF-002`). Detailed in §5.1 and §5.3.2. |
+| `CMP-01` | Modal Container & Header | Modal shell / Bottom sheet header | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Hosts title ("Rotable Asset Swap"), Functional Location tag, Equipment Class badge, and dismissal control. Adapts from desktop centered dialog to tactile bottom sheet on mobile portrait viewports. Detailed in §5.2 and §8. |
+| `CMP-02` | Asset A Dismounting Card | Currently installed machine card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Displays mounted asset details including Serial Number, Model, Operating Hours, and Installation Date. Hosts mandatory destination controls (`CMP-03`). Detailed in §5.1. |
+| `CMP-03` | Destination Status & Warehouse Controls | Status selector and warehouse picker | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Dropdown pair capturing post-dismount destination status and target storage warehouse. Blocks submission if left unassigned (`AF-002`). Detailed in §5.1, §5.3.2, and §7.2.3. |
 | `CMP-04` | Asset B Selection Card | Replacement rotable picker card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Hosts replacement equipment selector, serial number display, optical scan trigger (`CMP-05`), and live taxonomic compatibility badge (`CMP-06`). Detailed in §5.1. |
 | `CMP-05` | Barcode / NFC Scan Trigger | Tactile camera/scanner button | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle`<br>Touch Target: `--dt-touch-target-mobile` | Activates camera-based barcode scanning or Web NFC reader to instantly select Asset B by physical asset barcode tag (`FR-592`). Detailed in §5.2.3 and §7.3. |
 | `CMP-06` | Taxonomic Compatibility Indicator | Real-time validation badge | Dynamic Surface: `--dt-color-state-success` or `--dt-color-alarm-critical` | Validates that Asset B matches the exact `EquipmentClassId` of the Functional Location and is currently in `IN_STORAGE` status (`AF-001`, `FR-593`). Detailed in §5.3.1. |
-| `CMP-07` | Work Order Linkage Field | Optional justifying WO input | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Searchable input linking the equipment swap transaction to a justifying work order (e.g. `WO-2026-0841`). Detailed in §5.1. |
+| `CMP-07` | Work Order Linkage Field | Optional justifying WO input | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Searchable input linking the equipment swap transaction to a justifying work order. Detailed in §5.1. |
 | `CMP-08` | Cryptographic Audit Hash Strip | Chained SHA-256 preview strip | Surface: `--dt-color-surface-raised`<br>Font: `--dt-font-mono-data` | Displays real-time generated SHA-256 hash chaining payload (`TR-001`), visualizing the immutable cryptographic audit record dispatched with the transaction. Detailed in §5.3.3. |
 | `CMP-09` | Atomic Commit Action Button | Primary transactional confirm button | Surface: `--dt-color-state-info`<br>Disabled Surface: `--dt-color-state-disabled` | Primary action `[Confirm Asset Swap]`. Enforces single-commit atomic execution (`NFR-596`); disabled until all taxonomic and destination constraints are satisfied. Detailed in §5.3.4. |
 | `CMP-10` | Cancellation & Dismiss Button | Secondary cancellation control | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle` | Safely dismisses the modal without altering database configuration or location links. Detailed in §5.2.1. |
