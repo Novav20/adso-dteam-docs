@@ -86,7 +86,6 @@ sequenceDiagram
     actor Tech as Reliability Engineer / Technician
     participant UI as SCR-INV-025 Modal
     participant INV as Inventory Application Service
-    participant AUD as Chained Audit Worker
 
     Tech->>UI: Selects "Asset Swap" on Functional Location (P-0101A)
     UI->>INV: Query active Asset A & Available Rotable Spares
@@ -98,7 +97,6 @@ sequenceDiagram
     UI->>UI: Previews SHA-256 cryptographic hash (CMP-08)
     Tech->>UI: Clicks [Confirm Asset Swap] (CMP-09)
     UI->>INV: POST /api/v1/inventory/rotable-swaps (ExecuteAssetSwapCommand + X-Idempotency-Key)
-    INV->>AUD: Chain cryptographic audit record (TR-001)
     INV-->>UI: HTTP 200 OK (AssetSwapCompletedEvent)
     UI-->>Tech: Displays success checkmark and dispatches OnSwapCompleted callback
 ```
@@ -112,10 +110,9 @@ sequenceDiagram
 
 ### 5.2. Modal Mechanics & Tactile Ergonomics
 
-1. **Responsive Viewport Adaptation:**
-   * **Desktop Workstation ($\ge 1920\text{px}$, `--dt-breakpoint-xl`):** Centered modal window ($640\text{px}$ width, max-height $80\text{vh}$) over dimmed modal backdrop (`--dt-color-surface-overlay`). Keyboard navigation: `Escape` cancels, `Enter` confirms when form is valid.
-   * **Industrial Tablet Landscape ($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$):** Centered modal container ($580\text{px}$ width) with vertically stacked comparison cards. Touch targets $\ge 48\times 48\text{px}$.
-   * **Industrial Tablet Portrait ($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$):** Renders as a **Bottom Sheet**, docking at the bottom edge with natural initial height $45\text{vh}$, expandable via drag handle or discrete single tap to $85\text{vh}$ ([DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)).
+1. **Interaction Modality & Container Physics:**
+   * **Desktop & Tablet Landscape (Modal Modality):** Operates as a centered modal dialog over a dimmed backdrop (`--dt-color-surface-overlay`). Enforces keyboard focus trapping: `Escape` cancels interaction, and `Enter` confirms when form is valid. Layout bounds and card configurations are detailed in Section 8.
+   * **Tablet Portrait (Bottom Sheet Modality):** Operates as a sliding **Bottom Sheet** docked at the viewport bottom edge ([DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)). Enforces tactile drag gestures with hysteresis to prevent accidental collapse, supports discrete single-tap toggling between natural and expanded height, and keeps the sticky footer action button visible above the viewport edge. Dimensions are detailed in Section 8.
 2. **Tactile Targets:** All interactive controls (status dropdowns, barcode scan button, confirm action) enforce touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ margin separation to ensure comfortable operation with industrial gloves (`ISO 9241-110 Clause 5.3`, `--dt-touch-target-mobile`).
 3. **Barcode Scanning Mechanics:** Tapping `CMP-05` invokes `IBarcodeScannerInterop` optical camera stream or hardware laser scanner listener. Scanning an asset barcode immediately resolves the serial number against the inventory catalog, populating Asset B in $< 300\text{ms}$.
 
@@ -147,15 +144,7 @@ Upon pressing `[Confirm Asset Swap]`, the client dispatches an atomic substituti
 
 * **Client Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) guaranteeing exactly-once transaction processing during network reconnection retries.
 * **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) binding functional location, dismounted equipment ID, destination status enum, holding warehouse ID, replacement equipment ID, optional justifying work order reference, technician user ID, and previous cryptographic hash.
-* **Backend Persistence Invariant:** Backend orchestrates single-commit transaction atomicity ([ADR-005](../../../architecture/adr/ADR-005.md)):
-  1. Unlinks dismounted equipment from functional location, sets holding warehouse, and projects `DismountDestinationStatus` across relational status columns:
-     * `IN_STORAGE` $\implies$ Lifecycle: In Storage, Maintenance: Operational, Operational: Standby.
-     * `IN_REPAIR` $\implies$ Lifecycle: In Storage, Maintenance: Under Maintenance, Operational: Down.
-     * `DAMAGED` $\implies$ Lifecycle: Decommissioned, Maintenance: Under Maintenance, Operational: Down.
-  2. Terminates active mounting interval with current UTC timestamp.
-  3. Mounts replacement rotable equipment, sets operational start timestamp, and unsets warehouse linkage.
-  4. Creates active mounting interval record.
-  5. Appends chained cryptographic audit record with SHA-256 hash verification ([TR-001](../../../requirements/common/TR-001.md)).
+* **Backend Persistence Invariant:** The backend orchestrates `ExecuteAssetSwapCommand` within a single-commit atomic transaction ([ADR-005](../../../architecture/adr/ADR-005.md), `NFR-596`): unlinking the dismounted asset, updating destination status and warehouse holding state, mounting the replacement rotable unit, and recording the chained cryptographic audit entry ([TR-001](../../../requirements/common/TR-001.md)). Returns HTTP 200 OK with `AssetSwapCompletedEvent`.
 * **Success Handling (HTTP 200 OK):** Transitions UI state to `Swap Completed (Success)`, renders checkmark animation, dispatches `OnSwapCompleted` callback with `AssetSwapCompletedEvent`, and dismisses modal after $1.5\text{s}$.
 * **Offline Outbox Fallback (TR-007, TR-002):** On network disconnection or HTTP 5xx timeout, the client serializes `ExecuteAssetSwapCommand` into local encrypted storage via `IOfflineStorage` ([TR-002](../../../requirements/common/TR-002.md)), assigns an offline lease token, displays the "Offline Queued" state (§4), and dismisses after $1.5\text{s}$. Background synchronization worker drains the queue upon reconnecting to plant Wi-Fi.
 
@@ -168,7 +157,7 @@ Upon pressing `[Confirm Asset Swap]`, the client dispatches an atomic substituti
   * Amber (`--dt-color-alarm-warning`) for missing mandatory fields (`AF-002`).
   * Red (`--dt-color-alarm-critical`) for taxonomic class mismatches (`AF-001`).
 * **Taxonomic Safety Interlock:** Physical equipment rotation must never violate process engineering boundaries (e.g., mounting a low-pressure pump on a high-pressure crude export manifold). Hardware and taxonomic validation prevents operator error.
-* **Offline Fault Resilience ([TR-007](../../../requirements/common/TR-007.md)):** When executed on disconnected mobile tablets, the atomic swap payload is committed to local encrypted storage (`IOfflineStorage` / SQLCipher) and queued in the Outbox with an offline lease token, synchronizing automatically upon reconnecting to plant Wi-Fi.
+* **Offline Operational Continuity ([TR-007](../../../requirements/common/TR-007.md)):** Rotable equipment swaps frequently take place in process battery units with radio-frequency shadows or absent plant Wi-Fi. The interface must never block field execution due to connectivity loss; swaps are confirmed locally and safely committed to encrypted storage to maintain operational continuity and prevent unrecorded physical equipment rotation.
 
 ---
 
