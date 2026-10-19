@@ -85,7 +85,6 @@ status: Stable
 1. **Context Ingestion Contract:**
    * When navigated from [SCR-VIS-011](../vis/SCR-VIS-011.md), the route receives the initial execution context payload:
      $$\mathcal{P}_{\text{init}} = \langle \text{WorkOrderId}: \text{Guid}, \text{EquipmentTag}: \text{string}, \text{FunctionalLocation}: \text{string}, \text{TechnicianId}: \text{string}, \text{LotoStatus}: \text{LotoLockoutState} \rangle$$
-     *(e.g., $\text{WorkOrderId} = \text{"WO-2026-0842"}$, $\text{EquipmentTag} = \text{"P-0101A"}$, $\text{FunctionalLocation} = \text{"TFA-CSS-P-0101A"}$, $\text{TechnicianId} = \text{"TECH-4921"}$, $\text{LotoStatus} = \text{"VERIFIED\_ZERO\_ENERGY"}$)*.
    * If the initial Work Order status is `SCHEDULED`, the client dispatches an execution start command, transitioning the Work Order status to `IN_PROGRESS` with server-side audit timestamp logging.
 2. **Local Cache Pre-Hydration (Offline Readiness):**
    * Pre-hydrates the ISO 14224 taxonomic datasets (maintainable items catalog, equipment class failure modes) from the local encrypted database ([TR-002](../../../requirements/common/TR-002.md)), guaranteeing zero network latency when populating dropdowns in field dead-zones.
@@ -116,12 +115,9 @@ status: Stable
      * **Tier 2: Failure Mode:** Constrained by Maintainable Item (e.g., for Mechanical Seal: *External Leakage (EL)*, *Vibration Excursion (VE)*, *Overheating (OH)*).
      * **Tier 3: Failure Mechanism:** Observable physical degradation (e.g., *Mechanical Wear*, *Abrasive Erosion*, *Thermal Fatigue*, *Elastomer Degradation*).
      * **Tier 4: Failure Cause:** Root engineering origin (e.g., *Lubrication Deficiency*, *Shaft Misalignment*, *Cavitation Erosion*, *Operational Off-Design*).
-     * **Tier 5: Detection Method:** Controlled vocabulary mapped to enum `DetectionMethod` (§7.2.3):
-       $$\text{DetectionMethod} \in \{\text{PERIODIC\_MAINTENANCE}, \text{FUNCTIONAL\_TESTING}, \text{INSPECTION}, \text{PERIODIC\_CBM}, \text{PRESSURE\_TESTING}, \text{CONTINUOUS\_CBM}, \text{PRODUCTION\_INTERFERENCE}, \text{CASUAL\_OBSERVATION}, \text{CORRECTIVE\_MAINTENANCE}, \text{ON\_DEMAND}, \text{OTHER}\}$$
-     * **Tier 6: Operational Condition:** Controlled vocabulary mapped to enum `OperationalCondition` (§7.2.3):
-       $$\text{OperationalCondition} \in \{\text{RUNNING}, \text{START\_UP}, \text{RUN\_DOWN}, \text{HOT\_STANDBY}, \text{COLD\_STANDBY}, \text{IDLE}, \text{TESTING}\}$$
-     * **Tier 7: Operational Impact:** Controlled vocabulary mapped to enum `OperationalImpact` (§7.2.3):
-       $$\text{OperationalImpact} \in \{\text{EXTENSIVE\_STOP}, \text{STOP\_ABOVE\_ACCEPTABLE}, \text{STOP\_BELOW\_ACCEPTABLE}, \text{STOP\_MINOR}\}$$
+     * **Tier 5: Detection Method:** Controlled vocabulary mapped to enum `DetectionMethod` (§7.2.3).
+     * **Tier 6: Operational Condition:** Controlled vocabulary mapped to enum `OperationalCondition` (§7.2.3).
+     * **Tier 7: Operational Impact:** Controlled vocabulary mapped to enum `OperationalImpact` (§7.2.3).
      * **Quantitative Metric: Downtime Hours:** Numeric field recording hours of lost operational availability ($\ge 0.0\text{h}$).
      * **Technical Observations:** Full-width field capturing empirical observations and diagnostic notes directly tied to the failure record.
 
@@ -150,7 +146,7 @@ status: Stable
      * **Command Payload:** Serializes `FailureRecordInputDto` (7-tier ISO 14224 classifications, downtime, technician notes), `ActualLaborHours`, and `List<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
      * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (failure record insertion, Work Order status update to `COMPLETE`, history logging, and cryptographic audit chaining) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
      * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates downstream to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
-     * **Failure / Disconnected Handling:** On network timeout or HTTP 5xx error, the client writes the serialized command payload to the encrypted local outbox table (`AF-002`, [TR-007](../../../requirements/common/TR-007.md)), marks the local UI as `COMPLETE (Pending Sync)`, and schedules background synchronization.
+     * **Failure / Disconnected Handling:** On network timeout or HTTP 5xx error, transitions to the Zero-Shift Offline Outbox Protocol (§5.3.5, [TR-007](../../../requirements/common/TR-007.md)).
 
 5. **Zero-Shift Offline Telemetry and Outbox Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-007`):**
    * If network connection is lost or heartbeat timeout occurs:
