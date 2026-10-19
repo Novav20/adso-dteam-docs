@@ -50,13 +50,16 @@ flowchart TD
 
 ## 3. Step-by-Step Execution Workflow
 
-### Step 0: SSoT Alignment & Pre-Flight Gap Report
+### Step 0: SSoT Alignment & Presentation DTO Abstraction
 
 Before scaffolding specifications or prototypes, the agent **MUST** perform an automated cross-check between the target use case / user story and the established repository SSoTs:
-1. **Relational Contract Reconciliation:** Verify that all data fields required by the screen align strictly with column types, nullability (`NOT NULL`), and CHECK constraints in `DT-ERD-DOC-001.md`.
+1. **Relational Contract Reconciliation & Presentation DTO Abstraction:**
+   * Inspect `DT-ERD-DOC-001.md` to identify all necessary entity fields, nullability (`NOT NULL`), and invariants.
+   * **CRITICAL ARCHITECTURAL BOUNDARY:** Translate relational columns, foreign keys, and DB check constraints into **frontend Presentation DTO records and C# enums** *before* drafting the specification.
+   * **STRICT PROHIBITION:** Never leak PostgreSQL schema qualifiers (`mtto.`, `tax.`, `adm.`, `ops.`), physical table names, DDL check constraint names (`ck_*`), SQL types (`timestamptz`), or SQL functions (`clock_timestamp()`) into §5.3 or §7.2 of the specification.
 2. **Ubiquitous Language & Enum Hygiene:** Verify that entity statuses, roles, and terminology conform strictly to `DT-UL-DOC-001.md` and `DT-ERD-DOC-001.md` (e.g., catching terminology drift such as `Pending Review` vs. canonical `COMPLETE`).
 3. **Sequential Boundary Verification:** Verify input parameters, upstream preconditions, and downstream postconditions against adjacent screens in `DT-UI-NAV-DOC-001.md` (e.g., ensuring transitions from `SCR-VIS-011` properly pass active LOTO and WO context).
-4. **Output:** The agent outputs a concise **Gap & Reconciliation Report** in the planning/execution log and embeds the resolved mappings directly into **§5.3** (Domain Workflows) and **§9** (Traceability Matrix) of the generated specification.
+4. **Output:** The agent outputs a concise **Gap & Reconciliation Report** in the planning/execution log and embeds the abstracted Presentation DTOs directly into **§5.3** (Domain Workflows) and **§7.2** (Component Parameters & DTOs) of the generated specification.
 
 ### Step 1: Archetype & Layout Classification
 
@@ -88,17 +91,18 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
 6.  **§5 Interaction Rules and Data Flow (The Single Source of Truth - SSoT):**
     *   *§5.1 Initial Load & Lifecycle:* Default coordinates, zoom level, closed drawer state, initial subscriptions.
     *   *§5.2 Navigation & Mechanics:* Spatial interactions, touch thresholds ($4\text{px}$ pan), layout shift invariants, gesture physics.
-    *   *§5.3 Domain Workflows & Data Mutation:* Method payloads, validation constraints, cryptographic hashing, and fail-safe handling.
+    *   *§5.3 Domain Workflows & Data Mutation:* Method payloads, validation constraints, cryptographic hashing, and fail-safe handling. Bound exclusively to Presentation DTOs.
 7.  **§6 Industrial and Safety Considerations:**
     *   HPHMI compliance (90/10 grayscale rule, no green for "normal running").
     *   Diagnostic (Priority 4) vs Process Alarm segregation.
     *   Offline partition tolerance ([ASR-001](file:///home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs/architecture/requirements/DT-ARQ-ASR-001.md)) and safety fail-safe locks ([ASR-002](file:///home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs/architecture/requirements/DT-ARQ-ASR-001.md)).
 8.  **§7 Frontend Component Contract (Blazor / Razor):**
     *   *§7.1 Component Hierarchy & File Mapping:* Tree structure of `.razor` files under `Pages/` or `Components/`.
-    *   *§7.2 Physical Parameters & DTOs (.NET 10 / C# 14):* Strongly-typed C# records and component parameters. **Decoupled Namespaces Rule:** Never declare C# `namespace` statements in §7 snippets; declare classes, parameters, and records directly to avoid premature assembly coupling.
-    *   *§7.3 Client-Side DOM & Interop Bridge:* JSInterop boundaries, event throttling, and touch listener lifecycles.
+    *   *§7.2 Physical Parameters & DTOs (.NET 10 / C# 14):* Strongly-typed C# records, component `[Parameter]` contracts, and view enums.
+        *   **STRICT PROHIBITION:** Never declare C# `namespace` statements, full `ComponentBase` class declarations (`class Foo : ComponentBase`), `[Inject]` services, private mutable state fields (`private bool _isLoading;`), or lifecycle overrides (`OnInitializedAsync`). Specifications define external parameter contracts, not internal code-behind implementations.
+    *   *§7.3 Client-Side DOM & Interop Bridge:* JSInterop capability interfaces (`IPointerInterop`, `IOfflineStorage`), event throttling, and touch listener lifecycles. Prohibit direct browser globals (`window.`, `document.`, `AudioContext`).
 9.  **§8 Layout and Responsive Adaptability:**
-    *   Explicit 3-tier breakpoint table: Desktop ($\ge 1400\text{px}$), Tablet Landscape ($901\text{px}-1399\text{px}$), Tablet Portrait ($600\text{px}-900\text{px}$).
+    *   Explicit 3-tier breakpoint table: Desktop ($\ge 1400\text{px}$, `--dt-breakpoint-xl`), Tablet Landscape ($901\text{px}-1399\text{px}$, `--dt-breakpoint-lg`), Tablet Portrait ($600\text{px}-900\text{px}$, `--dt-breakpoint-md`). Bound to canonical tokens `--dt-layout-drawer-width-desktop` and `--dt-layout-drawer-width-tablet`.
 10. **§9 Traceability and Requirements Matrix:**
     *   Mapping table: Requirement ID (`FR-*`, `NFR-*`, `TR-*`) $\to$ Component ID (`CMP-*`) $\to$ Verification Mechanism.
 
@@ -126,9 +130,13 @@ Create the standalone prototype in `sena-evidence/00-Overview/Protoyping/ui-prot
 
 ---
 
-### Step 4: Quality Gate & Independent Coherence Audit
+### Step 4: Quality Gate & Pre-Flight Deterministic Linting
 
-Formal UI/UX and architectural coherence audits are **strictly decoupled** from this scaffolding skill. To prevent confirmation bias, do **NOT** invoke `dteam-ui-coherence-audit` within the same conversational session that scaffolded the deliverables.
+Before deliverable handover, the agent **MUST** execute the deterministic linter gate:
 
-*   Deliverable handover marks the completion of the scaffolding phase.
-*   Independent compliance and coherence audits against `dteam-ui-coherence-audit` must be executed subsequently in dedicated, disposable audit sessions.
+```bash
+uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py lint --file ui-ux/screens/[module]/SCR-[MOD]-[NUM].md
+```
+
+*   **Zero-Blocker Requirement:** If any `[BLOCKER]` is reported (e.g., schema qualifiers, SQL types, C# class wrappers, [Inject], raw CSS rules), the deliverable MUST be remediated immediately prior to handover.
+*   Independent compliance and deep heuristic audits against `dteam-ui-coherence-audit` must subsequently be executed in dedicated audit sessions.

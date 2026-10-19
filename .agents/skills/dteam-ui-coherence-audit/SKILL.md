@@ -7,16 +7,41 @@ description: Audits UI/UX screen specifications against the Domain Model, ERD, D
 
 ## 1. Purpose & Architectural Philosophy
 
-This skill performs a **Two-Tier Coherence and Ergonomic Audit** on system UI/UX screen specifications (`SCR-*.md`) within the hybrid **Asset Performance Management (APM) and Digital Twin (DT)** architecture:
+This skill performs a **Three-Tier Coherence and Ergonomic Audit** on system UI/UX screen specifications (`SCR-*.md`) within the hybrid **Asset Performance Management (APM) and Digital Twin (DT)** architecture:
 
-* **Tier 1 (Local Deterministic & Heuristic Audit):** Executed locally by the agent against the repository's Single Sources of Truth (SSoT: `DT-ERD-DOC-001`, `DT-DM-DOC-002`, `DT-UI-DS-DOC-001`, and requirements). Validates structural data integrity, token conformance, component boundaries, and codified HPHMI rules.
+* **Tier 0 (Deterministic Pre-Flight Gate):** Automated script-based parsing via `.agents/skills/dteam-ui-coherence-audit/scripts/audit.py`. Evaluates AST/regex negative boundary rules: halts execution immediately on SQL/schema leaks, Blazor code-behind wrappers, private state, [Inject], raw CSS rules, hex codes, or missing canonical sections.
+* **Tier 1 (Local Heuristic & Ergonomic Audit):** Executed locally by the agent against the repository's Single Sources of Truth (SSoT: `DT-ERD-DOC-001`, `DT-DM-DOC-002`, `DT-UI-DS-DOC-001`, and requirements). Validates task completeness, cardinality constraints, component boundaries, and codified HPHMI rules.
 * **Tier 2 (Formal Grounded Audit Escalation):** When deep normative compliance, complex Cognitive Task Analysis (CTA), or subjective ergonomic trade-offs are identified, the skill generates a structured prompt for the user's external **Gemini Notebook (GN)**, which is grounded on authoritative, copyrighted standard corpora (ISA-101, *The High Performance HMI Handbook*, ISO 14224, ISO 11064).
 
 ---
 
-## 2. Execution Steps
+## 2. CLI Execution & Helper Script
 
-When invoked to audit a specific screen (e.g., `SCR-VIS-033`, `SCR-VIS-011`, or `SCR-MTTO-023`):
+From the repository root (`adso-dteam-docs/`), the deterministic auditor is invoked via CLI:
+
+```bash
+# 1. Full deterministic audit + markdown report generation in sena-evidence/
+uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py audit --file ui-ux/screens/vis/SCR-VIS-008.md
+
+# 2. Fast console linting (pre-commit / CI gate, zero report files generated)
+uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py lint --file ui-ux/screens/vis/SCR-VIS-008.md
+
+# 3. Batch scan of all screen specifications
+uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py audit-all
+```
+
+### Exit Codes:
+* `0`: Clean PASS or only WARNING/INFO observations.
+* `1`: Execution error (file not found, outside repo).
+* `2`: BLOCKER found (immediate rejection — document MUST NOT be approved without remediation).
+
+---
+
+## 3. Step-by-Step Execution Workflow
+
+### Step 0: Deterministic Pre-Flight Gate (Tier 0)
+1. Run `uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py audit --file <relative-path>`.
+2. If exit code is `2` (BLOCKER), stop immediately and report the specific syntactic/boundary violations to the user. Do NOT proceed to heuristic evaluation while deterministic blockers exist.
 
 ### Step 1: Context Gathering & Archetype Classification
 1. Read the target screen specification (`SCR-*.md`) and its associated use case (`UC-*.md`).

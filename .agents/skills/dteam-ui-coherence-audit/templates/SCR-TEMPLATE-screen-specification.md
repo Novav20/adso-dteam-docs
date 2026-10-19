@@ -39,6 +39,8 @@ status: Draft | In Review | Approved
 ## 3. Functional Component Inventory
 
 > The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, their semantic tokens, and their architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
+>
+> *Rule:* Table cells must strictly serve as a visual catalog of roles, semantic tokens, and pointers to Section 5. Never embed interaction algorithms, clamping math, state machine logic, or raw CSS styles in table cells.
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
@@ -72,7 +74,13 @@ status: Draft | In Review | Approved
 ### 5.3. Domain Workflows & Telemetry
 1. Real-time subscription, debouncing, and payload mapping rules.
 2. State validation, business rule evaluation, and fail-safe handling.
-3. Command dispatch contracts (API endpoint, typed DTO payload, idempotency headers, and HTTP response handling). Avoid detailing backend SQL/database transaction orchestration steps.
+3. Command dispatch contracts (API endpoint, typed DTO payload, idempotency headers, and HTTP response handling).
+
+> [!IMPORTANT]
+> **Architectural Boundary Rule (Persistence Decoupling):**
+> Screen specifications define presentation behaviors, local client validations, and over-the-wire communication contracts only.
+> - **PROHIBITED:** Database schema qualifiers (`mtto.`, `tax.`, `adm.`, `ops.`), physical table names, DDL check constraint names (`ck_*`), SQL functions (`clock_timestamp()`, `NOW()`), and internal database transaction sequences.
+> - **MANDATORY:** Formulate data mutations strictly as command dispatch invocations via typed DTO payloads, HTTP endpoints, and idempotent queuing.
 
 ---
 
@@ -96,6 +104,22 @@ Pages/
 ```
 
 ### 7.2. Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)
+
+```csharp
+// =========================================================================
+// ARCHITECTURAL BOUNDARY RULES FOR SECTION 7:
+// [PROHIBITED]:
+//   - C# `namespace` declarations (to prevent premature assembly coupling).
+//   - Full Blazor `ComponentBase` class declarations (`class Foo : ComponentBase`).
+//   - Dependency injection annotations (`[Inject]`).
+//   - Private mutable component state fields (`private bool _isLoading;`).
+//   - Blazor lifecycle method overrides (`OnInitializedAsync`, `OnParametersSetAsync`).
+// [ALLOWED ONLY]:
+//   - Pure `[Parameter]` properties defining the component's public input/output contract.
+//   - Immutable C# `record` types defining presentation DTOs.
+//   - Strongly-typed presentation `enum`s.
+// =========================================================================
+```
 
 #### 7.2.1. `ScreenNamePage.razor` (Root View)
 ```csharp
@@ -127,9 +151,9 @@ public record ScreenDataDto
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Full horizontal layout; lateral docked panels. | Mouse wheel focal zoom; middle-click pan; dense dual-column data inspection. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Split canvas and side panel layout. | Touch pan threshold ($4\text{px}$); gloved touch targets $\ge 48\text{px}$. |
-| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Vertical stacked layout; bottom sheet drawer. | Drag handle gesture mechanics; sticky action buttons. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Full horizontal layout; lateral docked panels (`width: var(--dt-layout-drawer-width-desktop)`). | Mouse wheel focal zoom; middle-click pan; dense dual-column data inspection. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Split canvas and side panel layout (`width: var(--dt-layout-drawer-width-tablet)`). | Touch pan threshold ($4\text{px}$); gloved touch targets $\ge 48\text{px}$. |
+| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Vertical stacked layout; bottom sheet drawer (`height: min(45vh, 440px)`). | Drag handle gesture mechanics; sticky action buttons. |
 
 ---
 
