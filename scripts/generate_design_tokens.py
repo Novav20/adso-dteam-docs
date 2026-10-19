@@ -150,7 +150,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     spacing = table_for(tables, "Spacing Scale", "CSS Token")
     controls = table_for(tables, "Dimensions of Controls", "Control Token")
     breakpoints = table_for(tables, "Responsive Breakpoints", "Breakpoint Token")
-    layout = table_for(tables, "Structural Layout and Drawer Dimensions", "Layout Token")
+    layout = table_for(tables, "Structural Layout", "Layout Token")
     primitives = table_for(tables, "Primitive Palette", "Primitive Token")
     semantic = table_for(tables, "Semantic Tokens", "Semantic Token")
     alarms = table_for(tables, "Alarm and Safety Semantics", "State / Severity")
@@ -262,6 +262,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             "@media (min-width: 1920px) {",
             "  :root {",
             "    --dt-layout-drawer-width: var(--dt-layout-drawer-width-desktop);",
+            "    --dt-layout-modal-width: var(--dt-layout-modal-width-desktop);",
             "  }",
             "}",
             "",

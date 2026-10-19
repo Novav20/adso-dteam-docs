@@ -60,6 +60,10 @@
   --dt-control-height-lg: 48px;
   --dt-control-height-xl: 56px;
   --dt-control-width-xl: 100%;
+  --dt-control-height-nav-step: 44px;
+  --dt-control-width-nav-step: 56px;
+  --dt-control-height-nav-step-mobile: 42px;
+  --dt-control-width-nav-step-mobile: 52px;
 
   --dt-breakpoint-sm: 390px;
   --dt-breakpoint-md: 768px;
@@ -70,6 +74,15 @@
   --dt-layout-drawer-width-desktop: 440px;
   --dt-layout-drawer-width-tablet: 320px;
   --dt-layout-drawer-width: var(--dt-layout-drawer-width-tablet);
+  --dt-layout-modal-width-desktop: 640px;
+  --dt-layout-modal-width-tablet: 580px;
+  --dt-layout-modal-width: var(--dt-layout-modal-width-tablet);
+  --dt-layout-bottom-sheet-height-initial: 45vh;
+  --dt-layout-bottom-sheet-height-expanded: 85vh;
+  --dt-layout-bottom-sheet-peek-height: 36px;
+  --dt-layout-form-max-width: 1000px;
+  --dt-layout-footer-height: 72px;
+  --dt-layout-footer-clearance: 96px;
 
   /* Typography */
   --dt-font-family-base: Segoe UI, Inter, Roboto, -apple-system, sans-serif;
@@ -193,5 +206,6 @@
 @media (min-width: 1920px) {
   :root {
     --dt-layout-drawer-width: var(--dt-layout-drawer-width-desktop);
+    --dt-layout-modal-width: var(--dt-layout-modal-width-desktop);
   }
 }

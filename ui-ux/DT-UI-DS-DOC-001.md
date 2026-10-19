@@ -49,12 +49,14 @@ Spacing and sizing are governed by an **8px** base grid system (with a 4px sub-f
 
 ### 2.2. Dimensions of Controls and Touch Areas
 | Control Token | Min Height (px) | Min Width (px) | Target Platform / Justification                                                                |
-| ------------------------ | ------------------ | ----------------- | -------------------------------------------------------------------------------------------------- |
-| --dt-touch-target-mobile | 48px               | 48px              | **Mandatory minimum on Tablet/Mobile:** Action buttons, LOTO checkboxes, and field selectors. |
-| --dt-control-height-sm   | 32px               | auto              | Desktop Web: Compact buttons in dense data tables and secondary filters.                    |
-| --dt-control-height-md   | 40px               | auto              | Desktop Web: Standard text inputs, selectors, and form buttons.                       |
-| --dt-control-height-lg   | 48px               | auto              | Mobile/Tablet: Standard height for all input fields (InputText, InputSelect).          |
-| --dt-control-height-xl   | 56px               | 100%              | Mobile: Primary footer action button (e.g., "Complete Work Order").            |
+| :---------------------------------- | :----------------- | :---------------- | :------------------------------------------------------------------------------------------------- |
+| --dt-touch-target-mobile            | 48px               | 48px              | **Mandatory minimum on Tablet/Mobile:** Action buttons, LOTO checkboxes, and field selectors. |
+| --dt-control-height-sm              | 32px               | auto              | Desktop Web: Compact buttons in dense data tables and secondary filters.                    |
+| --dt-control-height-md              | 40px               | auto              | Desktop Web: Standard text inputs, selectors, and form buttons.                       |
+| --dt-control-height-lg              | 48px               | auto              | Mobile/Tablet: Standard height for all input fields (InputText, InputSelect).          |
+| --dt-control-height-xl              | 56px               | 100%              | Mobile: Primary footer action button (e.g., "Complete Work Order").            |
+| --dt-control-height-nav-step        | 44px               | 56px              | Industrial step navigation arrow button with enlarged hit area for gloved hands ([SCR-MTTO-002]). |
+| --dt-control-height-nav-step-mobile | 42px               | 52px              | Smartphone: Compact step navigation button for tight mobile viewports. |
 
 ### 2.3. Responsive Breakpoints and Reference Frames
 
@@ -67,15 +69,24 @@ The designs and responsive adaptation rules in CSS are calibrated against the fo
 | --dt-breakpoint-lg  |      1280px       |          1280 x 800 px          |       $16:10$       | **Industrial Tablet (Zebra ET51 / Honeywell RT10A)** | 2 columns (SVG Canvas + Contextual panel).    |
 | --dt-breakpoint-xl  |      1920px       |         1920 x 1080 px          |       $16:9$        | Desktop Workstation (Full HD)                | 3 columns (Sidebar + Central Panel + Drawer). |
 
-### 2.4. Structural Layout and Drawer Dimensions
+### 2.4. Structural Layout and Dimensional Tokens
 
-To guarantee predictability in responsive split-screen viewports across industrial field tablets and desktop workstations, lateral drawers and contextual inspection panels must adhere to normative dimensional constraints:
+To guarantee predictability in responsive split-screen viewports, transactional modal tasks, and sliding containers across industrial field tablets and desktop workstations, spatial containers adhere to normative dimensional constraints:
 
 | Layout Token | Value | Target Breakpoint / Context | Functional Justification |
-| :------------------------------- | :------------------------------------: | :----------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| --dt-layout-drawer-width-desktop | 440px | --dt-breakpoint-xl ($\ge 1920\text{px}$) | Fixed lateral inspection drawer on high-resolution monitors; preserves multi-column tabular visibility and backlog split views. |
-| --dt-layout-drawer-width-tablet | 320px | --dt-breakpoint-lg ($1280\text{px} - 1919\text{px}$) | Fixed contextual side panel on tablet landscape; strictly enforces $\ge 75\%$ viewport allocation ($960\text{px}$) for the 2D spatial Digital Twin canvas. |
-| --dt-layout-drawer-width | --dt-layout-drawer-width-tablet | Responsive Semantic Base | Semantic drawer width variable; defaults to tablet dimension and dynamically resolves to `--dt-layout-drawer-width-desktop` on desktop displays ($\ge 1920\text{px}$). |
+| :--------------------------------------- | :------------------------------------: | :----------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| --dt-layout-drawer-width-desktop         | 440px                                  | --dt-breakpoint-xl ($\ge 1920\text{px}$)                     | Fixed lateral inspection drawer on high-resolution monitors; preserves multi-column tabular visibility and backlog split views. |
+| --dt-layout-drawer-width-tablet          | 320px                                  | --dt-breakpoint-lg ($1280\text{px} - 1919\text{px}$)         | Fixed contextual side panel on tablet landscape; strictly enforces $\ge 75\%$ viewport allocation ($960\text{px}$) for the 2D spatial Digital Twin canvas. |
+| --dt-layout-drawer-width                 | --dt-layout-drawer-width-tablet        | Responsive Semantic Base                                     | Semantic drawer width variable; defaults to tablet dimension and dynamically resolves to `--dt-layout-drawer-width-desktop` on desktop displays ($\ge 1920\text{px}$). |
+| --dt-layout-modal-width-desktop          | 640px                                  | --dt-breakpoint-xl ($\ge 1920\text{px}$)                     | Centered transactional modal dialog width on desktop workstations ([SCR-INV-025], [SCR-MTTO-026]). |
+| --dt-layout-modal-width-tablet           | 580px                                  | --dt-breakpoint-lg ($1280\text{px} - 1919\text{px}$)         | Centered modal dialog width on industrial tablet landscape viewports. |
+| --dt-layout-modal-width                  | --dt-layout-modal-width-tablet         | Responsive Semantic Base                                     | Semantic modal width variable; dynamically resolves to `--dt-layout-modal-width-desktop` on desktop workstations ($\ge 1920\text{px}$). |
+| --dt-layout-bottom-sheet-height-initial  | 45vh                                   | --dt-breakpoint-md ($768\text{px} - 1279\text{px}$)         | Natural initial resting height for tactile sliding bottom sheets on industrial tablet portrait viewports ([DT-UI-DS-DOC-001 §6.3]). |
+| --dt-layout-bottom-sheet-height-expanded | 85vh                                   | --dt-breakpoint-md ($768\text{px} - 1279\text{px}$)         | Maximum expanded height ceiling for bottom sheets on discrete tap or upward drag. |
+| --dt-layout-bottom-sheet-peek-height     | 36px                                   | --dt-breakpoint-md ($768\text{px} - 1279\text{px}$)         | Minimized docked tab / peek trigger height when bottom sheet is collapsed. |
+| --dt-layout-form-max-width               | 1000px                                 | Global Form Container                                        | Maximum ergonomic reading measure and layout containment for maintenance execution forms ([SCR-MTTO-002]). |
+| --dt-layout-footer-height                | 72px                                   | Sticky Action Footers                                        | Pinned bottom finalization bar height on mobile/tablet execution forms. |
+| --dt-layout-footer-clearance             | 96px                                   | Sticky Action Footers                                        | Bottom scroll container clearance preventing sticky footer from occluding inputs at maximum scroll extents. |
 
 ---
 

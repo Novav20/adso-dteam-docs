@@ -70,6 +70,16 @@
       "$type": "dimension",
       "$description": ""
     },
+    "control-height-nav-step": {
+      "$value": "44px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "control-height-nav-step-mobile": {
+      "$value": "42px",
+      "$type": "dimension",
+      "$description": ""
+    },
     "layout-drawer-width-desktop": {
       "$value": "440px",
       "$type": "dimension",
@@ -82,6 +92,51 @@
     },
     "layout-drawer-width": {
       "$value": "{layout-drawer-width-tablet}",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-modal-width-desktop": {
+      "$value": "640px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-modal-width-tablet": {
+      "$value": "580px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-modal-width": {
+      "$value": "{layout-modal-width-tablet}",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-bottom-sheet-height-initial": {
+      "$value": "45vh",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-bottom-sheet-height-expanded": {
+      "$value": "85vh",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-bottom-sheet-peek-height": {
+      "$value": "36px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-form-max-width": {
+      "$value": "1000px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-footer-height": {
+      "$value": "72px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-footer-clearance": {
+      "$value": "96px",
       "$type": "dimension",
       "$description": ""
     },
