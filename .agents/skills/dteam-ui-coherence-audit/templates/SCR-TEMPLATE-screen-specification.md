@@ -137,9 +137,9 @@ public record ScreenDataDto
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Full horizontal layout; lateral docked panels (`width: var(--dt-layout-drawer-width-desktop)`). | Mouse wheel focal zoom; middle-click pan; dense dual-column data inspection. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Split canvas and side panel layout (`width: var(--dt-layout-drawer-width-tablet)`). | Touch pan threshold ($4\text{px}$); gloved touch targets $\ge 48\text{px}$. |
-| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Vertical stacked layout; bottom sheet drawer (`height: var(--dt-layout-bottom-sheet-height-initial)`). | Drag handle gesture mechanics; sticky action buttons. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Full horizontal layout; lateral docked panels (`--dt-layout-drawer-width-desktop`). | Mouse wheel focal zoom; middle-click pan; dense dual-column data inspection. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Split canvas and side panel layout (`--dt-layout-drawer-width-tablet`). | Touch pan threshold ($4\text{px}$); gloved touch targets $\ge 48\text{px}$. |
+| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Vertical stacked layout; bottom sheet drawer (`--dt-layout-bottom-sheet-height-initial`). | Drag handle gesture mechanics; sticky action buttons. |
 
 ---
 

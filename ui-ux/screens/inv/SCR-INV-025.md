@@ -338,7 +338,7 @@ public record AssetSwapCompletedEvent(
 1. **Optical Barcode & NFC Scanner Interop (`IBarcodeScannerInterop`):**
    * Encapsulates hardware barcode scanners and optical camera streams, parsing Code 128 / QR / DataMatrix serial tags and dispatching selection events without UI thread blocking.
 2. **Tactile Bottom Sheet Gesture Interop (`IDrawerGestureInterop`):**
-   * Handles drag gestures and discrete single-tap toggling between $45\text{vh}$ and $85\text{vh}$ with tactile threshold snapping.
+   * Handles drag gestures and discrete single-tap toggling between natural resting height (`--dt-layout-bottom-sheet-height-initial`) and expanded ceiling (`--dt-layout-bottom-sheet-height-expanded`) with tactile threshold snapping.
 3. **Web Cryptography SHA-256 Bridge (`ICryptoInterop`):**
    * Computes candidate `PayloadHash` asynchronously in a dedicated Web Worker to preview unalterable cryptographic chaining in `CMP-08`.
 4. **Encrypted Offline Storage Interop (`IOfflineStorage`):**

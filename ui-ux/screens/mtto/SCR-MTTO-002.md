@@ -93,15 +93,15 @@ status: Stable
 
 1. **Gloved Touch Target Invariant (ISO 9241-110 Clause 5.3 / `--dt-touch-target-mobile`):**
    * All interactive controls (checkboxes, dropdown triggers, camera buttons, tab headers, spare parts quantity steppers) enforce a minimal bounding box of $48\times 48\text{px}$ with $\ge 8\text{px}$ separation, ensuring error-free operation with nitrile and leather field gloves.
-   * Step navigation directional arrow buttons enforce an enlarged footprint of $56\times 44\text{px}$ (`--dt-control-width-nav-step` $\times$ `--dt-control-height-nav-step`, or $52\times 42\text{px}$ via `--dt-control-width-nav-step-mobile` $\times$ `--dt-control-height-nav-step-mobile` on mobile) with tactile elevated surface (`--dt-color-surface-raised`), panel border, and explicit SVG arrows (`#icon-arrow-left`, `#icon-arrow-right`).
+   * Step navigation directional arrow buttons enforce an enlarged footprint governed by `--dt-control-width-nav-step` $\times$ `--dt-control-height-nav-step` (and `--dt-control-width-nav-step-mobile` $\times$ `--dt-control-height-nav-step-mobile` on mobile) with tactile elevated surface (`--dt-color-surface-raised`), panel border, and explicit SVG arrows (`#icon-arrow-left`, `#icon-arrow-right`).
    * Custom scope checkboxes enforce an enlarged $28\times 28\text{px}$ hit target with a centered checkmark icon.
 2. **Decoupled Dual-Card Scope & Timing Architecture (`CMP-03`):**
    * Decouples real-time diagnostic field timing from formal CMMS accounting entry into a responsive 2-card layout:
      * **Card A (`FieldStopwatchCard`):** Displays real-time field intervention timer (`00:00:00`), Start/Pause/Reset controls, and a high-contrast hero button `[Transfer to Actual Hours]`.
      * **Card B (`ActualLaborHoursCard`):** Hosts the official CMMS accounting field (Actual Labor Hours), featuring $48\times 48\text{px}$ tactile steppers (`−` / `+` with $0.25\text{h}$ increments), centered 20px monospace numeric input, quick preset pills (`2.0h`, `2.5h`, `3.0h`, `3.5h`), and plain-text planned duration reference (`Planned: 3.50 hrs`), eradicating badge inflation.
 3. **Sticky Bottom Finalization Bar (`CMP-09`):**
-   * Pinned to the bottom viewport boundary ($72\text{px}$ height via `--dt-layout-footer-height`, elevation `--dt-z-header-sticky`), elevated via border-top with `--dt-color-border-panel`.
-   * Form content container enforces a $96\text{px}$ bottom scroll clearance (`--dt-layout-footer-clearance`) to prevent the sticky footer from occluding input fields or observations at maximal scroll extents.
+   * Pinned to the bottom viewport boundary with height `--dt-layout-footer-height` and elevation `--dt-z-header-sticky`, elevated via border-top with `--dt-color-border-panel`.
+   * Form content container enforces bottom scroll clearance via `--dt-layout-footer-clearance` to prevent the sticky footer from occluding input fields or observations at maximal scroll extents.
    * Guided workflow: Progressive navigation (`← Previous` and `Next →`) guides the technician sequentially; primary action `[Finalize Work Order]` unlocks strictly on Step 4 (Evidence) once quality gates are satisfied.
 4. **Flush Tab Navigation Physics (`CMP-02`):**
    * Edge-to-edge flush tab bar with zero inter-tab gap or rounded corners, sitting directly adjacent to the LOTO handover strip and workspace bounds.
@@ -455,9 +455,9 @@ public record MediaAttachmentDto
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Dual-column side-by-side layout ($50\% / 50\%$) constrained to `--dt-layout-form-max-width` ($1000\text{px}$). Left: Scope, Spares, and Multimedia. Right: Full ISO 14224 Taxonomy Matrix and audit logs. Sticky footer spans bottom width (`--dt-layout-footer-height`). | Mouse click focus; keyboard numeric navigation; dense multi-tier dropdown grids; full-resolution image preview modal. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Asymmetric dual-column layout ($45\% / 55\%$) constrained to `--dt-layout-form-max-width` ($1000\text{px}$). Segmented tab bar `CMP-02` allows grouped inspection. Sticky footer `CMP-09` pinned at bottom (`--dt-layout-footer-height`). | Gloved touch targets $\ge 48\times 48\text{px}$; scrollable taxonomy matrix; camera trigger anchored for dual-thumb reachability. |
-| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Single-column stacked layout. Segmented tab bar `CMP-02` hosts swipeable tab views. Form items span full width ($100\%$). Action bar `CMP-09` sticky at bottom ($72\text{px}$, `--dt-layout-footer-height`). | Large touch input fields; single-hand thumb navigation; sticky ISO lock completeness meter pinned above action button. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Dual-column side-by-side layout ($50\% / 50\%$) constrained to `--dt-layout-form-max-width`. Left: Scope, Spares, and Multimedia. Right: Full ISO 14224 Taxonomy Matrix and audit logs. Sticky footer spans bottom width (`--dt-layout-footer-height`). | Mouse click focus; keyboard numeric navigation; dense multi-tier dropdown grids; full-resolution image preview modal. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Asymmetric dual-column layout ($45\% / 55\%$) constrained to `--dt-layout-form-max-width`. Segmented tab bar `CMP-02` allows grouped inspection. Sticky footer `CMP-09` pinned at bottom (`--dt-layout-footer-height`). | Gloved touch targets $\ge 48\times 48\text{px}$; scrollable taxonomy matrix; camera trigger anchored for dual-thumb reachability. |
+| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Single-column stacked layout. Segmented tab bar `CMP-02` hosts swipeable tab views. Form items span full width ($100\%$). Action bar `CMP-09` sticky at bottom (`--dt-layout-footer-height`). | Large touch input fields; single-hand thumb navigation; sticky ISO lock completeness meter pinned above action button. |
 
 ---
 
