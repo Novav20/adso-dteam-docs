@@ -14,7 +14,7 @@ user_stories:
   - "[[INV-025]]"
 use_cases:
   - "[[UC-INV-025]]"
-version: 1.1
+version: 1.2
 date: 2026-10-19
 status: In Review
 ---
@@ -74,6 +74,8 @@ status: In Review
 | **Ready for Execution** | All fields valid. `CMP-06` displays Teal badge: *"Taxonomic Compatibility Confirmed (Sulzer OH2 API 610)"*. Hash strip `CMP-08` displays valid SHA-256 preview. `CMP-09` becomes active. | Valid Asset B selected + Asset A destination selected + WO linked. |
 | **Executing Atomic Commit** | `CMP-09` renders loading spinner shimmer (`--dt-color-surface-raised`). All form inputs disabled to prevent duplicate submissions. | User taps `[Confirm Asset Swap]`. |
 | **Swap Completed (Success)** | Modal transitions to success checkmark animation (`--dt-color-state-success`), displays transaction summary and new installation ID, then automatically closes after $1.5\text{s}$. | Atomic database transaction commits successfully in $< 2\text{s}$ (`NFR-597`). |
+| **Offline Queued / Disconnected Execution** | Modal renders amber offline badge (`--dt-color-alarm-warning`) in header: *"Offline Mode — Transaction Enqueued"*. Success checkmark animates with Outbox sync icon (`#icon-sync-pending`) and local lease token. Modal dismisses after $1.5\text{s}$; parent view displays incremented pending sync badge. | User confirms swap while industrial tablet is disconnected from network (`TR-007`). Operation is committed to local encrypted outbox storage. |
+
 
 ---
 
@@ -106,12 +108,15 @@ sequenceDiagram
 ```
 
 1. **Initial Context Binding:** The modal initializes with the context of the active Functional Location (`functional_location_id`). It queries the active mounted equipment unit details (`InstalledAssetDetailsDto`) currently mapped to the target location tag.
-2. **Rotable Spares Filtering:** The system queries available rotable spare units (`RotableSpareSummaryDto`) satisfying taxonomic compatibility:
-   $$\text{equipment\_class\_id} = \text{FL.equipment\_class\_id} \quad \land \quad \text{operational\_status} = \text{'IN\_STORAGE'} \quad \land \quad \text{functional\_location\_id IS NULL}$$
+2. **Rotable Spares Filtering:** The system queries available rotable spare units (`RotableSpareSummaryDto`) satisfying taxonomic and lifecycle compatibility:
+   $$\text{equipment\_class\_id} = \text{FL.equipment\_class\_id} \quad \land \quad \text{lifecycle\_status} = \text{'IN\_STORAGE'} \quad \land \quad \text{maintenance\_status} = \text{'OPERATIONAL'} \quad \land \quad \text{functional\_location\_id IS NULL}$$
 3. **Atomic Single-Commit Invariant (`NFR-596`):** The swap operation executes via the `ExecuteAssetSwapCommand` payload dispatched to `POST /api/v1/inventory/rotable-swaps`:
-   * **Step A:** Disassociates Asset A from the location, updating its operational status to the selected destination status (`IN_REPAIR`, `IN_STORAGE`, or `DAMAGED`) and assigning it to the designated holding warehouse.
-   * **Step B:** Terminates the active mounting interval for Asset A with the current UTC timestamp.
-   * **Step C:** Mounts replacement Asset B to the target functional location, transitioning its operational status to `OPERATIONAL` with current operational commencement date.
+   * **Step A:** Disassociates Asset A from the location, unsetting its functional location link (`functional_location_id = NULL`), assigning it to the designated holding warehouse (`warehouse_id = HoldingWarehouseId`), and projecting `DestinationStatus` across relational status columns:
+     * `IN_STORAGE` $\implies$ `lifecycle_status = 'IN_STORAGE'`, `maintenance_status = 'OPERATIONAL'`, `operational_status = 'STANDBY'`.
+     * `IN_REPAIR` $\implies$ `lifecycle_status = 'IN_STORAGE'`, `maintenance_status = 'UNDER_MAINTENANCE'`, `operational_status = 'DOWN'`.
+     * `DAMAGED` $\implies$ `lifecycle_status = 'DECOMMISSIONED'`, `maintenance_status = 'UNDER_MAINTENANCE'`, `operational_status = 'DOWN'`.
+   * **Step B:** Terminates the active mounting interval for Asset A by setting `removed_at` with the current UTC timestamp.
+   * **Step C:** Mounts replacement Asset B to the target functional location, transitioning `lifecycle_status = 'INSTALLED'`, `operational_status = 'UP'`, `maintenance_status = 'OPERATIONAL'`, unsetting `warehouse_id = NULL`, and recording the operational commencement date.
    * **Step D:** Establishes the new active mounting record associating Asset B, the functional location tag, justifying work order reference, and technician credentials.
    * **Step E:** Appends a cryptographically chained audit record with SHA-256 hash verification (`TR-001`).
 
@@ -122,7 +127,7 @@ sequenceDiagram
 1. **Desktop vs. Mobile Viewport Adaptation:**
    * **Desktop Workstation ($\ge 1400\text{px}$, `--dt-breakpoint-xl`):** Centered modal window ($640\text{px}$ width, max-height $80\text{vh}$) with dark backdrop dimming (`rgba(0,0,0,0.65)`). Keyboard navigation: `Escape` cancels, `Enter` confirms when form is valid.
    * **Industrial Tablet Portrait ($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`):** Renders as a **Bottom Sheet**, docking at the bottom edge with initial height `min(45vh, var(--dt-layout-drawer-width-desktop))` expandable via drag handle to $85\text{vh}$.
-2. **Tactile Targets:** All interactive controls (status dropdowns, barcode scan button, confirm action) enforce touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ margin separation to ensure comfortable operation with industrial gloves (`TR-010`).
+2. **Tactile Targets:** All interactive controls (status dropdowns, barcode scan button, confirm action) enforce touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ margin separation to ensure comfortable operation with industrial gloves (`ISO 9241-110 Clause 5.3`, `--dt-touch-target-mobile`).
 3. **Barcode Scanning Mechanics:** Tapping `CMP-05` triggers the Web MediaDevices camera API or industrial laser scan event listener. Scanning an asset barcode immediately resolves the serial number against the inventory catalog, populating Asset B in $< 300\text{ms}$.
 
 ---
@@ -134,7 +139,7 @@ When Asset B is selected:
 1. The client verifies:
    $$\text{AssetB.EquipmentClassId} == \text{AssetA.EquipmentClassId}$$
 2. If classes mismatch, the modal interrupts the flow, displays the critical compatibility banner `CMP-06`, and disables `CMP-09`.
-3. If Asset B is flagged in any status other than `IN_STORAGE` (e.g. `DAMAGED` or `DECOMMISSIONED`), the selection is rejected with alert: *"Selected equipment is not available in warehouse inventory"*.
+3. If Asset B is flagged in any lifecycle status other than `IN_STORAGE` or maintenance status other than `OPERATIONAL` (e.g., `DECOMMISSIONED` or `UNDER_MAINTENANCE`), the selection is rejected with alert: *"Selected equipment is not available in warehouse inventory"*.
 
 #### 5.3.2. Dismantling Destination Enforcement (AF-002)
 To eliminate logical asset orphanhood:
@@ -222,6 +227,8 @@ public record RotableSpareSummaryDto(
     string Model,
     Guid EquipmentClassId,
     string EquipmentClassName,
+    string LifecycleStatus,
+    string MaintenanceStatus,
     string OperationalStatus,
     Guid WarehouseId,
     string WarehouseName,
@@ -235,7 +242,7 @@ public record ExecuteAssetSwapCommand(
     Guid HoldingWarehouseId,
     Guid ReplacementAssetId,
     Guid? JustifyingWorkOrderId,
-    string TechnicianUserId,
+    Guid TechnicianUserId,
     string PreviousHash
 );
 
@@ -283,6 +290,7 @@ public record AssetSwapCompletedEvent(
 | [TR-001](../../../requirements/common/TR-001.md) | `CMP-08`, `CMP-09` | Immutable append-only audit trail logging with SHA-256 hash chaining. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01` | Adheres to DDD Bounded Contexts (`tax`, `inv`, `adm`) without cross-boundary bleeding. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-01` | Enforces RBAC permissions (`Reliability Engineer`, `Technician`, `Supervisor`). |
+| [TR-007](../../../requirements/common/TR-007.md) | `CMP-01`, `CMP-09` | Offline fault resilience: queues atomic swap operations into encrypted local outbox storage during field disconnects. |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-06` | Enforces ISO 14224 taxonomic constraints and class parity in domain rules. |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-03`, `CMP-05`, `CMP-09`| Tactile touch targets comply with $\ge 48\times 48\text{px}$ for gloved field operation. |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-09` | Real-time synchronization: broadcasts completed rotable swap events to connected clients via WebSockets (< 1s). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`..`CMP-10` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, saturated color reserved for status and alerts. |
