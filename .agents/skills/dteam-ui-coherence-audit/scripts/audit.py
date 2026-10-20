@@ -123,6 +123,16 @@ RUNTIME_LEAK_PATTERNS: list[tuple[str, str, str]] = [
      "Concrete third-party package 'sqlite-net-pcl' leaked. Use abstract 'IOfflineStorage' / encrypted cache."),
 ]
 
+# Prohibited narrative / software meta-text patterns
+META_TEXT_PATTERNS: list[tuple[str, str, str]] = [
+    (r"\b(?:Asset|Activo)\s+[A-D]\b", "TXT-001",
+     "Generic drafting variable placeholder '{match}' detected in screen specification. Use authentic operational domain terms from DT-UL-DOC-001 / ISO 14224 (e.g., Dismounted Asset / Replacement Asset)."),
+    (r"\b(?:Entity|Entidad)\s+[A-D]\b", "TXT-001",
+     "Generic drafting placeholder '{match}' detected. Use specific domain entity names from DT-DM-DOC-001."),
+    (r"\b(?:Record|Registro)\s+[A-D]\b", "TXT-001",
+     "Generic drafting placeholder '{match}' detected. Use specific domain record names."),
+]
+
 # Spanish section title words (Language Policy: English only)
 SPANISH_HEADER_WORDS: list[str] = [
     "Propósito", "Contexto Operacional", "Artefacto Visual", "Inventario Funcional",
@@ -459,6 +469,31 @@ def audit_runtime_leaks(content: str) -> list[Finding]:
     return findings
 
 
+def audit_domain_meta_text(content: str) -> list[Finding]:
+    """Scans for generic narrative drafting placeholders (Asset A, Activo B, Entity X, etc.)."""
+    findings: list[Finding] = []
+    lines = content.splitlines()
+
+    for idx, line in enumerate(lines, start=1):
+        # Skip rule prohibitions and alert descriptions
+        if "PROHIBITED" in line or "Prohibited" in line or "prohibit" in line.lower() or "RULE:" in line:
+            continue
+        # Exclude markdown link targets/URLs
+        stripped_line = re.sub(r"\[.*?\]\(.*?\)", "", line)
+        for pattern, code, msg_template in META_TEXT_PATTERNS:
+            match = re.search(pattern, stripped_line)
+            if match:
+                matched_str = match.group(0)
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code=code,
+                    message=msg_template.format(match=matched_str),
+                    line=idx
+                ))
+
+    return findings
+
+
 def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
     """Validates that all referenced --dt-* tokens exist in tokens.css and Section 3 uses valid tokens."""
     findings: list[Finding] = []
@@ -661,6 +696,7 @@ def run_screen_audit(content: str, repo_root: Path) -> list[Finding]:
     findings += audit_tokens(content, valid_tokens)
     findings += audit_anti_redundancy(content)
     findings += audit_presentation_boundaries(content)
+    findings += audit_domain_meta_text(content)
 
     # Deduplicate findings by (code, line, message)
     seen: set[tuple[str, int | None, str]] = set()

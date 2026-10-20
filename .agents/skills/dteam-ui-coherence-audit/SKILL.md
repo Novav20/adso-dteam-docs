@@ -163,6 +163,10 @@ All screen specifications must strictly align with the canonical standard define
      * **[FAIL] Direct DB Writes in UI Workflows:** Workflows must describe data encapsulation into typed DTOs/commands, not direct database column mutations (e.g., *"stores metadata in `mtto.media_attachments: file_url, ...`"*).
      * **[FAIL] Low-Level Runtime & Package Coupling:** Section 7.3 must define capability interfaces (`ICameraInterop`, `ICryptoInterop`, `IOfflineStorage`) rather than concrete JavaScript API call snippets (e.g., `SubtleCrypto.digest(...)`) or third-party NuGet package names (e.g., `sqlite-net-pcl`).
 
+9. **Domain Nomenclature & Anti-Meta-Text Guard (`TXT-001`):**
+   * Screen specifications, wireframes, and component catalogs must use authentic operational domain terminology from `DT-UL-DOC-001.md` and ISO 14224 (e.g., `Dismounted Asset`, `Replacement Asset`).
+   * **[FAIL] Drafting Variable Placeholders (`TXT-001`):** Generic variable aliases (`Asset A / Asset B`, `Activo A / Activo B`, `Entity X / Y`, `Record 1 / 2`) or software pipeline jargon are strictly prohibited in component names, wireframes, interaction workflows, and state matrices.
+
 ---
 
 ### Step 5: Audit Report Generation & Persistence

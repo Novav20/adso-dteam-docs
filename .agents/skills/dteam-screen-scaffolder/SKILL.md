@@ -53,13 +53,29 @@ flowchart TD
 ### Step 0: SSoT Alignment & Presentation DTO Abstraction
 
 Before scaffolding specifications or prototypes, the agent **MUST** perform an automated cross-check between the target use case / user story and the established repository SSoTs:
+
+0. **Upstream Use Case Audit Verification:**
+   * Verify that the target Use Case (`UC-*.md`) has been audited and approved against repository SSoTs via `dteam-usecase-audit`. If the Use Case contains stale pre-ERD assumptions or generic variable placeholders, run `dteam-usecase-audit` to reconcile it *before* proceeding with screen generation.
+
 1. **Relational Contract Reconciliation & Presentation DTO Abstraction:**
    * Inspect `DT-ERD-DOC-001.md` to identify all necessary entity fields, nullability (`NOT NULL`), and invariants.
    * **CRITICAL ARCHITECTURAL BOUNDARY:** Translate relational columns, foreign keys, and DB check constraints into **frontend Presentation DTO records and C# enums** *before* drafting the specification.
    * **STRICT PROHIBITION:** Never leak PostgreSQL schema qualifiers (`mtto.`, `tax.`, `adm.`, `ops.`), physical table names, DDL check constraint names (`ck_*`), SQL types (`timestamptz`), or SQL functions (`clock_timestamp()`) into §5.3 or §7.2 of the specification.
-2. **Ubiquitous Language & Enum Hygiene:** Verify that entity statuses, roles, and terminology conform strictly to `DT-UL-DOC-001.md` and `DT-ERD-DOC-001.md` (e.g., catching terminology drift such as `Pending Review` vs. canonical `COMPLETE`).
-3. **Sequential Boundary Verification:** Verify input parameters, upstream preconditions, and downstream postconditions against adjacent screens in `DT-UI-NAV-DOC-001.md` (e.g., ensuring transitions from `SCR-VIS-011` properly pass active LOTO and WO context).
-4. **Output:** The agent outputs a concise **Gap & Reconciliation Report** in the planning/execution log and embeds the abstracted Presentation DTOs directly into **§5.3** (Domain Workflows) and **§7.2** (Component Parameters & DTOs) of the generated specification.
+
+2. **Domain Nomenclature & Anti-Meta-Text Translation Rule:**
+   * The scaffolder must act as an **architectural compiler**, never a blind copy-paster.
+   * **STRICT PROHIBITION:** Never copy generic drafting variable aliases (e.g., `Asset A / Asset B`, `Item 1 / Item 2`, `Entity X / Y`, `Record 1 / 2`) or technical architecture pipeline jargon (`Single-Commit`, `OUTBOX`, `Lease Local Activo`, `Command Payload`) into component titles, wireframes, card headers, or UI labels.
+   * **MANDATORY TRANSLATION:** Translate narrative drafting placeholders into authentic operational domain terminology defined in `DT-UL-DOC-001.md` and ISO 14224 (e.g., translating `Asset A (Dismounting)` $\to$ `Dismounted Asset / Activo Desmontado`, and `Asset B (Installation)` $\to$ `Replacement Asset / Activo de Reemplazo`).
+
+3. **Three-Tier Translation Rule for Enums and State Mutations:**
+   * When an upstream Use Case or ERD table defines a canonical lifecycle enum (e.g., `tax.equipment_units.operational_status IN ('OPERATIONAL', 'IN_REPAIR', 'IN_STORAGE', 'DAMAGED')`), the scaffolder MUST compile it across three strictly segregated tiers:
+     * **Tier 1 (Presentation Contract - §7.2.3):** Define strongly-typed C# enums in `PascalCase` (e.g., `public enum DismountDestinationStatus { InRepair, InStorage, Damaged }`).
+     * **Tier 2 (Spec Interaction Workflow - §5.3 Prose):** Reference the C# enum strictly by type name (`mapped to enum DismountDestinationStatus (§7.2.3)`). Strictly prohibit writing exhaustive string literal sets or LaTeX equations in prose (`status \in \{IN\_REPAIR, ...\}`).
+     * **Tier 3 (Prototype / HTML DOM):** Bind authentic, localized industrial Spanish labels in UI text (`En Almacén Operativo`, `Dañado / Para Baja`), preserving the canonical uppercase database key strictly inside the HTML `value="..."` attribute (e.g., `<option value="IN_STORAGE">En Almacén Operativo</option>`). Strictly prohibit raw database `SCREAMING_SNAKE_CASE` strings in user-facing badges, buttons, or titles.
+
+4. **Sequential Boundary Verification:** Verify input parameters, upstream preconditions, and downstream postconditions against adjacent screens in `DT-UI-NAV-DOC-001.md` (e.g., ensuring transitions from `SCR-VIS-011` properly pass active LOTO and WO context).
+
+5. **Output:** The agent outputs a concise **Gap & Reconciliation Report** in the planning/execution log and embeds the abstracted Presentation DTOs directly into **§5.3** (Domain Workflows) and **§7.2** (Component Parameters & DTOs) of the generated specification.
 
 ### Step 1: Archetype & Layout Classification
 
@@ -86,9 +102,9 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
     *   *Rule:* Qualitative operational environment and hardware context only. Strictly prohibit breakpoint tokens (`--dt-breakpoint-*`), container pixel/vh dimensions, and domain enum lists in §1.
 3.  **§2 Visual Artifact:** Universal markdown image link `![SCR-[MOD]-[NUM] Wireframe](assets/SCR-[MOD]-[NUM]-wireframe.svg)`.
 4.  **§3 Functional Component Inventory:** Table of `CMP-01`..`CMP-NN`.
-    *   *Rule:* Table cells must strictly act as a visual catalog (Role, Content, Semantic Tokens, pointer to §5). **Never** write interaction algorithms, clamping math, state machines, hardware layout dimensions (e.g., `640px`, `45vh`), status strings, domain enum lists, or NFR citations in §3 table cells. Column 4 ("Semantic Token") must reference explicit Design System tokens (`--dt-*`).
+    *   *Rule:* Table cells must strictly act as a visual catalog (Role, Content, Semantic Tokens, pointer to §5). **Never** write interaction algorithms, clamping math, state machines, hardware layout dimensions (e.g., `640px`, `45vh`), status strings, domain enum lists, or NFR citations in §3 table cells. Column 4 ("Semantic Token") must reference explicit Design System tokens (`--dt-*`). Component titles and roles must use authentic domain terms from `DT-UL-DOC-001.md`; generic narrative aliases (`Asset A / Asset B`, `Item 1 / 2`) are strictly prohibited.
 5.  **§4 Screen State Matrix:** Matrix of observable visual modifications in the DOM (`Normal`, `Loading`, `Selected`, `Alarm`, `Diagnostic/Offline`).
-    *   *Rule:* Focus purely on visual rendering changes. Do not duplicate backend business logic.
+    *   *Rule:* Focus purely on visual rendering changes. Do not duplicate backend business logic. Use authentic domain names for affected entities (e.g., `Dismounted asset` / `Replacement asset`).
 6.  **§5 Interaction Rules and Data Flow (The Single Source of Truth - SSoT):**
     *   *§5.1 Initial Load & Lifecycle:* Default coordinates, zoom level, closed drawer state, initial subscriptions.
         *   **Presentation Layer Boundary Invariant:** UI sequence diagrams (Mermaid) must model interactions strictly between the User/Technician (`Tech`), the presentation component (`UI`), external client hardware/interop (`Scanner`/`Sensor`), and the boundary Application Service API (`API`). Private backend-to-backend hops (e.g., `API ->> Worker`, `API ->> DB`) and internal backend self-loops (`API ->> API`) are prohibited presentation leaks.
@@ -131,6 +147,7 @@ Create the standalone prototype in `sena-evidence/00-Overview/Protoyping/ui-prot
     *   In portrait orientation, constrain initial height to `height: min(45vh, 440px)` (matching `VIS-033` and `VIS-008`), allowing smooth dragging up to `85vh` without blocking the spatial canvas.
 5.  **Status Badges & Alarms:**
     *   Badges must have centered text (`justify-content: center; text-align: center;`), no decorative icons, and follow ISA-101 alarm color semantics (red only for critical alarm, amber for warning, blue for info/selection).
+    *   **Domain Copy & Localized Enums:** Display authentic localized domain text to the user (`En Almacén Operativo`, `En Taller / Reparación`). Confine raw uppercase database keys strictly to HTML `value="..."` attributes. Generic variable aliases (`Activo A`, `Activo B`, `Item 1`) are prohibited from visible UI copy.
 6.  **Wrapper Integration:**
     *   Register the new prototype in `sena-evidence/00-Overview/Protoyping/ui-prototype/dev-wrapper.html` inside the `<select id="screenSelect">` dropdown.
 
