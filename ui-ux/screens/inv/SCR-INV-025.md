@@ -23,7 +23,7 @@ status: Stable
 
 ## 1. Purpose and Operational Context
 
-* **View Objective:** Atomic, transactional substitution of an active physical Level 6 Equipment Unit (Asset A) mounted at a Level 5 Functional Location by an identical replacement rotable unit from warehouse inventory (Asset B) without altering the Functional Location master identity. Enforces ISO 14224 (Section 6) taxonomy by preserving historical MTBF reliability tracking on the individual physical machine while keeping the functional tag continuously active.
+* **View Objective:** Atomic, transactional substitution of an active physical Level 6 Equipment Unit (dismounted asset) mounted at a Level 5 Functional Location by an identical replacement rotable unit from warehouse inventory without altering the Functional Location master identity. Enforces ISO 14224 (Section 6) taxonomy by preserving historical MTBF reliability tracking on the individual physical machine while keeping the functional tag continuously active.
 * **Primary Target Persona:** Reliability Engineer evaluating equipment reliability trends, recording rotable machine swaps, and commissioning overhauled units into operational positions.
 * **Secondary Personas:**
   * **Maintenance Technician:** Performs physical field swap, scans replacement serial barcodes, and confirms dismantling destination.
@@ -38,7 +38,7 @@ status: Stable
 
 ![SCR-INV-025 Wireframe](assets/SCR-INV-025-wireframe.svg)
 
-> *Note: Conceptual wireframe illustrating the Asset Swap container, dual equipment inspection cards (Asset A Dismounting vs. Asset B Installation), barcode scan trigger, taxonomic compatibility validation pill, and cryptographic audit summary.*
+> *Note: Conceptual wireframe illustrating the Asset Swap container, dual equipment inspection cards (Dismounted Asset vs. Replacement Asset), barcode scan trigger, taxonomic compatibility validation pill, and cryptographic audit summary.*
 
 ---
 
@@ -49,11 +49,11 @@ status: Stable
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
 | `CMP-01` | Modal Container & Header | Modal shell / Bottom sheet header | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Hosts title ("Rotable Asset Swap"), Functional Location tag, Equipment Class badge, and dismissal control. Adapts from desktop centered dialog to tactile bottom sheet on mobile portrait viewports. Detailed in §5.2 and §8. |
-| `CMP-02` | Asset A Dismounting Card | Currently installed machine card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Displays mounted asset details including Serial Number, Model, Operating Hours, and Installation Date. Hosts mandatory destination controls (`CMP-03`). Detailed in §5.1. |
+| `CMP-02` | Dismounted Asset Card | Currently installed machine card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Displays mounted asset details including Serial Number, Model, Operating Hours, and Installation Date. Hosts mandatory destination controls (`CMP-03`). Detailed in §5.1. |
 | `CMP-03` | Destination Status & Warehouse Controls | Status selector and warehouse picker | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Dropdown pair capturing post-dismount destination status and target storage warehouse. Blocks submission if left unassigned. Detailed in §5.1, §5.3.2, and §7.2.3. |
-| `CMP-04` | Asset B Selection Card | Replacement rotable picker card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Hosts replacement equipment selector, serial number display, optical scan trigger (`CMP-05`), and live taxonomic compatibility badge (`CMP-06`). Detailed in §5.1. |
-| `CMP-05` | Barcode / NFC Scan Trigger | Tactile camera/scanner button | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle`<br>Touch Target: `--dt-touch-target-mobile` | Activates camera-based barcode scanning or Web NFC reader to instantly select Asset B by physical asset barcode tag. Detailed in §5.2.3 and §7.3. |
-| `CMP-06` | Taxonomic Compatibility Indicator | Real-time validation badge | Dynamic Surface: `--dt-color-state-success` or `--dt-color-alarm-critical` | Validates that Asset B matches the exact `EquipmentClassId` of the Functional Location and is currently in warehouse storage status. Detailed in §5.3.1. |
+| `CMP-04` | Replacement Asset Card | Replacement rotable picker card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Hosts replacement equipment selector, serial number display, optical scan trigger (`CMP-05`), and live taxonomic compatibility badge (`CMP-06`). Detailed in §5.1. |
+| `CMP-05` | Barcode / NFC Scan Trigger | Tactile camera/scanner button | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle`<br>Touch Target: `--dt-touch-target-mobile` | Activates camera-based barcode scanning or Web NFC reader to instantly select the replacement unit by physical asset barcode tag. Detailed in §5.2.3 and §7.3. |
+| `CMP-06` | Taxonomic Compatibility Indicator | Real-time validation badge | Dynamic Surface: `--dt-color-state-success` or `--dt-color-alarm-critical` | Validates that replacement unit matches the exact `EquipmentClassId` of the Functional Location and is currently in warehouse storage status. Detailed in §5.3.1. |
 | `CMP-07` | Work Order Linkage Field | Optional justifying WO input | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Searchable input linking the equipment swap transaction to a justifying work order. Detailed in §5.1. |
 | `CMP-08` | Cryptographic Audit Hash Strip | Chained SHA-256 preview strip | Surface: `--dt-color-surface-raised`<br>Font: `--dt-font-mono-data` | Displays real-time generated SHA-256 hash chaining payload, visualizing the immutable cryptographic audit record dispatched with the transaction. Detailed in §5.3.3. |
 | `CMP-09` | Atomic Commit Action Button | Primary transactional confirm button | Surface: `--dt-color-state-info`<br>Disabled Surface: `--dt-color-state-disabled` | Primary action `[Confirm Asset Swap]`. Enforces single-commit atomic execution; disabled until all taxonomic and destination constraints are satisfied. Detailed in §5.3.4. |
@@ -65,11 +65,11 @@ status: Stable
 
 | State | Visual Modification in the Interface | Activation Condition |
 | :--- | :--- | :--- |
-| **Normal / Default** | Modal open over backdrop. Asset A details populated. Destination dropdowns unselected. Asset B selector empty. `CMP-09` is disabled (`--dt-color-state-disabled`). | User triggers "Asset Swap" from Functional Location detail or Work Order panel. |
+| **Normal / Default** | Modal open over backdrop. Dismounted asset details populated. Destination dropdowns unselected. Replacement asset selector empty. `CMP-09` is disabled (`--dt-color-state-disabled`). | User triggers "Asset Swap" from Functional Location detail or Work Order panel. |
 | **Scanning Barcode / NFC** | Modal displays camera viewfinder overlay with scanning reticle and cancel button. Status text: *"Align barcode within reticle..."* | Technician taps `CMP-05` on mobile tablet or workstation with barcode reader. |
-| **Taxonomic Incompatibility (AF-001)** | Asset B card highlights with red border (`--dt-color-alarm-critical`). `CMP-06` displays critical badge: *"Taxonomic Incompatibility: Asset belongs to Class B-PMP-REC, expected B-PMP-CENT"*. `CMP-09` is hard-disabled. | Selected replacement equipment does not share identical `EquipmentClassId` or is not available in warehouse (`AF-001`). |
+| **Taxonomic Incompatibility (AF-001)** | Replacement asset card highlights with red border (`--dt-color-alarm-critical`). `CMP-06` displays critical badge: *"Taxonomic Incompatibility: Asset belongs to Class B-PMP-REC, expected B-PMP-CENT"*. `CMP-09` is hard-disabled. | Selected replacement equipment does not share identical `EquipmentClassId` or is not available in warehouse (`AF-001`). |
 | **Incomplete Destination (AF-002)** | Destination fields in `CMP-03` highlight with amber focus outline (`--dt-color-alarm-warning`) and warning icon `#icon-warning`. Error banner indicates: *"Mandatory dismantling destination required"*. | User attempts to confirm swap without selecting destination status or warehouse (`AF-002`). |
-| **Ready for Execution** | All fields valid. `CMP-06` displays Teal badge: *"Taxonomic Compatibility Confirmed (Sulzer OH2 API 610)"*. Hash strip `CMP-08` displays valid SHA-256 preview. `CMP-09` becomes active. | Valid Asset B selected + Asset A destination selected + WO linked. |
+| **Ready for Execution** | All fields valid. `CMP-06` displays Teal badge: *"Taxonomic Compatibility Confirmed (Sulzer OH2 API 610)"*. Hash strip `CMP-08` displays valid SHA-256 preview. `CMP-09` becomes active. | Valid replacement asset selected + dismounted asset destination selected + WO linked. |
 | **Executing Atomic Commit** | `CMP-09` renders loading spinner shimmer (`--dt-color-surface-raised`). All form inputs disabled to prevent duplicate submissions. | User taps `[Confirm Asset Swap]`. |
 | **Swap Completed (Success)** | Modal transitions to success checkmark animation (`--dt-color-state-success`), displays transaction summary and new installation ID, then automatically closes after $1.5\text{s}$. | Atomic database transaction commits successfully in $< 2\text{s}$ (`NFR-597`). |
 | **Offline Queued / Disconnected Execution** | Modal renders amber offline badge (`--dt-color-alarm-warning`) in header: *"Offline Mode — Transaction Enqueued"*. Success checkmark animates with Outbox sync icon (`#icon-sync-pending`) and local lease token. Modal dismisses after $1.5\text{s}$; parent view displays incremented pending sync badge. | User confirms swap while industrial tablet is disconnected from network (`TR-007`). Operation is committed to local encrypted outbox storage. |
@@ -88,11 +88,11 @@ sequenceDiagram
     participant INV as Inventory Application Service
 
     Tech->>UI: Selects "Asset Swap" on Functional Location (P-0101A)
-    UI->>INV: Query active Asset A & Available Rotable Spares
+    UI->>INV: Query active dismounted asset & Available Rotable Spares
     INV-->>UI: Returns InstalledAssetDetailsDto & matching RotableSpareSummaryDto list
-    UI->>UI: Renders Asset A card (CMP-02) and populates destination dropdowns
+    UI->>UI: Renders dismounted asset card (CMP-02) and populates destination dropdowns
     Tech->>UI: Selects destination status ('IN_REPAIR') & Warehouse ('WH-01')
-    Tech->>UI: Selects Asset B via picker or barcode scan (CMP-05)
+    Tech->>UI: Selects replacement asset via picker or barcode scan (CMP-05)
     UI->>UI: Validates taxonomic parity (EquipmentClassId) in real time (CMP-06)
     UI->>UI: Previews SHA-256 cryptographic hash (CMP-08)
     Tech->>UI: Clicks [Confirm Asset Swap] (CMP-09)
@@ -114,18 +114,18 @@ sequenceDiagram
    * **Desktop & Tablet Landscape (Modal Modality):** Operates as a centered modal dialog over a dimmed backdrop (`--dt-color-surface-overlay`). Enforces keyboard focus trapping: `Escape` cancels interaction, and `Enter` confirms when form is valid. Layout bounds and card configurations are detailed in Section 8.
    * **Tablet Portrait (Bottom Sheet Modality):** Operates as a sliding **Bottom Sheet** docked at the viewport bottom edge ([DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)). Enforces tactile drag gestures with hysteresis to prevent accidental collapse, supports discrete single-tap toggling between natural and expanded height, and keeps the sticky footer action button visible above the viewport edge. Dimensions are detailed in Section 8.
 2. **Tactile Targets:** All interactive controls (status dropdowns, barcode scan button, confirm action) enforce touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ margin separation to ensure comfortable operation with industrial gloves (`ISO 9241-110 Clause 5.3`, `--dt-touch-target-mobile`).
-3. **Barcode Scanning Mechanics:** Tapping `CMP-05` invokes `IBarcodeScannerInterop` optical camera stream or hardware laser scanner listener. Scanning an asset barcode immediately resolves the serial number against the inventory catalog, populating Asset B in $< 300\text{ms}$.
+3. **Barcode Scanning Mechanics:** Tapping `CMP-05` invokes `IBarcodeScannerInterop` optical camera stream or hardware laser scanner listener. Scanning an asset barcode immediately resolves the serial number against the inventory catalog, populating the replacement unit in $< 300\text{ms}$.
 
 ---
 
 ### 5.3. Domain Workflows & Validation Rules
 
 #### 5.3.1. Taxonomic Compatibility Validation (AF-001)
-When Asset B is selected:
+When the replacement unit is selected:
 1. The client verifies:
-   $$\text{AssetB.EquipmentClassId} == \text{AssetA.EquipmentClassId}$$
+   $$\text{ReplacementUnit.EquipmentClassId} == \text{DismountedUnit.EquipmentClassId}$$
 2. If classes mismatch, the modal interrupts the flow, displays the critical compatibility banner `CMP-06`, and disables `CMP-09`.
-3. If Asset B is flagged in any lifecycle status other than `IN_STORAGE` or maintenance status other than `OPERATIONAL` (e.g., `DECOMMISSIONED` or `UNDER_MAINTENANCE`), the selection is rejected with alert: *"Selected equipment is not available in warehouse inventory"*.
+3. If the replacement unit is flagged in any lifecycle status other than `IN_STORAGE` or maintenance status other than `OPERATIONAL` (e.g., `DECOMMISSIONED` or `UNDER_MAINTENANCE`), the selection is rejected with alert: *"Selected equipment is not available in warehouse inventory"*.
 
 #### 5.3.2. Dismantling Destination Enforcement (AF-002)
 To eliminate logical asset orphanhood:
@@ -168,8 +168,8 @@ Upon pressing `[Confirm Asset Swap]`, the client dispatches an atomic substituti
 ```text
 Components/Inventory/
 └── AssetSwapModal.razor                               # CMP-01: Root Modal Container (SCR-INV-025)
-    ├── DismountedAssetCard.razor                      # CMP-02 & CMP-03: Asset A details & destination picker
-    ├── ReplacementAssetCard.razor                     # CMP-04: Asset B selection & specs
+    ├── DismountedAssetCard.razor                      # CMP-02 & CMP-03: Dismounted asset details & destination picker
+    ├── ReplacementAssetCard.razor                     # CMP-04: Replacement asset selection & specs
     │   ├── BarcodeScannerButton.razor                 # CMP-05: Tactile scan trigger
     │   └── TaxonomicCompatibilityBadge.razor          # CMP-06: Parity validation badge
     ├── WorkOrderReferenceInput.razor                  # CMP-07: WO justification linkage
@@ -350,8 +350,8 @@ public record AssetSwapCompletedEvent(
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Centered modal dialog (sized by `--dt-layout-modal-width-desktop`, max-height `--dt-layout-modal-max-height`); dual-card horizontal layout comparing Asset A vs. Asset B. | Mouse click interaction; `Tab` key focus cycling; `Enter` to commit; `Escape` to cancel. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Centered modal container (sized by `--dt-layout-modal-width-tablet`); vertically stacked Asset A and Asset B cards. | Touch targets $\ge 48\text{px}$; large barcode scan button; clear contrast borders. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Centered modal dialog (sized by `--dt-layout-modal-width-desktop`, max-height `--dt-layout-modal-max-height`); dual-card horizontal layout comparing dismounted asset vs. replacement asset. | Mouse click interaction; `Tab` key focus cycling; `Enter` to commit; `Escape` to cancel. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Centered modal container (sized by `--dt-layout-modal-width-tablet`); vertically stacked dismounted asset and replacement asset cards. | Touch targets $\ge 48\text{px}$; large barcode scan button; clear contrast borders. |
 | **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | **Bottom Sheet Container** docking at bottom; natural initial height (`--dt-layout-bottom-sheet-height-initial`), expandable via touch drag or discrete tap to maximum ceiling (`--dt-layout-bottom-sheet-height-expanded`) per [DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers). | Drag handle gesture support; discrete tap switching; gloved touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ margin; sticky footer button `[Confirm Asset Swap]` always visible. |
 
 ---
