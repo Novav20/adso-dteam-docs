@@ -64,6 +64,8 @@
   --dt-control-width-nav-step: 56px;
   --dt-control-height-nav-step-mobile: 42px;
   --dt-control-width-nav-step-mobile: 52px;
+  --dt-control-size-checkbox: 28px;
+  --dt-control-size-hud: 36px;
 
   --dt-breakpoint-sm: 390px;
   --dt-breakpoint-md: 768px;
@@ -83,6 +85,12 @@
   --dt-layout-form-max-width: 1000px;
   --dt-layout-footer-height: 72px;
   --dt-layout-footer-clearance: 96px;
+  --dt-layout-modal-max-height: 80vh;
+  --dt-layout-toolbar-badge-width: 144px;
+  --dt-layout-banner-diagnostic-height: 28px;
+  --dt-layout-toast-max-height: 40px;
+  --dt-layout-popover-top-clearance: 70px;
+  --dt-layout-thumbnail-size: 120px;
 
   /* Typography */
   --dt-font-family-base: Segoe UI, Inter, Roboto, -apple-system, sans-serif;

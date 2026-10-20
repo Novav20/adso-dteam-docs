@@ -55,8 +55,10 @@ Spacing and sizing are governed by an **8px** base grid system (with a 4px sub-f
 | --dt-control-height-md              | 40px               | auto              | Desktop Web: Standard text inputs, selectors, and form buttons.                       |
 | --dt-control-height-lg              | 48px               | auto              | Mobile/Tablet: Standard height for all input fields (InputText, InputSelect).          |
 | --dt-control-height-xl              | 56px               | 100%              | Mobile: Primary footer action button (e.g., "Complete Work Order").            |
-| --dt-control-height-nav-step        | 44px               | 56px              | Industrial step navigation arrow button with enlarged hit area for gloved hands ([SCR-MTTO-002]). |
-| --dt-control-height-nav-step-mobile | 42px               | 52px              | Smartphone: Compact step navigation button for tight mobile viewports. |
+| --dt-control-height-nav-step        | 44px               | 56px              | Industrial step navigation arrow button footprint ($56\times 44\text{px}$) for gloved hands; also binds `--dt-control-width-nav-step` ([SCR-MTTO-002]). |
+| --dt-control-height-nav-step-mobile | 42px               | 52px              | Smartphone: Compact step navigation button footprint ($52\times 42\text{px}$); also binds `--dt-control-width-nav-step-mobile`. |
+| --dt-control-size-checkbox          | 28px               | 28px              | Custom scope checklist tactile hit target for gloved field mechanics ([SCR-MTTO-002]). |
+| --dt-control-size-hud               | 36px               | 36px              | Circular cartographic compass indicator in spatial HUD ([SCR-VIS-033]). |
 
 ### 2.3. Responsive Breakpoints and Reference Frames
 
@@ -87,6 +89,12 @@ To guarantee predictability in responsive split-screen viewports, transactional 
 | --dt-layout-form-max-width               | 1000px                                 | Global Form Container                                        | Maximum ergonomic reading measure and layout containment for maintenance execution forms ([SCR-MTTO-002]). |
 | --dt-layout-footer-height                | 72px                                   | Sticky Action Footers                                        | Pinned bottom finalization bar height on mobile/tablet execution forms. |
 | --dt-layout-footer-clearance             | 96px                                   | Sticky Action Footers                                        | Bottom scroll container clearance preventing sticky footer from occluding inputs at maximum scroll extents. |
+| --dt-layout-modal-max-height             | 80vh                                   | --dt-breakpoint-xl ($\ge 1920\text{px}$)                     | Centered transactional modal maximum vertical height ceiling ([SCR-INV-025]). |
+| --dt-layout-toolbar-badge-width          | 144px                                  | Global Viewport Toolbar                                      | Rigid fixed width invariant for hierarchical level badge indicator ([SCR-VIS-008], [SCR-VIS-011], [SCR-VIS-033]). |
+| --dt-layout-banner-diagnostic-height     | 28px                                   | Shared Component                                             | Fixed slot height for Priority 4 diagnostic telemetry and stale-data banners ([SCR-VIS-033]). |
+| --dt-layout-toast-max-height             | 40px                                   | Global Viewport                                              | Maximum vertical ceiling for non-modal top alert toast notifications ([SCR-VIS-008]). |
+| --dt-layout-popover-top-clearance        | 70px                                   | Global Viewport                                              | Vertical top clearance clamping boundary preserving floating toolbar visibility ([SCR-VIS-008]). |
+| --dt-layout-thumbnail-size               | 120px                                  | Shared Component                                             | Bounding dimension ($120\times 120\text{px}$) for photographic evidence preview thumbnails ([SCR-MTTO-002]). |
 
 ---
 

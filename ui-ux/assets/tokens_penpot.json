@@ -70,13 +70,38 @@
       "$type": "dimension",
       "$description": ""
     },
+    "control-width-xl": {
+      "$value": "100%",
+      "$type": "dimension",
+      "$description": ""
+    },
     "control-height-nav-step": {
       "$value": "44px",
       "$type": "dimension",
       "$description": ""
     },
+    "control-width-nav-step": {
+      "$value": "56px",
+      "$type": "dimension",
+      "$description": ""
+    },
     "control-height-nav-step-mobile": {
       "$value": "42px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "control-width-nav-step-mobile": {
+      "$value": "52px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "control-size-checkbox": {
+      "$value": "28px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "control-size-hud": {
+      "$value": "36px",
       "$type": "dimension",
       "$description": ""
     },
@@ -137,6 +162,36 @@
     },
     "layout-footer-clearance": {
       "$value": "96px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-modal-max-height": {
+      "$value": "80vh",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-toolbar-badge-width": {
+      "$value": "144px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-banner-diagnostic-height": {
+      "$value": "28px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-toast-max-height": {
+      "$value": "40px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-popover-top-clearance": {
+      "$value": "70px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-thumbnail-size": {
+      "$value": "120px",
       "$type": "dimension",
       "$description": ""
     },

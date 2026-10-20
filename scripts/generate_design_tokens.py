@@ -185,7 +185,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         if token == "--dt-touch-target-mobile":
             continue
         lines.append(f"  {token}: {css_value(height)};")
-        if width != "auto":
+        if width != "auto" and "--dt-control-height-" in token:
             lines.append(
                 f"  {token.replace('--dt-control-height-', '--dt-control-width-')}: {css_value(width)};"
             )
@@ -328,6 +328,11 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
                 css_value(row[1]), "dimension"
             )
+            if len(row) > 2 and row[2] != "auto" and "--dt-control-height-" in row[0]:
+                width_tok = row[0].replace("--dt-control-height-", "--dt-control-width-")
+                penpot["Global"][width_tok.removeprefix("--dt-")] = penpot_token(
+                    css_value(row[2]), "dimension"
+                )
     for row in layout:
         if row and row[0].startswith("--dt-"):
             val = css_value(row[1])
