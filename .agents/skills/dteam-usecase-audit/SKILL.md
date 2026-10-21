@@ -16,6 +16,14 @@ If un-audited Use Cases are fed directly into the UI screen scaffolder (`dteam-s
 
 This skill establishes the **Upstream Quality Gate**, auditing and reconciling Use Cases before screen scaffolding begins.
 
+### The Black-Box Behavioral Invariant
+A Use Case is fundamentally a **black-box specification of business behavior** between an Actor and the System (Cockburn / Jacobson). It defines **WHAT** the business interaction is, NOT **HOW** it is implemented in code or storage.
+
+Use Cases **MUST** remain strictly technology- and implementation-agnostic:
+* **STRICT PROHIBITION (Physical Schema Leaks):** Never write PostgreSQL schema qualifiers (`tax.*`, `inv.*`, `adm.*`), table names (`asset_installations`, `inventory_transactions`), or physical foreign key column syntax (`functional_location_id = NULL`) into Use Case steps.
+* **STRICT PROHIBITION (Code & Method Leaks):** Never leak programming language method signatures (`FunctionalLocation.UninstallEquipment(): EquipmentUnit`), OOP class namespaces, or API endpoints (`/api/v1/...`) into Use Case steps. Method signatures belong exclusively to `DT-DM-DOC-002.md`; physical tables belong exclusively to `DT-ERD-DOC-001.md`.
+* **THE AUDIT MANDATE:** The audit verifies **Conceptual & Invariant Parity** (e.g., ensuring stock issue/receipt movements, installation timeline tracking, and atomic boundaries are accounted for in business terms), without demanding or permitting physical software implementation syntax.
+
 ```mermaid
 flowchart LR
     UC_Stale["Stale UC-*.md<br/>(Pre-ERD / Pre-DM Debt)"] --> Skill["dteam-usecase-audit"]
@@ -55,21 +63,26 @@ The agent must evaluate the candidate Use Case against five deterministic verifi
 * **[FAIL] Developer / Pipeline Jargon in Business Flows:** Main flows and alternative flows must describe business domain events, not software plumbing. Flag technical buzzwords like *"writes to database table"*, *"executes single-commit SQL transaction"*, *"enqueues in outbox table"*, or *"sends HTTP POST command payload"*.
   * *Correction:* Rephrase as operational domain actions (e.g., *"atomically unlinks the dismounted asset and links the replacement unit"*, *"registers an immutable audit log with cryptographic hash signature"*).
 
-### Axis 2: Relational Schema & Entity Lifecycle Parity
-* **[FAIL] Missing Mandatory Columns:** Check physical ERD tables involved in the use case for `NOT NULL` columns that lack default values.
-  * *Validation:* Does the Use Case capture or supply all mandatory fields in its preconditions, main flow steps, or system postconditions? (e.g., if `inv.inventory_transactions.total_cost` or `tax.equipment_units.warehouse_id` is mandatory, the use case must account for it).
+### Axis 2: Relational Schema & Entity Lifecycle Parity (Conceptual Alignment)
+* **Black-Box Architecture Rule:** The Use Case must remain strictly **technology- and implementation-agnostic** (Cockburn / Evans).
+  * **STRICT PROHIBITION:** Never write physical PostgreSQL schema qualifiers (`tax.`, `inv.`, `adm.`), table names (`asset_installations`, `inventory_transactions`), or physical column foreign keys (`functional_location_id = NULL`) into Use Case steps or postconditions.
+  * **MANDATORY CONCEPTUAL PARITY:** Verify that the business workflow accounts for all mandatory domain facts required by the physical schema:
+    * If the relational schema mandates inventory tracking, the Use Case must describe the business stock movements (warehouse receipt and issue), without citing table names.
+    * If the relational schema mandates an unassigned destination warehouse, the Use Case must require the user to specify that destination.
 * **[FAIL] Concept Drift in Entity Statuses:**
-  * *Validation:* State transitions described in the Use Case must cite canonical domain enums defined in `DT-ERD-DOC-001.md` and `DT-DM-DOC-001.md` (e.g., `tax.equipment_units.operational_status IN ('OPERATIONAL', 'IN_REPAIR', 'IN_STORAGE', 'DAMAGED')`).
-  * *Prohibition:* Flag vague, colloquial status phrases like *"places asset in safe holding"*, *"marks item ready"*, or unapproved synonyms like *"Under Review"*.
+  * *Validation:* State transitions described in the Use Case must conceptually map to canonical domain enums defined in `DT-ERD-DOC-001.md` and `DT-DM-DOC-001.md` (e.g., lifecycle states `IN_STORAGE`, `INSTALLED`, and operational states `UP`, `DOWN`, `STANDBY`).
+  * *Prohibition:* Flag vague colloquial status phrases like *"places asset in safe holding"* or unapproved synonyms like *"Under Review"*.
 * **[FAIL] Referential Cardinality Conflicts:**
-  * *Validation:* If an ERD relationship is `1 : 0..N` (e.g., multiple failure records per work order, or multiple media attachments), the Use Case flow must support multi-item recording rather than assuming a restrictive `1 : 1` interaction.
+  * *Validation:* If an ERD relationship is `1 : 0..N` (e.g., multiple failure records per work order, or multiple media attachments), the Use Case flow must describe multi-item recording rather than assuming a restrictive `1 : 1` interaction.
 
-### Axis 3: Domain Model Behaviors & Transactional Boundaries
-* **[FAIL] Domain Method Signature Incoherence:**
-  * Cross-reference method signatures in `DT-DM-DOC-002.md` (e.g., `InstallEquipment(equipment: EquipmentUnit): void`, `UninstallEquipment(): EquipmentUnit`, `UpdateOperationalStatus(newStatus: Enum): void`, `ConfirmTryOut(...)`).
-  * *Validation:* Does the Use Case flow provide the necessary typed inputs and observe the domain preconditions defined in the Domain Model?
+### Axis 3: Domain Model Behaviors & Transactional Boundaries (Domain Invariants)
+* **Black-Box Architecture Rule:** Use Cases describe business workflows and user-system interactions; they do NOT define OOP class methods or code execution paths.
+  * **STRICT PROHIBITION:** Never leak programming language method signatures (e.g., `FunctionalLocation.UninstallEquipment(): EquipmentUnit`), class namespaces, or API route endpoints into the Use Case. Method signatures belong exclusively to `DT-DM-DOC-002.md`.
+  * **MANDATORY INVARIANT ALIGNMENT:** Verify that the Use Case respects the domain preconditions and behavioral invariants defined in `DT-DM-DOC-002.md`:
+    * Does the workflow respect aggregate boundaries (e.g., an equipment unit cannot be mounted without being unlinked from its previous position)?
+    * Does the workflow enforce domain invariants before state transitions occur?
 * **[FAIL] Omission of Atomic Transactional Boundaries:**
-  * When a business operation involves coupled mutations (e.g., unlinking Asset 1, linking Asset 2, and logging an installation timeline record), the Use Case must explicitly state the **atomic single-transaction invariant** (all succeed or all rollback) per ACID and ISO 14224 reliability requirements.
+  * When a business operation involves coupled mutations (e.g., unlinking an asset, mounting a replacement, and recording installation history), the Use Case must explicitly state the **atomic single-transaction invariant** (all succeed or all rollback) as a business reliability rule.
 
 ### Axis 4: Actors, Roles & Navigation Traceability
 * **[FAIL] Non-Canonical Actors:**
