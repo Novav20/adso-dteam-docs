@@ -1,16 +1,64 @@
+---
+id: UC-MTTO-002
+name: Execute and Finalize Work Order
+module: mtto
+user_story: MTTO-002
+primary_actor: Maintenance Technician
+secondary_actors:
+  - Inventory Module (automated validation)
+---
+
 # UC-MTTO-002: Execute and Finalize Work Order
 
-## Use Case Template
+## 1. Description
+Defines the execution workflow of an active Work Order by a technician on the plant floor. It includes field evidence capture (multimedia), strict recording of failures adhering to ISO 14224 taxonomy, and technical closure of the intervention with offline-first support.
 
-| **Element** | **Detail** |
-| :--- | :--- |
-| **ID** | UC-MTTO-002 |
-| **Name** | Execute and Finalize Work Order |
-| **Primary Actor** | Maintenance Technician |
-| **Secondary Actors** | Inventory Module (automated validation) |
-| **Description** | Defines the execution workflow of an active Work Order by a technician on the plant floor. It includes field evidence capture (multimedia), strict recording of failures adhering to ISO 14224 taxonomy, and technical closure of the intervention with offline-first support. |
-| **Preconditions** | <ul><li>The Work Order is in "IN_PROGRESS" status and formally assigned to the Technician.</li><li>The Technician has a mobile device (tablet/smartphone) authenticated in the application [TR-006](../../../requirements/common/TR-006.md).</li><li>The isolation points (LOTO) associated with the asset are properly neutralized and verified, ensuring operational safety.</li></ul> |
-| **Main Flow** | 1. The Technician accesses the Mobile Application and selects the assigned Work Order.<br>2. The System displays the detailed intervention form, providing tabs for: Scope, Spares, Multimedia Evidence and ISO 14224 Failure Code.<br>3. The Technician physically executes the planned tasks on the asset (e.g. Pump P-101).<br>4. Upon completing the tasks, the Technician enters the "ISO 14224 Failure Code" section to record the findings.<br>5. The System presents a categorized dropdown structure restricted by the asset's equipment class.<br>6. The Technician selects the "Failure Mode" (e.g. Leakage), the "Failure Mechanism" (e.g. Wear), the "Failure Cause" (e.g. Lack of Lubrication), the "Detection Method" (e.g. Visual Inspection) and the "Operational Impact" (e.g. Partial Capacity Loss).<br>7. The Technician navigates to the "Multimedia Evidence" section and activates the device's camera.<br>8. The Technician captures a photograph showing the final state of the asset. The System generates an automatic thumbnail and attaches the original image securely [TR-003](../../../requirements/common/TR-003.md).<br>9. The Technician records their technical observations and the actual Wrench Time taken for the intervention.<br>10. The Technician presses "Finalize Work Order".<br>11. The System validates the completeness of the mandatory taxonomic fields.<br>12. The System updates the Work Order status to "COMPLETE", freeing the asset's operational status.<br>13. The System records the transaction in the immutable audit trail [TR-001](../../../requirements/common/TR-001.md) via an append-only log with its corresponding chained cryptographic integrity hash (SHA-256), capturing: user, timestamp, failure taxonomies and the cryptographic hash of the multimedia evidence.<br>14. The System displays a success message: "Work Order successfully completed and pending supervisory review." |
-| **Alternate Flows** | **AF-001: Incomplete Fields for ISO Compliance (Redundant Coding)**<br>In step 10, if the Technician attempts to finalize by omitting any mandatory taxonomic field (e.g. Detection Method or Operational Impact):<br>   1. The System restricts the state transition.<br>   2. The System highlights the missing fields applying redundant Shape + Color coding (warning symbol and contrast indicator) according to WCAG 2.1 AA and displays a message: "ISO 14224 compliance error: All failure classification fields are mandatory for technical closure."<br>   3. The flow returns to step 2.<br><br>**AF-002: Offline Operation (Offline-First)**<br>In step 1, if the mobile device does not have plant network coverage:<br>   1. The System displays an "Offline Mode" indicator.<br>   2. The Technician performs steps 1 through 9 normally. Data and photography are securely persisted in the device's encrypted local database [TR-002](../../../requirements/common/TR-002.md), [TR-007](../../../requirements/common/TR-007.md).<br>   3. In step 10, the System saves the transaction locally in the deferred synchronization queue, changes the visual status of the order to locally completed and displays the message: "Work locally completed. Synchronization pending."<br>   4. Upon re-establishing network connectivity, the mobile application's background service detects the connection and automatically transmits the transaction queue to the server using the Idempotency Filter to prevent duplicates in the central database.<br><br>**AF-003: Corrupt Evidence File**<br>In step 8, if the cryptographic integrity verification [TR-003](../../../requirements/common/TR-003.md) detects that the image was saved corrupt or unreadable:<br>   1. The System rejects the file, blocks the form's progress and displays a message: "File integrity error. Capture multimedia evidence again."<br>   2. The flow returns to step 7. |
-| **Postconditions** | <ul><li>The Work Order transitions to the COMPLETE status, becoming available for the supervisor's administrative review and closure.</li><li>The complete failure records under ISO 14224 taxonomy (mode, cause, mechanism, detection method and impact) are permanently linked to the asset's history.</li><li>The multimedia evidence is integrally associated with the work order.</li><li>The transaction data is saved under the immutable cryptographic audit trail.</li></ul> |
-| **Associated Requirements** | FR-010, FR-011, FR-012, FR-013, FR-014, [TR-001](../../../requirements/common/TR-001.md), [TR-003](../../../requirements/common/TR-003.md), [TR-007](../../../requirements/common/TR-007.md), [TR-008](../../../requirements/common/TR-008.md) |
+## 2. Preconditions
+* The Work Order is in "IN_PROGRESS" status and formally assigned to the Technician.
+* The Technician has a mobile device (tablet/smartphone) authenticated in the application [TR-006](../../../requirements/common/TR-006.md).
+* The isolation points (LOTO) associated with the asset are properly neutralized and verified, ensuring operational safety.
+
+## 3. Main Flow
+1. The Technician accesses the Mobile Application and selects the assigned Work Order.
+2. The System displays the detailed intervention form, providing tabs for: Scope, Spares, Multimedia Evidence and ISO 14224 Failure Code.
+3. The Technician physically executes the planned tasks on the asset (e.g. Pump P-101).
+4. Upon completing the tasks, the Technician enters the "ISO 14224 Failure Code" section to record the findings.
+5. The System presents a categorized dropdown structure restricted by the asset's equipment class.
+6. The Technician selects the "Failure Mode" (e.g. Leakage), the "Failure Mechanism" (e.g. Wear), the "Failure Cause" (e.g. Lack of Lubrication), the "Detection Method" (e.g. Visual Inspection) and the "Operational Impact" (e.g. Partial Capacity Loss).
+7. The Technician navigates to the "Multimedia Evidence" section and activates the device's camera.
+8. The Technician captures a photograph showing the final state of the asset. The System generates an automatic thumbnail and attaches the original image securely [TR-003](../../../requirements/common/TR-003.md).
+9. The Technician records their technical observations and the actual Wrench Time taken for the intervention.
+10. The Technician presses "Finalize Work Order".
+11. The System validates the completeness of the mandatory taxonomic fields.
+12. The System updates the Work Order status to "COMPLETE", freeing the asset's operational status.
+13. The System records the transaction in the immutable audit trail [TR-001](../../../requirements/common/TR-001.md) via an append-only log with its corresponding chained cryptographic integrity hash (SHA-256), capturing: user, timestamp, failure taxonomies and the cryptographic hash of the multimedia evidence.
+14. The System displays a success message: "Work Order successfully completed and pending supervisory review."
+
+## 4. Alternate Flows
+### AF-001: Incomplete Fields for ISO Compliance (Redundant Coding)
+In step 10, if the Technician attempts to finalize by omitting any mandatory taxonomic field (e.g. Detection Method or Operational Impact):
+1. The System restricts the state transition.
+2. The System highlights the missing fields applying redundant Shape + Color coding (warning symbol and contrast indicator) according to WCAG 2.1 AA and displays a message: "ISO 14224 compliance error: All failure classification fields are mandatory for technical closure."
+3. The flow returns to step 2.
+
+### AF-002: Offline Operation (Offline-First)
+In step 1, if the mobile device does not have plant network coverage:
+1. The System displays an "Offline Mode" indicator.
+2. The Technician performs steps 1 through 9 normally. Data and photography are securely persisted in the device's encrypted local database [TR-002](../../../requirements/common/TR-002.md), [TR-007](../../../requirements/common/TR-007.md).
+3. In step 10, the System saves the transaction locally in the deferred synchronization queue, changes the visual status of the order to locally completed and displays the message: "Work locally completed. Synchronization pending."
+4. Upon re-establishing network connectivity, the mobile application's background service detects the connection and automatically transmits the transaction queue to the server using the Idempotency Filter to prevent duplicates in the central database.
+
+### AF-003: Corrupt Evidence File
+In step 8, if the cryptographic integrity verification [TR-003](../../../requirements/common/TR-003.md) detects that the image was saved corrupt or unreadable:
+1. The System rejects the file, blocks the form's progress and displays a message: "File integrity error. Capture multimedia evidence again."
+2. The flow returns to step 7.
+
+## 5. Postconditions
+* The Work Order transitions to the COMPLETE status, becoming available for the supervisor's administrative review and closure.
+* The complete failure records under ISO 14224 taxonomy (mode, cause, mechanism, detection method and impact) are permanently linked to the asset's history.
+* The multimedia evidence is integrally associated with the work order.
+* The transaction data is saved under the immutable cryptographic audit trail.
+
+## 6. Associated Requirements
+* **Functional Requirements:** FR-010, FR-011, FR-012, FR-013, FR-014
+* **Transversal Requirements:** [TR-001](../../../requirements/common/TR-001.md), [TR-003](../../../requirements/common/TR-003.md), [TR-007](../../../requirements/common/TR-007.md), [TR-008](../../../requirements/common/TR-008.md)

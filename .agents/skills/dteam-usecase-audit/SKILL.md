@@ -35,7 +35,7 @@ To preserve git diffability, deep linkability, and eliminate brittle HTML entiti
    * `## 4. Alternate Flows` (each flow as `### AF-[NUM]: [Title]`)
    * `## 5. Postconditions` (native Markdown bullet list)
    * `## 6. Associated Requirements` (native Markdown links grouped by category)
-3. **STRICT PROHIBITION (Monolithic Tables & Raw HTML):** Never pack the Use Case into a 2-column Markdown table or embed HTML formatting (`<br>`, `<ul>`, `<li>`). The engineering repository uses native Markdown; academic tabular exports for SENA evaluators are compiled on-demand via `adso-dteam-docs/scripts/export_usecase_table.py`.
+3. **STRICT PROHIBITION (Monolithic Tables & Raw HTML):** Never pack the Use Case into a 2-column Markdown table or embed HTML formatting (`<br>`, `<ul>`, `<li>`). The engineering repository uses native Markdown headings, lists, and indentation exclusively.
 4. **Clickable Requirements in Body:** Do not put Markdown links inside YAML frontmatter. Frontmatter does not render clickable hyperlinks on GitHub and breaks AST relative link validators. Associated Requirements must always live in `## 6. Associated Requirements`.
 
 ```mermaid
