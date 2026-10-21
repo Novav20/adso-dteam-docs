@@ -24,6 +24,20 @@ Use Cases **MUST** remain strictly technology- and implementation-agnostic:
 * **STRICT PROHIBITION (Code & Method Leaks):** Never leak programming language method signatures (`FunctionalLocation.UninstallEquipment(): EquipmentUnit`), OOP class namespaces, or API endpoints (`/api/v1/...`) into Use Case steps. Method signatures belong exclusively to `DT-DM-DOC-002.md`; physical tables belong exclusively to `DT-ERD-DOC-001.md`.
 * **THE AUDIT MANDATE:** The audit verifies **Conceptual & Invariant Parity** (e.g., ensuring stock issue/receipt movements, installation timeline tracking, and atomic boundaries are accounted for in business terms), without demanding or permitting physical software implementation syntax.
 
+### Canonical Docs-as-Code Structure (Frontmatter + Markdown Headings)
+To preserve git diffability, deep linkability, and eliminate brittle HTML entities (`<br>`, `<ul>`, `<li>`), Use Cases must follow the modernized docs-as-code format:
+1. **YAML Frontmatter:** Machine-readable metadata (`id`, `name`, `module`, `user_story`, `primary_actor`, `secondary_actors`).
+2. **Native Markdown Headings:**
+   * `# UC-[MOD]-[NUM]: [Name]`
+   * `## 1. Description`
+   * `## 2. Preconditions` (native Markdown bullet list)
+   * `## 3. Main Flow` (native Markdown numbered list with sub-steps indented)
+   * `## 4. Alternate Flows` (each flow as `### AF-[NUM]: [Title]`)
+   * `## 5. Postconditions` (native Markdown bullet list)
+   * `## 6. Associated Requirements` (native Markdown links grouped by category)
+3. **STRICT PROHIBITION (Monolithic Tables & Raw HTML):** Never pack the Use Case into a 2-column Markdown table or embed HTML formatting (`<br>`, `<ul>`, `<li>`). The engineering repository uses native Markdown; academic tabular exports for SENA evaluators are compiled on-demand via `adso-dteam-docs/scripts/export_usecase_table.py`.
+4. **Clickable Requirements in Body:** Do not put Markdown links inside YAML frontmatter. Frontmatter does not render clickable hyperlinks on GitHub and breaks AST relative link validators. Associated Requirements must always live in `## 6. Associated Requirements`.
+
 ```mermaid
 flowchart LR
     UC_Stale["Stale UC-*.md<br/>(Pre-ERD / Pre-DM Debt)"] --> Skill["dteam-usecase-audit"]
@@ -58,6 +72,8 @@ Before evaluating a Use Case, the agent **MUST** load and cross-reference the fo
 The agent must evaluate the candidate Use Case against five deterministic verification axes:
 
 ### Axis 1: Ubiquitous Language & Anti-Meta-Text Hygiene
+* **[FAIL] Monolithic Markdown Table or Embedded HTML Anti-Pattern:** Flags Use Cases structured as monolithic 2-column tables or containing raw HTML tags (`<br>`, `<ul>`, `<li>`).
+  * *Correction:* Migrate to YAML frontmatter (`id`, `name`, `primary_actor`, `secondary_actors`) and native Markdown headings (`## 1. Description`, `## 2. Preconditions`, etc.) with pure Markdown lists and indentation.
 * **[FAIL] Drafting Variable Placeholders:** Detects and flags algebraic or generic drafting aliases used in prose (e.g., `Asset A / Asset B`, `Unit 1 / Unit 2`, `Entity X / Y`, `Record A / B`).
   * *Correction:* Must be replaced with authentic operational terms from `DT-UL-DOC-001.md` and ISO 14224 (e.g., `Dismounted Asset` / `Replacement Asset`, `Physical Machine` / `Installed Unit`).
 * **[FAIL] Developer / Pipeline Jargon in Business Flows:** Main flows and alternative flows must describe business domain events, not software plumbing. Flag technical buzzwords like *"writes to database table"*, *"executes single-commit SQL transaction"*, *"enqueues in outbox table"*, or *"sends HTTP POST command payload"*.
