@@ -96,6 +96,16 @@ To guarantee predictability in responsive split-screen viewports, transactional 
 | --dt-layout-popover-top-clearance        | 70px                                   | Global Viewport                                              | Vertical top clearance clamping boundary preserving floating toolbar visibility ([SCR-VIS-008](screens/vis/SCR-VIS-008.md)). |
 | --dt-layout-thumbnail-size               | 120px                                  | Shared Component                                             | Bounding dimension ($120\times 120\text{px}$) for photographic evidence preview thumbnails ([SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)). |
 
+### 2.5. Spatial Navigation and Semantic Zoom Tokens (ANSI/ISA-101.01 Viewports)
+
+To eliminate fragile magic numbers and enforce deterministic progressive disclosure across 2D Digital Twin viewports ([SCR-VIS-008](screens/vis/SCR-VIS-008.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-VIS-033](screens/vis/SCR-VIS-033.md)), spatial scale multipliers and focal thresholds are governed by normative tokens:
+
+| Zoom Token | Value | Target Viewport Scale Tier | Functional Justification |
+| :------------------------- | :---: | :--------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| --dt-zoom-scale-l1-max     | 1.15  | Level 1 Macro Terminal Viewport    | Upper scale ceiling for Plant Overview / COP mode; clusters discrete badges into consolidated zone pills to preserve the 90/10 grayscale rule. |
+| --dt-zoom-scale-tactical   | 1.35  | Level 2 Tactical Centering         | Default focal scale for automated equipment locating and lateral inspection centering with drawer offset compensation.                        |
+| --dt-zoom-scale-l2-max     | 2.30  | Level 2 Process Area Viewport      | Upper scale boundary triggering progressive disclosure of micro-mechanical nozzles, LOTO cutoffs, and instrument sub-tags (Level 3 Detail).    |
+
 ---
 
 ## 3. Color Tokens and Surfaces

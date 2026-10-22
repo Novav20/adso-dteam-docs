@@ -195,6 +195,21 @@
       "$type": "dimension",
       "$description": ""
     },
+    "zoom-scale-l1-max": {
+      "$value": "1.15",
+      "$type": "number",
+      "$description": ""
+    },
+    "zoom-scale-tactical": {
+      "$value": "1.35",
+      "$type": "number",
+      "$description": ""
+    },
+    "zoom-scale-l2-max": {
+      "$value": "2.30",
+      "$type": "number",
+      "$description": ""
+    },
     "radius-none": {
       "$value": "0px",
       "$type": "borderRadius",

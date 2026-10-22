@@ -76,7 +76,7 @@ graph TD
 ### 3.1. Level 1: Plant Overview (L1 - Area / Overview)
 Macro screens providing a holistic, uninterrupted view of the industrial plant. They apply the 90% neutral grays HPHMI rule to highlight only alarm conditions.
 
-* **[SCR-VIS-008](screens/vis/SCR-VIS-008.md) — 2D Plant Map:** Scalable vector graphic canvas (SVG) adopting the *Simplified Plot Plan / Process Overview* format in a neutral scale, representing the spatial distribution of the plant, main assets, operating states, and active work permit layers. Traceable with **[UC-VIS-008](../domain-models/use-cases/vis/UC-VIS-008.md)** and **[UC-VIS-033](../domain-models/use-cases/vis/UC-VIS-033.md)**.
+* **[SCR-VIS-008](screens/vis/SCR-VIS-008.md) — 2D Plant Map:** Scalable vector graphic canvas (SVG) adopting the *Simplified Plot Plan / Process Overview* format in a neutral scale, representing the spatial distribution of the plant, main assets, operating states, and active work permit layers. Traceable with **[UC-VIS-008](../domain-models/use-cases/vis/UC-VIS-008.md)** and **[UC-VIS-033](../domain-models/use-cases/vis/UC-VIS-033.md)**. Transitions from Level 1 to Level 2 and Level 3 within the 2D viewport occur via continuous semantic zoom governed by the canonical scale tokens defined in [DT-UI-DS-DOC-001 §2.5](DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports) (`--dt-zoom-scale-l1-max`, `--dt-zoom-scale-tactical`, `--dt-zoom-scale-l2-max`).
 
 ### 3.2. Level 2: Process Supervision and Planning (L2 - Unit / Process)
 Intermediate control screens for supervisors, planners, and auditors. They consolidate aggregated information, hierarchy trees, and performance metrics.

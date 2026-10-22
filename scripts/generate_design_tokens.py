@@ -151,6 +151,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     controls = table_for(tables, "Dimensions of Controls", "Control Token")
     breakpoints = table_for(tables, "Responsive Breakpoints", "Breakpoint Token")
     layout = table_for(tables, "Structural Layout", "Layout Token")
+    zoom = table_for(tables, "Spatial Navigation and Semantic Zoom", "Zoom Token")
     primitives = table_for(tables, "Primitive Palette", "Primitive Token")
     semantic = table_for(tables, "Semantic Tokens", "Semantic Token")
     alarms = table_for(tables, "Alarm and Safety Semantics", "State / Severity")
@@ -197,6 +198,9 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             "",
             "  /* Structural layout and drawer dimensions */",
             *emit_table_tokens(layout),
+            "",
+            "  /* Spatial navigation and semantic zoom thresholds */",
+            *emit_table_tokens(zoom),
             "",
             "  /* Typography */",
             f"  --dt-font-family-base: {css_value(font_base_css)};",
@@ -350,6 +354,11 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
                 penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
                     val, "dimension"
                 )
+    for row in zoom:
+        if row and row[0].startswith("--dt-zoom-"):
+            penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
+                css_value(row[1]), "number"
+            )
     for row in radii:
         if row and row[0].startswith("--dt-radius-"):
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
