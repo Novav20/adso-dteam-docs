@@ -338,6 +338,22 @@ When symbols are encapsulated in the mandatory geometric containers defined in t
 * **Automated Compiler:** The script `scripts/build_icons_sprite.py` traverses `icons-src/`, extracts all symbol nodes, strips editor metadata, and compiles them into a unified, zero-dependency SVG sprite sheet.
 * **Runtime Delivery:** Interfaces consume the compiled `ui-ux/assets/icons.svg` via `<svg class="dt-icon"><use href="assets/icons.svg#icon-id"/></svg>`.
 
+### 6.5. Status Badge & Counter Discipline (Anti-Badge-Inflation Principle)
+
+In accordance with ANSI/ISA-101.01 §6.2 (Abnormal Situation Management and Salience) and ISO 9241-110 (Information Presentation), the use of visual badges, tags, and status pills is governed by strict functional scoping:
+
+1. **Permitted Use Cases for Badges (`--dt-radius-sm`, `--dt-radius-full`):**
+   * **Dynamic Operational Lifecycles:** Transient or critical execution states (e.g., `[IN_PROGRESS]`, `[COMPLETE]`, `[OFFLINE · LOCALLY QUEUED]`).
+   * **Quantifiable Interactive Counters:** Real-time progress counters and list metrics (e.g., `5/7`, `3 items`, `1 PENDING SYNC`).
+   * **Taxonomic / Safety Redundant Shapes:** Safety permit indicators explicitly governed by Section 6.2.
+
+2. **Prohibited Anti-Pattern (Badge Inflation):**
+   * It is strictly prohibited to encapsulate static metadata, technical attributes, or invariant text inside high-contrast badge or pill containers (e.g., encasing `Immutable Record`, `Required`, `Central Warehouse`, `ISO Tier`, or `Class Name` in badge borders/backgrounds).
+   * Invariant technical attributes must be presented as subdued metadata text using `.card-meta-text` (`.meta-label` and `.meta-val`) or standard typography.
+
+3. **Ergonomic Rationale:**
+   * Excessive, decorative use of badge containers ("badge inflation") desensitizes operators, increases visual clutter (*visual noise*), and diminishes the cognitive salience of legitimate alarms and critical operational status changes.
+
 ---
 
 ## 7. Design System CSS Variables File
