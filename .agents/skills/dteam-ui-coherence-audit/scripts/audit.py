@@ -131,6 +131,8 @@ META_TEXT_PATTERNS: list[tuple[str, str, str]] = [
      "Generic drafting placeholder '{match}' detected. Use specific domain entity names from DT-DM-DOC-001."),
     (r"\b(?:Record|Registro)\s+[A-D]\b", "TXT-001",
      "Generic drafting placeholder '{match}' detected. Use specific domain record names."),
+    (r"\b(?:Immutable\s+Record|Registro\s+Inmutable)\b", "BADGE-001",
+     "Static pseudo-badge text '{match}' detected. Badges are reserved exclusively for dynamic lifecycles and quantifiable counters per DT-UI-DS-DOC-001 §6.5 (Anti-Badge-Inflation Principle)."),
 ]
 
 # Spanish section title words (Language Policy: English only)
