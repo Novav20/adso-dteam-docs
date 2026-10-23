@@ -167,6 +167,10 @@ All screen specifications must strictly align with the canonical standard define
    * Screen specifications, wireframes, and component catalogs must use authentic operational domain terminology from `DT-UL-DOC-001.md` and ISO 14224 (e.g., `Dismounted Asset`, `Replacement Asset`).
    * **[FAIL] Drafting Variable Placeholders (`TXT-001`):** Generic variable aliases (`Asset A / Asset B`, `Activo A / Activo B`, `Entity X / Y`, `Record 1 / 2`) or software pipeline jargon are strictly prohibited in component names, wireframes, interaction workflows, and state matrices.
 
+10. **Status Badge & Counter Discipline (`BADGE-001` / Anti-Badge-Inflation):**
+    * In accordance with ANSI/ISA-101.01 §6.2 and `DT-UI-DS-DOC-001 §6.5`, badges, tags, and status pills are reserved exclusively for dynamic operational lifecycles (`[IN_PROGRESS]`, `[COMPLETE]`) or quantifiable counters (`5/7`, `3 items`).
+    * **[FAIL] Static Pseudo-Badges (`BADGE-001`):** Flag any static descriptive attributes or invariant text encased in badge/pill containers (e.g., `Immutable Record`, `Inmutable`, `Registro Inmutable`, `Required`, `Central Warehouse`). These must be modeled as subdued metadata text (`.card-meta-text`).
+
 ---
 
 ### Step 5: Audit Report Generation & Persistence
