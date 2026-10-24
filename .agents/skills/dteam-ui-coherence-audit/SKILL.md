@@ -171,6 +171,11 @@ All screen specifications must strictly align with the canonical standard define
     * In accordance with ANSI/ISA-101.01 §6.2 and `DT-UI-DS-DOC-001 §6.5`, badges, tags, and status pills are reserved exclusively for dynamic operational lifecycles (`[IN_PROGRESS]`, `[COMPLETE]`) or quantifiable counters (`5/7`, `3 items`).
     * **[FAIL] Static Pseudo-Badges (`BADGE-001`):** Flag any static descriptive attributes or invariant text encased in badge/pill containers (e.g., `Immutable Record`, `Inmutable`, `Registro Inmutable`, `Required`, `Central Warehouse`). These must be modeled as subdued metadata text (`.card-meta-text`).
 
+11. **Companion HTML Prototype Hygiene (`HTML-EMOJI-001` & `HTML-SPEC-001`):**
+    * High-fidelity HTML prototypes in `sena-evidence/00-Overview/Protoyping/ui-prototype/` undergo deterministic inspection during Tier 0.
+    * **[FAIL] Unicode Emojis (`HTML-EMOJI-001`):** HTML prototypes must use standardized monochrome SVG sprite symbols (`<svg class="dt-icon"><use href="#icon-*" /></svg>`) per ANSI/ISA-101 and HPHMI. Unicode pictorial emojis (e.g., `💡`, `⚠️`, `🔍`, `✔`, `⚡`) are strictly prohibited in user-facing markup and trigger an immediate deterministic blocker.
+    * **[FAIL] Leaked Specification Codes (`HTML-SPEC-001`):** Requirement/architecture identifiers (`FR-*`, `AF-*`, `TR-*`, `NFR-*`, `ADR-*`, `Paso *`) are developer meta-text and MUST NEVER appear in user-facing prototype DOM, headers, badges, toasts, or action buttons. Prototypes must exclusively present authentic industrial operational vocabulary (ISO 14224 / RCM).
+
 ---
 
 ### Step 5: Audit Report Generation & Persistence

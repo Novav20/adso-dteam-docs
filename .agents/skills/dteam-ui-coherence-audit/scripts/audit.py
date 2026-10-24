@@ -142,6 +142,26 @@ SPANISH_HEADER_WORDS: list[str] = [
     "Contrato de Componentes", "Adaptabilidad", "Trazabilidad"
 ]
 
+# Prohibited requirement / specification codes leaked into user-facing DOM
+PROHIBITED_SPEC_CODES: list[tuple[str, str, str]] = [
+    (r"\b(?:FR|AF|TR|NFR|ADR)-\d{3}\b", "HTML-SPEC-001",
+     "Requirement / Architecture specification code '{match}' leaked into HTML prototype text or visible DOM. Prototypes must use authentic domain operational terminology exclusively."),
+    (r"\b(?:Paso|Step)\s+\d+\b", "HTML-SPEC-001",
+     "Workflow step reference '{match}' leaked into HTML prototype text. Replace with action-oriented domain label."),
+]
+
+# Unicode Emoji regex pattern (Standard Unicode ranges for pictorial emojis)
+EMOJI_REGEX = re.compile(
+    r"[\U0001F300-\U0001FAFF"  # Miscellaneous Symbols and Pictographs, Emoticons, Supplemental Symbols
+    r"\U00002700-\U000027BF"  # Dingbats
+    r"\U0001F600-\U0001F64F"  # Emoticons
+    r"\U0001F680-\U0001F6FF"  # Transport and Map Symbols
+    r"\U00002600-\U000026FF"  # Miscellaneous Symbols (warning, lightning, etc.)
+    r"\U00002B50\U00002B55"    # Star, Heavy Large Circle
+    r"]",
+    re.UNICODE
+)
+
 # ---------------------------------------------------------------------------
 # Repository & Token Utilities
 # ---------------------------------------------------------------------------
@@ -680,11 +700,48 @@ def audit_presentation_boundaries(content: str) -> list[Finding]:
     return findings
 
 
+def audit_companion_html_prototype(screen_id: str, repo_root: Path) -> list[Finding]:
+    """Inspects companion HTML prototype in sena-evidence for emojis and leaked spec codes."""
+    findings: list[Finding] = []
+    proto_dir = repo_root.parent / "sena-evidence" / "00-Overview" / "Protoyping" / "ui-prototype"
+    html_file = proto_dir / f"{screen_id.lower()}.html"
+
+    if not html_file.exists():
+        return findings
+
+    html_text = html_file.read_text(encoding="utf-8")
+    lines = html_text.splitlines()
+
+    for idx, line in enumerate(lines, start=1):
+        # 1. Check for Unicode Emojis
+        emoji_matches = EMOJI_REGEX.findall(line)
+        if emoji_matches:
+            findings.append(Finding(
+                severity="BLOCKER",
+                code="HTML-EMOJI-001",
+                message=f"Unicode emoji '{emoji_matches[0]}' detected in prototype '{html_file.name}' line {idx}. HTML prototypes must use standardized monochrome SVG sprite icons (<svg class=\"dt-icon\"><use href=\"#icon-*\" /></svg>) per HPHMI/ISA-101.",
+                line=idx
+            ))
+
+        # 2. Check for Leaked Specification Codes
+        for pat, code, msg_template in PROHIBITED_SPEC_CODES:
+            m = re.search(pat, line)
+            if m:
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code=code,
+                    message=msg_template.format(match=m.group(0)) + f" (Found in '{html_file.name}' line {idx})",
+                    line=idx
+                ))
+
+    return findings
+
+
 # ---------------------------------------------------------------------------
 # Master Audit Orchestration
 # ---------------------------------------------------------------------------
 
-def run_screen_audit(content: str, repo_root: Path) -> list[Finding]:
+def run_screen_audit(content: str, repo_root: Path, screen_id: str | None = None) -> list[Finding]:
     """Executes all deterministic audit axes and returns deduplicated findings."""
     valid_tokens = load_canonical_tokens(repo_root)
 
@@ -699,6 +756,9 @@ def run_screen_audit(content: str, repo_root: Path) -> list[Finding]:
     findings += audit_anti_redundancy(content)
     findings += audit_presentation_boundaries(content)
     findings += audit_domain_meta_text(content)
+
+    if screen_id:
+        findings += audit_companion_html_prototype(screen_id, repo_root)
 
     # Deduplicate findings by (code, line, message)
     seen: set[tuple[str, int | None, str]] = set()
@@ -798,6 +858,7 @@ def generate_markdown_report(
         f"| **Runtime & DOM Boundaries** | {'PASS' if not any(f.code.startswith('DOM') for f in findings) else 'FAIL'} | Zero direct DOM access, zero unapproved package names. |",
         f"| **Design Token Conformance** | {'PASS' if not any(f.code.startswith('TOK') for f in findings) else 'FAIL'} | All referenced --dt-* tokens verified against tokens.css. |",
         f"| **Language Policy** | {'PASS' if not any(f.code.startswith('LANG') for f in findings) else 'FAIL'} | 100% Technical English without untranslated Spanish terms. |",
+        f"| **Companion HTML Prototype** | {'PASS' if not any(f.code.startswith('HTML') for f in findings) else 'FAIL'} | Zero Unicode emojis, zero leaked specification codes (FR/AF/TR/NFR/ADR). |",
         "",
     ]
 
@@ -819,7 +880,7 @@ def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
     rel_path = target_path.relative_to(repo_root)
     print(f"[INFO] Auditing screen specification: {rel_path}")
 
-    findings = run_screen_audit(content, repo_root)
+    findings = run_screen_audit(content, repo_root, screen_id=target_path.stem)
 
     blockers = [f for f in findings if f.severity == "BLOCKER"]
     warnings = [f for f in findings if f.severity == "WARNING"]
@@ -856,7 +917,7 @@ def cmd_lint(args: argparse.Namespace, repo_root: Path) -> int:
         return 1
 
     content = target_path.read_text(encoding="utf-8")
-    findings = run_screen_audit(content, repo_root)
+    findings = run_screen_audit(content, repo_root, screen_id=target_path.stem)
 
     blockers = [f for f in findings if f.severity == "BLOCKER"]
     warnings = [f for f in findings if f.severity == "WARNING"]
@@ -888,7 +949,7 @@ def cmd_audit_all(args: argparse.Namespace, repo_root: Path) -> int:
 
     for spec_file in spec_files:
         content = spec_file.read_text(encoding="utf-8")
-        findings = run_screen_audit(content, repo_root)
+        findings = run_screen_audit(content, repo_root, screen_id=spec_file.stem)
         blockers = sum(1 for f in findings if f.severity == "BLOCKER")
         warnings = sum(1 for f in findings if f.severity == "WARNING")
         status = "FAIL" if blockers else ("WARN" if warnings else "PASS")
