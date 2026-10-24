@@ -15,7 +15,7 @@ use_cases:
   - UC-MTTO-026
 version: 1.1
 date: 2026-10-23
-status: Stable
+status: In Review
 ---
 
 # SCR-MTTO-026: RIME Backlog Prioritization Dashboard

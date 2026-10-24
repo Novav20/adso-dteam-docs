@@ -32,7 +32,9 @@ status: Stable
 
 ## 2. Visual Artifact
 
-![SCR-VIS-008 SIMOPS Layer](assets/SCR-VIS-008-simops-layer.svg)
+![SCR-VIS-008 General Plant Map Screenshot](assets/SCR-VIS-008-screenshot.png)
+
+> *Note: Production UI prototype capture illustrating the Level 1 General Plant Map with active SIMOPS work permit overlay and contextual navigation toolbar.*
 
 ---
 

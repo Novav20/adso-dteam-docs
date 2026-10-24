@@ -35,9 +35,9 @@ status: Stable
 
 ## 2. Visual Artifact
 
-![SCR-VIS-011 LOTO Isolation Matrix](assets/SCR-VIS-011-loto-isolation-matrix.svg)
+![SCR-VIS-011 LOTO Isolation Matrix Screenshot](assets/SCR-VIS-011-screenshot.png)
 
-> *Note: Vector wireframe illustrating the 2D plot plan with LOTO vector overlay, isolation cutoff nodes, and the lateral/bottom contextual isolation drawer.*
+> *Note: Production UI prototype capture illustrating the 2D plot plan with LOTO vector overlay, isolation cutoff nodes, and the lateral contextual isolation drawer.*
 
 ---
 

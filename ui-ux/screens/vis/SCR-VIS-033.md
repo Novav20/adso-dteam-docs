@@ -32,7 +32,9 @@ status: Stable
 
 ## 2. Visual Artifact
 
-![SCR-VIS-033 Asset Inspection Card](assets/SCR-VIS-033-asset-inspection-card.svg)
+![SCR-VIS-033 Asset Inspection Card Screenshot](assets/SCR-VIS-033-screenshot.png)
+
+> *Note: Production UI prototype capture illustrating the Level 3 contextual equipment faceplate with telemetry MAI cards, subassembly breakdown, and recent intervention history.*
 
 ---
 

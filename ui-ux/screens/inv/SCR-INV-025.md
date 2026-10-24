@@ -36,9 +36,9 @@ status: Stable
 
 ## 2. Visual Artifact
 
-![SCR-INV-025 Wireframe](assets/SCR-INV-025-wireframe.svg)
+![SCR-INV-025 Rotable Asset Swap Screenshot](assets/SCR-INV-025-screenshot.png)
 
-> *Note: Conceptual wireframe illustrating the Asset Swap container, dual equipment inspection cards (Dismounted Asset vs. Replacement Asset), barcode scan trigger, taxonomic compatibility validation pill, and cryptographic audit summary.*
+> *Note: Production UI prototype capture illustrating the centered rotable asset swap modal, dual equipment inspection cards (dismounted vs. replacement), barcode scan trigger, and cryptographic audit integrity seal.*
 
 ---
 

@@ -38,9 +38,9 @@ status: Stable
 
 ## 2. Visual Artifact
 
-![SCR-MTTO-002 Wireframe](assets/SCR-MTTO-002-wireframe.svg)
+![SCR-MTTO-002 Work Order Closure Screenshot](assets/SCR-MTTO-002-screenshot.png)
 
-> *Note: Vector wireframe illustrating the mobile execution header, 4-tier operational tab navigation, ISO 14224 multi-tier classification matrix, cryptographic evidence uploader, and the sticky bottom action bar with active ISO Lock.*
+> *Note: Production UI prototype capture illustrating the mobile execution header, 4-tier operational tab navigation, ISO 14224 failure diagnosis matrix, cryptographic evidence uploader, and sticky action bar.*
 
 ---
 
