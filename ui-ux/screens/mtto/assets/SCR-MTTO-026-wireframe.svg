@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" style="background:#121417; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <style>
+      .bg-base { fill: #121417; }
+      .bg-card { fill: #181b20; stroke: #2a2f38; stroke-width: 1; }
+      .bg-header { fill: #1c2026; stroke: #2a2f38; stroke-width: 1; }
+      .bg-sidebar { fill: #16191e; stroke: #2a2f38; stroke-width: 1; }
+      .text-title { fill: #f0f3f6; font-size: 16px; font-weight: 700; }
+      .text-body { fill: #c5cdd7; font-size: 13px; }
+      .text-muted { fill: #7d8998; font-size: 12px; }
+      .text-mono { font-family: monospace; font-size: 12px; }
+      .accent-blue { fill: #2f81f7; }
+      .accent-red { fill: #f85149; }
+      .accent-amber { fill: #d29922; }
+      .accent-cyan { fill: #388bfd; }
+      .border-subtle { stroke: #2a2f38; stroke-width: 1; }
+      .badge-critical { fill: #3c1e20; stroke: #f85149; stroke-width: 1; }
+      .badge-warning { fill: #342718; stroke: #d29922; stroke-width: 1; }
+      .badge-plan { fill: #18283c; stroke: #388bfd; stroke-width: 1; }
+      .badge-wish { fill: #20242a; stroke: #7d8998; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <!-- Top Workstation Header (CMP-02) -->
+  <rect x="0" y="0" width="1920" height="48" class="bg-header" />
+  <text x="24" y="30" class="text-body" font-weight="600" fill="#f0f3f6">Industrial Asset Performance Management &gt; Maintenance &gt; RIME Backlog Prioritization (SCR-MTTO-026)</text>
+  <rect x="1480" y="10" width="240" height="28" rx="4" fill="#121417" stroke="#2a2f38" />
+  <text x="1495" y="28" class="text-muted">Ctrl + K / Search Backlog...</text>
+  <circle cx="1760" cy="24" r="14" fill="#2a2f38" />
+  <text x="1756" y="29" fill="#f0f3f6" font-size="12">🔔</text>
+  <text x="1790" y="30" class="text-body">Planner: J. Pérez</text>
+
+  <!-- Sidebar (CMP-01) -->
+  <rect x="0" y="48" width="240" height="1032" class="bg-sidebar" />
+  <text x="24" y="85" class="text-muted" font-size="11" font-weight="700">MODULES</text>
+  <text x="24" y="120" class="text-body">1.0 Digital Twin</text>
+  <rect x="12" y="135" width="216" height="36" rx="4" fill="#21262d" />
+  <text x="24" y="158" class="text-title" fill="#58a6ff">2.0 Maintenance</text>
+  <text x="40" y="190" class="text-title" font-size="13" fill="#58a6ff">• RIME Backlog (Active)</text>
+  <text x="40" y="215" class="text-body">Work Orders</text>
+  <text x="40" y="240" class="text-body">Sensor Telemetry</text>
+  <text x="24" y="275" class="text-body">3.0 Inventory &amp; Logistics</text>
+  <text x="24" y="305" class="text-body">4.0 Reliability &amp; Governance</text>
+
+  <!-- Main Workstation View Area -->
+  <!-- KPI Summary Bar (CMP-03) -->
+  <g transform="translate(264, 68)">
+    <!-- Total Card -->
+    <rect x="0" y="0" width="310" height="90" rx="6" class="bg-card" />
+    <text x="20" y="30" class="text-muted" font-weight="600">TOTAL BACKLOG ITEMS</text>
+    <text x="20" y="68" class="text-title" font-size="32">18</text>
+    <text x="250" y="65" class="text-mono text-muted">Active</text>
+
+    <!-- Do First Card -->
+    <rect x="330" y="0" width="310" height="90" rx="6" class="bg-card" />
+    <rect x="330" y="0" width="4" height="90" rx="2" fill="#f85149" />
+    <text x="350" y="30" class="text-muted" font-weight="600">DO FIRST (CRITICAL [80-100])</text>
+    <text x="350" y="68" class="text-title" font-size="32" fill="#f85149">4</text>
+    <polygon points="600,45 612,57 600,69 588,57" fill="#f85149" />
+
+    <!-- Schedule Card -->
+    <rect x="660" y="0" width="310" height="90" rx="6" class="bg-card" />
+    <rect x="660" y="0" width="4" height="90" rx="2" fill="#d29922" />
+    <text x="680" y="30" class="text-muted" font-weight="600">SCHEDULE (HIGH [50-79])</text>
+    <text x="680" y="68" class="text-title" font-size="32" fill="#d29922">7</text>
+    <polygon points="930,45 942,65 918,65" fill="#d29922" />
+
+    <!-- Plan Card -->
+    <rect x="990" y="0" width="310" height="90" rx="6" class="bg-card" />
+    <rect x="990" y="0" width="4" height="90" rx="2" fill="#388bfd" />
+    <text x="1010" y="30" class="text-muted" font-weight="600">PLAN (NORMAL [20-49])</text>
+    <text x="1010" y="68" class="text-title" font-size="32" fill="#388bfd">5</text>
+    <rect x="1260" y="48" width="18" height="18" fill="#388bfd" />
+
+    <!-- Wish Card -->
+    <rect x="1320" y="0" width="310" height="90" rx="6" class="bg-card" />
+    <rect x="1320" y="0" width="4" height="90" rx="2" fill="#7d8998" />
+    <text x="1340" y="30" class="text-muted" font-weight="600">WISH (LOW [1-19])</text>
+    <text x="1340" y="68" class="text-title" font-size="32" fill="#7d8998">2</text>
+    <circle cx="1590" cy="57" r="9" fill="#7d8998" />
+  </g>
+
+  <!-- Grouping Recommendation & Fail-Safe Banner (CMP-05 / CMP-06) -->
+  <g transform="translate(264, 175)">
+    <rect x="0" y="0" width="1630" height="42" rx="4" fill="#182332" stroke="#1f4477" stroke-width="1" />
+    <text x="16" y="26" class="text-body" fill="#79c0ff">⚡ <strong>Smart Equipment Grouping (FR-068):</strong> 2 work requests detected targeting <strong>Compressor C-101A (FL-PL4-SYS1-L6)</strong>. Total combined wrench time: 8.5h.</text>
+    <rect x="1490" y="8" width="124" height="26" rx="4" fill="#1f4477" />
+    <text x="1505" y="25" class="text-body" fill="#f0f3f6" font-size="11" font-weight="600">Group Requests</text>
+  </g>
+
+  <!-- Filter Toolbar (CMP-04) -->
+  <g transform="translate(264, 230)">
+    <rect x="0" y="0" width="1630" height="52" rx="6" class="bg-card" />
+    <text x="16" y="31" class="text-muted" font-weight="600">FILTER BY:</text>
+    <rect x="100" y="11" width="90" height="30" rx="15" fill="#21262d" stroke="#30363d" />
+    <text x="120" y="30" class="text-body" font-size="12">All Bands</text>
+    <rect x="200" y="11" width="80" height="30" rx="15" fill="#3c1e20" stroke="#f85149" />
+    <text x="215" y="30" class="text-body" font-size="12" fill="#f85149">Do First</text>
+    <rect x="290" y="11" width="85" height="30" rx="15" fill="#21262d" stroke="#30363d" />
+    <text x="305" y="30" class="text-body" font-size="12">Schedule</text>
+    <rect x="385" y="11" width="65" height="30" rx="15" fill="#21262d" stroke="#30363d" />
+    <text x="400" y="30" class="text-body" font-size="12">Plan</text>
+    <rect x="460" y="11" width="65" height="30" rx="15" fill="#21262d" stroke="#30363d" />
+    <text x="475" y="30" class="text-body" font-size="12">Wish</text>
+
+    <!-- Location Dropdown Placeholder -->
+    <rect x="560" y="11" width="220" height="30" rx="4" fill="#121417" stroke="#30363d" />
+    <text x="575" y="30" class="text-muted">Plant Area: All Areas ▾</text>
+
+    <!-- Search Input -->
+    <rect x="800" y="11" width="300" height="30" rx="4" fill="#121417" stroke="#30363d" />
+    <text x="815" y="30" class="text-muted">Filter by Tag, Serial, or Text...</text>
+  </g>
+
+  <!-- Prioritized Data Grid (CMP-07, CMP-08) -->
+  <g transform="translate(264, 298)">
+    <rect x="0" y="0" width="1630" height="710" rx="6" class="bg-card" />
+
+    <!-- Table Header -->
+    <rect x="0" y="0" width="1630" height="42" fill="#1c2026" rx="6 6 0 0" />
+    <line x1="0" y1="42" x2="1630" y2="42" stroke="#2a2f38" stroke-width="1" />
+    <text x="20" y="26" class="text-muted" font-weight="700">RIME BAND / SCORE ▾</text>
+    <text x="220" y="26" class="text-muted" font-weight="700">REQUEST ID</text>
+    <text x="360" y="26" class="text-muted" font-weight="700">AFFECTED ASSET (TAG / SERIAL / MODEL)</text>
+    <text x="760" y="26" class="text-muted" font-weight="700">MAINTAINABLE ITEM (L8)</text>
+    <text x="1000" y="26" class="text-muted" font-weight="700">WORK CLASS</text>
+    <text x="1140" y="26" class="text-muted" font-weight="700">CRIT (1-10)</text>
+    <text x="1240" y="26" class="text-muted" font-weight="700">EST. WRENCH</text>
+    <text x="1360" y="26" class="text-muted" font-weight="700">MATERIALS</text>
+    <text x="1490" y="26" class="text-muted" font-weight="700">ACTIONS</text>
+
+    <!-- Row 1: Do First (Critical) -->
+    <g transform="translate(0, 42)">
+      <rect x="0" y="0" width="1630" height="64" fill="#1c1618" stroke="#2a2f38" stroke-width="0.5" />
+      <rect x="20" y="18" width="150" height="28" rx="4" class="badge-critical" />
+      <polygon points="34,26 42,32 34,38 26,32" fill="#f85149" />
+      <text x="48" y="37" fill="#f85149" font-weight="700" font-size="12">DO FIRST (100)</text>
+      <text x="220" y="38" class="text-body font-mono">WR-2026-0891</text>
+      <text x="360" y="30" class="text-title" font-size="13">21-P-101A | Reciprocating Feed Pump</text>
+      <text x="360" y="48" class="text-muted font-mono">SN: FP-9921-A | Area 4 / Refining System</text>
+      <text x="760" y="38" class="text-body">Mechanical Seal Assembly</text>
+      <text x="1000" y="38" class="text-body font-mono">C-10 (Safety / Env)</text>
+      <text x="1150" y="38" class="text-body font-mono">10</text>
+      <text x="1250" y="38" class="text-body font-mono">4.5 hrs</text>
+      <text x="1360" y="38" class="text-body" fill="#3fb950">● In Stock</text>
+      <rect x="1490" y="18" width="110" height="28" rx="4" fill="#238636" />
+      <text x="1508" y="36" fill="#fff" font-size="12" font-weight="600">Promote to WO</text>
+    </g>
+
+    <!-- Row 2: Schedule (High) -->
+    <g transform="translate(0, 106)">
+      <rect x="0" y="0" width="1630" height="64" fill="#181b20" stroke="#2a2f38" stroke-width="0.5" />
+      <rect x="20" y="18" width="150" height="28" rx="4" class="badge-warning" />
+      <polygon points="34,26 42,38 26,38" fill="#d29922" />
+      <text x="48" y="37" fill="#d29922" font-weight="700" font-size="12">SCHEDULE (72)</text>
+      <text x="220" y="38" class="text-body font-mono">WR-2026-0888</text>
+      <text x="360" y="30" class="text-title" font-size="13">21-C-101A | High-Pressure Compressor</text>
+      <text x="360" y="48" class="text-muted font-mono">SN: HC-4011-C | Area 4 / Gas Booster</text>
+      <text x="760" y="38" class="text-body">Thrust Bearing Module</text>
+      <text x="1000" y="38" class="text-body font-mono">C-8 (High Process)</text>
+      <text x="1150" y="38" class="text-body font-mono">9</text>
+      <text x="1250" y="38" class="text-body font-mono">6.0 hrs</text>
+      <text x="1360" y="38" class="text-body" fill="#3fb950">● In Stock</text>
+      <rect x="1490" y="18" width="110" height="28" rx="4" fill="#21262d" stroke="#30363d" />
+      <text x="1512" y="36" fill="#c5cdd7" font-size="12">Adjust / Review</text>
+    </g>
+
+    <!-- Row 3: Plan (Normal) -->
+    <g transform="translate(0, 170)">
+      <rect x="0" y="0" width="1630" height="64" fill="#181b20" stroke="#2a2f38" stroke-width="0.5" />
+      <rect x="20" y="18" width="150" height="28" rx="4" class="badge-plan" />
+      <rect x="26" y="24" width="14" height="14" fill="#388bfd" />
+      <text x="48" y="37" fill="#388bfd" font-weight="700" font-size="12">PLAN (40)</text>
+      <text x="220" y="38" class="text-body font-mono">WR-2026-0872</text>
+      <text x="360" y="30" class="text-title" font-size="13">30-E-202B | Shell &amp; Tube Heat Exchanger</text>
+      <text x="360" y="48" class="text-muted font-mono">SN: HE-7712-B | Utilities Area</text>
+      <text x="760" y="38" class="text-body">Gasket &amp; Flange Seal</text>
+      <text x="1000" y="38" class="text-body font-mono">C-5 (Normal Mtto)</text>
+      <text x="1150" y="38" class="text-body font-mono">8</text>
+      <text x="1250" y="38" class="text-body font-mono">3.0 hrs</text>
+      <text x="1360" y="38" class="text-body" fill="#d29922">⚠ Reserved (2d)</text>
+      <rect x="1490" y="18" width="110" height="28" rx="4" fill="#21262d" stroke="#30363d" />
+      <text x="1512" y="36" fill="#c5cdd7" font-size="12">Adjust / Review</text>
+    </g>
+
+    <!-- Row 4: Wish (Low) -->
+    <g transform="translate(0, 234)">
+      <rect x="0" y="0" width="1630" height="64" fill="#181b20" stroke="#2a2f38" stroke-width="0.5" />
+      <rect x="20" y="18" width="150" height="28" rx="4" class="badge-wish" />
+      <circle cx="34" cy="31" r="7" fill="#7d8998" />
+      <text x="48" y="37" fill="#7d8998" font-weight="700" font-size="12">WISH (12)</text>
+      <text x="220" y="38" class="text-body font-mono">WR-2026-0865</text>
+      <text x="360" y="30" class="text-title" font-size="13">10-TK-004 | Raw Water Storage Tank</text>
+      <text x="360" y="48" class="text-muted font-mono">SN: TK-1004-W | Tank Farm</text>
+      <text x="760" y="38" class="text-body">External Enclosure Coating</text>
+      <text x="1000" y="38" class="text-body font-mono">C-2 (Cosmetic)</text>
+      <text x="1150" y="38" class="text-body font-mono">6</text>
+      <text x="1250" y="38" class="text-body font-mono">8.0 hrs</text>
+      <text x="1360" y="38" class="text-body" fill="#3fb950">● In Stock</text>
+      <rect x="1490" y="18" width="110" height="28" rx="4" fill="#21262d" stroke="#30363d" />
+      <text x="1512" y="36" fill="#c5cdd7" font-size="12">Adjust / Review</text>
+    </g>
+  </g>
+
+  <!-- Sticky Workload & Confirmation Action Bar (CMP-12) -->
+  <g transform="translate(240, 1024)">
+    <rect x="0" y="0" width="1680" height="56" class="bg-header" />
+    <text x="40" y="34" class="text-body" font-size="14">Weekly Scheduled Capacity: <strong fill="#f0f3f6">28.0 / 40.0 Wrench Hours</strong> (70% Target Utilization)</text>
+    <rect x="1360" y="12" width="140" height="32" rx="4" fill="#21262d" stroke="#30363d" />
+    <text x="1380" y="33" class="text-body" font-size="12">Export (CSV/JSON)</text>
+    <rect x="1520" y="12" width="140" height="32" rx="4" fill="#1f6feb" />
+    <text x="1534" y="33" fill="#fff" font-size="12" font-weight="600">Commit Workload</text>
+  </g>
+</svg>
