@@ -13,9 +13,9 @@ user_stories:
   - MTTO-026
 use_cases:
   - UC-MTTO-026
-version: 1.1
-date: 2026-10-23
-status: In Review
+version: 1.2
+date: 2026-10-26
+status: Stable
 ---
 
 # SCR-MTTO-026: RIME Backlog Prioritization Dashboard
@@ -35,9 +35,9 @@ status: In Review
 
 ## 2. Visual Artifact
 
-![SCR-MTTO-026 Wireframe](assets/SCR-MTTO-026-wireframe.svg)
+![SCR-MTTO-026 RIME Backlog Prioritization Screenshot](assets/SCR-MTTO-026-screenshot.png)
 
-> *Note: Conceptual wireframe illustrating the Web Portal workstation layout, collapsible navigation sidebar, top breadcrumb header, summary KPI cards, advanced filter toolbar, grouping recommendation ribbon, and dense prioritized data grid.*
+> *Note: Production UI prototype capture illustrating the Archetype C desktop workstation layout, collapsible navigation sidebar, interactive KPI summary cards, flat multi-criteria filter toolbar with inline grouping trigger, dense prioritized data grid with locked column dimensions, and sticky workload confirmation footer.*
 
 ---
 

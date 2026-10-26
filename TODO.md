@@ -28,10 +28,10 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Multi-evidence array ($1 : 0..N$), SHA-256 tamper verification, and discrete ISO 14224 mini-bars.
   - [x] Canonical specification finalized: [`SCR-MTTO-002.md`](ui-ux/screens/mtto/SCR-MTTO-002.md) (v1.1 Stable).
 
-- [ ] **SCR-MTTO-026: RIME Backlog Prioritization Dashboard**
+- [x] **SCR-MTTO-026: RIME Backlog Prioritization Dashboard**
   - [x] 1–100 RIME criticality matrix scoring and batching recommendation.
-  - [ ] Audit data pertinence, finalize desktop prototype review, capture high-res screenshot, and promote to Stable.
-  - [ ] Canonical specification: [`SCR-MTTO-026.md`](ui-ux/screens/mtto/SCR-MTTO-026.md) (In Review).
+  - [x] Audit data pertinence, finalize desktop prototype review, capture high-res screenshot, and promote to Stable.
+  - [x] Canonical specification finalized: [`SCR-MTTO-026.md`](ui-ux/screens/mtto/SCR-MTTO-026.md) (v1.2 Stable).
 
 - [ ] **SCR-MTTO-001: Calendar-Based Maintenance Scheduling**
   - [ ] Cascading taxonomy selector (L6 $\to$ L7 $\to$ L8) and battery limit validation.
