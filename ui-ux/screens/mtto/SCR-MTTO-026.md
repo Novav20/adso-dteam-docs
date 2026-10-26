@@ -47,18 +47,18 @@ status: In Review
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
-| `CMP-01` | Web Portal Shell & Sidebar | Collapsible navigation sidebar | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Hosts global module navigation (1.0 Digital Twin, 2.0 Maintenance, 3.0 Inventory, 4.0 Governance per [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md)). Highlights "2.0 Maintenance / RIME Backlog" as the active route. Responsive widths governed in Section 8. |
-| `CMP-02` | Top Workstation Header | Breadcrumb trail, search, and user profile | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Sticky header hosting breadcrumbs (`Maintenance > Backlog Management > RIME Prioritization Dashboard`), quick search trigger (`Ctrl + K`), notification bell with fail-safe indicator, and authenticated Planner session status. |
-| `CMP-03` | KPI Summary Metric Cards | 5-card interactive filter & summary bar | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Displays aggregate counters: Total Pending, Do First [80-100], Schedule [50-79], Plan [20-49], and Wish [1-19]. Serves as the sole interactive priority band filter for the data grid, preventing redundant filter chip rows. Detailed in §5.1. |
-| `CMP-04` | Multi-Criteria Filter Toolbar | Dropdowns, search input, and export controls | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Hosts Functional Location hierarchy dropdown, Work Class selector, live text search (Tag, Serial, Description), and structured export triggers (CSV / JSON). Specification in §5.2. |
-| `CMP-05` | Grouping Recommendation Ribbon | Collapsible bundling notice | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-state-info`<br>Radius: `--dt-radius-md` | Compact collapsible notice within the unified operational notices bar deployed when multiple pending work requests target the same Level 6 Equipment Unit ([FR-068](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)). Displays affected asset tag, count of pending requests, combined wrench time, and quick batch filter button. Workflow in §5.3.3. |
-| `CMP-06` | Criticality Fail-Safe Notice Ribbon | Collapsible safety floor notice | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-alarm-warning`<br>Radius: `--dt-radius-md` | Compact collapsible notice within the unified operational notices bar deployed when work requests reference assets lacking configured criticality in the catalog ([AF-002](../../../domain-models/use-cases/mtto/UC-MTTO-026.md#af-002-asset-without-defined-criticality-fail-safe-default)). Informs that a preventive floor score of 75 was assigned, and provides a direct "Notify Reliability Engineer" dispatch button. Workflow in §5.3.2. |
-| `CMP-07` | Dense Prioritized Data Grid | Multi-column sortable table | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Text: `--dt-color-text-body` | Virtualized tabular grid rendering prioritized backlog requests descending by RIME score. Columns: Priority Category & Score, Request ID, Affected Asset (Tag, Serial Number, Model), Maintainable Item (L8), Description, Work Class, Asset Criticality, Est. Wrench Time, Material Availability, and Actions (primary "Plan" button + compact `···` contextual menu for secondary actions). Specification in §5.2. |
-| `CMP-08` | Priority Category Badges | High-contrast redundant status badges | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-panel`<br>Accents: `--dt-color-alarm-critical`, `--dt-color-alarm-warning`, `--dt-color-state-info`, `--dt-color-text-muted` | Four-tier visual categorization implementing ANSI/ISA-101 and [TR-011](../../../requirements/common/TR-011.md) redundant coding (Shape + Color): Do First ($\blacklozenge$, Red), Schedule ($\blacktriangle$, Amber), Plan ($\blacksquare$, Blue), Wish ($\bullet$, Slate). Governed by Anti-Badge-Inflation Principle ([DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle)). Details in §5.1. |
-| `CMP-09` | Work Class Adjustment Modal | Priority modification dialog | Surface: `--dt-color-surface-overlay`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Modal dialog for modifying Work Class ([AF-001](../../../domain-models/use-cases/mtto/UC-MTTO-026.md#af-001-work-class-modification-priority-adjustment)). Displays current score, interactive Work Class selector ($1..10$), live recalculated RIME score ($<100\text{ms}$ per [NFR-070](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr)), mandatory technical justification textarea, and cryptographic SHA-256 hash generation ([TR-001](../../../requirements/common/TR-001.md)). Workflow in §5.3.1. |
-| `CMP-10` | RIME Calculation Breakdown Modal | Educational factor inspection dialog | Surface: `--dt-color-surface-overlay`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Informational dialog ([FR-066](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)) decomposing the active RIME formula ($\text{Asset Criticality} \times \text{Work Class Weight} = \text{RIME Score}$), active strategy ([ADR-002](../../../architecture/adr/ADR-002.md)), and standard citations (ISO 55001 §6.2.2). Specification in §5.3. |
-| `CMP-11` | Chained Cryptographic Audit Drawer | Slide-over immutable audit log | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-drawer-sidebar` | Lateral slide-over panel displaying the immutable append-only trail of priority modifications, displaying timestamps, user IDs, old vs. new scores, technical justifications, and linked SHA-256 hashes ([TR-001](../../../requirements/common/TR-001.md)). |
-| `CMP-12` | Workload Confirmation & Export Bar | Bottom sticky action bar | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Bottom bar consolidating weekly selected man-hours vs. team capacity, providing "Confirm Workload Distribution" ([UC-MTTO-026](../../../domain-models/use-cases/mtto/UC-MTTO-026.md) step 7) and "Export Backlog (CSV / JSON)" ([FR-069](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)) controls. |
+| `CMP-01` | Web Portal Shell & Sidebar | Collapsible navigation sidebar | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Hosts global module navigation (Digital Twin, Maintenance, Inventory, Governance per [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md)). Highlights "Priorización de Backlog" as the active route. Responsive widths governed in Section 8. |
+| `CMP-02` | Top Workstation Header | Breadcrumb trail, search, governance notifications, and user badge | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Sticky header hosting breadcrumbs, quick search trigger (`Ctrl + K`), immutable audit log trigger, unconfigured criticality alert button (`CMP-06`), and standardized operator session badge. |
+| `CMP-03` | KPI Summary Metric Cards | 5-card interactive filter & summary bar | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Displays aggregate counters across the 4 RIME priority bands plus total pending count. Serves as the sole interactive priority band filter for the data grid, preventing redundant filter chip rows. Detailed in §5.1. |
+| `CMP-04` | Multi-Criteria Filter Toolbar | Dropdowns, search input, and inline grouping pill | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Hosts Functional Location hierarchy dropdown, Work Class selector, live text search, and the inline equipment grouping suggestion pill (`CMP-05`) with zero vertical layout shift. Specification in §5.2. |
+| `CMP-05` | Inline Grouping Suggestion Pill | Compact inline batching indicator | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Compact pill embedded inside `CMP-04` deployed when multiple pending work requests target the same Level 6 Equipment Unit. Displays affected asset tag, count of pending requests, combined wrench time, and quick batch filter button. Workflow in §5.3.3. |
+| `CMP-06` | Criticality Governance Alert Modal | Unconfigured asset notification & dispatch modal | Surface: `--dt-color-surface-overlay`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Triggered via the header warning indicator when work requests reference assets lacking configured criticality in the catalog. Informs that a preventive floor score was assigned, provides a "View Affected Request" filter action, and dispatches a calibration request to the Reliability Engineer. Workflow in §5.3.2. |
+| `CMP-07` | Dense Prioritized Data Grid | Multi-column sortable table | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Text: `--dt-color-text-body` | Virtualized tabular grid rendering prioritized backlog requests descending by RIME score. Columns: Priority Category & Score, Request ID, Affected Asset, Maintainable Item (L8), Description, Work Class, Asset Criticality, Est. Wrench Time / Material Status, and Actions (primary "Plan" button + compact `···` contextual menu). Specification in §5.2. |
+| `CMP-08` | Priority Category Badges | High-contrast redundant status badges | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-panel`<br>Accents: `--dt-color-alarm-critical`, `--dt-color-alarm-warning`, `--dt-color-state-info`, `--dt-color-text-muted` | Four-tier visual categorization implementing ANSI/ISA-101 redundant coding (Shape + Color + Score + Label). Governed by Anti-Badge-Inflation Principle ([DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle)). Details in §5.1. |
+| `CMP-09` | Work Class Adjustment Modal | Priority modification dialog | Surface: `--dt-color-surface-overlay`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Modal dialog for modifying Work Class. Displays current score, interactive Work Class selector, live recalculated RIME score, mandatory technical justification textarea, and cryptographic SHA-256 hash preview. Workflow in §5.3.1. |
+| `CMP-10` | RIME Calculation Breakdown Modal | Educational factor inspection dialog | Surface: `--dt-color-surface-overlay`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Informational dialog decomposing the active RIME formula, active strategy, and normative standard citations. Specification in §5.3. |
+| `CMP-11` | Chained Cryptographic Audit Drawer | Slide-over immutable audit log | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-drawer-sidebar` | Lateral slide-over panel displaying the immutable append-only trail of priority modifications, displaying timestamps, user IDs, old vs. new scores, technical justifications, and linked SHA-256 hashes. |
+| `CMP-12` | Workload Confirmation & Export Bar | Bottom sticky action bar | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Bottom bar consolidating weekly selected man-hours vs. team capacity, centralizing data export options (`CSV` / `JSON` / `Selected`) and hosting the primary "Confirm Weekly Workload" action button. Workflow in §5.3.4. |
 
 ---
 
@@ -66,13 +66,13 @@ status: In Review
 
 | State | Visual Modification in the Interface | Activation Condition |
 | :--- | :--- | :--- |
-| **Normal (Default)** | Neutral grayscale surfaces. Full prioritized data grid populated descending by RIME score. All KPI cards active. No open modal. | Successful data fetch of pending work requests and asset master catalogs. |
+| **Normal (Default)** | Neutral grayscale surfaces. Full prioritized data grid populated descending by RIME score. Normal material availability states (`In Stock`, `Reserved`) rendered as subdued plain text without colored background pills. | Successful data fetch of pending work requests and asset master catalogs. |
 | **Loading** | Table rows and KPI summary cards display animated skeleton shimmer (`--dt-color-surface-raised`). Action buttons disabled. | Initial page load or asynchronous execution of bulk filter / sort operations. |
-| **Selected Row** | Target table row renders high-contrast focus border (`--dt-color-border-focus`, $2\text{px}$) and elevated background (`--dt-color-surface-raised`). Row action buttons become visible on hover/focus. | Planner clicks or uses keyboard navigation (`ArrowUp`/`ArrowDown`) on a table row. |
-| **Priority Recalculation (AF-001)** | Modal overlay `CMP-09` appears with backdrop dimming (`--dt-z-modal`). Live recalculation badge pulses in real-time ($<100\text{ms}$). Submit button disabled until valid justification is entered ($\ge 15$ characters). | Planner clicks "Adjust Work Class" or selects a different Work Class dropdown option on a backlog row. |
-| **Fail-Safe Active (AF-002)** | Prominent warning ribbon `CMP-06` deployed above data grid. Affected row displays amber warning icon with tooltip: *"Criticality not configured on asset. Maximum temporary priority assigned preventively (Score: 75)"*. | One or more pending work requests are linked to assets lacking criticality in the master catalog. |
-| **Grouping Recommendation (FR-068)** | Informational ribbon `CMP-05` deployed above data grid with icon `#icon-layers`. Affected rows highlight with subtle accent border. | Algorithmic detection of $\ge 2$ pending requests sharing the same Level 6 equipment unit. |
-| **Filtered / Search Active** | Data grid displays matching subset with active filter chips highlighted in blue (`--dt-color-state-info`). Result counter updates (e.g., *"Showing 4 of 18 requests"*). | Planner activates a priority band chip, selects a Functional Location filter, or types in the search field. |
+| **Selected Row** | Target table row renders high-contrast focus border (`--dt-color-border-focus`, $2\text{px}$) and elevated background (`--dt-color-surface-raised`). | Planner clicks or uses keyboard navigation (`ArrowUp`/`ArrowDown`) on a table row. |
+| **Priority Recalculation (AF-001)** | Modal overlay `CMP-09` appears with backdrop dimming (`--dt-z-modal`). Live recalculation badge updates in real-time ($<100\text{ms}$). Submit button disabled until valid justification is entered ($\ge 15$ characters). | Planner opens the row overflow menu (`···`) and selects "Adjust Work Class". |
+| **Fail-Safe Active (AF-002)** | Header notification button in `CMP-02` displays amber warning indicator (`--dt-color-alarm-warning`) with counter badge. Affected row displays amber warning icon with tooltip: *"Criticality not configured on asset. Preventive priority floor applied (Score: 75)"*. | One or more pending work requests are linked to assets lacking criticality in the master catalog. |
+| **Grouping Recommendation (FR-068)** | Compact inline pill `CMP-05` rendered inside the filter toolbar `CMP-04` with `#icon-layers`. Affected rows highlight with subtle accent border. Zero vertical displacement of the data grid. | Algorithmic detection of $\ge 2$ pending requests sharing the same Level 6 equipment unit. |
+| **Filtered / Search Active** | Data grid displays matching subset with active KPI card highlighted via `--dt-color-border-focus`. | Planner clicks an interactive KPI card, selects a Functional Location filter, or types in the search field. |
 | **Empty Backlog** | Data grid displays centered neutral empty state illustration (`#icon-check-circle`), title *"No Pending Work Requests"*, and subtitle *"All backlog items have been prioritized and promoted into scheduled work orders."* | Zero work requests in status `NEW` in the database. |
 
 ---
@@ -107,7 +107,7 @@ sequenceDiagram
    * **Schedule** ($50 \le \text{Score} \le 79$): High Category. Redundant indicator: Amber triangle ($\blacktriangle$, `--dt-color-alarm-warning`).
    * **Plan** ($20 \le \text{Score} \le 49$): Normal Category. Redundant indicator: Blue square ($\blacksquare$, `--dt-color-state-info`).
    * **Wish** ($1 \le \text{Score} \le 19$): Low Category. Redundant indicator: Slate circle ($\bullet$, `--dt-color-text-muted`).
-4. **Initial Ordering:** The data grid is deterministically sorted descending by `priority_score`. If two items share identical scores, tie-breaking sorts ascending by `request_date` (FIFO order).
+4. **Initial Ordering:** The data grid is deterministically sorted descending by `PriorityScore`. If two items share identical scores, tie-breaking sorts ascending by `RequestDate` (FIFO order).
 
 ---
 
@@ -148,19 +148,19 @@ sequenceDiagram
     Modal->>Modal: Updates preview score and priority band indicator
     Planner->>Modal: Enters mandatory technical justification (min 15 chars)
     Planner->>Modal: Clicks "Confirm & Log Cryptographically"
-    Modal->>Interop: ComputeSha256Digest(previousHash, auditPayload)
-    Interop-->>Modal: Returns candidate payloadHash
+    Modal->>Interop: ComputeSha256Digest(PreviousHash, AuditPayload)
+    Interop-->>Modal: Returns candidate PayloadHash
     Modal->>API: POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class
     API-->>Modal: 200 OK (AdjustWorkClassResultDto with chained hash)
     Modal->>Modal: Closes modal
     Modal-->>Planner: Re-sorts backlog grid descending and updates KPI summary cards
 ```
 
-1. **Trigger:** The Planner clicks "Adjust Priority" on a backlog row or changes the inline Work Class selector.
+1. **Trigger:** The Planner selects "Adjust Work Class" from the row's contextual overflow menu (`···`).
 2. **Latency Requirement:** The UI recalculates the new RIME score in $< 100\text{ms}$ ([NFR-070](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr)), dynamically updating the preview badge.
 3. **Mandatory Justification:** The confirmation button remains disabled until the Planner enters a technical justification containing at least $15$ non-whitespace characters.
 4. **Cryptographic Integrity Hash ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md)):** Upon confirmation, the client dispatches an `AdjustWorkClassCommand`. The backend system atomically commits the work class change, rescores the backlog item, and appends an immutable record into the audit trail:
-   $$\text{payload\_hash} = \text{SHA-256}(\text{previous\_hash} \parallel \text{user\_id} \parallel \text{request\_id} \parallel \text{old\_score} \parallel \text{new\_score} \parallel \text{justification} \parallel \text{timestamp})$$
+   $$\text{PayloadHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{PlannerUserId} \parallel \text{WorkRequestId} \parallel \text{PreviousScore} \parallel \text{CalculatedScore} \parallel \text{TechnicalJustification} \parallel \text{TimestampUtc})$$
 5. **Re-sorting:** The backlog grid automatically re-sorts descending, moving the modified request to its new objective position without page reload.
 
 ---
@@ -169,41 +169,41 @@ sequenceDiagram
 
 To prevent unconfigured equipment criticality from artificially burying a critical maintenance intervention:
 
-1. **Fail-Safe Trigger:** When a work request references an equipment unit whose `criticality` is unconfigured in the master catalog.
+1. **Fail-Safe Trigger:** When a work request references an equipment unit whose `AssetCriticality` is unconfigured in the master catalog.
 2. **Pessimistic Floor Assignment:** The system overrides the multiplicative calculation and assigns a **minimum floor score of 75** (placing the item in the *Schedule / High Category* band), regardless of how low the selected Work Class weight is.
-3. **Visual Highlighting:** The request row renders with a prominent amber warning indicator and tooltip: *"Criticality not configured on the asset. Maximum temporary priority assigned preventively."*
-4. **Reliability Notification:** The top ribbon `CMP-06` displays an alert banner. Clicking "Notify Reliability Engineer" dispatches an automated notification message to the Reliability Engineer responsible for the functional area, creating a pending data governance task to populate the asset's technical sheet.
+3. **Visual Highlighting:** The request row renders with an amber warning indicator in the criticality column (`sin-configurar (Piso: 75)`), and the top header notification button (`CMP-02`) displays an active warning badge without shifting the vertical layout of the data grid.
+4. **Reliability Notification (`CMP-06`):** Clicking the header notification badge opens the Criticality Governance Dialog (`CMP-06`). From this dialog, the Planner can either click *"Filter Affected Request"* to isolate the unconfigured equipment row in the grid or click *"Dispatch Reliability Notification"* to send an automated governance task to the Reliability Engineer responsible for populating the asset's technical sheet.
 
 ---
 
 #### 5.3.3. Equipment Grouping Recommendations (FR-068)
 
-1. **Clustering Algorithm:** On data load, the system groups all pending requests by `equipment_unit_id`.
+1. **Clustering Algorithm:** On data load, the system groups all pending requests by `EquipmentUnitId`.
 2. **Threshold Rule:** When $\text{Count}(\text{requests}) \ge 2$ for the same physical equipment:
-   * The Grouping Recommendation Ribbon `CMP-05` appears above the grid.
-   * Text specifies: *"Equipment Unit {TagNumber} ({SerialNumber}) has {Count} pending interventions totaling {TotalHours} estimated wrench hours."*
-   * Action button *"View Cluster"* filters the data grid strictly to the affected asset, enabling the Planner to bundle interventions into a single planned shutdown or maintenance window.
+   * The Inline Grouping Pill `CMP-05` renders inside the right zone of the Filter Toolbar (`CMP-04`), preserving full vertical viewport height for the backlog grid.
+   * Text specifies: *"Grouping: {Count} in {TagNumber} ({TotalHours} HH)"*.
+   * Action button *"Filter Batch"* filters the data grid strictly to the affected asset, enabling the Planner to bundle interventions into a single planned shutdown or maintenance window.
 
 ---
 
 #### 5.3.4. Workload Distribution Confirmation & Export (FR-069)
 
-1. **Workload Confirmation ([UC-MTTO-026](../../../domain-models/use-cases/mtto/UC-MTTO-026.md) Step 7):** The bottom bar `CMP-12` tracks the cumulative estimated wrench hours of selected backlog items against the weekly team capacity. Clicking "Confirm Workload" approves the selected items for scheduling, updating their status to `APPROVED` and transitioning authorized requests to Preventive Scheduling ([SCR-MTTO-001](SCR-MTTO-001.md)) or Predictive Scheduling ([SCR-MTTO-023](SCR-MTTO-023.md)).
-2. **Data Portability ([FR-069](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)):** Clicking "Export Backlog" generates structured export packages (`CSV` or `JSON`) containing all prioritized metadata, factor breakdowns, asset serial numbers, and material availability flags for external reporting in business intelligence tools.
+1. **Workload Confirmation ([UC-MTTO-026](../../../domain-models/use-cases/mtto/UC-MTTO-026.md) Step 7):** The bottom bar `CMP-12` tracks the cumulative estimated wrench hours of selected backlog items against the weekly team capacity. Clicking "Confirm Weekly Distribution" approves the selected items for scheduling, updating their status to `APPROVED` and transitioning authorized requests to Preventive Scheduling ([SCR-MTTO-001](SCR-MTTO-001.md)) or Predictive Scheduling ([SCR-MTTO-023](SCR-MTTO-023.md)).
+2. **Data Portability ([FR-069](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)):** Clicking the unified "Export Data" dropdown menu in `CMP-12` generates structured export packages (`CSV` or `JSON` for the full view or current selection) containing all prioritized metadata, factor breakdowns, asset serial numbers, and material availability flags for external reporting.
 
 ---
 
 ## 6. Industrial and Safety Considerations
 
-* **ANSI/ISA-101 HPHMI Grayscale 90/10 Rule ([TR-011](../../../requirements/common/TR-011.md)):** The backlog dashboard utilizes a neutral, subdued grayscale background (`--dt-color-surface-base`, `--dt-color-surface-card`) to prevent cognitive fatigue during extended planning sessions. Saturated colors are strictly reserved for priority indicators:
-  * Red is exclusively allocated to emergency **Do First** items ($80 - 100$).
-  * Amber is allocated to **Schedule** ($50 - 79$) and fail-safe warnings.
-  * Informational status indicators (normal plans, material availability) utilize subdued blue and neutral slate tones.
-* **Redundant Visual Coding:** In strict compliance with accessibility and high-performance HMI principles, priority bands never rely solely on color. Every priority badge combines:
+* **ANSI/ISA-101 HPHMI Grayscale 90/10 Rule ([TR-011](../../../requirements/common/TR-011.md)):** The backlog dashboard utilizes a neutral, subdued grayscale background (`--dt-color-surface-base`, `--dt-color-surface-card`) to prevent cognitive fatigue during extended planning sessions. Saturated colors are strictly reserved for priority and shortage indicators:
+  * Red (`--dt-color-alarm-critical`) is allocated exclusively to emergency **Do First** items ($80 - 100$) and out-of-stock material shortages (`OutOfStock`).
+  * Amber (`--dt-color-alarm-warning`) is allocated to **Schedule** items ($50 - 79$), partial material availability (`PartiallyAvailable`), and fail-safe governance warnings.
+  * Normal operational states—including `InStock` and `ReservedInWarehouse` material availability—render strictly as plain subdued text (`--dt-color-text-muted`) with zero green fills or decorative bullets, preventing visual competition with genuine priority alarms.
+* **Redundant Visual Coding:** In strict compliance with accessibility and high-performance HMI principles, priority bands never rely solely on color. Every priority badge (`CMP-08`) combines:
   1. A distinctive geometric symbol ($\blacklozenge$, $\blacktriangle$, $\blacksquare$, $\bullet$).
   2. High-contrast semantic token color.
   3. Explicit numeric score ($1..100$) and text category label.
-* **Status Badge & Counter Discipline (Anti-Badge-Inflation Principle per [DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle)):** Interactive status badges are strictly reserved for dynamic state lifecycle containers (`CMP-08`) and interactive quantitative counters (`CMP-03`). Static metadata (such as user roles, asset class, or equipment serials) must strictly render as structured plain text (`.card-meta-text`), preventing visual clutter and alarm desensitization.
+* **Status Badge & Counter Discipline (Anti-Badge-Inflation Principle per [DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle)):** Interactive status badges are strictly reserved for dynamic state lifecycle containers (`CMP-08`), shortage alerts, and interactive quantitative counters (`CMP-03`). Static metadata (such as user roles, work class descriptions, or equipment serials) and normal material availability states render strictly as structured plain text using subdued metadata typography (`--dt-color-text-muted`), preventing visual clutter and alarm desensitization.
 * **Fail-Safe Principle ([ASR-002](../../../architecture/asr/DT-ARQ-ASR-001.md#2-real-time-loto-security-and-fail-safe), AF-002):** Lack of asset metadata is treated conservatively. Setting unconfigured assets to a priority floor of 75 ensures that missing technical data cannot lead to deferred maintenance on potentially hazardous or production-critical equipment.
 * **Cryptographic Integrity & Segregation of Duties ([TR-001](../../../requirements/common/TR-001.md), [TR-006](../../../requirements/common/TR-006.md)):** Manual adjustment of priority parameters directly impacts equipment reliability and operational safety. All adjustments mandate technical justifications and are sealed in the immutable SHA-256 audit chain. The ability to modify priority order manually without changing Work Class is strictly restricted to authorized Maintenance Supervisors ([NFR-062](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr)).
 
@@ -216,18 +216,19 @@ To prevent unconfigured equipment criticality from artificially burying a critic
 ```text
 Pages/
 └── RimeBacklogDashboardPage.razor                     # Root View (SCR-MTTO-026)
-    ├── BacklogHeaderBar.razor                         # CMP-02: Top breadcrumb and search header
-    ├── BacklogSummaryCards.razor                      # CMP-03: 5-card operational metric summary
-    ├── BacklogFilterToolbar.razor                     # CMP-04: Filter chips, dropdowns, and search
-    ├── GroupingRecommendationBanner.razor             # CMP-05: Asset grouping notification banner
-    ├── CriticalityFailSafeBanner.razor                # CMP-06: Unconfigured asset alert banner
+    ├── PortalSidebarNav.razor                         # CMP-01: Collapsible desktop navigation sidebar
+    ├── BacklogHeaderBar.razor                         # CMP-02: Top breadcrumb, alert trigger, and user badge
+    ├── BacklogSummaryCards.razor                      # CMP-03: 5-card interactive KPI filter summary
+    ├── BacklogFilterToolbar.razor                     # CMP-04: Dropdowns, search, and inline grouping pill
+    │   └── GroupingRecommendationPill.razor           # CMP-05: Inline equipment batching trigger
+    ├── CriticalityGovernanceModal.razor               # CMP-06: AF-002 Unconfigured asset governance modal
     ├── PrioritizedBacklogGrid.razor                   # CMP-07: Dense virtualized tabular data grid
     │   ├── PriorityBandBadge.razor                    # CMP-08: Redundant category badge
-    │   └── MaterialAvailabilityIndicator.razor        # In-stock status pill
+    │   └── MaterialAvailabilityIndicator.razor        # HPHMI material availability text/shortage pill
     ├── WorkClassAdjustmentModal.razor                 # CMP-09: AF-001 Priority modification dialog
     ├── RimeBreakdownModal.razor                       # CMP-10: FR-066 Formula decomposition dialog
     ├── ChainedAuditLogDrawer.razor                    # CMP-11: Slide-over cryptographic audit drawer
-    └── WorkloadConfirmationFooter.razor               # CMP-12: Sticky action footer and export bar
+    └── WorkloadConfirmationFooter.razor               # CMP-12: Sticky capacity footer and unified export menu
 ```
 
 ---
@@ -237,39 +238,82 @@ Pages/
 #### 7.2.1. `RimeBacklogDashboardPage.razor` (Root View Parameter Contract)
 
 ```csharp
-/// <summary>
-/// Parameter contract for root view RimeBacklogDashboardPage.razor (SCR-MTTO-026).
-/// Application services and dependency injection are encapsulated in code-behind handlers.
-/// </summary>
-public record RimeBacklogDashboardParameters(
-    string? SelectedFunctionalLocationId = null,
-    RimePriorityBand? InitialBandFilter = null
-);
+// Route & Query Parameters for RimeBacklogDashboardPage.razor (SCR-MTTO-026)
+[Parameter, SupplyParameterFromQuery(Name = "loc")]
+public string? SelectedFunctionalLocationTag { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "band")]
+public string? InitialBandFilter { get; set; }
 ```
 
-#### 7.2.2. Subcomponent Parameter Contracts
+#### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` – `CMP-12`)
 
 ```csharp
-/// <summary>
-/// Parameter contract for PrioritizedBacklogGrid.razor (CMP-07).
-/// </summary>
-public record PrioritizedBacklogGridParameters(
-    IReadOnlyList<BacklogItemDto> BacklogItems,
-    EventCallback<BacklogItemDto> OnRowSelected,
-    EventCallback<BacklogItemDto> OnAdjustWorkClassRequested,
-    EventCallback<BacklogItemDto> OnInspectBreakdownRequested,
-    EventCallback<BacklogItemDto> OnPromoteToWorkOrder
-);
+// CMP-01: PortalSidebarNav.razor
+[Parameter] public bool IsCollapsed { get; set; }
+[Parameter] public string ActiveRouteId { get; set; } = "SCR-MTTO-026";
+[Parameter] public EventCallback<bool> OnCollapseToggled { get; set; }
 
-/// <summary>
-/// Parameter contract for WorkClassAdjustmentModal.razor (CMP-09).
-/// </summary>
-public record WorkClassAdjustmentModalParameters(
-    BacklogItemDto? TargetItem,
-    bool IsVisible,
-    EventCallback<AdjustWorkClassCommand> OnConfirmed,
-    EventCallback OnCancelled
-);
+// CMP-02: BacklogHeaderBar.razor
+[Parameter, EditorRequired] public string OperatorBadgeCode { get; set; } = default!;
+[Parameter, EditorRequired] public string OperatorDisplayName { get; set; } = default!;
+[Parameter] public int ActiveGovernanceAlertCount { get; set; }
+[Parameter] public EventCallback OnOpenGovernanceAlertModal { get; set; }
+[Parameter] public EventCallback OnToggleAuditDrawer { get; set; }
+
+// CMP-03: BacklogSummaryCards.razor
+[Parameter, EditorRequired] public BacklogSummaryMetricsDto Metrics { get; set; } = default!;
+[Parameter] public RimePriorityBand? ActiveBandFilter { get; set; }
+[Parameter] public EventCallback<RimePriorityBand?> OnBandFilterSelected { get; set; }
+
+// CMP-04 & CMP-05: BacklogFilterToolbar.razor & GroupingRecommendationPill.razor
+[Parameter] public string? SelectedLocationFilter { get; set; }
+[Parameter] public WorkClassCode? SelectedWorkClassFilter { get; set; }
+[Parameter] public string? SearchQuery { get; set; }
+[Parameter] public EquipmentGroupingSuggestionDto? GroupingSuggestion { get; set; }
+[Parameter] public EventCallback<string?> OnLocationFilterChanged { get; set; }
+[Parameter] public EventCallback<WorkClassCode?> OnWorkClassFilterChanged { get; set; }
+[Parameter] public EventCallback<string?> OnSearchQueryChanged { get; set; }
+[Parameter] public EventCallback<string> OnApplyGroupingCluster { get; set; }
+[Parameter] public EventCallback OnResetFilters { get; set; }
+
+// CMP-06: CriticalityGovernanceModal.razor
+[Parameter] public bool IsVisible { get; set; }
+[Parameter] public BacklogItemDto? UnconfiguredItem { get; set; }
+[Parameter] public EventCallback<string> OnFilterAffectedEquipment { get; set; }
+[Parameter] public EventCallback<Guid> OnDispatchReliabilityNotification { get; set; }
+[Parameter] public EventCallback OnClose { get; set; }
+
+// CMP-07 & CMP-08: PrioritizedBacklogGrid.razor & PriorityBandBadge.razor
+[Parameter, EditorRequired] public IReadOnlyList<BacklogItemDto> BacklogItems { get; set; } = [];
+[Parameter] public IReadOnlySet<Guid> SelectedItemIds { get; set; } = new HashSet<Guid>();
+[Parameter] public EventCallback<Guid> OnToggleRowSelection { get; set; }
+[Parameter] public EventCallback<BacklogItemDto> OnAdjustWorkClassRequested { get; set; }
+[Parameter] public EventCallback<BacklogItemDto> OnInspectBreakdownRequested { get; set; }
+[Parameter] public EventCallback<BacklogItemDto> OnPromoteToWorkOrder { get; set; }
+
+// CMP-09: WorkClassAdjustmentModal.razor
+[Parameter] public BacklogItemDto? TargetItem { get; set; }
+[Parameter] public bool IsVisible { get; set; }
+[Parameter] public EventCallback<AdjustWorkClassCommand> OnConfirmed { get; set; }
+[Parameter] public EventCallback OnCancelled { get; set; }
+
+// CMP-10: RimeBreakdownModal.razor
+[Parameter] public RimeCalculationBreakdownDto? Breakdown { get; set; }
+[Parameter] public bool IsVisible { get; set; }
+[Parameter] public EventCallback OnClose { get; set; }
+
+// CMP-11: ChainedAuditLogDrawer.razor
+[Parameter] public bool IsOpen { get; set; }
+[Parameter, EditorRequired] public IReadOnlyList<ChainedAuditEntryDto> AuditEntries { get; set; } = [];
+[Parameter] public EventCallback OnClose { get; set; }
+
+// CMP-12: WorkloadConfirmationFooter.razor
+[Parameter] public int SelectedCount { get; set; }
+[Parameter] public decimal SelectedWrenchHours { get; set; }
+[Parameter] public decimal WeeklyCapacityHours { get; set; } = 40.0m;
+[Parameter] public EventCallback OnConfirmWeeklyDistribution { get; set; }
+[Parameter] public EventCallback<BacklogExportFormat> OnExportRequested { get; set; }
 ```
 
 #### 7.2.3. Data Transfer Objects (DTOs) & Commands
@@ -295,6 +339,36 @@ public record BacklogItemDto(
     MaterialAvailabilityStatus MaterialStatus,
     DateTimeOffset RequestDate,
     string Status
+);
+
+public record BacklogSummaryMetricsDto(
+    int TotalBacklogCount,
+    decimal TotalEstimatedHours,
+    int DoFirstCount,
+    int ScheduleCount,
+    int PlanCount,
+    int WishCount
+);
+
+public record EquipmentGroupingSuggestionDto(
+    Guid EquipmentUnitId,
+    string FunctionalLocationTag,
+    string EquipmentSerialNumber,
+    int PendingRequestCount,
+    decimal TotalEstimatedHours
+);
+
+public record ChainedAuditEntryDto(
+    Guid AuditEntryId,
+    DateTimeOffset TimestampUtc,
+    string WorkRequestNumber,
+    string FunctionalLocationTag,
+    string OperatorBadgeCode,
+    int PreviousScore,
+    int NewScore,
+    string TechnicalJustification,
+    string PreviousHash,
+    string PayloadHash
 );
 
 public enum RimePriorityBand
@@ -327,6 +401,13 @@ public enum MaterialAvailabilityStatus
     OutOfStock
 }
 
+public enum BacklogExportFormat
+{
+    FullViewCsv,
+    FullViewJson,
+    SelectedItemsJson
+}
+
 public record AdjustWorkClassCommand(
     Guid WorkRequestId,
     WorkClassCode NewWorkClass,
@@ -352,10 +433,10 @@ public record RimeCalculationBreakdownDto(
 
 ### 7.3. Client-Side DOM & Interop Bridge
 
-1. **Virtualization Interop:** Blazor Virtualize interop calculating client-side container scroll offsets to lazily render only the visible table rows, keeping UI response times under $100\text{ms}$ during fast scrolling.
-2. **Real-time Recalculation Debounce:** Client-side JavaScript bridge in the Work Class Adjustment Modal calculating the interim score instantaneously via client-side web assembly without dispatching server roundtrips until final submission.
-3. **Keyboard Shortcut Interop (`backlogKeyNav.js`):** Direct listener on `keydown` capturing `ArrowUp`, `ArrowDown`, `Ctrl+K`, and `Escape`, providing a seamless desktop workstation experience matching industrial software standards.
-4. **Client-Side SHA-256 Integrity Preview:** Uses the Web Cryptography API (`crypto.subtle.digest`) to calculate the candidate `payload_hash` in real-time as the Planner types the justification, providing immediate visual feedback of the cryptographic signature.
+1. **Virtualization Interop (`IVirtualizationInterop`):** Client-side viewport scroll measurement capability that lazily renders only visible table rows within the scrollable grid container, keeping UI response times under $100\text{ms}$ during high-density backlog scrolling.
+2. **Real-Time Recalculation Bridge:** Client-side evaluation within the Work Class Adjustment Modal (`CMP-09`) that computes the candidate score instantaneously in WebAssembly without dispatching server roundtrips until final confirmation.
+3. **Keyboard Shortcut Interop (`IKeyboardShortcutInterop`):** Focus and keybinding capability capturing `ArrowUp`, `ArrowDown`, `Ctrl+K`, and `Escape` events to support mouse-free desktop workstation operation.
+4. **Cryptographic Digest Preview Interop (`ICryptoInterop`):** Client-side SHA-256 digest capability that computes the candidate `PayloadHash` in real time as the Planner enters the technical justification, providing immediate visual verification of the chained audit signature.
 
 ---
 
@@ -363,9 +444,9 @@ public record RimeCalculationBreakdownDto(
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1400\text{px}$, `--dt-breakpoint-xl`) | Full workstation grid layout. Navigation sidebar expanded ($240\text{px}$); 5 summary KPI cards in a single row; 10-column data grid with all operational metadata visible without horizontal scrolling; side-over audit drawer docks laterally ($480\text{px}$). | Optimized for mouse and keyboard navigation; row height $44\text{px}$; dense font sizing (`--dt-font-body-md`, $14\text{px}$); double-click row to open detail. |
-| **Industrial Tablet Landscape**<br>($901\text{px} - 1399\text{px}$, `--dt-breakpoint-lg`) | Navigation sidebar collapses to icon-only rail ($64\text{px}$); KPI summary cards wrap to 2 rows; data grid displays 7 primary columns (hiding Model and Maintainable Item into expandable row details); modals render centered. | Touch targets comply with $\ge 44\text{px}$; row height expands to $48\text{px}$; single-tap row selection; swipe right to toggle sidebar rail. |
-| **Industrial Tablet Portrait**<br>($600\text{px} - 900\text{px}$, `--dt-breakpoint-md`) | Sidebar hidden into hamburger off-canvas drawer; KPI summary cards convert to horizontal swipe carousel; data grid switches to card-based list layout; bottom sticky bar docks securely above navigation chrome. | Touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ spacing; action buttons full-width; modals convert to bottom sheet dialogs. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Full workstation grid layout. Navigation sidebar expanded ($240\text{px}$); 5 summary KPI cards in a single row; 10-column data grid with all operational metadata visible without horizontal scrolling; slide-over audit drawer docks laterally (`--dt-layout-drawer-width-desktop`). | Optimized for mouse and keyboard navigation; row height $44\text{px}$; dense font sizing (`--dt-font-body-md`, $14\text{px}$); single-click row selection and compact contextual action menu (`···`). |
+| **Compact Desktop / Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg`) | Navigation sidebar collapses to icon-only rail ($64\text{px}$); KPI summary cards remain in a 5-column fluid row; inline grouping pill wraps cleanly inside the filter toolbar; modals render centered. | Touch and pointer targets comply with $\ge 44\text{px}$; horizontal table scroll prevented by compacting secondary description width. |
+| **Tablet Portrait / Secondary Terminal**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md`) | Sidebar hidden into off-canvas drawer; KPI summary cards wrap into a 2-row grid; data grid prioritizes 7 core operational columns; bottom sticky confirmation bar docks above system chrome. | Touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ spacing; action menus expand for touch ergonomics. |
 
 ---
 
