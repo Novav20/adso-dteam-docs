@@ -354,6 +354,17 @@ In accordance with ANSI/ISA-101.01 §6.2 (Abnormal Situation Management and Sali
 3. **Ergonomic Rationale:**
    * Excessive, decorative use of badge containers ("badge inflation") desensitizes operators, increases visual clutter (*visual noise*), and diminishes the cognitive salience of legitimate alarms and critical operational status changes.
 
+#### 6.5.1. Morphological Differentiation: Status Badges vs. Interactive Buttons
+
+To prevent peripheral ambiguity between non-interactive status indicators and clickable action triggers in dense tabular grids and control headers, status badges and interactive buttons must maintain strictly distinct geometric and behavioral signifiers:
+
+| Visual Signifier | **Non-Interactive Status Badge / Pill** | **Interactive Row / Toolbar Action Button** |
+| :--- | :--- | :--- |
+| **Corner Geometry** | **Full Capsule / Pill (`--dt-radius-full`, $9999\text{px}$)** or borderless flat indicator. Rectangular button corner radii (`--dt-radius-sm`, `--dt-radius-md`) are prohibited on row status badges. | **Structured Rectangular (`--dt-radius-sm` or `--dt-radius-md`, $4\text{px}-6\text{px}$)**. |
+| **Vertical Profile & Padding** | Compact, tight-fitting profile ($18\text{px}-20\text{px}$ height; padding $2\text{px}\ 8\text{px}$; `--dt-font-caption` / $11\text{px}$ monospace). | Ergonomic click target profile ($\ge 26\text{px}-32\text{px}$ height; padding $4\text{px}\ 10\text{px}$; $12\text{px}-13\text{px}$ sans-serif). |
+| **Border & Surface Treatment** | Subtle translucent tint ($10\%-14\%$ opacity) on critical/warning bands; borderless or hairline muted outline on normal bands. | Explicit structural border (`1px solid var(--dt-color-border-subtle)` or `--dt-color-border-panel`) with elevated surface (`--dt-color-surface-card` / `--dt-color-surface-raised`). |
+| **Pointer & Hover Affordance** | `cursor: default`; `user-select: none`; zero hover elevation or border highlight. | `cursor: pointer`; explicit `:hover` surface elevation and focus border transition (`--dt-color-border-focus`). |
+
 ---
 
 ## 7. Design System CSS Variables File
