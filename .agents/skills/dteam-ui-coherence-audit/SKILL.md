@@ -11,7 +11,7 @@ This skill performs a **Three-Tier Coherence and Ergonomic Audit** on system UI/
 
 * **Tier 0 (Deterministic Pre-Flight Gate):** Automated script-based parsing via `.agents/skills/dteam-ui-coherence-audit/scripts/audit.py`. Evaluates AST/regex negative boundary rules: halts execution immediately on SQL/schema leaks, Blazor code-behind wrappers, private state, [Inject], raw CSS rules, hex codes, or missing canonical sections.
 * **Tier 1 (Local Heuristic & Ergonomic Audit):** Executed locally by the agent against the repository's Single Sources of Truth (SSoT: `DT-ERD-DOC-001`, `DT-DM-DOC-002`, `DT-UI-DS-DOC-001`, and requirements). Validates task completeness, cardinality constraints, component boundaries, and codified HPHMI rules.
-* **Tier 2 (Formal Grounded Audit Escalation):** When deep normative compliance, complex Cognitive Task Analysis (CTA), or subjective ergonomic trade-offs are identified, the skill generates a structured prompt for the user's external **Gemini Notebook (GN)**, which is grounded on authoritative, copyrighted standard corpora (ISA-101, *The High Performance HMI Handbook*, ISO 14224, ISO 11064).
+* **Tier 2 (Deterministic Grounded Escalation Gate):** Escalation to the user's external **Gemini Notebook (GN)**, which is grounded on authoritative, copyrighted standard corpora (ANSI/ISA-101.01, *The High Performance HMI Handbook*, ISO 14224, ISO 11064, OSHA 1910.147). Escalation is governed by 4 deterministic triggers (G1–G4) with a mandatory justification gate in every audit report to prevent cognitive complacency.
 
 ---
 
@@ -178,7 +178,23 @@ All screen specifications must strictly align with the canonical standard define
 
 ---
 
-### Step 5: Audit Report Generation & Persistence
+### Step 5: Tier 2 Deterministic Escalation Evaluation (Triggers G1 to G4)
+
+Before finalizing the audit verdict, the agent **MUST** systematically evaluate the 4 deterministic triggers for external escalation to Gemini Notebook (GN):
+
+| Trigger | Condition Description | Mandatory Escalation Criteria |
+| :--- | :--- | :--- |
+| **Trigger G1: Life Safety & Hazardous Energy Interlocks** | Isolation of hazardous electrical/hydraulic/pneumatic energy, LOTO verification, hot work in explosive zones, or emergency trip overrides. | Direct physical safety risk if UI state representation or confirmation flow fails (OSHA 1910.147, ISO 45001). |
+| **Trigger G2: Cognitive Overload & Alarm Flood Density** | High-density visual monitoring exceeding ISA-101.01 limits. | Simultaneous display of $>30$ active dynamic objects, concurrent multi-priority alarm flooding without clear suppression hierarchy, or complex visual clustering. |
+| **Trigger G3: Deep Normative Taxonomy Conflict** | Engineering taxonomy breakdown under ISO 14224 (Levels 6 to 9). | Boundary limits, failure mechanisms, or component maintainability hierarchies that conflict with or cannot be conclusively resolved by repository SSoTs. |
+| **Trigger G4: Novel Interaction Archetype / Paradigm Shift** | Unprecedented interaction modality or physics. | Spatial navigation gestures, continuous canvas transforms, or tactile physics not covered by codified Archetypes A, B, or C. |
+
+> **Mandatory Justification Rule:**  
+> The audit report **CANNOT** simply declare *"Tier 2: None required"*. It MUST evaluate all four triggers explicitly. If no escalation is needed, each trigger must provide a concrete 1-sentence technical justification stating which local repository SSoT resolves the requirement. If any trigger fires, prompt generation for Gemini Notebook is mandatory.
+
+---
+
+### Step 6: Audit Report Generation & Persistence
 
 The agent **must persist** the complete audit report to the evidence repository at:
 `/home/novillus/Documents/vscode/SENA-Career/sena-evidence/00-Overview/Audits/UI/AUD-UI-<SCREEN_ID>-<YYYYMMDD-HHMMSS>.md`
@@ -196,11 +212,12 @@ The generated report must include the following structure:
    auditor: dteam-ui-coherence-audit
    ---
    ```
-2. **Screen Classification:** Detected Archetype (A or B), ISA-101 Level, Target Devices, and Primary Persona.
+2. **Screen Classification:** Detected Archetype (A, B, or C), ISA-101 Level, Target Devices, and Primary Persona.
 3. **Audit Findings & Evaluation:**
    * **[PASS]:** Elements compliant with ERD, Domain Model, and Design System tokens.
    * **[WARNING]:** Potential cognitive overload, missing ergonomic affordances, or ambiguous parameters.
    * **[FAIL]:** Missing mandatory database fields, cardinality violations, structural/SSoT boundary violations, or breaches of HPHMI/ISA-101 rules.
-4. **Tier 2 Escalation (If Required):**
-   * If the audit uncovers non-trivial ergonomic trade-offs, disputed HMI density, or complex CTA questions, format a dedicated prompt ready to be saved into `sena-evidence/00-Overview/Deep-in/Prompts/P<XX>-*.md` for formal verification in Gemini Notebook.
+4. **Tier 2 Grounded Escalation Gate (Gemini Notebook):**
+   * Mandatory evaluation table of Triggers G1 through G4.
+   * Explicit technical justification for non-escalation OR reference to generated Gemini Notebook prompt saved at `sena-evidence/00-Overview/Deep-in/Prompts/P<XX>-*.md`.
 5. **Chat Presentation:** Present a concise summary in the chat with the overall verdict and a markdown link to the persisted report file in `sena-evidence/00-Overview/Audits/UI/`.

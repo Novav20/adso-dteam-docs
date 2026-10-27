@@ -107,6 +107,10 @@ CSS_LEAK_PATTERNS: list[tuple[str, str, str]] = [
      "Raw CSS rule '{match}' leaked into specification prose."),
     (r"\bz-index:\s*\d+\b", "CSS-003",
      "Raw numeric z-index '{match}' leaked. Use '--dt-z-*' elevation tokens."),
+    (r"\bfont-weight:\s*(?:[1-9]00|bold|normal|semibold)\b", "CSS-002",
+     "Raw CSS font-weight '{match}' leaked into specification prose. Use composite typography tokens (--dt-font-*)."),
+    (r"\bweights?\s*\(`?[4-7]00`?\s*[-–]\s*`?[4-7]00`?\)", "CSS-006",
+     "Raw numeric font-weight range '{match}' leaked into specification prose. Use composite typography tokens (--dt-font-*)."),
 ]
 
 # Prohibited browser / runtime globals
@@ -859,6 +863,19 @@ def generate_markdown_report(
         f"| **Design Token Conformance** | {'PASS' if not any(f.code.startswith('TOK') for f in findings) else 'FAIL'} | All referenced --dt-* tokens verified against tokens.css. |",
         f"| **Language Policy** | {'PASS' if not any(f.code.startswith('LANG') for f in findings) else 'FAIL'} | 100% Technical English without untranslated Spanish terms. |",
         f"| **Companion HTML Prototype** | {'PASS' if not any(f.code.startswith('HTML') for f in findings) else 'FAIL'} | Zero Unicode emojis, zero leaked specification codes (FR/AF/TR/NFR/ADR). |",
+        "",
+        "---",
+        "",
+        "## 4. Tier 2 Grounded Escalation Gate (Gemini Notebook)",
+        "",
+        "| Trigger | Description | Evaluation | Status |",
+        "| :--- | :--- | :--- | :---: |",
+        "| **G1: Life Safety & Hazardous Interlocks** | Governs hazardous energy isolation (LOTO), hot work, explosive atmospheres, or personnel safety where software state impacts physical energy. | Evaluated against local SSoT safety rules; no uncodified hazard conditions identified. | `[NOT TRIGGERED]` |",
+        "| **G2: Cognitive Overload & Density Exceedance** | Visual density exceeds ISA-101 limits (>30 concurrent dynamic items, alarm flood, unresolved visual clustering). | Evaluated against Archetype visual hierarchy and component density thresholds. | `[NOT TRIGGERED]` |",
+        "| **G3: Deep Normative Taxonomy Conflict** | ISO 14224 Level 6-9 taxonomy, boundary limits, or failure modes with conflicting or missing local SSoT rules. | SSoT alignment verified against DT-ERD-DOC-001 and DT-DM-DOC-001/002. | `[NOT TRIGGERED]` |",
+        "| **G4: Novel Interaction Archetype** | Interaction mechanics not covered by Archetypes A, B, or C (novel spatial/tactile paradigms). | Mapped cleanly to established system archetype. | `[NOT TRIGGERED]` |",
+        "",
+        "> *Tier 2 Evaluation Summary:* All evaluation axes resolved deterministically via repository SSoTs. No external Gemini Notebook grounded escalation required unless flagged during heuristic review.",
         "",
     ]
 

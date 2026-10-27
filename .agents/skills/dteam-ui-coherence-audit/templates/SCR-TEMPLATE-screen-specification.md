@@ -42,7 +42,7 @@ status: Draft | In Review | Approved
 
 > The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, their semantic tokens, and their architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
 >
-> *Rule:* Table cells must strictly serve as a visual catalog of roles, semantic tokens, and pointers to Section 5. Never embed interaction algorithms, clamping math, state machine logic, raw CSS styles, hardware layout dimensions (e.g., `640px`, `45vh`), status strings, domain enum lists, or NFR citations in table cells. Column 4 ("Semantic Token") must reference explicit Design System tokens (`--dt-*`).
+> *Rule:* Table cells must strictly serve as a visual catalog of roles, semantic tokens, and pointers to Section 5. Never embed interaction algorithms, clamping math, state machine logic, raw CSS styles, hardware layout dimensions (e.g., `640px`, `45vh`), status strings, domain enum lists, or NFR citations in table cells. Column 4 ("Semantic Token") must reference explicit Design System tokens (`--dt-*`). Badges and pills are strictly reserved for dynamic state lifecycles and quantifiable counters; static invariant attributes must be modeled as plain structured text with neutral muted tokens (`--dt-color-text-muted`).
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
@@ -89,6 +89,8 @@ status: Draft | In Review | Approved
 * **HPHMI Philosophy ([TR-011](../../../requirements/common/TR-011.md)):** Grayscale baseline; color reserved strictly for alarms with redundant shape coding.
 * **Alarm vs. Diagnostic Segregation (ISA-101):** Diagnostic failures must never masquerade as process alarms.
 * **Fail-Safe Integrity:** Pessimistic default states on communication loss or ambiguous data.
+* **Typography Hierarchy:** Primary asset tags and identifiers use monospace data and primary text tokens (`--dt-font-mono-data`, `--dt-color-text-primary`), while technical descriptions and secondary metadata use body and caption tokens (`--dt-font-body-md`, `--dt-font-caption`) in muted slate (`--dt-color-text-muted`). Prohibit raw numeric CSS font-weights (`400..700`) or literal pixel/rem sizes.
+* **Interactive Control Neutrality:** Active sort chevrons, selection indicators, and focus outlines must bind to neutral tokens (`--dt-color-border-focus`, `--dt-color-text-muted`), never uncodified saturated accents.
 
 ---
 
