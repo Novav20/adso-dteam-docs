@@ -51,6 +51,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Canonical specification finalized: [`SCR-INV-025.md`](ui-ux/screens/inv/SCR-INV-025.md) (v1.4 Stable).
 
 - [ ] **SCR-INV-005: Equipment Master Data Card (Technical Data Sheet)**
+  - [x] Pre-flight Use Case Audit and CAP execution: [`UC-INV-005.md`](domain-models/use-cases/inv/UC-INV-005.md) (v1.1 Stable / PASSED).
   - [ ] Draft canonical specification for Level 3 equipment detail, operational telemetry bindings, and nameplate specs: [`SCR-INV-005.md`](ui-ux/screens/inv/SCR-INV-005.md).
   - [ ] Execute Tier 0/1 UI audit and persist report.
 
