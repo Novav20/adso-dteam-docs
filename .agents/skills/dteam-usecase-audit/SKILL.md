@@ -7,21 +7,50 @@ description: Audits domain use cases (UC-*.md) against repository Single Sources
 
 ## 1. Purpose & Architectural Role
 
-This skill performs a rigorous **Coherence and Domain Model Alignment Audit** on business process Use Cases (`adso-dteam-docs/domain-models/use-cases/[module]/UC-[MOD]-[NUM].md`) within the hybrid **Asset Performance Management (APM) and Digital Twin (DTEAM)** system.
+This skill performs a rigorous **Three-Tier Coherence and Domain Model Alignment Audit** on business process Use Cases (`adso-dteam-docs/domain-models/use-cases/[module]/UC-[MOD]-[NUM].md`) within the hybrid **Asset Performance Management (APM) and Digital Twin (DTEAM)** system:
 
-### The Upstream Quality Gate
-Use Cases authored early in the project lifecycle frequently suffer from chronological debt: they predate the codification of the physical relational schema (`DT-ERD-DOC-001.md`), the formal domain class behaviors (`DT-DM-DOC-002.md`), and the Ubiquitous Language (`DT-UL-DOC-001.md`). 
+* **Tier 0 (Deterministic Pre-Flight Gate):** Automated script-based parsing via `.agents/skills/dteam-usecase-audit/scripts/audit_uc.py`. Halts execution immediately (exit code 2) on PostgreSQL schema qualifiers (`tax.*`, `inv.*`, `adm.*`), physical table names, database column identifiers in `snake_case`, dictionary assignment syntax (`col: val`), boolean code literals (`true`/`false`), OOP method signatures (`Class.Method()`), API routes, or raw HTML tags.
+* **Tier 1 (Local Heuristic & Domain Invariant Audit):** Executed locally by the agent against repository SSoTs (`DT-ERD-DOC-001`, `DT-DM-DOC-002`, `DT-UL-DOC-001`, and requirements). Validates mandatory domain attributes, state machine transitions, ACID boundaries, and role alignment.
+* **Tier 2 (Deterministic Grounded Escalation Gate):** Escalation to the user's external **Gemini Notebook (GN)**, grounded on authoritative standard corpora (ANSI/ISA-101.01, ISO 14224, ISO 45001, OSHA 1910.147). Governed by 4 deterministic triggers (G1–G4) with a mandatory justification gate in every audit report.
 
-If un-audited Use Cases are fed directly into the UI screen scaffolder (`dteam-screen-scaffolder`), their drafting placeholders (e.g., `Asset A / Asset B`), informal status strings, and missing relational fields cascade downstream into screen specifications and prototypes, necessitating costly remediation cycles.
+---
 
-This skill establishes the **Upstream Quality Gate**, auditing and reconciling Use Cases before screen scaffolding begins.
+## 2. CLI Execution & Helper Script
 
-### The Black-Box Behavioral Invariant
+From the repository root (`adso-dteam-docs/`), the deterministic auditor is invoked via CLI:
+
+```bash
+# 1. Full deterministic audit + markdown report generation in sena-evidence/
+python3 .agents/skills/dteam-usecase-audit/scripts/audit_uc.py audit --file domain-models/use-cases/inv/UC-INV-005.md
+
+# 2. Fast console linting (pre-commit / CI gate, zero report files generated)
+python3 .agents/skills/dteam-usecase-audit/scripts/audit_uc.py lint --file domain-models/use-cases/inv/UC-INV-005.md
+
+# 3. Batch scan of all Use Cases across repository
+python3 .agents/skills/dteam-usecase-audit/scripts/audit_uc.py audit-all
+```
+
+### Exit Codes:
+* `0`: Clean PASS or only WARNING/INFO observations.
+* `1`: Execution error (file not found, outside repo).
+* `2`: BLOCKER found (immediate rejection — document MUST NOT be approved without remediation).
+
+---
+
+## 3. The Black-Box Behavioral Invariant
+
 A Use Case is fundamentally a **black-box specification of business behavior** between an Actor and the System (Cockburn / Jacobson). It defines **WHAT** the business interaction is, NOT **HOW** it is implemented in code or storage.
 
 Use Cases **MUST** remain strictly technology- and implementation-agnostic:
-* **STRICT PROHIBITION (Physical Schema Leaks):** Never write PostgreSQL schema qualifiers (`tax.*`, `inv.*`, `adm.*`), table names (`asset_installations`, `inventory_transactions`), or physical foreign key column syntax (`functional_location_id = NULL`) into Use Case steps.
-* **STRICT PROHIBITION (Code & Method Leaks):** Never leak programming language method signatures (`FunctionalLocation.UninstallEquipment(): EquipmentUnit`), OOP class namespaces, or API endpoints (`/api/v1/...`) into Use Case steps. Method signatures belong exclusively to `DT-DM-DOC-002.md`; physical tables belong exclusively to `DT-ERD-DOC-001.md`.
+* **STRICT PROHIBITION (Physical Schema Leaks):**
+  * Never write PostgreSQL schema qualifiers (`tax.*`, `inv.*`, `adm.*`, `mtto.*`, `vis.*`).
+  * Never write physical relational table names (`equipment_units`, `functional_locations`, `asset_installations`, `inventory_transactions`). Reference authentic business entities (`Equipment Unit`, `Functional Location`).
+  * Never write database column identifiers in `snake_case` (e.g., `lifecycle_status`, `is_sce`, `installed_at`, `boundary_start`, `serial_number`). Translate attributes to natural business English nouns and adjectives (e.g., *commissioning lifecycle status*, *Safety Critical Element designation*, *physical battery limits*).
+  * Never write dictionary/code assignment syntax (`column: value`, `column = value`) or boolean programming literals (`: true`, `: false`).
+  * Never write SQL DDL/DML keywords (`SELECT`, `INSERT INTO`, `UPDATE`, `DELETE`, `NOT NULL`, `UNIQUE KEY`).
+* **STRICT PROHIBITION (Code & Method Leaks):**
+  * Never leak programming language method signatures (`FunctionalLocation.InstallEquipment(): EquipmentUnit`, `EquipmentUnit.ValidateChronology()`). Method signatures belong exclusively to `DT-DM-DOC-002.md`.
+  * Never leak OOP class namespaces or REST API endpoints (`/api/v1/...`).
 * **THE AUDIT MANDATE:** The audit verifies **Conceptual & Invariant Parity** (e.g., ensuring stock issue/receipt movements, installation timeline tracking, and atomic boundaries are accounted for in business terms), without demanding or permitting physical software implementation syntax.
 
 ### Canonical Docs-as-Code Structure (Frontmatter + Markdown Headings)
@@ -35,7 +64,7 @@ To preserve git diffability, deep linkability, and eliminate brittle HTML entiti
    * `## 4. Alternate Flows` (each flow as `### AF-[NUM]: [Title]`)
    * `## 5. Postconditions` (native Markdown bullet list)
    * `## 6. Associated Requirements` (native Markdown links grouped by category)
-3. **STRICT PROHIBITION (Monolithic Tables & Raw HTML):** Never pack the Use Case into a 2-column Markdown table or embed HTML formatting (`<br>`, `<ul>`, `<li>`). The engineering repository uses native Markdown headings, lists, and indentation exclusively.
+3. **STRICT PROHIBITION (Monolithic Tables & Raw HTML):** Never pack the Use Case into a 2-column Markdown table or embed HTML formatting (`<br>`, `<ul>`, `<li>`, `<table>`). The engineering repository uses native Markdown headings, lists, and indentation exclusively.
 4. **Clickable Requirements in Body:** Do not put Markdown links inside YAML frontmatter. Frontmatter does not render clickable hyperlinks on GitHub and breaks AST relative link validators. Associated Requirements must always live in `## 6. Associated Requirements`.
 
 ```mermaid
@@ -121,20 +150,33 @@ The agent must evaluate the candidate Use Case against five deterministic verifi
 
 ## 4. Step-by-Step Audit Execution Workflow
 
+### Step 0: Deterministic Pre-Flight Gate (Tier 0)
+1. Run `python3 .agents/skills/dteam-usecase-audit/scripts/audit_uc.py audit --file <relative-path>`.
+2. If exit code is `2` (BLOCKER), stop immediately. Report the specific syntactic/boundary violations to the user. Do NOT proceed to heuristic evaluation while deterministic blockers exist.
+
 ### Step 1: Candidate Identification & SSoT Retrieval
 1. Determine the target Use Case path: `adso-dteam-docs/domain-models/use-cases/[module]/UC-[MOD]-[NUM].md`.
 2. Locate the corresponding User Story in `requirements/user-stories/[module]/[MOD]-[NUM].md` and related functional requirements (`FR-*`).
 3. Load the corresponding entities from `DT-ERD-DOC-001.md` and domain methods from `DT-DM-DOC-002.md`.
 
-### Step 2: Deterministic & Heuristic Cross-Evaluation
-Evaluate the Use Case against all 5 verification axes, categorizing findings into:
+### Step 2: Heuristic & Domain Invariant Cross-Evaluation (Tier 1)
+Evaluate the candidate Use Case against all 5 verification axes, categorizing findings into:
 * **`BLOCKER`:** Violations of relational schema constraints, missing mandatory fields, non-canonical roles, leaked drafting aliases (`Asset A/B`), or missing safety alternate flows.
 * **`WARNING`:** Minor terminology drift, slightly ambiguous pre/postconditions, or imprecise domain event descriptions.
 * **`INFO`:** Stylistic suggestions, markdown formatting refinements, or optimization notes.
 
-### Step 3: Audit Report Generation & Persistence
-Persist the formal audit report to the evidence repository at:
-`/home/novillus/Documents/vscode/SENA-Career/sena-evidence/00-Overview/Audits/UC/AUD-UC-<UC_ID>-<YYYYMMDD-HHMMSS>.md`
+### Step 3: Tier 2 Deterministic Escalation Evaluation (Triggers G1 to G4)
+Before finalizing the audit verdict, the agent **MUST** systematically evaluate the 4 deterministic triggers for external escalation to Gemini Notebook (GN):
+
+| Trigger | Condition Description | Mandatory Escalation Criteria |
+| :--- | :--- | :--- |
+| **Trigger G1: Life Safety & Hazardous Energy Interlocks** | Isolation of hazardous electrical/hydraulic/pneumatic energy, LOTO verification, hot work in explosive zones, or emergency trip overrides. | Direct physical safety risk if operational procedure representation or verification flow fails (OSHA 1910.147, ISO 45001). |
+| **Trigger G2: Cognitive Overload & Density Exceedance** | High-density operational flows with complex concurrent branchings or SIMOPS conflicts. | Simultaneous execution of multi-permit activities without clear priority suppression hierarchy. |
+| **Trigger G3: Deep Normative Taxonomy Conflict** | Engineering taxonomy breakdown under ISO 14224 (Levels 6 to 9). | Boundary limits, failure mechanisms, or component maintainability hierarchies that conflict with or cannot be conclusively resolved by repository SSoTs. |
+| **Trigger G4: Novel Interaction Archetype / Paradigm Shift** | Operational workflow involving unprecedented business interaction modality. | Business interactions not covered by standard APM patterns. |
+
+> **Mandatory Justification Rule:**  
+> The audit report **CANNOT** simply declare *"Tier 2: None required"*. It MUST evaluate all four triggers explicitly. If no escalation is needed, each trigger must provide a concrete technical justification stating which local repository SSoT resolves the requirement. If any trigger fires, prompt generation for Gemini Notebook is mandatory.
 
 ### Step 4: Corrective Action Plan (CAP) & Direct Remediation
 1. Formulate a structured Corrective Action Plan (CAP-1, CAP-2, etc.) addressing each identified Blocker and Warning.
@@ -200,4 +242,15 @@ When generating the audit report, use the following standardized structure:
 
 * **CAP-1:** ...
 * **CAP-2:** ...
+
+---
+
+## 5. Tier 2 Grounded Escalation Gate (Gemini Notebook)
+
+| Trigger | Description | Evaluation | Status |
+| :--- | :--- | :--- | :---: |
+| **G1: Life Safety & Hazardous Interlocks** | Hazardous energy isolation (LOTO), hot work, explosive atmospheres. | Evaluated against local SSoT safety rules. | `[NOT TRIGGERED]` |
+| **G2: Cognitive Overload & Density Exceedance** | High-density operational flows with complex concurrent branchings. | Evaluated against standard transaction complexity thresholds. | `[NOT TRIGGERED]` |
+| **G3: Deep Normative Taxonomy Conflict** | ISO 14224 Level 6-9 taxonomy, boundary limits, or failure modes. | SSoT alignment verified against DT-ERD-DOC-001 and DT-DM-DOC-001/002. | `[NOT TRIGGERED]` |
+| **G4: Novel Interaction Archetype** | Workflows involving unprecedented operational interactions. | Standard APM business interaction model. | `[NOT TRIGGERED]` |
 ```
