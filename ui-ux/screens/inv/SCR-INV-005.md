@@ -19,7 +19,7 @@ use_cases:
   - "[[UC-INV-005]]"
 version: 1.1
 date: 2026-10-27
-status: Approved
+status: In Review
 ---
 
 # SCR-INV-005: Equipment Master Data Card
