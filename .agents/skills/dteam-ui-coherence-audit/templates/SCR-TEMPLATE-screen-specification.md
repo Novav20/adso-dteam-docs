@@ -32,9 +32,9 @@ status: Draft | In Review | Approved
 
 ## 2. Visual Artifact
 
-![SCR-MOD-000 Wireframe](assets/SCR-MOD-000-wireframe.svg)
+![SCR-MOD-000 Screenshot](assets/SCR-MOD-000-screenshot.png)
 
-> *Note: Vector wireframe or prototype screenshot illustrating the spatial layout and component placement.*
+> *Note: Production UI prototype capture (1920x1080) illustrating the spatial layout and component placement. Standalone SVG wireframes are prohibited; the visual artifact is always a high-definition screenshot of the companion HTML prototype.*
 
 ---
 

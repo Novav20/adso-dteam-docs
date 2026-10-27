@@ -50,10 +50,10 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Field modal / drawer for atomic 1:1 rotable equipment exchange.
   - [x] Canonical specification finalized: [`SCR-INV-025.md`](ui-ux/screens/inv/SCR-INV-025.md) (v1.4 Stable).
 
-- [ ] **SCR-INV-005: Equipment Master Data Card (Technical Data Sheet)**
+- [x] **SCR-INV-005: Equipment Master Data Card (Technical Data Sheet)**
   - [x] Pre-flight Use Case Audit and CAP execution: [`UC-INV-005.md`](domain-models/use-cases/inv/UC-INV-005.md) (v1.1 Stable / PASSED).
-  - [ ] Draft canonical specification for Level 3 equipment detail, operational telemetry bindings, and nameplate specs: [`SCR-INV-005.md`](ui-ux/screens/inv/SCR-INV-005.md).
-  - [ ] Execute Tier 0/1 UI audit and persist report.
+  - [x] Draft canonical specification for Level 3 equipment detail, operational telemetry bindings, and nameplate specs: [`SCR-INV-005.md`](ui-ux/screens/inv/SCR-INV-005.md) (v1.1 Stable).
+  - [x] Execute Tier 0/1/2 UI audit, capture 1080p screenshot, and persist report (`PASSED`).
 
 - [ ] **SCR-INV-027: Functional Locations Hierarchy Tree**
   - [ ] Draft canonical specification for ISO 14224 Level 1 to Level 5 navigation tree: [`SCR-INV-027.md`](ui-ux/screens/inv/SCR-INV-027.md).

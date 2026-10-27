@@ -100,7 +100,8 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
 1.  **Frontmatter:** `id`, `title`, `module`, `isa101_level`, `platform`, `target_device`, `roles`, `user_stories`, `use_cases`, `version: 1.0`, `date`, `status: Approved`.
 2.  **§1 Purpose and Operational Context:** Operational objective, primary persona, secondary personas, physical environment (e.g., Class I Div 2 hazardous area), and mode of operation.
     *   *Rule:* Qualitative operational environment and hardware context only. Strictly prohibit breakpoint tokens (`--dt-breakpoint-*`), container pixel/vh dimensions, and domain enum lists in §1.
-3.  **§2 Visual Artifact:** Universal markdown image link `![SCR-[MOD]-[NUM] Wireframe](assets/SCR-[MOD]-[NUM]-wireframe.svg)`.
+3.  **§2 Visual Artifact:** Universal markdown image link `![SCR-[MOD]-[NUM] Screenshot](assets/SCR-[MOD]-[NUM]-screenshot.png)`.
+    *   *Rule:* Standalone hand-drawn SVG wireframes (`*-wireframe.svg`) are strictly prohibited. The visual artifact in Section 2 must always be a high-definition ($1920\times 1080$) PNG screenshot captured directly from the companion interactive HTML prototype (`scr-[mod]-[num].html`).
 4.  **§3 Functional Component Inventory:** Table of `CMP-01`..`CMP-NN`.
     *   *Rule:* Table cells must strictly act as a visual catalog (Role, Content, Semantic Tokens, pointer to §5). **Never** write interaction algorithms, clamping math, state machines, hardware layout dimensions (e.g., `640px`, `45vh`), status strings, domain enum lists, or NFR citations in §3 table cells. Column 4 ("Semantic Token") must reference explicit Design System tokens (`--dt-*`). Component titles and roles must use authentic domain terms from `DT-UL-DOC-001.md`; generic narrative aliases (`Asset A / Asset B`, `Item 1 / 2`) are strictly prohibited.
     *   *Anti-Badge-Inflation Rule (`BADGE-001` / `DT-UI-DS-DOC-001 §6.5.1`):* `CMP-*` Badges, status pills, and tags are strictly reserved for dynamic operational state lifecycles (`[IN_PROGRESS]`, `[COMPLETE]`), alarm severities, and quantifiable counters (`5/7`). Static invariant metadata (e.g., user role, work class `C-10`, material availability `In Stock`, fixed warehouse, fixed asset criticality) must be modeled as plain structured text with neutral muted tokens (`--dt-color-text-muted`), never as badge pills, to eliminate visual competition with action buttons.
@@ -156,6 +157,9 @@ Create the standalone prototype in `sena-evidence/00-Overview/Protoyping/ui-prot
     *   **Domain Copy & Localized Enums:** Display authentic localized domain text to the user (`En Almacén Operativo`, `En Taller / Reparación`). Confine raw uppercase database keys strictly to HTML `value="..."` attributes. Generic variable aliases (`Activo A`, `Activo B`, `Item 1`) are prohibited from visible UI copy.
 6.  **Wrapper Integration:**
     *   Register the new prototype in `sena-evidence/00-Overview/Protoyping/ui-prototype/dev-wrapper.html` inside the `<select id="screenSelect">` dropdown.
+7.  **High-Definition Visual Artifact Capture (1080p Screenshot):**
+    *   Never draw standalone SVG wireframes (`*-wireframe.svg`). Capture a $1920\times 1080$ PNG screenshot directly from the rendered HTML prototype to `adso-dteam-docs/ui-ux/screens/[module]/assets/SCR-[MOD]-[NUM]-screenshot.png` using headless Firefox:
+        `firefox --no-remote -profile /tmp/ff_prof --headless --screenshot <output-png-path> --window-size 1920,1080 "file://<absolute-path-to-prototype.html>"`
 
 ---
 
