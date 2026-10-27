@@ -30,7 +30,7 @@ Allows the formal onboarding and digital registration of a new physical machiner
 8. The System verifies that the target Functional Location does not currently host an active mounted equipment unit.
 9. The System validates the chronological sequence integrity: Purchase Date $\le$ Acquisition Date $\le$ Installation Date $\le$ Start of Operation Date.
 10. The System executes an atomic transaction that:
-    - Formalizes the new Equipment Unit record with initial lifecycle state (`lifecycle_status: COMMISSIONING`, `operational_status: STANDBY`, `maintenance_status: OPERATIONAL`, `health_status: UNDETERMINED`), linking it to the designated Functional Location.
+    - Formalizes the new Equipment Unit record in initial operational states (commissioning lifecycle status, standby operational readiness, operational maintenance condition, and undetermined baseline health), linking it to the designated Functional Location.
     - Initiates the active installation timeline record marking the equipment unit as mounted at the selected Functional Location with the current timestamp.
     - Records an append-only entry in the immutable audit trail ([TR-001](../../../requirements/common/TR-001.md)) with a chained cryptographic integrity hash (SHA-256), capturing user identity, timestamp, Serial Number, inherited Tag Number, Equipment Class, SCE flag, and associated Functional Location.
 11. The System presents a confirmation notification and transitions the view to the detailed Equipment Master Data Card ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)) in view mode, exposing operational actions for boundary definition ([SCR-MTTO-029](../../../ui-ux/screens/mtto/SCR-MTTO-029.md)), spare parts Kardex history ([SCR-INV-006](../../../ui-ux/screens/inv/SCR-INV-006.md)), and rotable equipment swap ([SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md)).
@@ -61,13 +61,13 @@ In step 8, if the selected Functional Location currently hosts an active mounted
 3. The flow returns to step 4 so the Engineer can select an alternative location or abort the mounting association.
 
 ### AF-005: Safety Critical Element (SCE) Attestation Guard
-In step 3, if the Engineer designates the equipment unit as a Safety Critical Element (`is_sce: true`):
+In step 3, if the Engineer designates the equipment unit as a Safety Critical Element (SCE):
 1. The System displays a safety confirmation prompt requiring the Engineer to acknowledge that this equipment unit governs critical barrier protection under ISO 45001.
 2. The System marks the technical record with high-priority safety inspection flags and prompts for verification of isolation points and LOTO route readiness ([SCR-VIS-011](../../../ui-ux/screens/vis/SCR-VIS-011.md)).
 3. The flow resumes at step 4.
 
 ## 5. Postconditions
-* The new Equipment Unit (ISO 14224 Level 6) is formalized in the master catalog in `COMMISSIONING` lifecycle status, uniquely identified by Serial Number.
+* The new Equipment Unit (ISO 14224 Level 6) is formalized in the master catalog in commissioning lifecycle status, uniquely identified by Serial Number.
 * The active installation timeline record is instantiated, establishing the operational link between the physical equipment unit and its assigned Functional Location (inheriting process Tag Number and operational criticality).
 * The atomic creation transaction is sealed within the immutable append-only audit trail with an unbroken SHA-256 cryptographic hash chain ([TR-001](../../../requirements/common/TR-001.md)).
 * Downstream maintenance planning, reliability analysis (RIME), and Digital Twin spatial tracking can reference the equipment unit.
