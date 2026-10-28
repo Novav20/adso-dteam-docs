@@ -82,6 +82,11 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [ ] Execute Tier 0/1 UI audit and persist report.
 
 ### Architectural Viewport Shell & Cross-Cutting Gates (Deferred until Screen Specs are Stable)
+- [x] **Prototype asset modularization and Design System alignment**
+  - [x] Extract screen-specific CSS and JavaScript from the seven catalogued prototype screens without changing screen routes, IDs, or alternate-flow message listeners.
+  - [x] Apply canonical `tokens.css` and `portal-shell.css` to portal workstation screens and preserve archetype-specific modal, canvas, and mobile layouts.
+  - [x] Validate local `file:///` asset references, JavaScript syntax, HTML parsing, and `dev-wrapper.html` catalog integrity.
+
 - [ ] **Unified Spatial Application Shell (Single-Canvas Workspace)**
   - [ ] Formalize single-canvas viewport contract across `SCR-VIS-008`, `SCR-VIS-033`, and `SCR-VIS-011` (drawer/overlay activation vs. standard browser page navigation).
   - [ ] Evaluate focal spatial hierarchy / semantic zoom culling (Focal Island De-emphasis at L2/L3 thresholds).
