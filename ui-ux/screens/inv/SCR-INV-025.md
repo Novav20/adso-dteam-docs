@@ -57,7 +57,7 @@ status: Stable
 | `CMP-07` | Work Order Linkage Field | Optional justifying WO input | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Searchable input linking the equipment swap transaction to a justifying work order. Detailed in §5.1. |
 | `CMP-08` | Cryptographic Audit Hash Strip | Chained SHA-256 preview strip | Surface: `--dt-color-surface-raised`<br>Font: `--dt-font-mono-data` | Displays real-time generated SHA-256 hash chaining payload, visualizing the immutable cryptographic audit record dispatched with the transaction. Detailed in §5.3.3. |
 | `CMP-09` | Atomic Commit Action Button | Primary transactional confirm button | Surface: `--dt-color-state-info`<br>Disabled Surface: `--dt-color-state-disabled` | Primary action `[Confirm Asset Swap]`. Enforces single-commit atomic execution; disabled until all taxonomic and destination constraints are satisfied. Detailed in §5.3.4. |
-| `CMP-10` | Cancellation & Dismiss Button | Secondary cancellation control | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle` | Safely dismisses the modal without altering database configuration or location links. Detailed in §5.2.1. |
+| `CMP-10` | Cancellation & Dismiss Button | Secondary cancellation control | Surface: `--dt-color-surface-btn-secondary`<br>Border: None | Safely dismisses the modal without altering database configuration or location links. Detailed in §5.2.1. |
 
 ---
 

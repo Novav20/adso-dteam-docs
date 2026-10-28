@@ -1,7 +1,7 @@
 ---
 code: DT-UI-DS-DOC-001
-version: 2.0
-date: 2026-10-07
+version: 2.1
+date: 2026-10-28
 status: APPROVED
 author: Juan David Julio Serrano
 standard:
@@ -159,23 +159,25 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 *Application of the 90% neutral surfaces HPHMI rule using direct references to primitive tokens*
 
 | Semantic Token | Dark Theme (Mobile / Night) | Light Theme (Desktop / Day) | Interface Application                                                  |
-| -------------------------- | --------------------------- | ----------------------------- | ----------------------------------------------------------------------- |
-| --dt-color-bg-canvas       | --dt-primitive-gray-900     | --dt-primitive-gray-200       | 2D canvas background / Floor plan                                   |
-| --dt-color-surface-base    | --dt-primitive-gray-800     | --dt-primitive-gray-100       | App background / Header                                         |
-| --dt-color-surface-card    | --dt-primitive-gray-700     | --dt-primitive-gray-50        | Asset cards / Table rows                                    |
-| --dt-color-surface-drawer  | --dt-primitive-gray-650     | --dt-primitive-gray-30        | Lateral panels / Bottom sheets                                       |
-| --dt-color-surface-raised  | --dt-primitive-gray-600     | --dt-primitive-gray-20        | Modals / Floating pills / Toolbars                                   |
-| --dt-color-surface-overlay | --dt-primitive-gray-500     | --dt-primitive-gray-10        | Tooltips / Context menus / Highest elevation                         |
-| --dt-color-border-subtle   | --dt-primitive-gray-650     | --dt-primitive-gray-300       | Dividing lines / Separators                                         |
-| --dt-color-border-panel    | --dt-primitive-gray-500     | --dt-primitive-gray-350       | Structural panel / drawer perimeter borders                         |
-| --dt-color-border-focus    | --dt-primitive-gray-450     | --dt-primitive-gray-550       | Focused input border (Dark Theme adjusted to 3.09:1 WCAG AA)          |
-| --dt-color-text-muted      | --dt-primitive-gray-420     | --dt-primitive-gray-620       | Units of measurement / Timestamps (Dark Theme adjusted to 4.55:1 WCAG AA) |
-| --dt-color-text-body       | --dt-primitive-gray-280     | --dt-primitive-gray-850       | Main text / Table values                                      |
-| --dt-color-text-primary    | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Titles / Critical values                                              |
-| --dt-color-mai-track       | --dt-primitive-gray-700     | --dt-primitive-gray-100       | Analog MAI indicator track background                              |
-| --dt-color-mai-normal-zone | --dt-primitive-blue-700     | --dt-primitive-blue-200       | Normal operation range strip in MAI                              |
-| --dt-color-mai-pointer     | --dt-primitive-gray-10      | --dt-primitive-gray-980       | MAI current value pointer                                             |
-| --dt-color-mai-interlock   | --dt-primitive-gray-10      | --dt-primitive-gray-980       | MAI interlock trip limit marker                    |
+| --------------------------------- | --------------------------- | ----------------------------- | ----------------------------------------------------------------------- |
+| --dt-color-bg-canvas              | --dt-primitive-gray-900     | --dt-primitive-gray-200       | 2D canvas background / Floor plan                                   |
+| --dt-color-surface-base           | --dt-primitive-gray-800     | --dt-primitive-gray-100       | App background / Sidebar navigation / Modal backdrop                |
+| --dt-color-surface-card           | --dt-primitive-gray-700     | --dt-primitive-gray-50        | Asset cards / Table rows                                    |
+| --dt-color-surface-drawer         | --dt-primitive-gray-650     | --dt-primitive-gray-30        | Lateral panels / Bottom sheets                                       |
+| --dt-color-surface-raised         | --dt-primitive-gray-600     | --dt-primitive-gray-20        | Modals / Floating pills / Toolbars                                   |
+| --dt-color-surface-overlay        | --dt-primitive-gray-500     | --dt-primitive-gray-10        | Tooltips / Context menus / Highest elevation                         |
+| --dt-color-surface-btn-secondary  | --dt-primitive-gray-700     | --dt-primitive-gray-100       | Subtle neutral surface fill for borderless secondary buttons        |
+| --dt-color-border-hairline        | --dt-primitive-gray-700     | --dt-primitive-gray-100       | Non-intrusive structural dividing lines / Split rails / Card dividers |
+| --dt-color-border-subtle          | --dt-primitive-gray-650     | --dt-primitive-gray-300       | Dividing lines / Separators                                         |
+| --dt-color-border-panel           | --dt-primitive-gray-500     | --dt-primitive-gray-350       | Structural panel / drawer perimeter borders                         |
+| --dt-color-border-focus           | --dt-primitive-gray-450     | --dt-primitive-gray-550       | Focused input border (Dark Theme adjusted to 3.09:1 WCAG AA)          |
+| --dt-color-text-muted             | --dt-primitive-gray-420     | --dt-primitive-gray-620       | Units of measurement / Timestamps (Dark Theme adjusted to 4.55:1 WCAG AA) |
+| --dt-color-text-body              | --dt-primitive-gray-280     | --dt-primitive-gray-850       | Main text / Table values                                      |
+| --dt-color-text-primary           | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Titles / Critical values                                              |
+| --dt-color-mai-track              | --dt-primitive-gray-700     | --dt-primitive-gray-100       | Analog MAI indicator track background                              |
+| --dt-color-mai-normal-zone        | --dt-primitive-blue-700     | --dt-primitive-blue-200       | Normal operation range strip in MAI                              |
+| --dt-color-mai-pointer            | --dt-primitive-gray-10      | --dt-primitive-gray-980       | MAI current value pointer                                             |
+| --dt-color-mai-interlock          | --dt-primitive-gray-10      | --dt-primitive-gray-980       | MAI interlock trip limit marker                    |
 
 ### 3.3. Alarm and Safety Semantics (10% Reserved)
 
@@ -222,6 +224,9 @@ Typography is defined under a dual model: high-availability native fonts in the 
 | --dt-font-body-md   | 14px        | 0.875rem     | 20px                 | Regular (400)      | Text for table cells, technical descriptions and menus        |
 | --dt-font-caption   | 12px        | 0.75rem      | 16px                 | Medium (500)       | Floating form labels, metadata, log authorship  |
 | --dt-font-mono-data | 13px        | 0.8125rem    | 16px                 | Medium (500)       | Industrial tags (P-101), cryptographic hashes, IPs, and times    |
+
+> **Ergonomic Typography Discipline (Anti-Visual-Shouting Principle):**  
+> Form field labels and technical key-value item labels (`.kv-label`) strictly utilize `--dt-font-caption` ($11\text{px} - 12\text{px}$, Medium `500`) with subtle uppercase tracking ($0.04\text{em}$) and muted neutral tone (`--dt-color-text-muted`). High-contrast bolding (`font-weight: 700` or `font-weight: 600`) on static labels is prohibited to minimize visual clutter and cognitive fatigue. Values (`.kv-val`) inherit `--dt-font-body-md` Regular ($14\text{px}$, `400`). Section headers inside modular cards adhere to $15\text{px} - 18\text{px}$ SemiBold (`600`) with proportional $15\text{px} - 16\text{px}$ icons.
 
 ---
 
@@ -365,8 +370,8 @@ To prevent peripheral ambiguity between non-interactive status indicators and cl
 | :--- | :--- | :--- |
 | **Corner Geometry** | **Full Capsule / Pill (`--dt-radius-full`, $9999\text{px}$)** or borderless flat indicator. Rectangular button corner radii (`--dt-radius-sm`, `--dt-radius-md`) are prohibited on row status badges. | **Structured Rectangular (`--dt-radius-sm` or `--dt-radius-md`, $4\text{px}-6\text{px}$)**. |
 | **Vertical Profile & Padding** | Compact, tight-fitting profile ($18\text{px}-20\text{px}$ height; padding $2\text{px}\ 8\text{px}$; `--dt-font-caption` / $11\text{px}$ monospace). | Ergonomic click target profile ($\ge 26\text{px}-32\text{px}$ height; padding $4\text{px}\ 10\text{px}$; $12\text{px}-13\text{px}$ sans-serif). |
-| **Border & Surface Treatment** | Subtle translucent tint ($10\%-14\%$ opacity) on critical/warning bands; borderless or hairline muted outline on normal bands. | Explicit structural border (`1px solid var(--dt-color-border-subtle)` or `--dt-color-border-panel`) with elevated surface (`--dt-color-surface-card` / `--dt-color-surface-raised`). |
-| **Pointer & Hover Affordance** | `cursor: default`; `user-select: none`; zero hover elevation or border highlight. | `cursor: pointer`; explicit `:hover` surface elevation and focus border transition (`--dt-color-border-focus`). |
+| **Border & Surface Treatment** | Subtle translucent tint ($10\%-14\%$ opacity) on critical/warning bands; borderless or hairline muted outline on normal bands. | **3-Tier Action Hierarchy:**<br>1. *Primary Action Button (`.dt-btn-primary`):* Solid accent (`--dt-color-state-info`), high-contrast text (`--dt-primitive-gray-10`), borderless (`border: none;`). Strictly 1 primary trigger per view/modal.<br>2. *Secondary / Toolbar Button (`.dt-btn`, `.header-btn`):* Borderless (`border: none;`), soft low-contrast neutral surface (`--dt-color-surface-btn-secondary`), `--dt-color-text-primary`.<br>3. *Tertiary / Ghost Button:* Transparent surface, borderless, text/icon only. |
+| **Pointer & Hover Affordance** | `cursor: default`; `user-select: none`; zero hover elevation or border highlight. | `cursor: pointer`; explicit `:hover` surface elevation or subtle brightness shift, with tactile `:active` micro-scale ($0.98$). |
 
 ---
 

@@ -10,11 +10,11 @@
    1. RESET, BASE ERGONOMICS & HAIRLINE SYSTEM
    ========================================================================== */
 :root {
-  --dt-hairline-subtle: rgba(0, 0, 0, 0.08);
+  --dt-hairline-subtle: var(--dt-color-border-hairline, rgba(0, 0, 0, 0.08));
 }
 
 [data-theme="dark"] {
-  --dt-hairline-subtle: rgba(255, 255, 255, 0.08);
+  --dt-hairline-subtle: var(--dt-color-border-hairline, rgba(255, 255, 255, 0.08));
 }
 
 *, *::before, *::after {
@@ -359,7 +359,7 @@ body {
 /* Secondary Buttons: Zero harsh borders, subtle background, clean contrast */
 .dt-btn,
 .header-btn {
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: var(--dt-color-surface-btn-secondary, rgba(0, 0, 0, 0.04));
   border: none;
   color: var(--dt-color-text-primary);
   border-radius: var(--dt-radius-md, 6px);
@@ -377,7 +377,7 @@ body {
 }
 [data-theme="dark"] .dt-btn:not(.dt-btn-primary):not(.btn-primary),
 [data-theme="dark"] .header-btn:not(.dt-btn-primary):not(.btn-primary) {
-  background-color: rgba(255, 255, 255, 0.06);
+  background-color: var(--dt-color-surface-btn-secondary, rgba(255, 255, 255, 0.06));
   color: var(--dt-color-text-primary);
 }
 

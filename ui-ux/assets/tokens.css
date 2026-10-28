@@ -136,6 +136,8 @@
   --dt-color-surface-drawer: var(--dt-primitive-gray-30);
   --dt-color-surface-raised: var(--dt-primitive-gray-20);
   --dt-color-surface-overlay: var(--dt-primitive-gray-10);
+  --dt-color-surface-btn-secondary: var(--dt-primitive-gray-100);
+  --dt-color-border-hairline: var(--dt-primitive-gray-100);
   --dt-color-border-subtle: var(--dt-primitive-gray-300);
   --dt-color-border-panel: var(--dt-primitive-gray-350);
   --dt-color-border-focus: var(--dt-primitive-gray-550);
@@ -181,6 +183,8 @@
   --dt-color-surface-drawer: var(--dt-primitive-gray-650);
   --dt-color-surface-raised: var(--dt-primitive-gray-600);
   --dt-color-surface-overlay: var(--dt-primitive-gray-500);
+  --dt-color-surface-btn-secondary: var(--dt-primitive-gray-700);
+  --dt-color-border-hairline: var(--dt-primitive-gray-700);
   --dt-color-border-subtle: var(--dt-primitive-gray-650);
   --dt-color-border-panel: var(--dt-primitive-gray-500);
   --dt-color-border-focus: var(--dt-primitive-gray-450);

@@ -105,6 +105,21 @@
       "$type": "dimension",
       "$description": ""
     },
+    "layout-sidebar-width-expanded": {
+      "$value": "240px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-sidebar-width-collapsed": {
+      "$value": "64px",
+      "$type": "dimension",
+      "$description": ""
+    },
+    "layout-table-row-height": {
+      "$value": "44px",
+      "$type": "dimension",
+      "$description": ""
+    },
     "layout-drawer-width-desktop": {
       "$value": "440px",
       "$type": "dimension",
@@ -564,6 +579,16 @@
       "$type": "color",
       "$description": ""
     },
+    "surface-btn-secondary": {
+      "$value": "{gray-700}",
+      "$type": "color",
+      "$description": ""
+    },
+    "border-hairline": {
+      "$value": "{gray-700}",
+      "$type": "color",
+      "$description": ""
+    },
     "border-subtle": {
       "$value": "{gray-650}",
       "$type": "color",
@@ -738,6 +763,16 @@
     },
     "surface-overlay": {
       "$value": "{gray-10}",
+      "$type": "color",
+      "$description": ""
+    },
+    "surface-btn-secondary": {
+      "$value": "{gray-100}",
+      "$type": "color",
+      "$description": ""
+    },
+    "border-hairline": {
+      "$value": "{gray-100}",
       "$type": "color",
       "$description": ""
     },
