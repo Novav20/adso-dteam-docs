@@ -112,6 +112,10 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
         *   **Presentation Layer Boundary Invariant:** UI sequence diagrams (Mermaid) must model interactions strictly between the User/Technician (`Tech`), the presentation component (`UI`), external client hardware/interop (`Scanner`/`Sensor`), and the boundary Application Service API (`API`). Private backend-to-backend hops (e.g., `API ->> Worker`, `API ->> DB`) and internal backend self-loops (`API ->> API`) are prohibited presentation leaks.
     *   *§5.2 Navigation & Mechanics:* Spatial interactions, touch thresholds ($4\text{px}$ pan), layout shift invariants, gesture physics. SSoT for gesture physics, drag hysteresis, natural drawer heights, and focal pan/zoom offsets. Delegate container widths, viewport breakpoint ranges, and column stacking strictly to Section 8.
         *   *Layout Shift Invariants & Column Width Constraints:* When tables or cards contain dynamic badges or text of variable character lengths (e.g., RIME priority bands, status transitions), §5.2 must define fixed minimum width constraints (`--dt-control-width-*` or minimum pixel layout invariants) to prevent horizontal reflow / table jitter during filtering and state changes.
+        *   *Cumulative Layout Shift Elimination (`CLS = 0`) & Non-Disruptive Alerting:* It is strictly prohibited to model validation errors, data mutation blocks, or alternate flows (`AF-*`) via dynamic top banners that push form or datasheet content downward (*Layout Shift* / `CLS > 0`). All alerts, conflict warnings, and resolution action links must be deployed via:
+            (a) Inline diagnostic feedback anchored directly beneath the affected input control (`.field-feedback`),
+            (b) Permanent fixed-height containers with pre-allocated slots (such as the left side of the permanent sticky action footer `--dt-layout-footer-height` or a persistent header chip), or
+            (c) Non-modal floating toast overlays (`--dt-z-toast-alert`, `--dt-layout-toast-max-height`) that never displace document geometry.
     *   *§5.3 Domain Workflows & Data Mutation:* Method payloads, validation constraints, cryptographic hashing, and fail-safe handling. Bound exclusively to Presentation DTOs.
         *   **Controlled Vocabulary & Enum Hygiene:** Bind dropdowns directly to C# enum types in §7.2.3. Never write exhaustive LaTeX set equations or prose lists enumerating enum string literals. Prohibit parenthetical mock fixtures in prose (`*(e.g., WorkOrderId = "WO-...")*`) that risk type clashes.
         *   **Offline Protocol Pointer:** When §5.3.5 exists, §5.3.4 command dispatch error handling must point directly to it rather than duplicating outbox steps.
@@ -155,9 +159,12 @@ Create the standalone prototype in `sena-evidence/00-Overview/Protoyping/ui-prot
     *   **Anti-Badge-Inflation & Button Differentiation:** Enforce morphological differentiation between action buttons (`.dt-btn-primary`, `.dt-btn-secondary`) and status badges (`.dt-badge`). Never render static data attributes as pseudo-badges.
     *   **Interactive Control Neutrality:** Active sort chevrons, focus indicators, and selection borders must use neutral slate tokens (`var(--dt-color-border-focus)`, `var(--dt-color-text-muted)`), never bright blue or primary alarm accents.
     *   **Domain Copy & Localized Enums:** Display authentic localized domain text to the user (`En Almacén Operativo`, `En Taller / Reparación`). Confine raw uppercase database keys strictly to HTML `value="..."` attributes. Generic variable aliases (`Activo A`, `Activo B`, `Item 1`) are prohibited from visible UI copy.
-6.  **Wrapper Integration:**
+6.  **Ergonomic Containment (`--dt-layout-form-max-width`) & Permanent Sticky Action Footer (`CMP-12`):**
+    *   Technical datasheets and execution forms must constrain their master card layout to `--dt-layout-form-max-width` ($1000\text{px}$, centered in the workspace) to prevent excessive horizontal separation between labels and values on large desktop monitors.
+    *   Primary action buttons and validation indicators must be housed in a permanent sticky bottom footer (`--dt-layout-footer-height`). Validation error summaries (`AF-*`) must never push form content downward via top banners (`CLS = 0`).
+7.  **Wrapper Integration:**
     *   Register the new prototype in `sena-evidence/00-Overview/Protoyping/ui-prototype/dev-wrapper.html` inside the `<select id="screenSelect">` dropdown.
-7.  **High-Definition Visual Artifact Capture (1080p Screenshot):**
+8.  **High-Definition Visual Artifact Capture (1080p Screenshot):**
     *   Never draw standalone SVG wireframes (`*-wireframe.svg`). Capture a $1920\times 1080$ PNG screenshot directly from the rendered HTML prototype to `adso-dteam-docs/ui-ux/screens/[module]/assets/SCR-[MOD]-[NUM]-screenshot.png` using headless Firefox:
         `firefox --no-remote -profile /tmp/ff_prof --headless --screenshot <output-png-path> --window-size 1920,1080 "file://<absolute-path-to-prototype.html>"`
 
