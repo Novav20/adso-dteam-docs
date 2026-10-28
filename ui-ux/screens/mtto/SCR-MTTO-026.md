@@ -252,7 +252,7 @@ public string? InitialBandFilter { get; set; }
 ```csharp
 // CMP-01: PortalSidebarNav.razor
 [Parameter] public bool IsCollapsed { get; set; }
-[Parameter] public string ActiveRouteId { get; set; } = "SCR-MTTO-026";
+[Parameter] public string ActiveRouteCode { get; set; } = "SCR-MTTO-026";
 [Parameter] public EventCallback<bool> OnCollapseToggled { get; set; }
 
 // CMP-02: BacklogHeaderBar.razor
@@ -324,10 +324,12 @@ public record BacklogItemDto(
     Guid Id,
     Guid WorkRequestId,
     Guid EquipmentUnitId,
+    Guid FunctionalLocationId,
     string WorkRequestNumber,
     string Description,
     string FunctionalLocationTag,
     string FunctionalLocationName,
+    string EquipmentTag,
     string EquipmentSerialNumber,
     string EquipmentModel,
     string MaintainableItemName,
@@ -353,7 +355,9 @@ public record BacklogSummaryMetricsDto(
 
 public record EquipmentGroupingSuggestionDto(
     Guid EquipmentUnitId,
+    Guid FunctionalLocationId,
     string FunctionalLocationTag,
+    string EquipmentTag,
     string EquipmentSerialNumber,
     int PendingRequestCount,
     decimal TotalEstimatedHours

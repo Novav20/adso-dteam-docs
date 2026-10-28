@@ -158,8 +158,9 @@ public string? FunctionalLocationCode { get; set; }
 public string? InitialEquipmentTag { get; set; }
 ```
 
-#### 7.2.2. `CanvasViewport2D.razor` (`CMP-01`)
+#### 7.2.2. Subcomponent Parameters (`CMP-01` to `CMP-11`)
 ```csharp
+// CMP-01: CanvasViewport2D.razor
 [Parameter]
 public required string FunctionalLocationCode { get; set; }
 
@@ -174,10 +175,28 @@ public IReadOnlyDictionary<string, OperationalStatus> EquipmentStatuses { get; s
 
 [Parameter]
 public EventCallback<string> OnEquipmentSelected { get; set; }
-```
 
-#### 7.2.3. `AssetTaskFaceplate.razor` (`CMP-05`)
-```csharp
+// CMP-02: ViewportToolbar.razor
+[Parameter]
+public string CurrentLevel { get; set; } = "L2: SECTOR";
+
+[Parameter]
+public EventCallback OnResetView { get; set; }
+
+[Parameter]
+public EventCallback<double> OnZoomChanged { get; set; }
+
+[Parameter]
+public EventCallback OnToggleLayers { get; set; }
+
+// CMP-03: CommandPaletteTrigger.razor
+[Parameter]
+public EventCallback OnOpenPalette { get; set; }
+
+[Parameter]
+public EventCallback<string> OnTagSearchSubmitted { get; set; }
+
+// CMP-05: AssetTaskFaceplate.razor
 [Parameter]
 public required EquipmentFaceplateDto FaceplateData { get; set; }
 
@@ -189,10 +208,7 @@ public EventCallback<bool> OnCollapseToggled { get; set; }
 
 [Parameter]
 public EventCallback<string> OnDrillDownRequested { get; set; }
-```
 
-#### 7.2.4. Subcomponent Parameters (`CMP-06` to `CMP-10`)
-```csharp
 // CMP-06: AssetHeaderBlock.razor
 [Parameter]
 public required EquipmentHeaderDto Header { get; set; }
@@ -205,19 +221,29 @@ public required MovingAnalogIndicatorDto Telemetry { get; set; }
 [Parameter]
 public required SafetyContextSummaryDto SafetyContext { get; set; }
 
-// CMP-10: ActiveWorkOrdersList.razor
-[Parameter]
-public IReadOnlyList<ActiveWorkOrderSummaryDto> WorkOrders { get; set; } = [];
-
 // CMP-09: QuickActionButtons.razor
 [Parameter]
 public required string TagNumber { get; set; }
 
 [Parameter]
 public EventCallback<string> OnActionTriggered { get; set; }
+
+// CMP-10: ActiveWorkOrdersList.razor
+[Parameter]
+public IReadOnlyList<ActiveWorkOrderSummaryDto> WorkOrders { get; set; } = [];
+
+// CMP-11: UserProfileButton.razor
+[Parameter]
+public required string UserInitials { get; set; }
+
+[Parameter]
+public required string UserName { get; set; }
+
+[Parameter]
+public EventCallback OnProfileClicked { get; set; }
 ```
 
-#### 7.2.5. Data Transfer Objects (DTOs)
+#### 7.2.3. Data Transfer Objects (DTOs)
 ```csharp
 public record EquipmentFaceplateDto
 {
@@ -229,6 +255,7 @@ public record EquipmentFaceplateDto
 
 public record EquipmentHeaderDto
 {
+    public required Guid EquipmentId { get; init; }
     public required string TagNumber { get; init; }
     public required string Description { get; init; }
     public required Criticality Criticality { get; init; }
@@ -260,10 +287,45 @@ public record SafetyContextSummaryDto
 
 public record ActiveWorkOrderSummaryDto
 {
+    public required Guid WorkOrderId { get; init; }
     public required string OrderNumber { get; init; }
     public required WorkOrderType OrderType { get; init; }
     public required WorkOrderStatus Status { get; init; }
     public required int RimePriorityScore { get; init; }
+}
+
+public enum Criticality
+{
+    High,
+    Medium,
+    Low
+}
+
+public enum OperationalStatus
+{
+    Up,
+    Standby,
+    Down
+}
+
+public enum LotoLockoutState
+{
+    Isolated,
+    ActiveEnergyDetected,
+    TryOutPending
+}
+
+public enum WorkOrderType
+{
+    Preventive,
+    Corrective
+}
+
+public enum WorkOrderStatus
+{
+    Scheduled,
+    InProgress,
+    Completed
 }
 ```
 

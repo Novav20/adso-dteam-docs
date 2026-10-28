@@ -46,7 +46,7 @@ status: Stable
 
 ## 3. Functional Component Inventory
 
-> The base layout, typography, and design tokens are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md) and [tokens.css](../../assets/tokens.css). This table defines the present components, semantic tokens, and their architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
+> The base layout, typography, and design tokens are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, semantic tokens, and their architectural roles. Detailed interaction rules, layout constraints, and geometric algorithms are strictly specified in Section 5.
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
@@ -78,7 +78,7 @@ status: Stable
 
 ---
 
-## 5. Interaction Rules and Data Flow (Single Source of Truth - SSoT)
+## 5. Interaction Rules and Data Flow
 
 ### 5.1. Initial Load & Lifecycle
 
