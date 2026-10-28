@@ -13,7 +13,7 @@ user_stories:
   - MTTO-026
 use_cases:
   - UC-MTTO-026
-version: 1.2
+version: 1.3
 date: 2026-10-26
 status: Stable
 ---
@@ -47,7 +47,7 @@ status: Stable
 
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
-| `CMP-01` | Web Portal Shell & Sidebar | Collapsible navigation sidebar | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Hosts global module navigation (Digital Twin, Maintenance, Inventory, Governance per [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md)). Highlights "Priorización de Backlog" as the active route. Responsive widths governed in Section 8. |
+| `CMP-01` | Web Portal Shell & Sidebar | Collapsible navigation sidebar | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Hosts global module navigation (Digital Twin, Maintenance, Inventory, Governance per [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md)). Highlights "Backlog Prioritization" as the active route. Responsive widths governed in Section 8. |
 | `CMP-02` | Top Workstation Header | Breadcrumb trail, search, governance notifications, and user badge | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Sticky header hosting breadcrumbs, quick search trigger (`Ctrl + K`), immutable audit log trigger, unconfigured criticality alert button (`CMP-06`), and standardized operator session badge. |
 | `CMP-03` | KPI Summary Metric Cards | 5-card interactive filter & summary bar | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Displays aggregate counters across the 4 RIME priority bands plus total pending count. Serves as the sole interactive priority band filter for the data grid, preventing redundant filter chip rows. Detailed in §5.1. |
 | `CMP-04` | Multi-Criteria Filter Toolbar | Flat canvas toolbar with dropdowns, search input, and inline grouping pill | Surface: `--dt-color-surface-base`<br>Controls: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Hosts Functional Location hierarchy dropdown, Work Class selector, live text search, and the inline equipment grouping suggestion pill (`CMP-05`) directly on the canvas without outer box nesting or vertical layout shift. Specification in §5.2. |
@@ -449,8 +449,8 @@ public record RimeCalculationBreakdownDto(
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Full workstation grid layout. Navigation sidebar expanded ($240\text{px}$); 5 summary KPI cards in a single row; 10-column data grid with all operational metadata visible without horizontal scrolling; slide-over audit drawer docks laterally (`--dt-layout-drawer-width-desktop`). | Optimized for mouse and keyboard navigation; row height $44\text{px}$; dense font sizing (`--dt-font-body-md`, $14\text{px}$); single-click row selection and compact contextual action menu (`···`). |
-| **Compact Desktop / Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg`) | Navigation sidebar collapses to icon-only rail ($64\text{px}$); KPI summary cards remain in a 5-column fluid row; inline grouping pill wraps cleanly inside the filter toolbar; modals render centered. | Touch and pointer targets comply with $\ge 44\text{px}$; horizontal table scroll prevented by compacting secondary description width. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Full workstation grid layout. Navigation sidebar expanded (`--dt-layout-sidebar-width-expanded`); 5 summary KPI cards in a single row; 10-column data grid with all operational metadata visible without horizontal scrolling; slide-over audit drawer docks laterally (`--dt-layout-drawer-width-desktop`). | Optimized for mouse and keyboard navigation; row height `--dt-layout-table-row-height`; dense font sizing (`--dt-font-body-md`); single-click row selection and compact contextual action menu (`···`). |
+| **Compact Desktop / Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg`) | Navigation sidebar collapses to icon-only rail (`--dt-layout-sidebar-width-collapsed`); KPI summary cards remain in a 5-column fluid row; inline grouping pill wraps cleanly inside the filter toolbar; modals render centered. | Touch and pointer targets comply with `--dt-control-height-sm`; horizontal table scroll prevented by compacting secondary description width. |
 | **Tablet Portrait / Secondary Terminal**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md`) | Sidebar hidden into off-canvas drawer; KPI summary cards wrap into a 2-row grid; data grid prioritizes 7 core operational columns; bottom sticky confirmation bar docks above system chrome. | Touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ spacing; action menus expand for touch ergonomics. |
 
 ---

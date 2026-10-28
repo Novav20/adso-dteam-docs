@@ -73,6 +73,9 @@
   --dt-breakpoint-xl: 1920px;
 
   /* Structural layout and drawer dimensions */
+  --dt-layout-sidebar-width-expanded: 240px;
+  --dt-layout-sidebar-width-collapsed: 64px;
+  --dt-layout-table-row-height: 44px;
   --dt-layout-drawer-width-desktop: 440px;
   --dt-layout-drawer-width-tablet: 320px;
   --dt-layout-drawer-width: var(--dt-layout-drawer-width-tablet);

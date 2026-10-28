@@ -30,7 +30,7 @@ status: Stable
   * **Warehouse Manager:** Reconciles rotable inventory movements and receives dismantled units into the repair workshop.
   * **Maintenance Supervisor:** Approves equipment substitutions associated with high-priority corrective work orders.
 * **Operational Context:** Accessible in field environments on rugged industrial tablets during physical equipment dismounting, and in control offices on desktop workstations. Detailed responsive profiles and breakpoints are specified in Section 8.
-* **Mode of Operation:** Contextual Transactional Modal Task. Deploys as an interruptive dialog on desktop workstations and adapts to a touch-first bottom sheet on mobile and portrait tablet viewports. Excludes continuous process telemetry manipulation, focusing strictly on asset lifecycle state transitions, barcode scanning, and cryptographic audit persistence. Detailed interaction rules and dimensions are specified in §5.2 and §8.
+* **Mode of Operation:** Contextual Transactional Modal Task. Deploys as a centered modal dialog across workstation and tablet viewports. Excludes continuous process telemetry manipulation, focusing strictly on asset lifecycle state transitions, barcode scanning, and cryptographic audit persistence. Detailed interaction rules and dimensions are specified in §5.2 and §8.
 
 ---
 
@@ -337,8 +337,8 @@ public record AssetSwapCompletedEvent(
 
 1. **Optical Barcode & NFC Scanner Interop (`IBarcodeScannerInterop`):**
    * Encapsulates hardware barcode scanners and optical camera streams, parsing Code 128 / QR / DataMatrix serial tags and dispatching selection events without UI thread blocking.
-2. **Tactile Bottom Sheet Gesture Interop (`IDrawerGestureInterop`):**
-   * Handles drag gestures and discrete single-tap toggling between natural resting height (`--dt-layout-bottom-sheet-height-initial`) and expanded ceiling (`--dt-layout-bottom-sheet-height-expanded`) with tactile threshold snapping.
+2. **Modal Focus & Keyboard Trap Interop (`IModalFocusInterop`):**
+   * Traps keyboard focus (`Tab` / `Shift+Tab`) within the active modal dialog container, binds `Escape` keyboard dismissal, and manages backdrop click outside dismissal.
 3. **Web Cryptography SHA-256 Bridge (`ICryptoInterop`):**
    * Computes candidate `PayloadHash` asynchronously in a dedicated Web Worker to preview unalterable cryptographic chaining in `CMP-08`.
 4. **Encrypted Offline Storage Interop (`IOfflineStorage`):**
