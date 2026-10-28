@@ -1,0 +1,455 @@
+/**
+ * PORTAL-SHELL.CSS
+ * Shared layout, navigation shell, typography, and ERPNext-inspired control primitives
+ * for DTEAM APM Workstation Prototypes (Archetype C & Level 3 Datasheets).
+ *
+ * Standards: ANSI/ISA-101.01 (90/10 Grayscale), DT-UI-DS-DOC-001, DT-UI-NAV-DOC-001
+ */
+
+/* ==========================================================================
+   1. RESET, BASE ERGONOMICS & HAIRLINE SYSTEM
+   ========================================================================== */
+:root {
+  --dt-hairline-subtle: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] {
+  --dt-hairline-subtle: rgba(255, 255, 255, 0.08);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--dt-font-family-base, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  background-color: var(--dt-color-surface-card);
+  color: var(--dt-color-text-body);
+  display: flex;
+  font-size: var(--dt-font-body-md, 14px);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar discipline */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--dt-color-border-subtle) transparent;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--dt-color-border-subtle);
+  border-radius: var(--dt-radius-full, 9999px);
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--dt-color-border-focus);
+}
+
+.dt-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.mono {
+  font-family: var(--dt-font-family-mono, monospace);
+  font-size: var(--dt-font-mono-data, 13px);
+}
+
+/* ==========================================================================
+   2. PORTAL SHELL & COLLAPSIBLE SIDEBAR NAVIGATION
+   ========================================================================== */
+.portal-shell {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Sidebar with subtle contrast background (ERPNext / Notion style) */
+.portal-sidebar {
+  width: var(--dt-layout-sidebar-width-expanded, 240px);
+  background-color: var(--dt-color-surface-base);
+  border-right: 1px solid var(--dt-hairline-subtle, var(--dt-color-border-subtle));
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease;
+  z-index: var(--dt-z-drawer-sidebar, 800);
+  user-select: none;
+  overflow: hidden;
+}
+
+.portal-sidebar.collapsed {
+  width: var(--dt-layout-sidebar-width-collapsed, 64px);
+}
+
+/* Header brand logo: seamlessly integrated with zero bottom border */
+.sidebar-header {
+  height: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border-bottom: none; /* No horizontal line separating logo from sidebar */
+  cursor: pointer;
+  transition: background 0.15s ease;
+  overflow: hidden;
+}
+.sidebar-header:hover {
+  background-color: var(--dt-color-surface-raised);
+}
+.portal-sidebar.collapsed .sidebar-header {
+  padding: 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-3, 12px);
+  width: 100%;
+  padding: 0 var(--dt-space-4, 16px);
+  overflow: hidden;
+}
+.portal-sidebar.collapsed .sidebar-brand {
+  padding: 0;
+  justify-content: center;
+}
+
+.brand-logo-wrap {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-logo-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--dt-radius-md, 6px);
+  background: var(--dt-color-state-info, #2563eb);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.02em;
+}
+
+.brand-text {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--dt-color-text-primary);
+  white-space: nowrap;
+}
+.portal-sidebar.collapsed .brand-text {
+  display: none;
+}
+
+/* Navigation List */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--dt-space-2, 8px) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dt-color-text-muted);
+  padding: var(--dt-space-3, 12px) var(--dt-space-4, 16px) var(--dt-space-1, 4px);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.portal-sidebar.collapsed .nav-section-title {
+  display: none;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 var(--dt-space-3, 12px);
+  color: var(--dt-color-text-body);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  font-size: 13px;
+  border-radius: var(--dt-radius-md, 6px);
+  margin: 0 var(--dt-space-2, 8px);
+}
+.portal-sidebar.collapsed .nav-item {
+  padding: 0;
+  justify-content: center;
+  margin: 0 var(--dt-space-1, 4px);
+}
+
+.nav-item:hover {
+  background-color: var(--dt-color-surface-raised);
+  color: var(--dt-color-text-primary);
+}
+
+.nav-item.active {
+  background-color: var(--dt-color-surface-card);
+  color: var(--dt-color-state-info);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.nav-item-icon-wrap {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: var(--dt-space-2, 8px);
+}
+.portal-sidebar.collapsed .nav-item-icon-wrap {
+  margin-right: 0;
+}
+
+.nav-item-text {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.portal-sidebar.collapsed .nav-item-text {
+  display: none;
+}
+
+.portrait-logo-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   3. MAIN WORKSTATION SHELL & TOP HEADER
+   ========================================================================== */
+.portal-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  min-width: 0;
+  background-color: var(--dt-color-surface-card);
+}
+
+.top-header {
+  height: 48px;
+  min-height: 48px;
+  background-color: var(--dt-color-surface-card);
+  border-bottom: 1px solid var(--dt-hairline-subtle, var(--dt-color-border-subtle));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--dt-space-4, 16px);
+  gap: var(--dt-space-3, 12px);
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  position: relative;
+  z-index: var(--dt-z-header-sticky, 500);
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-2, 8px);
+  min-width: 0;
+}
+
+/* Breadcrumbs */
+.breadcrumb-trail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--dt-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.crumb-item {
+  color: var(--dt-color-text-muted);
+  text-decoration: none;
+}
+.crumb-sep {
+  color: var(--dt-color-text-muted);
+  opacity: 0.6;
+}
+.crumb-active {
+  color: var(--dt-color-text-primary);
+  font-weight: 500;
+}
+
+/* User / Operator session badge */
+.tech-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--dt-radius-md, 6px);
+  background-color: transparent;
+  color: var(--dt-color-text-muted);
+  font-size: 12px;
+}
+.tech-name {
+  color: var(--dt-color-text-primary);
+  font-weight: 500;
+}
+
+/* Diagnostic Offline Banner */
+.diagnostic-offline-banner {
+  height: var(--dt-layout-banner-diagnostic-height, 28px);
+  background-color: var(--dt-color-surface-raised);
+  border-bottom: 1px solid var(--dt-hairline-subtle, var(--dt-color-border-panel));
+  color: var(--dt-color-text-muted);
+  font-size: var(--dt-font-caption, 12px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--dt-space-2, 8px);
+  padding: 0 var(--dt-space-4, 16px);
+  flex-shrink: 0;
+}
+.diagnostic-offline-banner.visible {
+  display: flex;
+}
+
+/* ==========================================================================
+   4. CONTROL PRIMITIVES (ERPNEXT PATTERN: CLEAN BORDERLESS SECONDARY BUTTONS)
+   ========================================================================== */
+/* Secondary Buttons: Zero harsh borders, subtle background, clean contrast */
+.dt-btn,
+.header-btn {
+  background-color: rgba(0, 0, 0, 0.04);
+  border: none;
+  color: var(--dt-color-text-primary);
+  border-radius: var(--dt-radius-md, 6px);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+  font-family: inherit;
+  line-height: 1.4;
+  text-decoration: none;
+}
+[data-theme="dark"] .dt-btn:not(.dt-btn-primary):not(.btn-primary),
+[data-theme="dark"] .header-btn:not(.dt-btn-primary):not(.btn-primary) {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--dt-color-text-primary);
+}
+
+.dt-btn:hover:not(.dt-btn-primary):not(.btn-primary),
+.header-btn:hover:not(.dt-btn-primary):not(.btn-primary) {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+[data-theme="dark"] .dt-btn:hover:not(.dt-btn-primary):not(.btn-primary),
+[data-theme="dark"] .header-btn:hover:not(.dt-btn-primary):not(.btn-primary) {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+.dt-btn:active,
+.header-btn:active {
+  transform: scale(0.98);
+}
+
+.dt-btn-sm {
+  height: var(--dt-control-height-sm, 32px);
+  padding: 0 var(--dt-space-2, 8px);
+  font-size: var(--dt-font-caption, 12px);
+}
+
+/* Primary Button: Solid accent (New / Audited Edit / Submit) */
+.dt-btn-primary,
+.btn-primary,
+.dt-btn.dt-btn-primary,
+.header-btn.dt-btn-primary {
+  background-color: var(--dt-color-state-info, #2563eb) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--dt-radius-md, 6px);
+  padding: 6px 14px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.05s ease;
+}
+.dt-btn-primary:hover,
+.btn-primary:hover,
+.dt-btn.dt-btn-primary:hover,
+.header-btn.dt-btn-primary:hover {
+  opacity: 0.92;
+  background-color: var(--dt-color-state-info, #2563eb) !important;
+}
+.dt-btn-primary:active,
+.btn-primary:active,
+.dt-btn.dt-btn-primary:active,
+.header-btn.dt-btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Clean Input Styling (Soft Surface) */
+.dt-input,
+.dt-select {
+  height: var(--dt-control-height-md, 36px);
+  background-color: var(--dt-color-surface-card);
+  border: 1px solid var(--dt-hairline-subtle, var(--dt-color-border-subtle));
+  border-radius: var(--dt-radius-md, 6px);
+  padding: 0 var(--dt-space-3, 12px);
+  font-family: inherit;
+  font-size: var(--dt-font-body-md, 14px);
+  color: var(--dt-color-text-primary);
+  width: 100%;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+.dt-input:focus,
+.dt-select:focus {
+  border-color: var(--dt-color-border-focus);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
