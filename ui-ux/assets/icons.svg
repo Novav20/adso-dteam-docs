@@ -3,7 +3,7 @@
     DTEAM Centralized Iconography Sprite Sheet
     Standard: DT-UI-DS-DOC-001 v1.8 (Section 6.4)
     GENERATED FILE - Do not edit manually.
-    Source: ui-ux/assets/icons-src/
+    Source: ui-ux\assets\icons-src/
     Regenerate with: python3 scripts/build_icons_sprite.py
   -->
 

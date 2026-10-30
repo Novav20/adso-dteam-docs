@@ -1,8 +1,9 @@
 import re
-import os
+from pathlib import Path
 
-md_file = 'domain-models/entity-relationship/DT-ERD-DOC-001.md'
-dbml_file = 'domain-models/entity-relationship/DT-ERD-001.dbml'
+ROOT = Path(__file__).resolve().parents[1]
+md_file = ROOT / 'domain-models' / 'entity-relationship' / 'DT-ERD-DOC-001.md'
+dbml_file = ROOT / 'domain-models' / 'entity-relationship' / 'DT-ERD-001.dbml'
 
 with open(md_file, 'r', encoding='utf-8') as f:
     md_content = f.read()
