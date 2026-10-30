@@ -20,6 +20,12 @@ __pycache__/
 *.pyc
 scripts/temp/
 
+# Ephemeral audit reports and test outputs
+reports/
+
+# Local prototype mirror (iterated in external workspace)
+ui-ux/prototype/
+
 # OS specific files
 .DS_Store
 Thumbs.db
