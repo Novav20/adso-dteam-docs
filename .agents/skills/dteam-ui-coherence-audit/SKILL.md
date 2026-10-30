@@ -20,7 +20,7 @@ This skill performs a **Three-Tier Coherence and Ergonomic Audit** on system UI/
 From the repository root (`adso-dteam-docs/`), the deterministic auditor is invoked via CLI:
 
 ```bash
-# 1. Full deterministic audit + markdown report generation in sena-evidence/
+# 1. Full deterministic audit + markdown report generation in reports/audits/ui/
 uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py audit --file ui-ux/screens/vis/SCR-VIS-008.md
 
 # 2. Fast console linting (pre-commit / CI gate, zero report files generated)
@@ -172,7 +172,7 @@ All screen specifications must strictly align with the canonical standard define
     * **[FAIL] Static Pseudo-Badges (`BADGE-001`):** Flag any static descriptive attributes or invariant text encased in badge/pill containers (e.g., `Immutable Record`, `Inmutable`, `Registro Inmutable`, `Required`, `Central Warehouse`). These must be modeled as subdued metadata text (`.card-meta-text`).
 
 11. **Companion HTML Prototype Hygiene (`HTML-EMOJI-001` & `HTML-SPEC-001`):**
-    * High-fidelity HTML prototypes in `sena-evidence/00-Overview/Protoyping/ui-prototype/` undergo deterministic inspection during Tier 0.
+    * High-fidelity HTML prototypes in `ui-ux/prototype/` undergo deterministic inspection during Tier 0.
     * **[FAIL] Unicode Emojis (`HTML-EMOJI-001`):** HTML prototypes must use standardized monochrome SVG sprite symbols (`<svg class="dt-icon"><use href="#icon-*" /></svg>`) per ANSI/ISA-101 and HPHMI. Unicode pictorial emojis (e.g., `💡`, `⚠️`, `🔍`, `✔`, `⚡`) are strictly prohibited in user-facing markup and trigger an immediate deterministic blocker.
     * **[FAIL] Leaked Specification Codes (`HTML-SPEC-001`):** Requirement/architecture identifiers (`FR-*`, `AF-*`, `TR-*`, `NFR-*`, `ADR-*`, `Paso *`) are developer meta-text and MUST NEVER appear in user-facing prototype DOM, headers, badges, toasts, or action buttons. Prototypes must exclusively present authentic industrial operational vocabulary (ISO 14224 / RCM).
 
@@ -197,7 +197,7 @@ Before finalizing the audit verdict, the agent **MUST** systematically evaluate 
 ### Step 6: Audit Report Generation & Persistence
 
 The agent **must persist** the complete audit report to the evidence repository at:
-`/home/novillus/Documents/vscode/SENA-Career/sena-evidence/00-Overview/Audits/UI/AUD-UI-<SCREEN_ID>-<YYYYMMDD-HHMMSS>.md`
+`reports/audits/ui/AUD-UI-<SCREEN_ID>-<YYYYMMDD-HHMMSS>.md`
 
 *(Note: `<YYYYMMDD-HHMMSS>` represents the execution timestamp, e.g., `20261007-153520`, ensuring multiple audit runs and fix iterations are preserved without overwriting history).*
 
@@ -219,5 +219,5 @@ The generated report must include the following structure:
    * **[FAIL]:** Missing mandatory database fields, cardinality violations, structural/SSoT boundary violations, or breaches of HPHMI/ISA-101 rules.
 4. **Tier 2 Grounded Escalation Gate (Gemini Notebook):**
    * Mandatory evaluation table of Triggers G1 through G4.
-   * Explicit technical justification for non-escalation OR reference to generated Gemini Notebook prompt saved at `sena-evidence/00-Overview/Deep-in/Prompts/P<XX>-*.md`.
-5. **Chat Presentation:** Present a concise summary in the chat with the overall verdict and a markdown link to the persisted report file in `sena-evidence/00-Overview/Audits/UI/`.
+   * Explicit technical justification for non-escalation OR reference to a generated prompt saved under `reports/prompts/`.
+5. **Chat Presentation:** Present a concise summary in the chat with the overall verdict and a markdown link to the persisted report file in `reports/audits/ui/`.

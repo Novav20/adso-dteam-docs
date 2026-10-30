@@ -20,7 +20,7 @@ This skill performs a rigorous **Three-Tier Coherence and Domain Model Alignment
 From the repository root (`adso-dteam-docs/`), the deterministic auditor is invoked via CLI:
 
 ```bash
-# 1. Full deterministic audit + markdown report generation in sena-evidence/
+# 1. Full deterministic audit + markdown report generation in reports/audits/use-cases/
 python3 .agents/skills/dteam-usecase-audit/scripts/audit_uc.py audit --file domain-models/use-cases/inv/UC-INV-005.md
 
 # 2. Fast console linting (pre-commit / CI gate, zero report files generated)
@@ -71,7 +71,7 @@ To preserve git diffability, deep linkability, and eliminate brittle HTML entiti
 flowchart LR
     UC_Stale["Stale UC-*.md<br/>(Pre-ERD / Pre-DM Debt)"] --> Skill["dteam-usecase-audit"]
     SSoT["SSoT Corpus<br/>DT-ERD / DT-DM / DT-UL / DT-UI-NAV"] --> Skill
-    Skill --> Report["Audit Report & CAP<br/>(sena-evidence/Audits/UC/)"]
+    Skill --> Report["Audit Report & CAP<br/>(reports/audits/use-cases/)"]
     Skill --> UC_Approved["Reconciled UC-*.md<br/>(100% SSoT Compliant)"]
     UC_Approved --> Scaffolder["dteam-screen-scaffolder<br/>(SCR-*.md & HTML Prototype)"]
 ```

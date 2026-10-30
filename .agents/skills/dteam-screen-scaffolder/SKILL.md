@@ -122,7 +122,7 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
 7.  **§6 Industrial and Safety Considerations:**
     *   HPHMI compliance (90/10 grayscale rule, no green for "normal running").
     *   Diagnostic (Priority 4) vs Process Alarm segregation.
-    *   Offline partition tolerance ([ASR-001](file:///home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs/architecture/requirements/DT-ARQ-ASR-001.md)) and safety fail-safe locks ([ASR-002](file:///home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs/architecture/requirements/DT-ARQ-ASR-001.md)).
+    *   Offline partition tolerance ([ASR-001](../../architecture/requirements/DT-ARQ-ASR-001.md)) and safety fail-safe locks ([ASR-002](../../architecture/requirements/DT-ARQ-ASR-001.md)).
     *   *Typography & Font-Weight Token Discipline:* Typography rules and text hierarchy descriptions in §6 and throughout the specification must strictly reference composite Design System tokens (`--dt-font-mono-data`, `--dt-font-body-md`, `--dt-font-caption`). Strictly prohibit raw numeric CSS font-weights (`400`, `500`, `600`, `700`) or literal pixel/rem sizes in specification prose.
     *   *Interactive Neutrality in Dark Mode (Anti-Color-Bleed):* Active interactive states for non-alarm controls (e.g., table header sort chevrons `▲/▼`, table selection checkboxes, filter card focus rings) must strictly bind to neutral tokens (`--dt-color-border-focus`, `--dt-color-text-muted`). Uncodified saturated colors (such as bright cyan/blue) are strictly prohibited under the 90/10 HPHMI rule.
 8.  **§7 Frontend Component Contract (Blazor / Razor):**
@@ -141,7 +141,7 @@ Generate the specification markdown in `adso-dteam-docs/ui-ux/screens/[module]/`
 
 ### Step 3: Interactive HTML Prototype Creation (`scr-[mod]-[num].html`)
 
-Create the standalone prototype in `sena-evidence/00-Overview/Protoyping/ui-prototype/`:
+Create the standalone prototype in `ui-ux/prototype/`:
 
 1.  **Architecture & Shared CSS:**
     *   Include `assets/tokens.css`, `assets/top-toolbar.css`, `assets/asset-drawer.css`, and custom screen styles.
@@ -163,7 +163,7 @@ Create the standalone prototype in `sena-evidence/00-Overview/Protoyping/ui-prot
     *   Technical datasheets and execution forms must constrain their master card layout to `--dt-layout-form-max-width` ($1000\text{px}$, centered in the workspace) to prevent excessive horizontal separation between labels and values on large desktop monitors.
     *   Primary action buttons and validation indicators must be housed in a permanent sticky bottom footer (`--dt-layout-footer-height`). Validation error summaries (`AF-*`) must never push form content downward via top banners (`CLS = 0`).
 7.  **Wrapper Integration:**
-    *   Register the new prototype in `sena-evidence/00-Overview/Protoyping/ui-prototype/dev-wrapper.html` inside the `<select id="screenSelect">` dropdown.
+    *   Register the new prototype in `ui-ux/prototype/dev-wrapper.html` inside the `<select id="screenSelect">` dropdown.
 8.  **High-Definition Visual Artifact Capture (1080p Screenshot):**
     *   Never draw standalone SVG wireframes (`*-wireframe.svg`). Capture a $1920\times 1080$ PNG screenshot directly from the rendered HTML prototype to `adso-dteam-docs/ui-ux/screens/[module]/assets/SCR-[MOD]-[NUM]-screenshot.png` using headless Firefox:
         `firefox --no-remote -profile /tmp/ff_prof --headless --screenshot <output-png-path> --window-size 1920,1080 "file://<absolute-path-to-prototype.html>"`

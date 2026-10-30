@@ -705,9 +705,9 @@ def audit_presentation_boundaries(content: str) -> list[Finding]:
 
 
 def audit_companion_html_prototype(screen_id: str, repo_root: Path) -> list[Finding]:
-    """Inspects companion HTML prototype in sena-evidence for emojis and leaked spec codes."""
+    """Inspects the companion HTML prototype for emojis and leaked spec codes."""
     findings: list[Finding] = []
-    proto_dir = repo_root.parent / "sena-evidence" / "00-Overview" / "Protoyping" / "ui-prototype"
+    proto_dir = repo_root / "ui-ux" / "prototype"
     html_file = proto_dir / f"{screen_id.lower()}.html"
 
     if not html_file.exists():
@@ -906,7 +906,7 @@ def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
     # Generate and persist report
     now = datetime.datetime.now()
     timestamp_str = now.strftime("%Y%m%d-%H%M%S")
-    out_dir = repo_root.parent / "sena-evidence" / "00-Overview" / "Audits" / "UI"
+    out_dir = repo_root / "reports" / "audits" / "ui"
     out_dir.mkdir(parents=True, exist_ok=True)
     report_file = out_dir / f"AUD-UI-{target_path.stem}-{timestamp_str}.md"
 

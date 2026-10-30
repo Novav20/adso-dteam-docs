@@ -42,7 +42,7 @@ The agent must activate this skill when detecting:
 From the repository root, execute the Python script that will analyze the CSV:
 
 ```bash
-cd /home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs
+cd <repository-root>
 uv run .agents/skills/dteam-srs-quality-audit/scripts/srs_audit.py
 ```
 

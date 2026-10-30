@@ -25,6 +25,8 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
+SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[4]
+
 # ---------------------------------------------------------------------------
 # Finding Model & Constants
 # ---------------------------------------------------------------------------
@@ -113,9 +115,7 @@ PROHIBITED_HTML_TAGS: list[tuple[str, str, str]] = [
 def find_repo_root(start: Path) -> Path | None:
     curr = start.resolve()
     for _ in range(10):
-        if (curr / "adso-dteam-docs").is_dir() and (curr / "sena-evidence").is_dir():
-            return curr / "adso-dteam-docs"
-        if (curr / ".git").is_dir() and (curr / "requirements").is_dir():
+        if (curr / "domain-models").is_dir() and (curr / "requirements").is_dir():
             return curr
         curr = curr.parent
     return None
@@ -514,13 +514,13 @@ def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
 
     report_md = generate_markdown_report(target_path, findings, repo_root)
 
-    evidence_audits_dir = repo_root.parent / "sena-evidence" / "00-Overview" / "Audits" / "UC"
-    evidence_audits_dir.mkdir(parents=True, exist_ok=True)
+    audits_dir = repo_root / "reports" / "audits" / "use-cases"
+    audits_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp_str = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     stem = target_path.stem
     report_filename = f"AUD-{stem}-{timestamp_str}.md" if stem.startswith("UC-") else f"AUD-UC-{stem}-{timestamp_str}.md"
-    report_file = evidence_audits_dir / report_filename
+    report_file = audits_dir / report_filename
     report_file.write_text(report_md, encoding="utf-8")
 
     blockers = [f for f in findings if f.severity == "BLOCKER"]
@@ -635,7 +635,7 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    repo_root = find_repo_root(Path.cwd())
+    repo_root = find_repo_root(SCRIPT_REPO_ROOT)
     if not repo_root:
         print("[ERROR] Could not locate 'adso-dteam-docs' repository root.", file=sys.stderr)
         return 1

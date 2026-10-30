@@ -25,7 +25,7 @@ before it is formally integrated into the `adso-dteam-docs` repository:
 
 The skill **never modifies** the audited artifact. It only reports findings
 with BLOCKER / WARNING / INFO severities and generates a Markdown report in
-`../sena-evidence/00-Overview/Audits/Compliance/`.
+`reports/audits/compliance/`.
 
 ---
 
@@ -50,19 +50,17 @@ Determine the absolute path of the artifact to audit:
 - If the user describes the artifact by name/code (e.g., "DT-UI-NAV-DOC-001"),
   search for it with `find . -name "*NAV-DOC-001*"` from the repository root.
 
-The repository root is always:
-`/home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs`
+The repository root is resolved from the helper script location.
 
 ### Step 2 — Execute the Helper Script
 
 From the repository root, execute:
 
 ```bash
-cd /home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs
 uv run .agents/skills/dteam-coherence-audit/scripts/audit.py audit --file <ruta-relativa>
 ```
 
-The script automatically generates the report in `../sena-evidence/00-Overview/Audits/Compliance/`.
+The script automatically generates the report in `reports/audits/compliance/`.
 
 ### Step 3 — Present Results to the User
 
@@ -77,9 +75,8 @@ Read the generated report and present it in a structured way:
 If the user asks to "audit the whole repository" or "CI mode":
 
 ```bash
-cd /home/novillus/Documents/vscode/SENA-Career/adso-dteam-docs
 uv run .agents/skills/dteam-coherence-audit/scripts/audit.py audit-all \
-  --output ../sena-evidence/00-Overview/Audits/AUD-FULL-REPO.md
+  --output reports/audits/compliance/AUD-FULL-REPO.md
 ```
 
 ---

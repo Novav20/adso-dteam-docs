@@ -14,7 +14,7 @@ Desde la raíz del repositorio `adso-dteam-docs`:
 
 ```bash
 # Genera el plano L1 limpio con validación automática
-python3 -m scripts.plot_plan_generator.cli ../sena-evidence/00-Overview/Protoyping/ui-prototype/assets/tfa_terminal_plot_plan.svg --validate
+python3 -m scripts.plot_plan_generator.cli ui-ux/prototype/assets/tfa_terminal_plot_plan.svg --validate
 ```
 
 ### 2. Generación Multi-Nivel de Zoom (`--all-zooms`)
@@ -22,7 +22,7 @@ python3 -m scripts.plot_plan_generator.cli ../sena-evidence/00-Overview/Protoypi
 Genera concurrentemente los archivos macro, intermedio y micro (`tfa_terminal_plot_plan.svg`, `_l2.svg`, `_l3.svg`):
 
 ```bash
-python3 -m scripts.plot_plan_generator.cli ../sena-evidence/00-Overview/Protoyping/ui-prototype/assets/tfa_terminal_plot_plan.svg --all-zooms --validate
+python3 -m scripts.plot_plan_generator.cli ui-ux/prototype/assets/tfa_terminal_plot_plan.svg --all-zooms --validate
 ```
 
 ### 3. Modo Oscuro HPHMI (`--theme=dark`)

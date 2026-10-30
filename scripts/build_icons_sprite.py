@@ -19,8 +19,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE_DIR = ROOT / "ui-ux" / "assets" / "icons-src"
 DEFAULT_TARGET = ROOT / "ui-ux" / "assets" / "icons.svg"
-DEFAULT_PROTOTYPE_TARGET = ROOT / ".." / "sena-evidence" / "00-Overview" / "Protoyping" / "ui-prototype" / "assets" / "icons.svg"
-DEFAULT_PROTOTYPE_DATA_JS = ROOT / ".." / "sena-evidence" / "00-Overview" / "Protoyping" / "ui-prototype" / "assets" / "icons-data.js"
+DEFAULT_PROTOTYPE_DIR = ROOT / "ui-ux" / "prototype" / "assets"
+DEFAULT_PROTOTYPE_TARGET = DEFAULT_PROTOTYPE_DIR / "icons.svg"
+DEFAULT_PROTOTYPE_DATA_JS = DEFAULT_PROTOTYPE_DIR / "icons-data.js"
 
 # Built-in fallback UI & Navigation symbols if not overridden in icons-src
 DEFAULT_UI_SYMBOLS = {
@@ -248,8 +249,20 @@ def main() -> None:
     parser.add_argument("--target", type=Path, default=DEFAULT_TARGET)
     parser.add_argument("--prototype-target", type=Path, default=DEFAULT_PROTOTYPE_TARGET)
     parser.add_argument("--prototype-data-js", type=Path, default=DEFAULT_PROTOTYPE_DATA_JS)
+    parser.add_argument(
+        "--target-prototype-dir",
+        type=Path,
+        default=None,
+        help="Directory receiving the prototype icons.svg and icons-data.js outputs.",
+    )
     args = parser.parse_args()
-    build(args.source_dir.resolve(), args.target.resolve(), args.prototype_target.resolve(), args.prototype_data_js.resolve())
+    prototype_target = args.prototype_target
+    prototype_data_js = args.prototype_data_js
+    if args.target_prototype_dir is not None:
+        prototype_dir = args.target_prototype_dir.resolve()
+        prototype_target = prototype_dir / "icons.svg"
+        prototype_data_js = prototype_dir / "icons-data.js"
+    build(args.source_dir.resolve(), args.target.resolve(), prototype_target.resolve(), prototype_data_js.resolve())
 
 
 if __name__ == "__main__":

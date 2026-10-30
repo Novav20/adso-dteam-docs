@@ -17,7 +17,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 SRS_PATH = REPO_ROOT / "requirements" / "data" / "srs.csv"
 import datetime as _dt
-REPORT_DIR = REPO_ROOT.parent / "sena-evidence" / "00-Overview" / "Audits" / "SRS"
+REPORT_DIR = REPO_ROOT / "reports" / "audits" / "srs"
 REPORT_PATH = REPORT_DIR / f"AUD-SRS-QUALITY-{_dt.datetime.now().strftime('%Y%m%d')}.md"
 
 ISO_25010_2023_CATEGORIES = {
