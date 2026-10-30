@@ -166,15 +166,19 @@ EMOJI_REGEX = re.compile(
     re.UNICODE
 )
 
+SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[4]
+
 # ---------------------------------------------------------------------------
 # Repository & Token Utilities
 # ---------------------------------------------------------------------------
 
 def find_repo_root(start: Path) -> Path | None:
-    """Ascends from `start` looking for the .git directory of adso-dteam-docs."""
+    """Finds the root directory of adso-dteam-docs."""
     current = start.resolve()
     for _ in range(10):
-        if (current / ".git").exists():
+        if (current / "domain-models").is_dir() and (current / "requirements").is_dir():
+            return current
+        if (current / ".git").is_dir() and (current / "ui-ux").is_dir():
             return current
         if current.parent == current:
             break
@@ -1007,7 +1011,7 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    repo_root = find_repo_root(Path.cwd())
+    repo_root = find_repo_root(Path.cwd()) or find_repo_root(SCRIPT_REPO_ROOT)
     if repo_root is None:
         print("[ERROR] Git repository root not found. Run from inside adso-dteam-docs/.", file=sys.stderr)
         return 1
