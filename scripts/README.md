@@ -109,3 +109,14 @@ python3 scripts/verify_markdown_links.py -v
 # Strict mode (also fails if planned stubs are missing)
 python3 scripts/verify_markdown_links.py --strict-stubs
 ```
+
+---
+
+## 🎨 `verify_wcag_contrast.py`
+
+Audits WCAG 2.1 / ISO 9241-110 contrast ratios for design tokens in `ui-ux/DT-UI-DS-DOC-001.md`:
+
+```bash
+python scripts/verify_wcag_contrast.py
+```
+
