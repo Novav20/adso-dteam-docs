@@ -121,7 +121,7 @@ sequenceDiagram
    * When invoked with an existing `EquipmentUnitId` or `FunctionalLocationId` (from [SCR-INV-027](SCR-INV-027.md) or [SCR-VIS-033](../vis/SCR-VIS-033.md)), the view initializes in **Inspection Mode**, loading `EquipmentUnitMasterCardDto` (§7.2.3) alongside its active installation timeline and latest SHA-256 audit entry.
    * When invoked with `InitialMode = MasterCardMode.Create` (or when clicking `[+ Register Equipment Unit]`), the view transitions to **Onboarding Mode**, binding an empty `RegisterEquipmentUnitCommand` form context and previewing the initial four-dimensional commissioning states (`EquipmentLifecycleStatus`, `EquipmentOperationalStatus`, `EquipmentMaintenanceStatus`, `EquipmentHealthStatus` defined in §7.2.3).
 2. **Lifecycle Stepper & Four-Dimension Telemetry Split ([DT-DM-DOC-001 §2.1](../../../domain-models/class/DT-DM-DOC-001.md#21-state-division-in-equipmentunit)):**
-   * Rather than overloading a single generic status field, `CMP-04` separates state into an upper five-stage sequential lifecycle stepper (Purchase $\to$ Storage $\to$ Installed $\to$ Operational $\to$ Decommissioned) and a lower four-column telemetry strip:
+   * Rather than overloading a single generic status field, `CMP-04` separates state into an upper five-stage sequential lifecycle stepper (Purchase [derived from `PurchaseDate`] $\to$ Storage [`EquipmentLifecycleStatus.InStorage`] $\to$ Installed [`EquipmentLifecycleStatus.Installed`] $\to$ Operational [`EquipmentLifecycleStatus.Installed` with `EquipmentOperationalStatus.Up`] $\to$ Decommissioned [`EquipmentLifecycleStatus.Decommissioned`]; transitional stage `Commissioning` precedes commercial operation) and a lower four-column telemetry strip:
      * **Operational Status (`OperationalStatus`):** `EquipmentOperationalStatus.Up`, `EquipmentOperationalStatus.Down`, `EquipmentOperationalStatus.Standby` (mapped in §7.2.3).
      * **Maintenance Status (`MaintenanceStatus`):** `EquipmentMaintenanceStatus.Operational`, `EquipmentMaintenanceStatus.UnderMaintenance`, `EquipmentMaintenanceStatus.UnderTest` (mapped in §7.2.3).
      * **Health Status (`HealthStatus`):** `EquipmentHealthStatus.Undetermined`, `EquipmentHealthStatus.Good`, `EquipmentHealthStatus.Fair`, `EquipmentHealthStatus.SeriousButStable`, `EquipmentHealthStatus.Serious`, `EquipmentHealthStatus.CriticalButStable`, `EquipmentHealthStatus.Critical` (mapped in §7.2.3 to ISA-101 alarm tokens).
@@ -380,10 +380,8 @@ public enum MasterCardMode
 
 public enum EquipmentLifecycleStatus
 {
-    Purchased,
     InStorage,
     Installed,
-    Operational,
     Commissioning,
     Decommissioned
 }
