@@ -53,10 +53,10 @@ status: Stable
 | `CMP-04` | Multi-Criteria Filter Toolbar | Flat canvas toolbar with dropdowns, search input, and inline grouping pill | Surface: `--dt-color-surface-base`<br>Controls: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Hosts Functional Location hierarchy dropdown, Work Class selector, live text search, and the inline equipment grouping suggestion pill (`CMP-05`) directly on the canvas without outer box nesting or vertical layout shift. Specification in §5.2. |
 | `CMP-05` | Inline Grouping Suggestion Pill | Compact inline batching indicator | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Radius: `--dt-radius-md` | Compact pill embedded inside `CMP-04` deployed when multiple pending work requests target the same Level 6 Equipment Unit. Uses flat inline text dividers (`|`) without nested button boxes to display affected asset tag, request count, combined wrench time, and batch filter action. Workflow in §5.3.3. |
 | `CMP-06` | Criticality Governance Alert Modal | Unconfigured asset notification & dispatch modal | Surface: `--dt-color-surface-overlay`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Triggered via the header warning indicator when work requests reference assets lacking configured criticality in the catalog. Informs that a preventive floor score was assigned, provides a "View Affected Request" filter action, and dispatches a calibration request to the Reliability Engineer. Workflow in §5.3.2. |
-| `CMP-07` | Dense Prioritized Data Grid | Multi-column sortable table | Header: `--dt-color-surface-base`<br>Rows: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Virtualized tabular grid rendering prioritized backlog requests descending by RIME score. Columns: Priority Category & Score, Request ID, Affected Asset, Maintainable Item (L8), Description, Work Class, Asset Criticality, Est. Wrench Time / Material Status, and Actions (primary "Plan" button + compact `···` contextual menu). Specification in §5.2. |
+| `CMP-07` | Dense Prioritized Data Grid | Multi-column sortable table | Header: `--dt-color-surface-base`<br>Rows: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Virtualized tabular grid rendering prioritized backlog requests descending by RIME score. Columns: Priority Category & Score, Request ID, Affected Asset, Maintainable Item (L8), Description, Work Class, Asset Criticality, Est. Wrench Time / Material Status, and primary "Plan" action. Clicking a row selects it and opens `CMP-09` in the right inspection rail. |
 | `CMP-08` | Priority Category Badges | High-contrast redundant capsule pills | Surface: `--dt-color-surface-base`<br>Radius: `--dt-radius-full`<br>Accents: `--dt-color-alarm-critical`, `--dt-color-alarm-warning`, `--dt-color-text-body`, `--dt-color-text-muted` | Four-tier visual categorization implementing ANSI/ISA-101 redundant coding (Shape + Color + Score + Label) using capsule pill geometry (`--dt-radius-full`) morphologically distinct from rectangular row buttons (`--dt-radius-sm`) per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons). Details in §5.1. |
-| `CMP-09` | Work Class Adjustment Modal | Priority modification dialog | Surface: `--dt-color-surface-overlay`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Modal dialog for modifying Work Class. Displays current score, interactive Work Class selector, live recalculated RIME score, mandatory technical justification textarea, and cryptographic SHA-256 hash preview. Workflow in §5.3.1. |
-| `CMP-10` | RIME Calculation Breakdown Modal | Educational factor inspection dialog | Surface: `--dt-color-surface-overlay`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-modal` | Informational dialog decomposing the active RIME formula, active strategy, and normative standard citations. Specification in §5.3. |
+| `CMP-09` | Contextual Request Inspection & Calibration Rail | Collapsible lateral master-detail inspection rail | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Right-docked inspection rail hosting request details, `CMP-10` RIME decomposition, Work Class adjustment, mandatory justification, and verifiable SHA-256 seal. It remains side-by-side with the table and does not block sorting or darken the workspace. |
+| `CMP-10` | RIME Factor Decomposition Panel | Inline technical factor inspection panel | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Panel hosted inside `CMP-09`, displaying the exact Criticality × Work Class calculation, ISO 55001 reference, and fail-safe floor indicator. It is not a standalone modal. |
 | `CMP-11` | Chained Cryptographic Audit Drawer | Slide-over immutable audit log | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel`<br>Elevation: `--dt-z-drawer-sidebar` | Lateral slide-over panel displaying the immutable append-only trail of priority modifications, displaying timestamps, user IDs, old vs. new scores, technical justifications, and linked SHA-256 hashes. |
 | `CMP-12` | Workload Confirmation & Export Bar | Bottom sticky action bar | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Bottom bar consolidating weekly selected man-hours vs. team capacity, centralizing data export options (`CSV` / `JSON` / `Selected`) and hosting the primary "Confirm Weekly Workload" action button. Workflow in §5.3.4. |
 
@@ -69,7 +69,8 @@ status: Stable
 | **Normal (Default)** | Neutral grayscale surfaces. Full prioritized data grid populated descending by RIME score. Routine `Plan` ($20-49$) and `Wish` ($1-19$) bands and normal material availability states (`In Stock`, `Reserved`) rendered in neutral grayscale without chromatic fills. | Successful data fetch of pending work requests and asset master catalogs. |
 | **Loading** | Table rows and KPI summary cards display animated skeleton shimmer (`--dt-color-surface-raised`). Action buttons disabled. | Initial page load or asynchronous execution of bulk filter / sort operations. |
 | **Selected Row** | Target table row renders a high-contrast left selection indicator bar (`--dt-color-state-info`) and subtle selection tint background. | Planner selects the row checkbox or uses keyboard navigation (`ArrowUp`/`ArrowDown`) on a table row. |
-| **Priority Recalculation (AF-001)** | Modal overlay `CMP-09` appears with backdrop dimming (`--dt-z-modal`). Live recalculation badge updates in real-time ($<100\text{ms}$). Submit button disabled until valid justification is entered ($\ge 15$ characters). | Planner opens the row overflow menu (`···`) and selects "Adjust Work Class". |
+| **Detail Inspection State** | `CMP-09` docks on the right side of the workspace without darkening the background or blocking table sorting. The selected row receives the inspection highlight; `CMP-10` and Work Class calibration remain visible in the rail. | Planner clicks a backlog row or uses `ArrowUp` / `ArrowDown` after a row is inspected. |
+| **Priority Recalculation (AF-001)** | The open inspection rail recalculates the RIME score in real-time ($<100\text{ms}$). The save action remains disabled until valid justification is entered ($\ge 15$ characters). | Planner changes Work Class in `CMP-09`. |
 | **Fail-Safe Active (AF-002)** | Header notification button in `CMP-02` displays amber warning indicator (`--dt-color-alarm-warning`) with counter badge. Affected row displays amber warning icon with tooltip: *"Criticality not configured on asset. Preventive priority floor applied (Score: 75)"*. | One or more pending work requests are linked to assets lacking criticality in the master catalog. |
 | **Grouping Recommendation (FR-068)** | Compact inline pill `CMP-05` rendered inside the filter toolbar `CMP-04` with `#icon-layers`. Affected rows highlight with subtle accent border. Zero vertical displacement of the data grid. | Algorithmic detection of $\ge 2$ pending requests sharing the same Level 6 equipment unit. |
 | **Filtered / Search Active** | Data grid displays matching subset with the active KPI filter card highlighted via `--dt-color-state-info` focus border. | Planner clicks an interactive KPI card, selects a Functional Location filter, or types in the search field. |
@@ -119,12 +120,13 @@ sequenceDiagram
    * **Functional Location Filter:** Hierarchical dropdown supporting filtering by Plant Level 3 (Installation), Level 4 (Plant/Area), or Level 5 (System).
    * **Work Class Filter:** Dropdown filtering by specific work classes (e.g., "Safety Emergency", "Predictive Maintenance").
    * **Fuzzy Text Search:** Debounced input ($300\text{ms}$) searching across `TagNumber`, `SerialNumber`, `Description`, and `MaintainableItem`.
-3. **Row Action Hierarchy & Peripheral Noise Reduction:** To prevent visual clutter across dense data grids, each row displays only the primary action button (`Plan`) alongside a compact contextual overflow menu button (`···`) housing secondary analytical actions (`Adjust Work Class`, `Inspect RIME Breakdown`).
+3. **Master-Detail Inspection:** Each row displays only the primary `Plan` action. Clicking the row opens the collapsible right inspection rail (`CMP-09`) with technical scope, the embedded RIME decomposition (`CMP-10`), calibration controls, and promotion action. The table remains visible for side-by-side comparison.
 4. **Keyboard Navigation:**
    * `ArrowUp` / `ArrowDown`: Moves row selection through the table without mouse interaction.
    * `Enter`: Opens the selected row's action drawer or detail view.
    * `Ctrl + K`: Globally focuses the search input.
-   * `Escape`: Closes any open modal dialog or slide-over drawer.
+   * `Escape`: Closes the inspection rail, audit drawer, or any open governance modal.
+6. **Asymmetric Workstation Split:** At desktop widths, the prioritized backlog canvas remains visible beside the `CMP-09` lateral inspection rail (`--dt-layout-drawer-width-desktop`). This master-detail pattern supports direct comparison and removes modal blindness; sorting and filtering remain available while the rail is open.
 5. **Data Virtualization & Performance:** For backlog volumes exceeding $100$ items, the Blazor data grid employs UI virtualization (`Virtualize<BacklogItemDto>`), maintaining DOM node count $< 60$ and guaranteeing response times $< 2\text{s}$ for datasets up to $1,000$ items ([NFR-071](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr)).
 
 ---
@@ -139,24 +141,23 @@ When the Planner identifies that operational conditions warrant an adjusted prio
 sequenceDiagram
     autonumber
     actor Planner as Maintenance Planner
-    participant Modal as WorkClassAdjustmentModal (CMP-09)
+    participant Rail as BacklogItemInspectionRail (CMP-09)
     participant Interop as Client Crypto Interop
     participant API as Backlog API Gateway
 
-    Planner->>Modal: Selects updated Work Class (e.g., Code 8: High Priority Process Work)
-    Modal->>Modal: Recalculates candidate RIME score in real-time (< 100ms)
-    Modal->>Modal: Updates preview score and priority band indicator
-    Planner->>Modal: Enters mandatory technical justification (min 15 chars)
-    Planner->>Modal: Clicks "Confirm & Log Cryptographically"
-    Modal->>Interop: ComputeSha256Digest(PreviousHash, AuditPayload)
-    Interop-->>Modal: Returns candidate PayloadHash
-    Modal->>API: POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class
-    API-->>Modal: 200 OK (AdjustWorkClassResultDto with chained hash)
-    Modal->>Modal: Closes modal
-    Modal-->>Planner: Re-sorts backlog grid descending and updates KPI summary cards
+    Planner->>Rail: Selects updated Work Class (e.g., Code 8: High Priority Process Work)
+    Rail->>Rail: Recalculates candidate RIME score in real-time (< 100ms)
+    Rail->>Rail: Updates preview score and priority band indicator
+    Planner->>Rail: Enters mandatory technical justification (min 15 chars)
+    Planner->>Rail: Clicks "Firmar y Guardar Calibración"
+    Rail->>Interop: ComputeSha256Digest(PreviousHash, AuditPayload)
+    Interop-->>Rail: Returns candidate PayloadHash
+    Rail->>API: POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class
+    API-->>Rail: 200 OK (AdjustWorkClassResultDto with chained hash)
+    Rail-->>Planner: Re-sorts backlog grid and updates KPI summary cards
 ```
 
-1. **Trigger:** The Planner selects "Adjust Work Class" from the row's contextual overflow menu (`···`).
+1. **Trigger:** The Planner clicks a backlog row; the right inspection rail opens with the selected request.
 2. **Latency Requirement:** The UI recalculates the new RIME score in $< 100\text{ms}$ ([NFR-070](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr)), dynamically updating the preview badge.
 3. **Mandatory Justification:** The confirmation button remains disabled until the Planner enters a technical justification containing at least $15$ non-whitespace characters.
 4. **Cryptographic Integrity Hash ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md)):** Upon confirmation, the client dispatches an `AdjustWorkClassCommand`. The backend system atomically commits the work class change, rescores the backlog item, and appends an immutable record into the audit trail:
@@ -226,8 +227,9 @@ Pages/
     ├── PrioritizedBacklogGrid.razor                   # CMP-07: Dense virtualized tabular data grid
     │   ├── PriorityBandBadge.razor                    # CMP-08: Redundant category badge
     │   └── MaterialAvailabilityIndicator.razor        # HPHMI material availability text/shortage pill
-    ├── WorkClassAdjustmentModal.razor                 # CMP-09: AF-001 Priority modification dialog
-    ├── RimeBreakdownModal.razor                       # CMP-10: FR-066 Formula decomposition dialog
+    ├── BacklogItemInspectionRail.razor                # CMP-09: AF-001 contextual inspection and calibration rail
+    ├── BacklogItemInspectionRail.razor                # CMP-09: Contextual request inspection and calibration rail
+    │   └── RimeBreakdownCard.razor                    # CMP-10: FR-066 embedded factor decomposition
     ├── ChainedAuditLogDrawer.razor                    # CMP-11: Slide-over cryptographic audit drawer
     └── WorkloadConfirmationFooter.razor               # CMP-12: Sticky capacity footer and unified export menu
 ```
@@ -289,20 +291,17 @@ public string? InitialBandFilter { get; set; }
 [Parameter, EditorRequired] public IReadOnlyList<BacklogItemDto> BacklogItems { get; set; } = [];
 [Parameter] public IReadOnlySet<Guid> SelectedItemIds { get; set; } = new HashSet<Guid>();
 [Parameter] public EventCallback<Guid> OnToggleRowSelection { get; set; }
-[Parameter] public EventCallback<BacklogItemDto> OnAdjustWorkClassRequested { get; set; }
-[Parameter] public EventCallback<BacklogItemDto> OnInspectBreakdownRequested { get; set; }
+[Parameter] public EventCallback<BacklogItemDto> OnInspectRowRequested { get; set; }
 [Parameter] public EventCallback<BacklogItemDto> OnPromoteToWorkOrder { get; set; }
 
-// CMP-09: WorkClassAdjustmentModal.razor
+// CMP-09: BacklogItemInspectionRail.razor
 [Parameter] public BacklogItemDto? TargetItem { get; set; }
 [Parameter] public bool IsVisible { get; set; }
 [Parameter] public EventCallback<AdjustWorkClassCommand> OnConfirmed { get; set; }
-[Parameter] public EventCallback OnCancelled { get; set; }
+[Parameter] public EventCallback OnClosed { get; set; }
 
-// CMP-10: RimeBreakdownModal.razor
+// CMP-10: RimeBreakdownCard.razor hosted inside CMP-09
 [Parameter] public RimeCalculationBreakdownDto? Breakdown { get; set; }
-[Parameter] public bool IsVisible { get; set; }
-[Parameter] public EventCallback OnClose { get; set; }
 
 // CMP-11: ChainedAuditLogDrawer.razor
 [Parameter] public bool IsOpen { get; set; }
@@ -449,9 +448,9 @@ public record RimeCalculationBreakdownDto(
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Full workstation grid layout. Navigation sidebar expanded (`--dt-layout-sidebar-width-expanded`); 5 summary KPI cards in a single row; 10-column data grid with all operational metadata visible without horizontal scrolling; slide-over audit drawer docks laterally (`--dt-layout-drawer-width-desktop`). | Optimized for mouse and keyboard navigation; row height `--dt-layout-table-row-height`; dense font sizing (`--dt-font-body-md`); single-click row selection and compact contextual action menu (`···`). |
-| **Compact Desktop / Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg`) | Navigation sidebar collapses to icon-only rail (`--dt-layout-sidebar-width-collapsed`); KPI summary cards remain in a 5-column fluid row; inline grouping pill wraps cleanly inside the filter toolbar; modals render centered. | Touch and pointer targets comply with `--dt-control-height-sm`; horizontal table scroll prevented by compacting secondary description width. |
-| **Tablet Portrait / Secondary Terminal**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md`) | Sidebar hidden into off-canvas drawer; KPI summary cards wrap into a 2-row grid; data grid prioritizes 7 core operational columns; bottom sticky confirmation bar docks above system chrome. | Touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ spacing; action menus expand for touch ergonomics. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Asymmetric workstation split: prioritized data grid canvas paired with the open `CMP-09` right inspection rail at `--dt-layout-drawer-width-desktop`; navigation sidebar expanded; 5 summary KPI cards in one row. | Optimized for mouse and keyboard navigation; row height `--dt-layout-table-row-height`; single-click row inspection and side-by-side comparison without modal blindness. |
+| **Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg`) | Navigation sidebar collapses to icon-only rail; `CMP-09` becomes a collapsible slide-over rail using `--dt-layout-drawer-width-tablet: 320px`; KPI cards remain fluid; grouping pill wraps when required. | Touch and pointer targets comply with `--dt-control-height-sm`; the rail overlays without darkening the workspace. |
+| **Tablet Portrait / Secondary Terminal**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md`) | Sidebar becomes off-canvas; KPI cards wrap; `CMP-09` becomes a collapsible bottom sheet using `--dt-layout-bottom-sheet-height-expanded`; data grid prioritizes core operational columns. | Touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ spacing; row inspection remains non-blocking and keyboard-independent. |
 
 ---
 
