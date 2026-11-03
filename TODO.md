@@ -31,7 +31,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 - [x] **SCR-MTTO-026: RIME Backlog Prioritization Dashboard**
   - [x] 1–100 RIME criticality matrix scoring and batching recommendation.
   - [x] Audit data pertinence, finalize desktop prototype review, capture high-res screenshot, and promote to Stable.
-  - [x] Canonical specification finalized: [`SCR-MTTO-026.md`](ui-ux/screens/mtto/SCR-MTTO-026.md) (v1.2 Stable).
+  - [x] Canonical specification finalized: [`SCR-MTTO-026.md`](ui-ux/screens/mtto/SCR-MTTO-026.md) (v1.4 Stable).
 
 - [ ] **SCR-MTTO-001: Calendar-Based Maintenance Scheduling**
   - [ ] Cascading taxonomy selector (L6 $\to$ L7 $\to$ L8) and battery limit validation.
