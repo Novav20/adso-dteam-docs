@@ -46,7 +46,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [ ] Execute Tier 0/1 UI audit and persist report.
 
 ### Inventory & Asset Master Data Screens (INV)
-- [x] **SCR-INV-025: Rotable Asset Swap (Pauli Principle)**
+- [x] **SCR-INV-025: Rotable Asset Swap**
   - [x] Field modal / drawer for atomic 1:1 rotable equipment exchange.
   - [x] Canonical specification finalized: [`SCR-INV-025.md`](ui-ux/screens/inv/SCR-INV-025.md) (v1.4 Stable).
 
