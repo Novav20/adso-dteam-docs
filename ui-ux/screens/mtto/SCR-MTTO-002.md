@@ -54,7 +54,7 @@ status: Stable
 | `CMP-02` | Operational Tabs Controller | 4-channel flush tab bar | Surface: `--dt-color-surface-base`<br>Active Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Active Indicator: `--dt-color-text-primary` | Edge-to-edge flush navigation bar allowing instant switching between: `[1. Scope]`, `[2. Spares]`, `[3. ISO Diagnosis]`, and `[4. Evidence]`. Active tab merges visually with the main workspace (`--dt-color-surface-card`) and displays a high-contrast bottom indicator (`--dt-color-text-primary`). Detailed in §5.2. |
 | `CMP-03` | Scope & Timing Panel | Step checklist & decoupled dual-card timing | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Displays planned task scope items with tactile completion checkboxes and a decoupled 2-card timing grid: `FieldStopwatchCard` with field intervention stopwatch and transfer action; `ActualLaborHoursCard` with tactile steppers, quick preset pills, and plain planned labor reference. Detailed in §5.2 and §5.3.1. |
 | `CMP-04` | Materials & Spares Allocation Panel | Parts consumed cards & equipment rotation trigger | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Lists reserved warehouse spare parts with tactile quantity steppers and plain-text warehouse metadata. Hosts neutral callout card (`--dt-color-surface-card`, `--dt-color-border-subtle`) launching modal [SCR-INV-025](../inv/SCR-INV-025.md) when an equipment swap is required. Detailed in §5.3. |
-| `CMP-05` | ISO 14224 Multi-Tier Taxonomy Matrix Card | 7-tier standardized failure coding matrix | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Control Border: `--dt-color-border-panel`<br>Popover Border: `--dt-color-border-hairline` | The core reliability data collection container. Enforces sequential multi-tier custom popover dropdowns (`.dt-custom-dropdown`) with dynamic mandatory indicators (`*`) strictly bound to ISO 14224 failure classifications: Maintainable Item, Failure Mode, Failure Mechanism, Failure Cause, Detection Method, Operational Condition, Operational Impact, Downtime Hours, and full-width Technical Observations. Detailed in §5.3.1. |
+| `CMP-05` | ISO 14224 Multi-Tier Taxonomy Matrix Card | 7-tier standardized failure coding matrix | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Control Border: `--dt-color-border-panel`<br>Popover Border: `--dt-color-border-hairline` | The core reliability data collection container. Enforces sequential multi-tier standardized custom popover dropdowns with dynamic mandatory indicators (`*`) strictly bound to ISO 14224 failure classifications: Maintainable Item, Failure Mode, Failure Mechanism, Failure Cause, Detection Method, Operational Condition, Operational Impact, Downtime Hours, and full-width Technical Observations. Detailed in §5.3.1. |
 | `CMP-06` | ISO 14224 Hard Lock Indicator | Discrete 7-segment quality gate widget | Surface: `--dt-color-surface-card`<br>Border: Dynamic (`--dt-color-border-subtle` vs `--dt-color-state-success`) | Visual quality meter displaying taxonomic completeness via a 7-segment discrete mini-bar grid. Complies with ANSI/ISA-101.01 §6.2 by maintaining neutral borders during routine entry and transitioning contour to Muted Teal (`--dt-color-state-success`) upon 100% compliance. Hard-disables finalization while any mandatory ISO field remains unclassified. Detailed in §5.3.2. |
 | `CMP-07` | Cryptographic Evidence Capture Card | Multi-evidence array uploader ($1 : 0..N$) & SHA-256 verifier | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Hash: `--dt-font-mono-data` | Multi-evidence container supporting $0..N$ attachments. Displays dashed dropzone placeholder solely when empty ($0$ items); once $\ge 1$ attachment is captured, the dropzone is replaced by verified attachment cards while the action toolbar (`Capture Evidence` / `Select File`) remains accessible for additional captures. Detailed in §5.3.3. |
 | `CMP-08` | Integrated Telemetry & Outbox Indicator | Zero-shift connection & local queue health indicator | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Zero-shift diagnostic telemetry chip integrated into execution header (`CMP-01`), eliminating intrusive sticky banners (CLS = 0). Displays offline status, queued transaction count, and offline persistence status. Detailed in §5.3.5. |
@@ -67,11 +67,11 @@ status: Stable
 
 | State | Visual Modification in the Interface | Activation Condition |
 | :--- | :--- | :--- |
-| **Normal / In Progress (Default)** | Header displays `IN_PROGRESS` in neutral blue/gray badge. Checklist editable. Stopwatch counter increments. Tab 3 shows incomplete taxonomy. `CMP-09` `[Finalize Work Order]` is hard-disabled via the ISO Lock. | Initial load of `SCR-MTTO-002` following work authorization from `SCR-VIS-011`. |
+| **Normal / In Progress (Default)** | Header displays `IN_PROGRESS` in neutral high-contrast capsule badge (`--dt-color-surface-base`, `--dt-color-border-subtle`, `--dt-color-text-primary`). Checklist editable. Stopwatch counter increments. Tab 3 shows incomplete taxonomy. `CMP-09` `[Finalize Work Order]` is hard-disabled via the ISO Lock. | Initial load of `SCR-MTTO-002` following work authorization from `SCR-VIS-011`. |
 | **Loading / Synchronizing** | Skeleton shimmer on form fields and spares table (`--dt-color-surface-raised`). Taxonomy dropdowns show animated loading indicator while hydrating local SQLite cache. Controls locked. | Initial data hydration from local SQLCipher cache or background delta synchronization in progress. |
 | **Taxonomy Incomplete / Missing Fields (AF-001)** | Missing mandatory taxonomy selectors highlighted with dynamic red asterisk (`*`). Discrete mini-bar meter `CMP-06` displays incomplete segments ($< 7/7$) with neutral panel borders per ANSI/ISA-101.01. Action button `CMP-09` remains disabled. | Technician attempts to finalize or navigates away while any of the 7 mandatory ISO fields or downtime is empty. |
 | **Evidence Capturing & Hashing** | Camera viewfinder overlay active or file upload progress bar visible. Monospace hash chip displays animated status *"Computing SHA-256..."*. Validated photos replace the empty-state dashed dropzone with verified gallery cards ($1..N$) displaying thumbnail, file metadata, and tamper-resistant digital stamp (`SHA-256: [hash]`). Action toolbar remains active for additional captures. | Technician captures or selects photo evidence in `CMP-07`. |
-| **Evidence Corrupt / Hash Mismatch (AF-003)** | File preview replaced by critical red border (`--dt-color-alarm-critical`) and error icon `🚫`. Banner displays: *"File integrity error. SHA-256 discrepancy detected. Please recapture evidence"*. Form progression blocked. | Cryptographic verification detects corrupted binary stream or zero-byte payload (`TR-003-NFR-380`). |
+| **Evidence Corrupt / Hash Mismatch (AF-003)** | File preview replaced by critical red border (`--dt-color-alarm-critical`) and error glyph (`#icon-ban`). Banner displays: *"File integrity error. SHA-256 discrepancy detected. Please recapture evidence"*. Form progression blocked. | Cryptographic verification detects corrupted binary stream or zero-byte payload (`TR-003-NFR-380`). |
 | **Offline Mode (AF-002)** | Zero layout shift (CLS = 0). Header telemetry chip updates to `OFFLINE · [HH:MM]`, `[1 PENDING SYNC]` amber badge illuminates, and `[DE-ENERGIZED EQUIPMENT]` capsule is automatically hidden to avoid false certainty of unverified live telemetry. Local SQLCipher cache active. | Device loses Wi-Fi/cellular connectivity in field process areas (`ASR-001`). |
 | **Ready to Finalize (Unlocked)** | `CMP-06` discrete mini-bar grid fills solid Muted Teal `[7/7 ISO DIAGNOSIS COMPLETE]` with matching Teal card contour (`--dt-color-state-success`). All media attachments display validated cryptographic seal. Action button `CMP-09` unlocks in high-contrast neutral primary styling (`--dt-color-text-primary`). | All 7 ISO 14224 fields selected + Downtime specified + Photo evidence captured with valid hash + Checklist attested. |
 | **Technical Closure Complete** | Form transitions to read-only state. Header badge updates to `COMPLETE`. Standardized completion certificate modal (header with close `X`, body with structured key-value certificate rows and SHA-256 seal, footer with primary action `[Return to Work Orders]`) confirms closure and redirects to `SCR-MTTO-026`. | Technician confirms `[Finalize Work Order]`. System commits atomic transaction. |
@@ -82,9 +82,42 @@ status: Stable
 
 ### 5.1. Initial Load & Lifecycle
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Tech as Maintenance Technician
+    participant VIS as SCR-VIS-011 LOTO
+    participant UI as SCR-MTTO-002 Execution View
+    participant Store as IOfflineStorage / SQLCipher
+    participant Crypto as ICryptoInterop (Web Worker)
+    participant API as Work Order Application Service
+
+    Tech->>VIS: Confirms Zero Energy & Try-Out
+    VIS->>UI: Navigates with Execution Context (WorkOrderId, TechnicianId)
+    UI->>Store: Pre-hydrate ISO 14224 taxonomy & cached WO details
+    Store-->>UI: Return taxonomies & checklist items
+    Tech->>UI: Attests checklist tasks & captures wrench time (CMP-03)
+    Tech->>UI: Confirms consumed spares (CMP-04)
+    Tech->>UI: Classifies 7-tier ISO failure taxonomy (CMP-05)
+    UI->>UI: Validates 7/7 completeness & unlocks ISO Lock meter (CMP-06)
+    Tech->>UI: Captures photographic evidence (CMP-07)
+    UI->>Crypto: Compute client-side SHA-256 hash asynchronously
+    Crypto-->>UI: Return validated SHA-256 hash stamp
+    Tech->>UI: Clicks [Finalize Work Order] (CMP-09)
+    alt Network Connected
+        UI->>API: POST /api/v1/work-orders/{id}/technical-closure (SubmitTechnicalClosureCommand + X-Idempotency-Key)
+        API-->>UI: HTTP 200 OK (WorkOrderTechnicallyCompletedEvent)
+        UI-->>Tech: Display completion certificate modal & navigate to SCR-MTTO-026
+    else Disconnected / Offline Outbox (AF-002)
+        UI->>Store: Enqueue SubmitTechnicalClosureCommand into encrypted outbox
+        Store-->>UI: Offline lease queued confirmation
+        UI-->>Tech: Display offline sync badge & return to backlog
+    end
+```
+
 1. **Context Ingestion Contract:**
    * When navigated from [SCR-VIS-011](../vis/SCR-VIS-011.md), the route receives the initial execution context payload:
-     $$\mathcal{P}_{\text{init}} = \langle \text{WorkOrderId}: \text{Guid}, \text{EquipmentTag}: \text{string}, \text{FunctionalLocation}: \text{string}, \text{TechnicianId}: \text{string}, \text{LotoStatus}: \text{LotoLockoutState} \rangle$$
+     $$\mathcal{P}_{\text{init}} = \langle \text{WorkOrderId}: \text{Guid}, \text{EquipmentTag}: \text{string}, \text{FunctionalLocation}: \text{string}, \text{TechnicianId}: \text{Guid}, \text{LotoStatus}: \text{LotoLockoutState} \rangle$$
    * If the initial Work Order status is `SCHEDULED`, the client dispatches an execution start command, transitioning the Work Order status to `IN_PROGRESS` with server-side audit timestamp logging.
 2. **Local Cache Pre-Hydration (Offline Readiness):**
    * Pre-hydrates the ISO 14224 taxonomic datasets (maintainable items catalog, equipment class failure modes) from the local encrypted database ([TR-002](../../../requirements/common/TR-002.md)), guaranteeing zero network latency when populating dropdowns in field dead-zones.
@@ -92,7 +125,7 @@ status: Stable
 ### 5.2. Mobile Ergonomics & Tactile Mechanics
 
 1. **Gloved Touch Target Invariant (ISO 9241-110 Clause 5.3 / `--dt-touch-target-mobile`):**
-   * All interactive controls (checkboxes, dropdown triggers, camera buttons, tab headers, spare parts quantity steppers) enforce a minimal bounding box of $48\times 48\text{px}$ with $\ge 8\text{px}$ separation, ensuring error-free operation with nitrile and leather field gloves.
+   * All interactive controls (checkboxes, dropdown triggers, camera buttons, tab headers, spare parts quantity steppers) enforce a minimal bounding box governed by `--dt-touch-target-mobile` with `--dt-space-2` separation, ensuring error-free operation with nitrile and leather field gloves.
    * Step navigation directional arrow buttons enforce an enlarged footprint governed by `--dt-control-width-nav-step` $\times$ `--dt-control-height-nav-step` (and `--dt-control-width-nav-step-mobile` $\times$ `--dt-control-height-nav-step-mobile` on mobile) with tactile elevated surface (`--dt-color-surface-raised`), panel border, and explicit SVG arrows (`#icon-arrow-left`, `#icon-arrow-right`).
    * Custom scope checkboxes enforce an enlarged hit target (--dt-control-size-checkbox) with a centered checkmark icon.
 2. **Decoupled Dual-Card Scope & Timing Architecture (`CMP-03`):**
@@ -105,7 +138,7 @@ status: Stable
    * Guided workflow: Progressive navigation (`← Previous` and `Next →`) guides the technician sequentially; primary action `[Finalize Work Order]` unlocks strictly on Step 4 (Evidence) once quality gates are satisfied.
 4. **Flush Tab Navigation Physics (`CMP-02`):**
    * Edge-to-edge flush tab bar with zero inter-tab gap or rounded corners, sitting directly adjacent to the LOTO handover strip and workspace bounds.
-   * Supports horizontal touch swipe gestures with a $40\text{px}$ displacement threshold. Badges are strictly reserved for quantifiable counters (`[5/7]`, `[3 items]`, `[0/7]`, `[0/1]`), purging decorative pseudo-badges per ANSI/ISA-101.01 §6.2.
+   * Supports horizontal touch swipe gestures across touch viewports. Badges are strictly reserved for quantifiable counters (`[5/7]`, `[3 items]`, `[0/7]`, `[0/1]`), purging decorative pseudo-badges per ANSI/ISA-101.01 §6.2.
 
 ### 5.3. Domain Workflows, Taxonomy Enums, and Cryptographic Mutation
 
@@ -390,6 +423,7 @@ public record WorkOrderClosingContextDto
 {
     public required Guid WorkOrderId { get; init; }
     public required string WorkOrderNumber { get; init; } // e.g. "WO-2026-0842"
+    public required Guid TechnicianId { get; init; }
     public required Guid EquipmentUnitId { get; init; }
     public required string EquipmentTag { get; init; }     // e.g. "P-0101A"
     public required string FunctionalLocation { get; init; } // e.g. "TFA-CSS-P-0101A"
@@ -437,6 +471,16 @@ public record MediaAttachmentDto
     public required string IntegrityHashSha256 { get; init; }
     public required DateTime UploadedAt { get; init; }
 }
+
+public record SubmitTechnicalClosureCommand(
+    Guid WorkOrderId,
+    Guid TechnicianId,
+    decimal ActualLaborHours,
+    FailureRecordInputDto FailureRecord,
+    IReadOnlyList<SparePartAllocationDto> ConsumedSpares,
+    IReadOnlyList<MediaAttachmentDto> EvidenceAttachments,
+    string PreviousHash
+);
 ```
 
 ### 7.3. Client-Side DOM & Interop Bridge
@@ -455,9 +499,9 @@ public record MediaAttachmentDto
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Dual-column side-by-side layout ($50\% / 50\%$) constrained to `--dt-layout-form-max-width`. Left: Scope, Spares, and Multimedia. Right: Full ISO 14224 Taxonomy Matrix and audit logs. Sticky footer spans bottom width (`--dt-layout-footer-height`). | Mouse click focus; keyboard numeric navigation; dense multi-tier dropdown grids; full-resolution image preview modal. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Asymmetric dual-column layout ($45\% / 55\%$) constrained to `--dt-layout-form-max-width`. Segmented tab bar `CMP-02` allows grouped inspection. Sticky footer `CMP-09` pinned at bottom (`--dt-layout-footer-height`). | Gloved touch targets $\ge 48\times 48\text{px}$; scrollable taxonomy matrix; camera trigger anchored for dual-thumb reachability. |
-| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Single-column stacked layout. Segmented tab bar `CMP-02` hosts swipeable tab views. Form items span full width ($100\%$). Action bar `CMP-09` sticky at bottom (`--dt-layout-footer-height`). | Large touch input fields; single-hand thumb navigation; sticky ISO lock completeness meter pinned above action button. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Flush 4-tab execution workspace (`CMP-02`) with multi-column internal tab grids (Tab 1 pairs the Task Checklist on the left with the stacked Stopwatch and Actual Labor Hours cards on the right; Tab 3 renders the 7-tier ISO 14224 matrix in a 2-column grid). Sticky footer `CMP-09` (`--dt-layout-footer-height`) spans bottom width. | Mouse click focus; keyboard numeric navigation; dense multi-tier custom popover dropdowns; full-resolution image preview modal. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg`) | Flush 4-tab execution workspace (`CMP-02`) with asymmetric two-column internal tab grids so both the Task Checklist and Timing Cards (`CMP-03`) fit within the landscape viewport without vertical clipping. Sticky footer `CMP-09` pinned at bottom (`--dt-layout-footer-height`). | Gloved touch targets governed by `--dt-touch-target-mobile` with `--dt-space-2` separation; camera trigger anchored for dual-thumb reachability. |
+| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md`) | Single-column vertical stack inside each swipeable tab view (`CMP-02`) constrained to `--dt-layout-form-max-width` with `--dt-layout-footer-clearance` scroll padding. Sticky footer `CMP-09` (`--dt-layout-footer-height`) pinned at bottom. | Gloved operation ergonomics (`--dt-touch-target-mobile`, `--dt-space-2` gap); single-hand thumb navigation; sticky ISO lock completeness meter (`CMP-06`) visible above action bar. |
 
 ---
 
@@ -479,7 +523,7 @@ public record MediaAttachmentDto
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-01` | Device authorization and authenticated technician session validation (`TECH-4921`). |
 | [TR-007](../../../requirements/common/TR-007.md) | `CMP-08` | Transactional Offline Sync Outbox: Queues completed technical closures during disconnected operation with idempotent sync. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-08` | Real-time synchronization via WebSockets/SignalR for telemetry connection health and outbox reconciliation. |
-| **ISO 9241-110** | `CMP-02`, `CMP-07`, `CMP-09` | Gloved touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ separation complying with industrial ergonomics (`--dt-touch-target-mobile`). |
+| **ISO 9241-110** | `CMP-02`, `CMP-07`, `CMP-09` | Gloved touch targets governed by `--dt-touch-target-mobile` with `--dt-space-2` separation complying with industrial ergonomics. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-10` | ANSI/ISA-101 HPHMI: 90% neutral grayscale palette; saturated amber reserved for offline banner and missing fields; saturated red reserved for file corruption. |
 | [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-01`, `CMP-08` | Integration with Cryptographic Offline Lease protocol for disconnected field operations. |
 | [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-08`, `CMP-09` | Idempotency token generation (UUIDv7) attached to technical closure payloads to prevent duplicate commits. |
