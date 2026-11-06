@@ -379,19 +379,19 @@ To prevent peripheral ambiguity between non-interactive status indicators and cl
 
 In compliance with ISO 9241-110 (Controllability) and ANSI/ISA-101.01 ergonomics for field operations, mobile/tablet execution interfaces (such as `SCR-MTTO-002` and `SCR-VIS-011`) employ a specialized class of **Tactile Field Controls**. While desktop data-entry grids (`SCR-INV-005`, `SCR-INV-025`) utilize dense rectangular controls (`--dt-radius-md: 6px`, $36\text{px}$ baseline) optimized for mouse precision and keyboard navigation, field execution screens introduce dedicated touch primitives designed for rapid single-handed or gloved operation:
 
-#### 6.6.1. Circular Stepper Operators (`.btn-circle-tactile`)
-* **Geometry:** Perfectly circular ($r = 50\%$, `--dt-radius-full`), dimensioned at $36 \times 36\text{px}$ on tablet landscape viewports and expanding to `--dt-touch-target-mobile` ($48 \times 48\text{px}$) on mobile viewports ($\le 650\text{px}$).
+#### 6.6.1. Circular Stepper Operators
+* **Geometry:** Perfectly circular ($r = 50\%$, `--dt-radius-full`), dimensioned at `--dt-control-height-md` on tablet landscape viewports and expanding to `--dt-touch-target-mobile` on mobile viewports ($\le \text{tablet breakpoint}$).
 * **Usage:** Incremental counters and step adjustments (`−` / `+`). The circular bounding box provides radial thumb clearance, mitigating capacitive edge misfires during glove use.
-* **Surface Styling:** Neutral secondary surface (`--dt-color-surface-btn-secondary`, hairline border `--dt-hairline-subtle`) flanking a recessed input or readout display.
+* **Surface Styling:** Neutral secondary surface (`--dt-color-surface-btn-secondary`, hairline border `--dt-color-border-subtle`) flanking a recessed input or readout display.
 
-#### 6.6.2. Tactile Pill Actions & Presets (`.btn-pill`)
-* **Geometry:** Full capsule curvature (`--dt-radius-full: 9999px`), $36\text{px}$ standard height ($32\text{px}$ for compact presets).
+#### 6.6.2. Tactile Pill Actions & Presets
+* **Geometry:** Full capsule curvature (`--dt-radius-full`), `--dt-control-height-md` standard height (compact presets scale with `--dt-space-4`).
 * **Usage:**
-  1. **Operational State Toggles:** Main timer triggers (`[Pausar]` / `[Reanudar]`).
+  1. **Operational State Toggles:** Main timer triggers (`[Pause]` / `[Resume]`).
   2. **Discrete Bumpers:** Quick interval adders (`[+15 min]`).
-  3. **Segmented Quick Access Presets:** Rapid budget selection pills (`2,0h`, `2,5h`, `3,0h`, `3,5h (Plan)`).
-  4. **Primary Execution CTAs:** Full-width bottom action bars (`[ ⏱ Imputar tiempo al registro ]`).
-* **Active Selection Discipline:** Active quick-access presets MUST use monochromatic high-contrast tokens (`--dt-primitive-gray-980` in Light Theme; `--dt-primitive-gray-10` in Dark Theme) with inverted text, strictly reserving `--dt-color-state-info` for primary execution actions (`[Imputar tiempo]`, `[Finalizar Orden]`).
+  3. **Segmented Quick Access Presets:** Rapid budget selection pills (`2.0h`, `2.5h`, `3.0h`, `3.5h (Planned)`).
+  4. **Primary Execution CTAs:** Full-width bottom action bars (`[Log Time to Record]`).
+* **Active Selection Discipline:** Active quick-access presets MUST use monochromatic high-contrast tokens (`--dt-primitive-gray-980` in Light Theme; `--dt-primitive-gray-10` in Dark Theme) with inverted text, strictly reserving `--dt-color-state-info` for primary execution actions (`[Log Time to Record]`, `[Finalize Work Order]`).
 
 ---
 
