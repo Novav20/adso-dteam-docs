@@ -38,17 +38,25 @@ status: Stable
 
 ## 2. Visual Artifact
 
-### 2.1. Primary Viewport Capture (Tab 1: Scope & Timing — Light Theme)
+### 2.1. Tab 1: Scope & Timing (Light Theme)
 ![SCR-MTTO-002 Scope & Timing](assets/SCR-MTTO-002-tab1-light.png)
 
-> *Note: Production UI prototype capture illustrating the mobile execution header, frameless task checklist, decoupled timing master card with dual telemetry gauges, and sticky action bar.*
+> *Note: Production UI prototype capture illustrating the mobile execution header, frameless task checklist with monochromatic completion checks, decoupled timing master card with dual telemetry gauges, and sticky action bar.*
 
-### 2.2. Multi-Tab Visual progression & Themes
-| Operational Tab | Theme | Visual Role |
-| :--- | :--- | :--- |
-| **Tab 2: Materials & Spares** | Light Theme | ![Tab 2 Spares](assets/SCR-MTTO-002-tab2-light.png) |
-| **Tab 3: ISO 14224 Diagnosis** | Dark Theme | ![Tab 3 ISO 14224](assets/SCR-MTTO-002-tab3-dark.png) |
-| **Tab 4: Evidence Capture** | Dark Theme | ![Tab 4 Evidence](assets/SCR-MTTO-002-tab4-dark.png) |
+### 2.2. Tab 2: Materials & Spares Allocation (Light Theme)
+![SCR-MTTO-002 Materials & Spares](assets/SCR-MTTO-002-tab2-light.png)
+
+> *Note: Production UI prototype capture illustrating allocated warehouse spares with tactile quantity steppers and contextual rotable asset swap launch pane.*
+
+### 2.3. Tab 3: ISO 14224 Diagnosis (Dark Theme)
+![SCR-MTTO-002 ISO 14224 Diagnosis](assets/SCR-MTTO-002-tab3-dark.png)
+
+> *Note: Production UI prototype capture illustrating the 7-node sequential quality gate stepper and cascading taxonomy classification matrix in Dark Theme.*
+
+### 2.4. Tab 4: Photographic Evidence (Dark Theme)
+![SCR-MTTO-002 Photographic Evidence](assets/SCR-MTTO-002-tab4-dark.png)
+
+> *Note: Production UI prototype capture illustrating cryptographic evidence acquisition, verified photo attachment cards with SHA-256 seal, and unlocked technical closure button.*
 
 ---
 
