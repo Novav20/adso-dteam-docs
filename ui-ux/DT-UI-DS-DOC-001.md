@@ -377,7 +377,7 @@ To prevent peripheral ambiguity between non-interactive status indicators and cl
 
 ### 6.6. Tactile Field Controls & High-Velocity Touch Primitives
 
-In compliance with ISO 9241-110 (Controllability) and ANSI/ISA-101.01 ergonomics for field operations, mobile/tablet execution interfaces (such as `SCR-MTTO-002` and `SCR-VIS-011`) employ a specialized class of **Tactile Field Controls**. While desktop data-entry grids (`SCR-INV-005`, `SCR-INV-025`) utilize dense rectangular controls (`--dt-radius-md: 6px`, $36\text{px}$ baseline) optimized for mouse precision and keyboard navigation, field execution screens introduce dedicated touch primitives designed for rapid single-handed or gloved operation:
+In compliance with ISO 9241-110 (Controllability) and ANSI/ISA-101.01 ergonomics for field operations, mobile/tablet execution interfaces (such as `SCR-MTTO-002` and `SCR-VIS-011`) employ a specialized class of **Tactile Field Controls**. While desktop data-entry grids (`SCR-INV-005`, `SCR-INV-025`) utilize dense rectangular controls (`--dt-radius-md`, `--dt-control-height-md` baseline) optimized for mouse precision and keyboard navigation, field execution screens introduce dedicated touch primitives designed for rapid single-handed or gloved operation:
 
 #### 6.6.1. Circular Stepper Operators
 * **Geometry:** Perfectly circular ($r = 50\%$, `--dt-radius-full`), dimensioned at `--dt-control-height-md` on tablet landscape viewports and expanding to `--dt-touch-target-mobile` on mobile viewports ($\le \text{tablet breakpoint}$).

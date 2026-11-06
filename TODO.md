@@ -26,7 +26,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 ### Maintenance Management Screens (MTTO)
 - [x] **SCR-MTTO-002: Work Order Technical Closure**
   - [x] Multi-evidence array ($1 : 0..N$), SHA-256 tamper verification, and discrete ISO 14224 mini-bars.
-  - [x] Canonical specification finalized: [`SCR-MTTO-002.md`](ui-ux/screens/mtto/SCR-MTTO-002.md) (v1.4 Stable).
+  - [x] Canonical specification finalized: [`SCR-MTTO-002.md`](ui-ux/screens/mtto/SCR-MTTO-002.md) (v1.5 Stable).
 
 - [x] **SCR-MTTO-026: RIME Backlog Prioritization Dashboard**
   - [x] 1–100 RIME criticality matrix scoring and batching recommendation.
