@@ -36,9 +36,15 @@ status: Stable
 
 ## 2. Visual Artifact
 
-![SCR-INV-025 Rotable Asset Swap Screenshot](assets/SCR-INV-025-screenshot.png)
+### 2.1. Rotable Asset Swap Modal (Dark Theme)
+![SCR-INV-025 Rotable Asset Swap](assets/SCR-INV-025-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the centered rotable asset swap modal, dual equipment inspection cards (dismounted vs. replacement), barcode scan trigger, and cryptographic audit integrity seal.*
+> *Note: Production UI prototype capture illustrating the centered rotable asset swap modal at 1280×800 in Dark Theme. Exhibits the continuous two-column comparative split (Dismounted Asset on the left vs. Replacement Asset on the right with Key-Top / Value-Bottom modular metadata grids), confirmed taxonomic compatibility badge (CMP-06), Work Order linkage (CMP-07), live SHA-256 integrity seal (CMP-08), and primary commit trigger (CMP-09).*
+
+### 2.2. Rotable Asset Swap Modal (Light Theme)
+![SCR-INV-025 Rotable Asset Swap Light](assets/SCR-INV-025-light.png)
+
+> *Note: Production UI prototype capture illustrating the centered rotable asset swap modal at 1280×800 in Light Theme.*
 
 ---
 
@@ -57,7 +63,7 @@ status: Stable
 | `CMP-07` | Work Order Linkage Field | Optional justifying WO input | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Searchable input linking the equipment swap transaction to a justifying work order. Detailed in §5.1. |
 | `CMP-08` | Cryptographic Audit Hash Strip | Chained SHA-256 preview strip | Surface: `--dt-color-surface-raised`<br>Font: `--dt-font-mono-data` | Displays real-time generated SHA-256 hash chaining payload, visualizing the immutable cryptographic audit record dispatched with the transaction. Detailed in §5.3.3. |
 | `CMP-09` | Atomic Commit Action Button | Primary transactional confirm button | Surface: `--dt-color-state-info`<br>Disabled Surface: `--dt-color-state-disabled` | Primary action `[Confirm Asset Swap]`. Enforces single-commit atomic execution; disabled until all taxonomic and destination constraints are satisfied. Detailed in §5.3.4. |
-| `CMP-10` | Cancellation & Dismiss Button | Secondary cancellation control | Surface: `--dt-color-surface-btn-secondary`<br>Border: None | Safely dismisses the modal without altering database configuration or location links. Detailed in §5.2.1. |
+| `CMP-10` | Modal Close & Dismiss Action | Header close icon button and Escape shortcut | Surface: Transparent<br>Border: None | Safely dismisses the modal without committing changes, unblocking the host screen without altering database configuration or location links. Detailed in §5.2. |
 
 ---
 
@@ -113,7 +119,7 @@ sequenceDiagram
 1. **Interaction Modality & Container Physics:**
    * **Desktop & Tablet Landscape (Modal Modality):** Operates as a centered modal dialog over a dimmed backdrop (`--dt-color-surface-overlay`). Enforces keyboard focus trapping: `Escape` cancels interaction, and `Enter` confirms when form is valid. Layout bounds and card configurations are detailed in Section 8.
    * **Tablet Portrait (Modal Modality):** Operates as a centered modal container with responsive safety margins, preserving rounded container bounds and focus isolation over the caller screen. Dimensions are detailed in Section 8.
-2. **Tactile Targets:** All interactive controls (status dropdowns, barcode scan button, confirm action) enforce touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ margin separation to ensure comfortable operation with industrial gloves (`ISO 9241-110 Clause 5.3`, `--dt-touch-target-mobile`).
+2. **Tactile Targets:** All interactive controls (status dropdowns, barcode scan button, confirm action) enforce touch targets governed by `--dt-touch-target-mobile` with `--dt-space-2` separation to ensure comfortable operation with industrial gloves (`ISO 9241-110 Clause 5.3`).
 3. **Barcode Scanning Mechanics:** Tapping `CMP-05` invokes `IBarcodeScannerInterop` optical camera stream or hardware laser scanner listener. Scanning an asset barcode immediately resolves the serial number against the inventory catalog, populating the replacement unit in $< 300\text{ms}$.
 
 ---
@@ -127,15 +133,20 @@ When the replacement unit is selected:
 2. If classes mismatch, the modal interrupts the flow, displays the critical compatibility banner `CMP-06`, and disables `CMP-09`.
 3. If the replacement unit is flagged in any lifecycle status other than `IN_STORAGE` or maintenance status other than `OPERATIONAL` (e.g., `DECOMMISSIONED` or `UNDER_MAINTENANCE`), the selection is rejected with alert: *"Selected equipment is not available in warehouse inventory"*.
 
-#### 5.3.2. Dismantling Destination Enforcement (AF-002)
-To eliminate logical asset orphanhood:
-1. Destination status `CMP-03` requires an explicit selection mapped to enum `DismountDestinationStatus` (§7.2.3).
-2. Holding warehouse `CMP-03` requires an explicit selection from active storage warehouses.
-3. If either field is omitted, clicking `[Confirm Asset Swap]` applies WCAG 2.1 AA redundant coding (amber focus ring + warning icon `#icon-warning` + inline text label), blocking submission.
+#### 5.3.2. Dismantling Destination Enforcement (AF-002, BLOCKER-3)
+To eliminate logical asset orphanhood, dismounting an equipment unit requires explicit destination mapping onto the 4 orthogonal status dimensions defined in [DT-DM-DOC-001 §4.1–4.4](../../../domain-models/class/DT-DM-DOC-001.md#4-discrete-status-matrices-iso-14224--iso-55000):
+1. **Destination Status Mapping (`DismountDestinationStatus`, §7.2.3):**
+   * **`DismountDestinationStatus.InStorage` (Warehouse Ready Stock):** Sets dismounted unit to `LifecycleStatus = InStorage`, `OperationalStatus = Standby`, `MaintenanceStatus = Operational` (preserving existing `HealthStatus`), and links custody `WarehouseId = HoldingWarehouseId`.
+   * **`DismountDestinationStatus.InRepair` (Technical Workshop Overhaul):** Sets dismounted unit to `LifecycleStatus = InStorage`, `OperationalStatus = Down`, `MaintenanceStatus = UnderMaintenance`, `HealthStatus = Serious`, and links custody `WarehouseId = HoldingWarehouseId`.
+   * **`DismountDestinationStatus.Damaged` (Quarantine / Unserviceable):** Sets dismounted unit to `LifecycleStatus = InStorage`, `OperationalStatus = Down`, `MaintenanceStatus = UnderMaintenance`, `HealthStatus = Critical`, and links custody `WarehouseId = HoldingWarehouseId`.
+2. **Replacement Unit Installation Invariant (`FR-594`):**
+   * The mounted replacement unit transitions from warehouse custody (`WarehouseId = null`) to `LifecycleStatus = Installed`, `OperationalStatus = Standby`, `MaintenanceStatus = Operational`, and opens a new active `AssetInstallation` record (`InstalledAtUtc = TimestampUtc`, `RemovedAtUtc = null`).
+3. **Holding Warehouse Selection:** Holding warehouse `CMP-03` requires an explicit selection from active storage warehouses.
+4. **Validation Guard:** If either destination status or holding warehouse is omitted, clicking `[Confirm Asset Swap]` applies WCAG 2.1 AA redundant coding (amber focus ring + warning icon `#icon-warning` + inline text label), blocking submission.
 
 #### 5.3.3. Cryptographic Audit Trail Chaining (TR-001)
-Upon confirmation, the client computes the candidate payload hash:
-$$\text{PayloadHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{TechnicianUserId} \parallel \text{FunctionalLocationTag} \parallel \text{DismountedSerial} \parallel \text{ReplacementSerial} \parallel \text{WorkOrderId} \parallel \text{Timestamp})$$
+Upon confirmation, the client computes the candidate payload hash matching `ExecuteAssetSwapCommand` (§7.2.3):
+$$\text{PayloadHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{TechnicianUserId} \parallel \text{FunctionalLocationId} \parallel \text{DismountedAssetId} \parallel \text{DestinationStatus} \parallel \text{HoldingWarehouseId} \parallel \text{ReplacementAssetId} \parallel \text{JustifyingWorkOrderId} \parallel \text{TimestampUtc})$$
 The resulting cryptographic hash is bound to the transaction command payload, chained to `PreviousHash` to guarantee unalterable lifecycle traceability ([TR-001](../../../requirements/common/TR-001.md)).
 
 #### 5.3.4. Atomic Asset Swap Command Dispatch (CMP-09, TR-001, TR-007, ADR-005, ADR-007)
@@ -167,14 +178,14 @@ Upon pressing `[Confirm Asset Swap]`, the client dispatches an atomic substituti
 
 ```text
 Components/Inventory/
-└── AssetSwapModal.razor                               # CMP-01: Root Modal Container (SCR-INV-025)
+└── AssetSwapModal.razor                               # CMP-01 & CMP-10: Root Modal Container & Header Dismiss Action
     ├── DismountedAssetCard.razor                      # CMP-02 & CMP-03: Dismounted asset details & destination picker
     ├── ReplacementAssetCard.razor                     # CMP-04: Replacement asset selection & specs
     │   ├── BarcodeScannerButton.razor                 # CMP-05: Tactile scan trigger
     │   └── TaxonomicCompatibilityBadge.razor          # CMP-06: Parity validation badge
     ├── WorkOrderReferenceInput.razor                  # CMP-07: WO justification linkage
     ├── ChainedAuditPreviewStrip.razor                 # CMP-08: Cryptographic hash strip
-    └── ModalActionFooter.razor                        # CMP-09 & CMP-10: Commit and cancel controls
+    └── ModalActionFooter.razor                        # CMP-09: Atomic commit action button
 ```
 
 ---
@@ -260,7 +271,7 @@ public EventCallback<Guid?> WorkOrderIdChanged { get; set; }
 [Parameter, EditorRequired]
 public required string CryptographicPreviewHash { get; set; }
 
-// CMP-09 & CMP-10: ModalActionFooter.razor
+// CMP-09: ModalActionFooter.razor
 [Parameter]
 public bool CanCommit { get; set; }
 
@@ -269,9 +280,6 @@ public bool IsSubmitting { get; set; }
 
 [Parameter]
 public EventCallback OnCommitConfirmed { get; set; }
-
-[Parameter]
-public EventCallback OnDismissCancelled { get; set; }
 ```
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
@@ -279,9 +287,31 @@ public EventCallback OnDismissCancelled { get; set; }
 ```csharp
 public enum DismountDestinationStatus
 {
-    IN_REPAIR,
-    IN_STORAGE,
-    DAMAGED
+    InRepair,
+    InStorage,
+    Damaged
+}
+
+public enum EquipmentLifecycleStatus
+{
+    InStorage,
+    Installed,
+    Commissioning,
+    Decommissioned
+}
+
+public enum EquipmentOperationalStatus
+{
+    Up,
+    Down,
+    Standby
+}
+
+public enum EquipmentMaintenanceStatus
+{
+    Operational,
+    UnderMaintenance,
+    UnderTest
 }
 
 public record InstalledAssetDetailsDto(
@@ -302,9 +332,9 @@ public record RotableSpareSummaryDto(
     string Model,
     Guid EquipmentClassId,
     string EquipmentClassName,
-    string LifecycleStatus,
-    string MaintenanceStatus,
-    string OperationalStatus,
+    EquipmentLifecycleStatus LifecycleStatus,
+    EquipmentMaintenanceStatus MaintenanceStatus,
+    EquipmentOperationalStatus OperationalStatus,
     Guid WarehouseId,
     string WarehouseName,
     bool IsCompatible
@@ -350,9 +380,9 @@ public record AssetSwapCompletedEvent(
 
 | Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
 | :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Centered modal dialog (sized by `--dt-layout-modal-width-desktop`, max-height `--dt-layout-modal-max-height`); dual-card horizontal layout comparing dismounted asset vs. replacement asset. | Mouse click interaction; `Tab` key focus cycling; `Enter` to commit; `Escape` to cancel. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Centered modal container (sized by `--dt-layout-modal-width-tablet`); vertically stacked dismounted asset and replacement asset cards. | Touch targets $\ge 48\text{px}$; large barcode scan button; clear contrast borders. |
-| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Centered modal container (sized by `--dt-layout-modal-width-tablet`, max-height `--dt-layout-modal-max-height`); vertically stacked dismounted asset and replacement asset cards. | Gloved touch targets $\ge 48\times 48\text{px}$ with $\ge 8\text{px}$ margin; sticky footer button `[Confirm Asset Swap]` always visible; `Escape` / close button cancels. |
+| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Centered modal dialog (sized by `--dt-layout-modal-width-desktop`, max-height `--dt-layout-modal-max-height`); dual-column horizontal split (`CMP-02`/`CMP-03` Dismounted Asset on the left, `CMP-04`/`CMP-05`/`CMP-06` Replacement Asset on the right, separated by a vertical hairline divider `--dt-color-border-subtle`), followed by full-width Work Order linkage (`CMP-07`), SHA-256 preview strip (`CMP-08`), and modal action footer (`CMP-09`). | Mouse click interaction; `Tab` key focus cycling; `Enter` to commit; `Escape` or header close icon (`CMP-10`) to dismiss. |
+| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg`) | Centered modal container (sized by `--dt-layout-modal-width-desktop` / `--dt-layout-modal-width-tablet`); preserves the dual-column side-by-side comparison (`CMP-02` vs. `CMP-04`) with stacked 2-column Key-Top / Value-Bottom metadata cells so all `CMP-01`–`CMP-09` elements fit without vertical clipping. | Gloved touch targets governed by `--dt-touch-target-mobile` with `--dt-space-2` separation; prominent barcode scan trigger (`CMP-05`); header close icon (`CMP-10`) dismisses. |
+| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md`) | Centered modal container (sized by `--dt-layout-modal-width-tablet`, max-height `--dt-layout-modal-max-height`); single-column vertical stack (`CMP-02`/`CMP-03` stacked above `CMP-04`/`CMP-06`, `CMP-07`, and `CMP-08`) separated by edge-to-edge horizontal dividers (`--dt-color-border-subtle`). | Gloved touch targets governed by `--dt-touch-target-mobile` with `--dt-space-2` separation; sticky modal footer (`CMP-09` `[Confirm Asset Swap]`) permanently visible; header close icon (`CMP-10`) cancels. |
 
 ---
 
@@ -363,7 +393,7 @@ public record AssetSwapCompletedEvent(
 | [FR-591](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-01`, `CMP-02`, `CMP-04` | Interface executes functional replacement of physical Level 6 equipment at Level 5 location. |
 | [FR-592](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-03`, `CMP-09` | Atomically updates uninstalled asset status to "In Repair", "In Storage", or "Damaged". |
 | [FR-593](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-06` | Validates replacement unit is "Available" / "In Storage" and matches `EquipmentClassId` (`AF-001`). |
-| [FR-594](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-09` | Associates new unit to location, immediately switching status to "Operational" with current date. |
+| [FR-594](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-09` | Associates new unit to location, atomically transitioning lifecycle status to Installed (`EquipmentLifecycleStatus.Installed`, `EquipmentMaintenanceStatus.Operational`, `EquipmentOperationalStatus.Standby`) with current date. |
 | [FR-595](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-08`, `CMP-09` | Records rotation details in audit log: location tag, uninstalled serial, installed serial, user, WO reference. |
 | [NFR-596](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | `CMP-09` | Single-commit database transaction ensuring atomic execution or complete rollback. |
 | [NFR-597](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | `CMP-09` | Hierarchical update and status changes complete in $< 2\text{s}$ on server. |

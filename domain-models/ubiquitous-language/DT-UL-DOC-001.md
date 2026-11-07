@@ -2,8 +2,8 @@
 
 | Document ID | DT-UL-DOC-001 |
 | ----------- | ------------- |
-| Version     | 1.1.0         |
-| Status      | DRAFT         |
+| Version     | 1.2.0         |
+| Status      | APPROVED      |
 | Scope       | Domain-Driven Design |
 
 ## Purpose
@@ -12,12 +12,11 @@ This document defines the strict **Ubiquitous Language** for the DTEAM project. 
 All actors, entities, processes, and states must adhere strictly to these definitions in English.
 
 ## Glossary
-*(Note: Add terms here as you discover them during your Notion audit)*
 
 | English Term (Standard)   | Definition / Context                                                                  |
 | :------------------------ | :------------------------------------------------------------------------------------ |
 | **Work Order (WO)**       | The core execution document for a maintenance intervention.                           |
-| **Work Request (WR)**     | An anomaly report that has not yet been approved as a Work Order.                     |
+| **Work Request (WR)**     | An unapproved report of an anomaly or request for maintenance work. It must be evaluated and approved by a Planner before becoming a Work Order (WO). |
 | **Work Permit**           | Safety authorization required for high-risk operations (Hot Work, Confined Space).    |
 | **Equipment**             | A physical asset that can be maintained. Not "Machine" or "Asset" in general context. |
 | **Digital Twin**          | The virtual representation of the physical plant.                                     |
@@ -35,7 +34,6 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **Equipment Unit**        | The physical machine as defined by ISO 14224 Level 6 (e.g., a specific Pump).         |
 | **Asset**                 | A general business term for anything that holds value. **Rule:** When referring to physical machinery in documentation, use **Equipment Unit** or **Maintainable Item** to maintain ISO 14224 precision. |
 | **BOM (Bill of Materials)** | The comprehensive list of parts, items, and materials required to perform a specific maintenance task. |
-| **Work Request (WR)**     | An unapproved report of an anomaly or request for maintenance work. It must be validated by a Planner before becoming a WO. |
 | **RUL (Remaining Useful Life)** | The estimated time an Equipment Unit can continue to operate before it fails, typically calculated via ML/predictive models. |
 | **Subunit**               | A major structural or functional part of an Equipment Unit (ISO 14224 Level 7).       |
 | **Maintenance Plan**      | Owns a planned maintenance schedule and its cadence.                                  |
@@ -78,9 +76,9 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **Preventive Security Lockout** | A fail-safe state triggered automatically by the LOTO Watchdog when the grace window expires without receiving a heartbeat. |
 | **Grace Window**          | A defined time threshold (e.g., 30s) used by the LOTO Watchdog to tolerate RF Shadowing and AP roaming without generating false positive safety lockouts. |
 | **Unit of Work**          | A transactional persistence pattern ensuring multiple database changes succeed or fail as a single atomic operation. |
-| MAI (Moving Analog Indicator) | A visual pattern for continuous process variables (pressure, flow, etc.) that allows rapid condition evaluation without relying solely on numeric digits, conforming to ISA-101.01. |
-| HPHMI                     | High-Performance Human-Machine Interface. Design philosophy prioritizing situational awareness, minimizing cognitive fatigue, and ensuring pre-attentive visibility of safety alarms. |
-| Redundant Coding          | The practice of communicating critical states using multiple simultaneous channels (Shape + Icon + Color + Text) to guarantee accessibility, especially for color blindness. |
-| Discrete Switching (UI)   | A UI interaction pattern requiring explicit taps (rather than continuous swipe/drag gestures) to toggle container states, necessary due to the low precision of capacitive sensors operated with industrial gloves. |
+| **MAI (Moving Analog Indicator)** | A visual pattern for continuous process variables (pressure, flow, etc.) that allows rapid condition evaluation without relying solely on numeric digits, conforming to ISA-101.01. |
+| **HPHMI**                 | High-Performance Human-Machine Interface. Design philosophy prioritizing situational awareness, minimizing cognitive fatigue, and ensuring pre-attentive visibility of safety alarms. |
+| **Redundant Coding**      | The practice of communicating critical states using multiple simultaneous channels (Shape + Icon + Color + Text) to guarantee accessibility, especially for color blindness. |
+| **Discrete Switching (UI)** | A UI interaction pattern requiring explicit taps (rather than continuous swipe/drag gestures) to toggle container states, necessary due to the low precision of capacitive sensors operated with industrial gloves. |
 | **Try-Out Attestation**   | Formalized legal and cryptographic confirmation comprising the physical test method, observed value, and technician digital signature hash, mandatory prior to work authorization. |
 | **Negative Interlock**    | A safety interlocking architecture where telemetry sensors and automated systems can only veto or inhibit an action upon detecting hazard, but can never affirmatively enable or authorize execution on their own without human verification. |
