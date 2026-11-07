@@ -77,7 +77,7 @@
   --dt-layout-sidebar-width-collapsed: 64px;
   --dt-layout-table-row-height: 44px;
   --dt-layout-drawer-width-desktop: 440px;
-  --dt-layout-drawer-width-tablet: 320px;
+  --dt-layout-drawer-width-tablet: 380px;
   --dt-layout-drawer-width: var(--dt-layout-drawer-width-tablet);
   --dt-layout-modal-width-desktop: 640px;
   --dt-layout-modal-width-tablet: 580px;
