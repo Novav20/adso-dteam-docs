@@ -60,7 +60,8 @@ Before scaffolding specifications or prototypes, the agent **MUST** perform an a
 1. **Relational Contract Reconciliation & Presentation DTO Abstraction:**
    * Inspect `DT-ERD-DOC-001.md` to identify all necessary entity fields, nullability (`NOT NULL`), and invariants.
    * **CRITICAL ARCHITECTURAL BOUNDARY:** Translate relational columns, foreign keys, and DB check constraints into **frontend Presentation DTO records and C# enums** *before* drafting the specification.
-   * **STRICT PROHIBITION:** Never leak PostgreSQL schema qualifiers (`mtto.`, `tax.`, `adm.`, `ops.`), physical table names, DDL check constraint names (`ck_*`), SQL types (`timestamptz`), or SQL functions (`clock_timestamp()`) into §5.3 or §7.2 of the specification.
+   * **STRICT PROHIBITION:** Never leak PostgreSQL schema qualifiers (`mtto.`, `tax.`, `adm.`, `vis.`, `inv.`, `ops.`), physical table names, DDL check constraint names (`ck_*`), SQL types (`timestamptz`), or SQL functions (`clock_timestamp()`) into §5.3 or §7.2 of the specification.
+   * **SAME-COMMIT SSoT BACK-PROPAGATION RULE:** If a screen specification requires a new attribute, status transition, or enum literal not yet present in `DT-DM-DOC-001.md`, `DT-DM-DOC-002.md`, or `DT-ERD-DOC-001.md`, the agent MUST back-propagate the definition to those SSoTs and run `scripts/generate_ddl.py` in the same session before running the linter.
 
 2. **Domain Nomenclature & Anti-Meta-Text Translation Rule:**
    * The scaffolder must act as an **architectural compiler**, never a blind copy-paster.

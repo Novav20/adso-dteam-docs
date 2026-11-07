@@ -63,7 +63,7 @@ MANDATORY_SUBSECTIONS_7: list[tuple[str, str]] = [
 
 # Prohibited persistence / SQL leak patterns
 PERSISTENCE_LEAK_PATTERNS: list[tuple[str, str, str]] = [
-    (r"\b(mtto|tax|adm|ops|auth)\.[a-z0-9_]+", "SQL-001",
+    (r"\b(mtto|tax|adm|vis|inv|ops|auth)\.[a-z0-9_]+", "SQL-001",
      "Physical database schema qualifier '{match}' leaked into specification. Use frontend DTO/command types."),
     (r"\btimestamptz\b", "SQL-002",
      "PostgreSQL physical type 'timestamptz' leaked. Use C# 'DateTimeOffset' or ISO-8601 string."),
@@ -97,7 +97,65 @@ CSHARP_LEAK_PATTERNS: list[tuple[str, str, str]] = [
      "Blazor lifecycle override '{match}' leaked into specification."),
     (r"\bnamespace\s+[A-Za-z0-9_.]+\b", "CS-005",
      "C# 'namespace' statement leaked. Decoupled Namespaces Rule prohibits premature assembly coupling."),
+    (r"\bDateTime\b", "CS-006",
+     "Raw 'DateTime' type leaked in C# contract. Use 'DateTimeOffset' for TIMESTAMPTZ timestamps or 'DateOnly' for calendar dates."),
+    (r"\b(?:string\??\s+\w*Criticality\w*|enum\s+\w*Criticality\w*)\b", "CS-008",
+     "Invalid criticality type '{match}' in C# contract. Criticality must be typed as 'int' or 'int?' (1..10) per DT-DM-DOC-001 §4.5."),
 ]
+
+# Mapping of screen C# enum names to canonical DT-DM-DOC-001 §4.X enum keys
+CANONICAL_ENUM_MAP: dict[str, str] = {
+    "EquipmentHealthStatus": "EquipmentUnit.healthStatus",
+    "EquipmentLifecycleStatus": "EquipmentUnit.lifecycleStatus",
+    "EquipmentMaintenanceStatus": "EquipmentUnit.maintenanceStatus",
+    "EquipmentOperationalStatus": "EquipmentUnit.operationalStatus",
+    "OperationalStatus": "EquipmentUnit.operationalStatus",
+    "EnvironmentalExposureLevel": "FunctionalLocation.environmentalExposure",
+    "MaintainableItemStatus": "MaintainableItem.status",
+    "BacklogItemStatus": "BacklogItem.status",
+    "DetectionMethod": "FailureRecord.detectionMethod",
+    "OperationalCondition": "FailureRecord.operationalCondition",
+    "OperationalImpact": "FailureRecord.operationalImpact",
+    "FailureRecordStatus": "FailureRecord.status",
+    "MaintenanceFrequencyType": "MaintenancePlan.frequencyType",
+    "MaintenanceIntervalUnit": "MaintenancePlan.intervalUnit",
+    "MaintenanceMethod": "MaintenancePlan.maintenanceMethod",
+    "WorkOrderType": "WorkOrder.maintenanceMethod",
+    "TelemetrySignalType": "TelemetrySignal.signalType",
+    "MaintenanceCraft": "MaintenancePlan.requiredSpecialty",
+    "MaintenancePlanStatus": "MaintenancePlan.status",
+    "MediaAttachmentFileType": "MediaAttachment.fileType",
+    "WorkOrderCriticality": "WorkOrder.criticality",
+    "WorkOrderStatus": "WorkOrder.currentStatus",
+    "WorkRequestStatus": "WorkRequest.status",
+    "InventoryTransactionType": "InventoryTransaction.transactionType",
+    "SparePartStatus": "SparePart.status",
+    "StockPolicy": "SparePart.stockPolicy",
+    "IsolationType": "IsolationPoint.isolationType",
+    "MeshMappingStatus": "MeshMapping.mappingStatus",
+    "VisualLayerStatus": "VisualLayer.status",
+    "IsolationStatus": "WorkOrderIsolation.isolationStatus",
+    "PhysicalVerificationMethod": "WorkOrderIsolation.tryOutMethod",
+    "PermitType": "WorkPermit.permitType",
+    "WorkPermitStatus": "WorkPermit.status",
+    "AuditActionType": "AuditLog.actionType",
+    "AuthTokenPurpose": "AuthToken.purpose",
+    "IdempotencyStatus": "IdempotencyLog.status",
+    "RolePermissionModule": "RolePermission.module",
+    "UserStatus": "User.status",
+    "WorkOrderRole": "WorkOrderAssignment.roleInWork",
+}
+
+# Screen-specific subset projections of canonical DT-DM-DOC-001 enums
+SUBSET_ENUM_MAP: dict[str, str] = {
+    "CalendarIntervalUnit": "MaintenancePlan.intervalUnit",
+    "TelemetryMeasurementUnit": "MaintenancePlan.intervalUnit",
+}
+
+# Validated presentation/composite UI projection enums (must match exact member set)
+PRESENTATION_PROJECTION_ENUMS: dict[str, set[str]] = {
+    "DismountDestinationStatus": {"IN_REPAIR", "IN_STORAGE", "DAMAGED"},
+}
 
 # Prohibited CSS / styling / magic dimension patterns
 CSS_LEAK_PATTERNS: list[tuple[str, str, str]] = [
@@ -195,6 +253,44 @@ def load_canonical_tokens(repo_root: Path) -> set[str]:
     content = tokens_file.read_text(encoding="utf-8")
     tokens = set(re.findall(r"(--dt-[a-z0-9-]+)\s*:", content))
     return tokens
+
+
+def load_canonical_enums(repo_root: Path) -> dict[str, set[str]]:
+    """Loads canonical enum vocabularies from domain-models/class/DT-DM-DOC-001.md (§4.X tables)."""
+    dm_file = repo_root / "domain-models" / "class" / "DT-DM-DOC-001.md"
+    if not dm_file.exists():
+        return {}
+
+    content = dm_file.read_text(encoding="utf-8")
+    enums: dict[str, set[str]] = {}
+    current_key: str | None = None
+
+    for line in content.splitlines():
+        header_match = re.match(r"^#{3,4}\s+4\.\d+\s+([A-Za-z0-9_.]+)", line.strip())
+        if header_match:
+            current_key = header_match.group(1)
+            enums[current_key] = set()
+            continue
+        elif line.strip().startswith("## ") and not line.strip().startswith("###"):
+            current_key = None
+            continue
+
+        if current_key and line.strip().startswith("|"):
+            parts = [p.strip() for p in line.split("|")]
+            if len(parts) >= 3:
+                val = parts[1].strip("` ")
+                if re.match(r"^[A-Z][A-Z0-9_]*$", val):
+                    enums[current_key].add(val)
+
+    return enums
+
+
+def pascal_to_upper_snake(member: str) -> str:
+    """Converts C# PascalCase or UPPER_SNAKE_CASE enum member to canonical UPPER_SNAKE_CASE."""
+    if re.match(r"^[A-Z0-9_]+$", member):
+        return member
+    s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", member)
+    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1).upper()
 
 
 # ---------------------------------------------------------------------------
@@ -375,8 +471,8 @@ def audit_persistence_leaks(content: str) -> list[Finding]:
     return findings
 
 
-def audit_csharp_leaks(content: str) -> list[Finding]:
-    """Scans for C# Blazor code-behind, [Inject], private mutable state, and namespaces."""
+def audit_csharp_leaks(content: str, canonical_enums: dict[str, set[str]] | None = None) -> list[Finding]:
+    """Scans for C# Blazor code-behind, [Inject], private mutable state, namespaces, raw DateTime, criticality types, and canonical enum parity."""
     findings: list[Finding] = []
     lines = content.splitlines()
 
@@ -401,7 +497,7 @@ def audit_csharp_leaks(content: str) -> list[Finding]:
         for pattern, code, msg_template in CSHARP_LEAK_PATTERNS:
             match = re.search(pattern, line)
             if match:
-                if code == "CS-005" and not (in_code_block and code_block_lang in ("csharp", "c#", "cs")):
+                if code in ("CS-005", "CS-006", "CS-008") and not (in_code_block and code_block_lang in ("csharp", "c#", "cs")):
                     continue
                 matched_str = match.group(0)
                 findings.append(Finding(
@@ -410,6 +506,65 @@ def audit_csharp_leaks(content: str) -> list[Finding]:
                     message=msg_template.format(match=matched_str),
                     line=idx
                 ))
+
+    # CS-007: Canonical Enum Parity in §7.2.3
+    if canonical_enums:
+        for enum_match in re.finditer(r"public\s+enum\s+([A-Za-z0-9_]+)\s*\{([^}]+)\}", content):
+            enum_name = enum_match.group(1)
+            enum_body = enum_match.group(2)
+            line_num = content[:enum_match.start()].count("\n") + 1
+
+            raw_members: list[str] = []
+            for m_line in enum_body.splitlines():
+                clean_m = m_line.split("//")[0].strip()
+                if not clean_m:
+                    continue
+                for token in clean_m.split(","):
+                    t = token.split("=")[0].strip()
+                    if t:
+                        raw_members.append(t)
+
+            normalized_members = {pascal_to_upper_snake(m) for m in raw_members}
+
+            if enum_name in CANONICAL_ENUM_MAP:
+                dm_key = CANONICAL_ENUM_MAP[enum_name]
+                expected = canonical_enums.get(dm_key, set())
+                if expected and normalized_members != expected:
+                    missing = sorted(expected - normalized_members)
+                    extra = sorted(normalized_members - expected)
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="CS-007",
+                        message=(
+                            f"C# enum '{enum_name}' contradicts canonical domain enum '{dm_key}' in DT-DM-DOC-001.md. "
+                            f"Missing: {missing or 'None'}; Unrecognized/Extra: {extra or 'None'}."
+                        ),
+                        line=line_num
+                    ))
+            elif enum_name in SUBSET_ENUM_MAP:
+                dm_key = SUBSET_ENUM_MAP[enum_name]
+                expected = canonical_enums.get(dm_key, set())
+                extra = sorted(normalized_members - expected)
+                if expected and extra:
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="CS-007",
+                        message=(
+                            f"C# subset enum '{enum_name}' contains members {extra} not present in canonical domain enum '{dm_key}' (DT-DM-DOC-001.md)."
+                        ),
+                        line=line_num
+                    ))
+            elif enum_name in PRESENTATION_PROJECTION_ENUMS:
+                expected = PRESENTATION_PROJECTION_ENUMS[enum_name]
+                if normalized_members != expected:
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="CS-007",
+                        message=(
+                            f"C# presentation enum '{enum_name}' members {sorted(normalized_members)} do not match canonical projection {sorted(expected)}."
+                        ),
+                        line=line_num
+                    ))
 
     return findings
 
@@ -752,12 +907,13 @@ def audit_companion_html_prototype(screen_id: str, repo_root: Path) -> list[Find
 def run_screen_audit(content: str, repo_root: Path, screen_id: str | None = None) -> list[Finding]:
     """Executes all deterministic audit axes and returns deduplicated findings."""
     valid_tokens = load_canonical_tokens(repo_root)
+    canonical_enums = load_canonical_enums(repo_root)
 
     findings: list[Finding] = []
     findings += audit_frontmatter(content)
     findings += audit_structure(content)
     findings += audit_persistence_leaks(content)
-    findings += audit_csharp_leaks(content)
+    findings += audit_csharp_leaks(content, canonical_enums)
     findings += audit_css_and_dimension_leaks(content)
     findings += audit_runtime_leaks(content)
     findings += audit_tokens(content, valid_tokens)
@@ -954,14 +1110,17 @@ def cmd_lint(args: argparse.Namespace, repo_root: Path) -> int:
 
 
 def cmd_audit_all(args: argparse.Namespace, repo_root: Path) -> int:
-    """Audits all screen specifications in ui-ux/screens/."""
+    """Audits all active screen specifications in ui-ux/screens/."""
     screens_dir = repo_root / "ui-ux" / "screens"
     if not screens_dir.exists():
         print(f"[ERROR] Screens directory not found: {screens_dir}", file=sys.stderr)
         return 1
 
-    spec_files = sorted(screens_dir.rglob("SCR-*.md"))
-    print(f"[INFO] Found {len(spec_files)} screen specifications to audit.")
+    all_files = sorted(screens_dir.rglob("SCR-*.md"))
+    spec_files = [f for f in all_files if f.stat().st_size > 0 and f.read_text(encoding="utf-8").strip()]
+    skipped = len(all_files) - len(spec_files)
+    skip_msg = f" (skipped {skipped} empty stub files)" if skipped else ""
+    print(f"[INFO] Found {len(spec_files)} active screen specifications to audit{skip_msg}.")
     print("=" * 72)
 
     total_blockers = 0

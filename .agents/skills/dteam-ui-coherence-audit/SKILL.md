@@ -50,9 +50,10 @@ uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py audit-all
    * **Archetype B: Supervisory / Inspection Screen (Digital Twin HMI):** Vector schematics, spatial navigation, real-time telemetry monitoring, faceplates, or alarm oversight (e.g., `SCR-VIS-033`, `SCR-VIS-008`).
 3. Load corresponding project SSoTs:
    * ERD schema: `adso-dteam-docs/domain-models/entity-relationship/DT-ERD-DOC-001.md`.
+   * Conceptual Domain Model & Controlled Vocabularies: `adso-dteam-docs/domain-models/class/DT-DM-DOC-001.md`.
    * Domain Model behaviors: `adso-dteam-docs/domain-models/class/DT-DM-DOC-002.md`.
    * Design System & tokens: `adso-dteam-docs/ui-ux/DT-UI-DS-DOC-001.md`.
-   * Ubiquitous Language: `adso-dteam-docs/domain-models/ubiquitous-language/DT-UL-DOC-001.md`.
+   * Ubiquitous Language: `adso-dteam-docs/ubiquitous-language/DT-UL-DOC-001.md`.
    * Canonical Screen Template: `adso-dteam-docs/.agents/skills/dteam-ui-coherence-audit/templates/SCR-TEMPLATE-screen-specification.md`.
 
 ---
@@ -69,19 +70,23 @@ uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py audit-all
 3. **Domain Method Signature Alignment:**
    * Check method signatures in `DT-DM-DOC-002.md` for triggered domain commands (e.g., `InstallEquipment`, `ReportFailure`).
    * **Validation:** Does the UI payload provide all typed parameters required by the domain method?
+4. **DTO-to-ERD & Canonical Enum Parity (§7.2.3):**
+   * Verify that every property in §7.2.3 Presentation DTOs/Commands maps to an existing physical column in `DT-ERD-DOC-001.md`, uses `DateTimeOffset` for `TIMESTAMPTZ` columns (`CS-006`), uses `int` (`1..10`) for criticality (`CS-008`), and matches canonical enums in `DT-DM-DOC-001.md` (`CS-007`).
 
 #### For Archetype B: Supervisory / Inspection Screens (HMI)
 1. **Read-Model & SSoT Traceability:**
    * Verify displayed entities, identifiers, and statuses against `DT-ERD-DOC-001.md` and `DT-DM-DOC-002.md`.
    * **Validation:** Are status badges and criticality levels adhering strictly to canonical domain enums (e.g., `UP`, `DOWN`, `STANDBY`)?
-2. **ISA-101 Display Hierarchy & Cognitive Boundaries:**
+2. **DTO-to-ERD & Canonical Enum Parity (§7.2.3):**
+   * Verify that every property in §7.2.3 Presentation DTOs/Commands maps to an existing physical column in `DT-ERD-DOC-001.md`, uses `DateTimeOffset` for `TIMESTAMPTZ` columns (`CS-006`), uses `int` (`1..10`) for criticality (`CS-008`), and matches canonical enums in `DT-DM-DOC-001.md` (`CS-007`).
+3. **ISA-101 Display Hierarchy & Cognitive Boundaries:**
    * Validate screen classification (`isa101_level`): Level 1 (COP Overview), Level 2 (Process Area Schematic), Level 3 (Equipment Task Faceplate), Level 4 (Diagnostic / Master Detail).
    * **Validation:** Does a Level 3 Faceplate strictly isolate tactical operational data? Flag any Level 4 static master data (datasheets, purchase records, full vendor manuals, deep history) improperly polluting the faceplate.
-3. **Codified HPHMI & Alarm Guardrails (`DT-UI-DS-DOC-001`):**
+4. **Codified HPHMI & Alarm Guardrails (`DT-UI-DS-DOC-001`):**
    * **Color Semantics:** Verify that neutral grays are used for normal operation. **[FAIL]** if green is used to indicate "normal/running".
    * **Alarm vs. Diagnostic Segregation:** Verify that communication/link failure or telemetry loss uses Priority 4 Diagnostic coding (muted text, neutral stale icon, timestamp). **[FAIL]** if amber/yellow or red is used for lost connection or stale data.
    * **Moving Analog Indicators (MAI):** Continuous process variables (pressure, temperature, flow) must be rendered in analog scale bars with defined normal operating zones (`--dt-color-mai-normal-zone`) and trip limits. **[FAIL]** if continuous variables are presented solely as naked numeric readouts.
-4. **Actionable Task Content:**
+5. **Actionable Task Content:**
    * Ensure lists (such as active Work Orders) display actionable attributes (WO ID, Type CM/PM, Status, Priority). **[FAIL]** if reduced to raw un-actionable counts ("3 active WOs").
 
 ---

@@ -25,8 +25,8 @@ status: DRAFT
 * **Primary Target Persona:** Reliability Engineer establishing condition-based reliability models, configuring predictive triggers, and auditing sensor signal integrity to prevent catastrophic equipment failures without over-maintaining assets (ISO 55001 §8.1 / ISO 14224:2016 Annex E).
 * **Secondary Personas:**
   * **Maintenance Planner:** Reviews condition triggers, allocates estimated labor resources (Wrench Time in Man-Hours), and performs manual counter entry during SCADA network contingency (`AF-003`).
-  * **SCADA / Automation Specialist:** Verifies telemetry signal mappings (`vis.telemetry_signals`), polling frequencies, and TLS 1.3 edge gateway ingestion pipelines.
-* **Operational Context:** Planning control rooms and reliability engineering workstations (`--dt-breakpoint-xl`, $\ge 1400\text{px}$) and supervisory industrial tablets in landscape orientation (`--dt-breakpoint-lg`, $901\text{px} - 1399\text{px}$).
+  * **SCADA / Automation Specialist:** Verifies telemetry signal mappings, polling frequencies, and TLS 1.3 edge gateway ingestion pipelines.
+* **Operational Context:** Planning control rooms and reliability engineering workstations and supervisory industrial tablets in landscape orientation.
 * **Mode of Operation:** Supervisory Technical Configuration mode. Focuses on master predictive plan definition, mathematical threshold formulation, and automated asynchronous work order rule evaluation. Direct DCS/SCADA process control manipulation is strictly excluded.
 * **Web Portal Workspace Invariant:** Operates as a Level 3 technical form within the Blazor Web Portal shell (`Pages/Maintenance/CreatePredictivePlanPage.razor`), accessible directly from the Maintenance menu or via drill-down from the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)) by clicking "Schedule by Sensor".
 
@@ -48,11 +48,11 @@ status: DRAFT
 | :--- | :--- | :--- | :--- | :--- |
 | `CMP-01` | Form Breadcrumbs & Header | Top breadcrumb navigation and form title | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Displays path (`Maintenance > Predictive Scheduling > Create Condition-Based Plan (Telemetry)`), active asset tag pill, and navigation backlink to [SCR-MTTO-026](./SCR-MTTO-026.md). |
 | `CMP-02` | Cascading ISO 14224 Selector | 3-tier taxonomic dropdown hierarchy | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Cascading dropdowns: Equipment Unit L6 (`Compressor C-201`), Subunit L7 (`Bearing Assembly`), and Maintainable Item L8 (`Drive-End Journal Bearing`) (`FR-583`, `TR-008`). Enforces strict taxonomic parent-child linkage. |
-| `CMP-03` | Mapped Telemetry Signal Selector | Dropdown of registered IoT sensor streams | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Displays available telemetry signals mapped to the selected equipment unit in `vis.telemetry_signals` (e.g. `C201_RUN_HOURS`, `C201_STROKE_CYCLES`). Shows sensor tag, unit, and polling rate (`FR-583`, `FR-584`). |
+| `CMP-03` | Mapped Telemetry Signal Selector | Dropdown of registered IoT sensor streams | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Displays available telemetry signals mapped to the selected equipment unit via `TelemetrySignalDto` (e.g. `C201_RUN_HOURS`, `C201_STROKE_CYCLES`). Shows sensor tag, unit, and polling rate (`FR-583`, `FR-584`). |
 | `CMP-04` | Baseline Accumulation & SCADA Status | Live sensor telemetry reading & link state | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle` | Read-only numerical display of current historical accumulated usage (e.g., $4,500.00\text{ hrs}$) alongside real-time connection badge: *"SCADA STREAM: ONLINE"* (`--dt-color-state-success`) or *"OFFLINE"* (`--dt-color-alarm-warning`). |
 | `CMP-05` | Trigger Cadence & Interval Stepper | Numeric interval value and unit picker | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | High-precision numeric input ($0.01$ to $1,000,000.00$) for delta interval ($\Delta = 1,000.00$) and unit selector (`Operating Hours`, `Cycles`, `Kilometers`, `Wear mm`) (`FR-583`, `FR-590`). |
 | `CMP-06` | Target Limit Mathematical Preview | Dynamic threshold preview & formula display | Surface: `--dt-color-surface-raised`<br>Font: `--dt-font-family-mono` | Displays calculated activation threshold: $\text{Target Limit} = \text{Baseline} (4,500) + \Delta (1,000) = 5,500.00\text{ hrs}$. Displays drift prevention formula indicator: $\text{Target}_{\text{next}} = \text{Target}_{\text{prev}} + \Delta$ (`FR-585`). |
-| `CMP-07` | Labor & Resource Estimation Grid | Man-Hours (Wrench Time) & Specialty | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Numeric input for Estimated Man-Hours (e.g., $6.0\text{ HH}$) and required technical craft dropdown (`MECHANICAL`, `ELECTRICAL`, `INSTRUMENTATION_AND_CONTROL`, `CONDITION_MONITORING`). Enforces non-zero numeric validation (`AF-001`). |
+| `CMP-07` | Labor & Resource Estimation Grid | Man-Hours (Wrench Time) & Specialty | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Numeric input for Estimated Man-Hours (e.g., $6.0\text{ HH}$) and required technical craft dropdown mapped to `MaintenanceCraft` (§7.2.3). Enforces non-zero numeric validation (`AF-001`). |
 | `CMP-08` | Task Scope Description Textarea | Narrative of predictive maintenance tasks | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Multiline text area capturing technical scope, vibration analysis SOP reference, lubrication tolerances, and LOTO isolation points. |
 | `CMP-09` | RIME Predictive Priority Score Card | Priority score breakdown & badge | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-subtle` | Evaluates Asset Criticality ($1..10$) and sets Work Class weight to 7 ("Predictive Maintenance"). Computes dynamic RIME Score ($Criticality \times 7$) with redundant priority badge (`CMP-08` per [SCR-MTTO-026](./SCR-MTTO-026.md)). |
 | `CMP-10` | Monotonicity Guard & Inconsistency Alert | Anti-decrement rule status & alarm banner | Dynamic Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-alarm-warning` | Displays status of fail-safe monotonicity check (`FR-586`). In case of counter decrement (e.g., reading $4,300 < 4,500$), deploys high-visibility amber warning and locks processing (`AF-002`). |
@@ -87,13 +87,12 @@ sequenceDiagram
     participant TAX as Taxonomy Service (tax)
     participant VIS as Telemetry Service (vis)
     participant MTTO as Maintenance Planning Service (mtto)
-    participant DB as Operational Database
 
     Engineer->>UI: Accesses "Create Condition-Based Plan"
     UI->>TAX: Query Equipment Units (Level 6) with mapped telemetry
     TAX-->>UI: Returns active asset catalog
     Engineer->>UI: Selects Equipment Unit (Compressor C-201)
-    UI->>VIS: Query mapped telemetry_signals for EquipmentUnitId
+    UI->>VIS: Query mapped TelemetrySignalDto for EquipmentUnitId
     VIS-->>UI: Returns [C201_RUN_HOURS (Operating Hours), C201_STROKE_CYCLES]
     UI->>TAX: Load Subunits (L7) & Maintainable Items (L8)
     TAX-->>UI: Populates cascading selectors (CMP-02)
@@ -106,8 +105,6 @@ sequenceDiagram
     UI->>UI: Computes RIME Score = Criticality (8) * 7 = 56 (CMP-09)
     Engineer->>UI: Clicks "Save & Activate Predictive Plan"
     UI->>MTTO: CreateCbmPlanCommand
-    MTTO->>DB: Persist Plan in mtto.maintenance_plans (status = 'ACTIVE', method = 'CONDITION_BASED')
-    DB-->>MTTO: Acknowledged
     MTTO-->>UI: Returns PlanId (uuidv7) & Activation Threshold
     UI-->>Engineer: Renders success confirmation & listening status
 ```
@@ -204,22 +201,26 @@ Pages/Maintenance/
 
 ### 7.2. Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)
 
+#### 7.2.1. `CreatePredictivePlanPage.razor` (Root View)
+
 ```csharp
-public partial class CreatePredictivePlanPage : ComponentBase
-{
-    [Inject]
-    public required IMaintenancePlanningService PlanningService { get; init; }
+[Parameter]
+public string? PreselectedEquipmentUnitId { get; set; }
+```
 
-    [Inject]
-    public required ITelemetryQueryService TelemetryService { get; init; }
+#### 7.2.2. Subcomponents (`MappedTelemetrySignalSelector.razor` / `CadenceIntervalStepper.razor`)
 
-    [Inject]
-    public required ITaxonomyService TaxonomyService { get; init; }
+```csharp
+[Parameter, EditorRequired]
+public EventCallback<TelemetrySignalDto> OnSignalSelected { get; set; }
 
-    [Parameter]
-    public string? PreselectedEquipmentUnitId { get; set; }
-}
+[Parameter, EditorRequired]
+public EventCallback<decimal> OnIntervalValueChanged { get; set; }
+```
 
+#### 7.2.3. DTOs & Commands
+
+```csharp
 public record CreateCbmPlanCommand(
     Guid EquipmentUnitId,
     Guid SubunitId,

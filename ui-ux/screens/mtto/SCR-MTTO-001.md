@@ -27,7 +27,7 @@ status: DRAFT
 * **Secondary Personas:**
   * **Maintenance Supervisor:** Reviews projected preventive work orders and verifies craft availability.
   * **Reliability Engineer:** Verifies taxonomic boundary compliance and receives optimization alerts when inspection cadences on high-criticality assets exceed recommended limits.
-* **Operational Context:** Planning control rooms and engineering workstations (`--dt-breakpoint-xl`, $\ge 1400\text{px}$) and supervisory industrial tablets in landscape orientation (`--dt-breakpoint-lg`, $901\text{px} - 1399\text{px}$).
+* **Operational Context:** Planning control rooms and engineering workstations and supervisory industrial tablets in landscape orientation.
 * **Mode of Operation:** Supervisory Technical Configuration mode. Focuses on master plan parameterization, resource allocation, and automated work order projection. Direct DCS/SCADA process control manipulation is strictly excluded.
 * **Web Portal Workspace Invariant:** Operates as a Level 3 technical form within the Blazor Web Portal shell (`Pages/Maintenance/CreatePreventivePlanPage.razor`), accessible directly from the Maintenance menu or via drill-down from the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
 
@@ -87,7 +87,6 @@ sequenceDiagram
     participant UI as SCR-MTTO-001 Form
     participant TAX as Asset Taxonomy Service (tax)
     participant MTTO as Maintenance Planning Service (mtto)
-    participant DB as Operational Database
 
     Planner->>UI: Accesses "Create Preventive Plan"
     UI->>TAX: Query Equipment Units (Level 6) & Master Classes
@@ -107,13 +106,11 @@ sequenceDiagram
     Planner->>UI: Confirms 8 Weeks or enters justification
     Planner->>UI: Clicks "Save & Instantiate Plan"
     UI->>MTTO: CreateMaintenancePlanCommand
-    MTTO->>DB: Atomically persist Plan + First WO (status = 'PLANNING')
-    DB-->>MTTO: Acknowledged
     MTTO-->>UI: Returns PlanId & WorkOrderId
     UI-->>Planner: Renders success confirmation & projected execution date
 ```
 
-1. **Taxonomic Hierarchy Loading:** When an Equipment Unit (Level 6) is selected, the system filters `tax.subunits` where `equipment_unit_id = :selected_id`. Selecting a Subunit dynamically loads `tax.maintainable_items` where `subunit_id = :subunit_id` (`FR-001`).
+1. **Taxonomic Hierarchy Loading:** When an Equipment Unit (Level 6) is selected, the system filters Subunits where `EquipmentUnitId` matches the selected asset. Selecting a Subunit dynamically loads Maintainable Items associated with the selected `SubunitId` (`FR-001`).
 2. **Deterministic Next Date Calculation (`FR-003`):** The system calculates:
    $$\text{next\_work\_order\_date} = \text{CurrentDate} + (\text{IntervalValue} \times \text{UnitMultiplier})$$
    where $\text{UnitMultiplier} = 7\text{ days}$ for weeks, or $30.4375\text{ days}$ for months.
@@ -138,7 +135,7 @@ sequenceDiagram
 
 #### 5.3.1. Physical Boundaries Validation (AF-002)
 1. Per ISO 14224 (Section 5.6) and [MTTO-029](../../../requirements/user-stories/mtto/MTTO-029.md), maintenance costs and scopes cannot be ambiguously assigned.
-2. The form checks `tax.equipment_units.boundary_start` and `boundary_end`. If either is null or whitespace:
+2. The form checks `BoundaryStart` and `BoundaryEnd` on the selected Equipment Unit DTO. If either is null or whitespace:
    * The form displays `AF-002` error warning: *"Cannot schedule preventive maintenance on an asset without defined physical boundaries (ISO 14224). Request boundary configuration from the Reliability Engineer."*
    * The save button is completely disabled.
 
@@ -185,26 +182,23 @@ Pages/Maintenance/
 #### 7.2.1. `CreatePreventivePlanPage.razor` (Root View)
 
 ```csharp
-namespace Dteam.Ui.Pages.Maintenance;
-
-public partial class CreatePreventivePlanPage : ComponentBase
-{
-    [Inject]
-    public required IMaintenancePlanningService PlanningService { get; init; }
-
-    [Inject]
-    public required ITaxonomyService TaxonomyService { get; init; }
-
-    [Parameter]
-    public string? PreselectedEquipmentUnitId { get; set; }
-}
+[Parameter]
+public string? PreselectedEquipmentUnitId { get; set; }
 ```
 
-#### 7.2.2. Commands & DTOs
+#### 7.2.2. Subcomponents (`IsoHierarchyCascadingSelector.razor` / `CalendarCadenceController.razor`)
 
 ```csharp
-namespace Dteam.Domain.Maintenance.Dtos;
+[Parameter, EditorRequired]
+public EventCallback<Guid> OnEquipmentUnitSelected { get; set; }
 
+[Parameter, EditorRequired]
+public EventCallback<Guid> OnMaintainableItemSelected { get; set; }
+```
+
+#### 7.2.3. Commands & DTOs
+
+```csharp
 public record CreateMaintenancePlanCommand(
     Guid EquipmentUnitId,
     Guid SubunitId,
