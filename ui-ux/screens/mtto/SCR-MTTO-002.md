@@ -371,7 +371,7 @@ public bool IsOffline { get; set; }
 public int PendingSyncCount { get; set; }
 
 [Parameter]
-public DateTime? LastSyncTime { get; set; }
+public DateTimeOffset? LastSyncTime { get; set; }
 
 // CMP-09: TechnicalFinalizeBar.razor
 [Parameter, EditorRequired]
@@ -490,7 +490,8 @@ public record MediaAttachmentDto
     public required string FileUrl { get; init; }
     public required string FileType { get; init; } // "JPG", "PNG", "PDF"
     public required string IntegrityHashSha256 { get; init; }
-    public required DateTime UploadedAt { get; init; }
+    public bool CapturedOffline { get; init; }
+    public required DateTimeOffset UploadedAt { get; init; }
 }
 
 public record SubmitTechnicalClosureCommand(

@@ -117,12 +117,12 @@ sequenceDiagram
 2. **Deterministic Next Date Calculation (`FR-003`):** The system calculates:
    $$\text{next\_work\_order\_date} = \text{CurrentDate} + (\text{IntervalValue} \times \text{UnitMultiplier})$$
    where $\text{UnitMultiplier} = 7\text{ days}$ for weeks, or $30.4375\text{ days}$ for months.
-3. **Automatic Work Order Instantiation (`FR-005`):** On plan confirmation, the system creates a plan row in `mtto.maintenance_plans` and automatically instantiates the first preventative Work Order in `mtto.work_orders`:
-   * `status = 'PLANNING'`
+3. **Automatic Work Order Instantiation (`FR-005`):** On plan confirmation, the system persists the active `MaintenancePlan` (`status = 'ACTIVE'`, `interval_value`, `interval_unit`, `estimated_labor_hours`, `next_work_order_date`) and automatically instantiates the first preventative `WorkOrder` alongside its prioritized backlog triage entry:
+   * `current_status = 'PLANNING'`
+   * `maintenance_method = 'PREVENTIVE'`
    * `scheduled_date = :next_work_order_date`
-   * `estimated_labor_hours = :man_hours`
-   * `work_class = 6` (or 7 if Regulated PM is checked)
-   * `priority_score = :asset_criticality * :work_class`
+   * `work_class = 6` (or `7` if Regulated PM is checked, persisted in the associated `WorkRequest` / `BacklogItem` triage context)
+   * `priority_score = :asset_criticality * :work_class` (driving the work order `criticality` tier)
 
 ---
 
@@ -209,19 +209,21 @@ public record CreateMaintenancePlanCommand(
     Guid EquipmentUnitId,
     Guid SubunitId,
     Guid MaintainableItemId,
-    int FrequencyValue,
-    FrequencyType FrequencyUnit,
+    int IntervalValue,
+    CalendarIntervalUnit IntervalUnit,
     decimal EstimatedLaborHours,
     MaintenanceCraft Specialty,
-    string TaskDescription,
+    string TechnicalDescription,
     string? CadenceOverrideJustification,
     string PlannerUserId
 );
 
-public enum FrequencyType
+public enum CalendarIntervalUnit
 {
+    Days,
     Weeks,
-    Months
+    Months,
+    Years
 }
 
 public enum MaintenanceCraft

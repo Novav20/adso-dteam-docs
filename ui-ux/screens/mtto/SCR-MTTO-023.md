@@ -224,9 +224,9 @@ public record CreateCbmPlanCommand(
     Guid EquipmentUnitId,
     Guid SubunitId,
     Guid MaintainableItemId,
-    Guid TelemetrySignalId,
+    TelemetrySignalType MonitoredSignalType,
     decimal IntervalValue,
-    TelemetryMeasurementUnit MeasurementUnit,
+    TelemetryMeasurementUnit IntervalUnit,
     decimal CurrentBaselineValue,
     decimal InitialTargetLimit,
     decimal EstimatedLaborHours,
@@ -236,24 +236,36 @@ public record CreateCbmPlanCommand(
 );
 
 public record TelemetrySignalDto(
-    Guid SignalId,
+    TelemetrySignalType SignalType,
     Guid EquipmentUnitId,
     string SignalName,
     string PhysicalUnit,
     decimal CurrentValue,
-    DateTime LastUpdatedUtc,
+    DateTimeOffset LastUpdatedUtc,
     bool IsOnline,
     bool IsSafetyCritical
 );
 
 public record RecordManualReadingCommand(
     Guid EquipmentUnitId,
-    Guid TelemetrySignalId,
+    TelemetrySignalType MonitoredSignalType,
     decimal ManualCounterValue,
-    DateTime ReadingTimestampUtc,
+    DateTimeOffset ReadingTimestampUtc,
     string OperatorUserId,
     string? PhysicalGaugePhotoUrl
 );
+
+public enum TelemetrySignalType
+{
+    Temperature,
+    Pressure,
+    Vibration,
+    FlowRate,
+    Voltage,
+    Rpm,
+    OperatingHours,
+    Cycles
+}
 
 public enum TelemetryMeasurementUnit
 {

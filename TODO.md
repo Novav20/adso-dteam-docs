@@ -128,13 +128,13 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 - [x] **Pre-Implementation Persistence & Domain Contract Remediation (Batch 1 & Batch 2)**
   - [x] Enforce `TIMESTAMPTZ` across all temporal columns in [`DT-ERD-DOC-001.md`](domain-models/entity-relationship/DT-ERD-DOC-001.md) and [`DT-ERD-001.sql`](domain-models/entity-relationship/DT-ERD-001.sql) for Npgsql 10 UTC compliance.
   - [x] Replace broken `UNIQUE (removed_at)` on `tax.asset_installations` with partial unique indexes (`WHERE removed_at IS NULL`) and configure TimescaleDB hypertable composite PK `(timestamp, id)` on `vis.telemetry_signals`.
-  - [x] Add missing persistence fields required by stable screen contracts (`adm.audit_logs.previous_hash`, `mtto.media_attachments.integrity_hash_sha256` & `captured_offline`, `mtto.work_orders.scope_checklist`, `vis.work_order_isolations` offline lease columns, `mtto.maintenance_plans` L7/L8 & CBM fields, `tax.functional_locations` integer criticality `1..10`).
+  - [x] Add missing persistence fields required by stable screen contracts (`adm.audit_logs.previous_hash`, `mtto.media_attachments.integrity_hash_sha256` & `captured_offline`, `mtto.work_orders.scope_checklist`, `vis.work_order_isolations` offline lease columns, `mtto.maintenance_plans` ISO 14224 Level 7/8 (`subunit_id`, `maintainable_item_id`) & CBM fields, `tax.functional_locations` integer criticality `1..10`).
   - [x] Resolve all missing `CHECK` enums and explicit FK mappings (`issuer_user_id`, `lease_holder_user_id`, `subunit_id`, `maintainable_item_id`) in [`scripts/generate_ddl.py`](scripts/generate_ddl.py) with strict fail-fast validation.
   - [x] Reconcile 4-dimensional `EquipmentUnit` state transitions in [`DT-DM-DOC-002.md`](domain-models/class/DT-DM-DOC-002.md) and promote [`DT-UL-DOC-001.md`](domain-models/ubiquitous-language/DT-UL-DOC-001.md) to `APPROVED`.
 
 - [ ] **Pre-Implementation Architecture & Contract Alignment (Batch 3)**
-  - [ ] Resolve `ITaxonomyService` vs. `IInventoryService` ownership of `INV-025` (`SwapAssetAsync`) in [`DT-ARQ-CMP-DOC-001.md`](architecture/views/DT-ARQ-CMP-DOC-001.md).
-  - [ ] Document the Cross-DbContext Unit of Work / Shared `DbConnection` transaction pattern in [`DT-ARQ-DB-DOC-001.md`](architecture/DT-ARQ-DB-DOC-001.md).
+  - [x] Resolve `ITaxonomyService` vs. `IInventoryService` ownership of `INV-025` (`SwapAssetAsync`) in [`DT-ARQ-CMP-DOC-001.md`](architecture/views/DT-ARQ-CMP-DOC-001.md).
+  - [x] Document the Cross-DbContext Unit of Work / Shared `DbConnection` transaction pattern in [`DT-ARQ-DB-DOC-001.md`](architecture/DT-ARQ-DB-DOC-001.md).
   - [ ] Define the canonical multi-project `.sln` structure (`Dteam.Contracts`, shared `Dteam.Ui` Razor Class Library, `Dteam.Web`, `Dteam.Mobile`) in [`DT-ARQ-TECH-001.md`](architecture/DT-ARQ-TECH-001.md).
 
 - [ ] **MOC Layout Revision Entity (`vis.plant_layout_revisions`)**

@@ -258,7 +258,7 @@ public record EquipmentHeaderDto
     public required Guid EquipmentId { get; init; }
     public required string TagNumber { get; init; }
     public required string Description { get; init; }
-    public required int CriticalityIndex { get; init; } // 1..10 per tax.functional_locations.criticality
+    public required int CriticalityIndex { get; init; } // 1..10 per FunctionalLocation criticality index (DT-DM-DOC-001 §4.5)
     public required OperationalStatus OperationalStatus { get; init; }
 }
 

@@ -63,7 +63,7 @@ workspace "System Component Model" {
         tax_port -> asset_repo "Abstraction for taxonomy graph persistence operations." "C# Interface (DI)"
         mtto_port -> mtto_repo "Abstraction for work order and failure record persistence." "C# Interface (DI)"
         inv_port -> inv_repo "Abstraction for inventory transactions and stock levels." "C# Interface (DI)"
-        inv_port -> asset_repo "Coordinates taxonomic slot uninstallation/installation during atomic rotable swaps (INV-025)." "C# Interface (DI)"
+        inv_port -> asset_repo "Coordinates taxonomic slot uninstallation/installation during atomic rotable swaps." "C# Interface (DI)"
         sec_port -> sec_repo "Abstraction for identity management and chained hash audit logging." "C# Interface (DI)"
         loto_port -> notify_port "Abstraction for broadcasting critical safety alerts." "C# Interface (DI)"
         asset_repo -> tax_ef_adapter "Implements persistence via TaxonomyDbContext." "C# Class Inheritance"

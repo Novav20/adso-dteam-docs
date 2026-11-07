@@ -25,7 +25,7 @@ Executes the physical and functional replacement of a serialized equipment unit 
 ## 3. Main Flow
 1. The Technician invokes the "Asset Swap" operation from the caller screen.
 2. The System displays the asset swap form populated with the target Functional Location tag and the details of the currently mounted equipment unit (Serial Number, Manufacturer, Model, Operating Hours, Installation Date).
-3. The Technician selects the post-dismount destination status (`IN_REPAIR` for technical workshop or `IN_STORAGE` for warehouse spare pool) and specifies the receiving warehouse or workshop identifier.
+3. The Technician selects the post-dismount destination status (`IN_REPAIR` for technical workshop overhaul, `IN_STORAGE` for serviceable warehouse spare pool, or `DAMAGED` for reliability triage/quarantine prior to decommissioning) and specifies the receiving warehouse or workshop identifier.
 4. The Technician selects the replacement equipment unit from the rotable catalog or scans its physical barcode/NFC tag using the mobile device reader.
 5. The System executes taxonomic compatibility verification in real time ([TR-008](../../../requirements/common/TR-008.md)):
    1. Verifies that the replacement equipment unit shares the identical Equipment Class required by the Functional Location.
@@ -33,7 +33,7 @@ Executes the physical and functional replacement of a serialized equipment unit 
 6. The Technician enters or verifies the associated Work Order identifier justifying the operational intervention.
 7. The System previews the cryptographic integrity hash chaining payload (SHA-256) binding the functional location, dismounted serial, replacement serial, destination warehouse, user, and timestamp ([TR-001](../../../requirements/common/TR-001.md)).
 8. The Technician confirms the asset swap operation.
-9. The System executes the equipment rotation: unlinks the currently mounted equipment unit from the operational location, transitions its lifecycle status to warehouse storage (setting its maintenance condition to `UNDER_MAINTENANCE` or `OPERATIONAL` and operational state to `DOWN` or `STANDBY`), and links the replacement equipment unit to the functional location in `INSTALLED` lifecycle status and `UP` operational status.
+9. The System executes the equipment rotation: unlinks the currently mounted equipment unit from the operational location, transitions its lifecycle status to warehouse storage (`IN_STORAGE`, setting its maintenance condition to `UNDER_MAINTENANCE` or `OPERATIONAL`, operational state to `DOWN` or `STANDBY`, and health status to `SERIOUS` or `CRITICAL` when dismounted for repair or damage), and links the replacement equipment unit to the functional location in `INSTALLED` lifecycle status, `OPERATIONAL` maintenance status, and `STANDBY` operational status.
 10. The System records the operational changes within a single atomic transactional boundary ([NFR-596](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr)):
     1. Closes the active installation timeline record for the dismounted equipment unit and opens a new installation record for the replacement unit to preserve continuous MTBF reliability tracking.
     2. Posts the warehouse inventory ledger movements: records a stock receipt movement for the dismounted unit entering the destination warehouse/workshop, and a stock issue movement for the replacement unit exiting warehouse stock.
@@ -70,7 +70,7 @@ In step 1, if the mobile device is operating in a disconnected plant zone withou
 
 ## 5. Postconditions
 * The dismounted equipment unit is unlinked from the functional location, assigned to the receiving warehouse/workshop, and transitions its lifecycle status to `IN_STORAGE`.
-* The replacement equipment unit assumes the operational position, clears warehouse stock assignment, and transitions its operational status to `UP` and lifecycle status to `INSTALLED`.
+* The replacement equipment unit assumes the operational position, clears warehouse stock assignment, and transitions its lifecycle status to `INSTALLED`, maintenance status to `OPERATIONAL`, and operational status to `STANDBY`.
 * The equipment installation timeline is updated atomically, closing the prior service interval and opening the new active period for accurate MTBF calculations.
 * The warehouse inventory ledger records the corresponding issue and receipt movements with exact serial numbers and movement reasons.
 * An immutable audit log entry is recorded with the chained SHA-256 cryptographic hash.

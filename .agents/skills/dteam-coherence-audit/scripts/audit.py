@@ -222,11 +222,20 @@ def audit_normative(content: str) -> list[Finding]:
                 ))
 
     # — Invalid ISA-101 Levels (Lx donde x no es 1-4)
-    # Excluir ocurrencias dentro de versiones de norma (ej. 9241-110) o URLs
+    # Excluir ocurrencias dentro de versiones de norma (ej. 9241-110), URLs, o niveles taxonómicos ISO 14224 (L5-L9)
+    iso14224_ctx_re = re.compile(
+        r"(?:ISO\s*14224|taxonom|functional\s+location|equipment\s+unit|subunit|maintainable\s+item|"
+        r"hierarchy|cascading|picker|selector|L1\s+to\s+L5|L6[\-–/]L[78]|L6\s*/\s*L7\s*/\s*L8)",
+        re.IGNORECASE
+    )
+    lines_list = content.splitlines()
     for match in re.finditer(r"(?<![0-9\-./])L(\d+)\b", content):
         level = f"L{match.group(1)}"
         if level not in VALID_ISA_LEVELS:
             line_num = content[:match.start()].count("\n") + 1
+            line_text = lines_list[line_num - 1] if 0 < line_num <= len(lines_list) else ""
+            if level in {"L5", "L6", "L7", "L8", "L9"} and iso14224_ctx_re.search(line_text):
+                continue
             b += 1
             findings.append(Finding(
                 "BLOCKER", f"B-NRM{b:02d}",
