@@ -134,7 +134,7 @@ When the replacement unit is selected:
 3. If the replacement unit is flagged in any lifecycle status other than `IN_STORAGE` or maintenance status other than `OPERATIONAL` (e.g., `DECOMMISSIONED` or `UNDER_MAINTENANCE`), the selection is rejected with alert: *"Selected equipment is not available in warehouse inventory"*.
 
 #### 5.3.2. Dismantling Destination Enforcement (AF-002)
-To eliminate logical asset orphanhood, dismounting an equipment unit requires explicit destination mapping onto the 4 orthogonal status dimensions defined in [DT-DM-DOC-001 §4.1–4.4](../../../domain-models/class/DT-DM-DOC-001.md#4-discrete-status-matrices-iso-14224--iso-55000):
+To eliminate logical asset orphanhood, dismounting an equipment unit requires explicit destination mapping onto the 4 orthogonal status dimensions defined in [DT-DM-DOC-001 §4.1–4.4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary):
 1. **Destination Status Mapping (`DismountDestinationStatus`, §7.2.3):**
    * **`DismountDestinationStatus.InStorage` (Warehouse Ready Stock):** Sets dismounted unit to `LifecycleStatus = InStorage`, `OperationalStatus = Standby`, `MaintenanceStatus = Operational` (preserving existing `HealthStatus`), and links custody `WarehouseId = HoldingWarehouseId`.
    * **`DismountDestinationStatus.InRepair` (Technical Workshop Overhaul):** Sets dismounted unit to `LifecycleStatus = InStorage`, `OperationalStatus = Down`, `MaintenanceStatus = UnderMaintenance`, `HealthStatus = Serious`, and links custody `WarehouseId = HoldingWarehouseId`.
