@@ -863,39 +863,112 @@ def audit_presentation_boundaries(content: str) -> list[Finding]:
     return findings
 
 
-def audit_companion_html_prototype(screen_id: str, repo_root: Path) -> list[Finding]:
-    """Inspects the companion HTML prototype for emojis and leaked spec codes."""
+def audit_companion_html_prototype(screen_id: str, repo_root: Path, prototype_dir: Path | None = None) -> list[Finding]:
+    """Inspects the companion HTML/CSS/JS prototype for emojis, leaked spec codes, and raw hex colors."""
     findings: list[Finding] = []
-    proto_dir = repo_root / "ui-ux" / "prototype"
-    html_file = proto_dir / f"{screen_id.lower()}.html"
 
-    if not html_file.exists():
+    candidates: list[Path] = []
+    if prototype_dir:
+        candidates.append(Path(prototype_dir).resolve())
+    env_dir = os.environ.get("DTEAM_PROTOTYPE_DIR")
+    if env_dir:
+        candidates.append(Path(env_dir).resolve())
+    candidates.append(repo_root / "ui-ux" / "prototype")
+
+    target_dir: Path | None = None
+    for cand in candidates:
+        if (cand / f"{screen_id.lower()}.html").exists():
+            target_dir = cand
+            break
+
+    if target_dir is None:
+        if prototype_dir:
+            findings.append(Finding(
+                severity="WARNING",
+                code="HTML-001",
+                message=f"Prototype file '{screen_id.lower()}.html' not found in specified directory '{prototype_dir}'.",
+                line=None
+            ))
         return findings
 
-    html_text = html_file.read_text(encoding="utf-8")
-    lines = html_text.splitlines()
+    html_file = target_dir / f"{screen_id.lower()}.html"
+    files_to_check: list[Path] = [html_file]
 
-    for idx, line in enumerate(lines, start=1):
-        # 1. Check for Unicode Emojis
-        emoji_matches = EMOJI_REGEX.findall(line)
-        if emoji_matches:
-            findings.append(Finding(
-                severity="BLOCKER",
-                code="HTML-EMOJI-001",
-                message=f"Unicode emoji '{emoji_matches[0]}' detected in prototype '{html_file.name}' line {idx}. HTML prototypes must use standardized monochrome SVG sprite icons (<svg class=\"dt-icon\"><use href=\"#icon-*\" /></svg>) per HPHMI/ISA-101.",
-                line=idx
-            ))
+    # Look for associated CSS files
+    css_candidates = [
+        target_dir / "assets" / "css" / f"{screen_id.lower()}.css",
+        target_dir / "css" / f"{screen_id.lower()}.css",
+        target_dir / f"{screen_id.lower()}.css",
+    ]
+    for c in css_candidates:
+        if c.exists() and c not in files_to_check:
+            files_to_check.append(c)
 
-        # 2. Check for Leaked Specification Codes
-        for pat, code, msg_template in PROHIBITED_SPEC_CODES:
-            m = re.search(pat, line)
-            if m:
+    # Look for associated JS files
+    js_search_dirs = [
+        target_dir / "assets" / "js",
+        target_dir / "js",
+        target_dir,
+    ]
+    for j_dir in js_search_dirs:
+        if j_dir.exists():
+            for j_file in j_dir.glob(f"{screen_id.lower()}*.js"):
+                if j_file not in files_to_check:
+                    files_to_check.append(j_file)
+
+    hex_pattern = re.compile(r"(?<![a-zA-Z0-9_\(\[/\$-])#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b(?![-a-zA-Z0-9_])")
+
+    for fpath in files_to_check:
+        try:
+            content = fpath.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        lines = content.splitlines()
+        is_css = fpath.suffix.lower() == ".css"
+        is_html = fpath.suffix.lower() == ".html"
+
+        for idx, line in enumerate(lines, start=1):
+            # 1. Check for Unicode Emojis
+            emoji_matches = EMOJI_REGEX.findall(line)
+            if emoji_matches:
                 findings.append(Finding(
                     severity="BLOCKER",
-                    code=code,
-                    message=msg_template.format(match=m.group(0)) + f" (Found in '{html_file.name}' line {idx})",
+                    code="HTML-EMOJI-001",
+                    message=f"Unicode emoji '{emoji_matches[0]}' detected in prototype asset '{fpath.name}' line {idx}. HTML prototypes must use standardized monochrome SVG sprite icons (<svg class=\"dt-icon\"><use href=\"#icon-*\" /></svg>) per HPHMI/ISA-101.",
                     line=idx
                 ))
+
+            # 2. Check for Leaked Specification Codes
+            for pat, code, msg_template in PROHIBITED_SPEC_CODES:
+                m = re.search(pat, line)
+                if m:
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code=code,
+                        message=msg_template.format(match=m.group(0)) + f" (Found in '{fpath.name}' line {idx})",
+                        line=idx
+                    ))
+
+            # 3. Check for Raw Hex Colors in CSS or inline HTML styles
+            if is_css:
+                hex_matches = hex_pattern.findall(line)
+                for h in hex_matches:
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="HTML-HEX-001",
+                        message=f"Raw hex color '{h}' found in prototype asset '{fpath.name}' line {idx}. Prototype styles must use design system tokens (var(--dt-color-*)).",
+                        line=idx
+                    ))
+            elif is_html and ("style=" in line or "<style" in line):
+                clean_line = re.sub(r"\[.*?\]\([^\)]*#[^\)]*\)", "", line)
+                hex_matches = hex_pattern.findall(clean_line)
+                for h in hex_matches:
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="HTML-HEX-001",
+                        message=f"Raw hex color '{h}' found in inline prototype markup '{fpath.name}' line {idx}. Prototype styles must use design system tokens (var(--dt-color-*)).",
+                        line=idx
+                    ))
 
     return findings
 
@@ -904,7 +977,12 @@ def audit_companion_html_prototype(screen_id: str, repo_root: Path) -> list[Find
 # Master Audit Orchestration
 # ---------------------------------------------------------------------------
 
-def run_screen_audit(content: str, repo_root: Path, screen_id: str | None = None) -> list[Finding]:
+def run_screen_audit(
+    content: str,
+    repo_root: Path,
+    screen_id: str | None = None,
+    prototype_dir: Path | None = None,
+) -> list[Finding]:
     """Executes all deterministic audit axes and returns deduplicated findings."""
     valid_tokens = load_canonical_tokens(repo_root)
     canonical_enums = load_canonical_enums(repo_root)
@@ -922,7 +1000,7 @@ def run_screen_audit(content: str, repo_root: Path, screen_id: str | None = None
     findings += audit_domain_meta_text(content)
 
     if screen_id:
-        findings += audit_companion_html_prototype(screen_id, repo_root)
+        findings += audit_companion_html_prototype(screen_id, repo_root, prototype_dir=prototype_dir)
 
     # Deduplicate findings by (code, line, message)
     seen: set[tuple[str, int | None, str]] = set()
@@ -1057,7 +1135,8 @@ def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
     rel_path = target_path.relative_to(repo_root)
     print(f"[INFO] Auditing screen specification: {rel_path}")
 
-    findings = run_screen_audit(content, repo_root, screen_id=target_path.stem)
+    proto_dir = Path(args.prototype_dir).resolve() if getattr(args, "prototype_dir", None) else None
+    findings = run_screen_audit(content, repo_root, screen_id=target_path.stem, prototype_dir=proto_dir)
 
     blockers = [f for f in findings if f.severity == "BLOCKER"]
     warnings = [f for f in findings if f.severity == "WARNING"]
@@ -1094,7 +1173,8 @@ def cmd_lint(args: argparse.Namespace, repo_root: Path) -> int:
         return 1
 
     content = target_path.read_text(encoding="utf-8")
-    findings = run_screen_audit(content, repo_root, screen_id=target_path.stem)
+    proto_dir = Path(args.prototype_dir).resolve() if getattr(args, "prototype_dir", None) else None
+    findings = run_screen_audit(content, repo_root, screen_id=target_path.stem, prototype_dir=proto_dir)
 
     blockers = [f for f in findings if f.severity == "BLOCKER"]
     warnings = [f for f in findings if f.severity == "WARNING"]
@@ -1126,10 +1206,11 @@ def cmd_audit_all(args: argparse.Namespace, repo_root: Path) -> int:
     total_blockers = 0
     total_warnings = 0
     summary_table: list[tuple[str, int, int, str]] = []
+    proto_dir = Path(args.prototype_dir).resolve() if getattr(args, "prototype_dir", None) else None
 
     for spec_file in spec_files:
         content = spec_file.read_text(encoding="utf-8")
-        findings = run_screen_audit(content, repo_root, screen_id=spec_file.stem)
+        findings = run_screen_audit(content, repo_root, screen_id=spec_file.stem, prototype_dir=proto_dir)
         blockers = sum(1 for f in findings if f.severity == "BLOCKER")
         warnings = sum(1 for f in findings if f.severity == "WARNING")
         status = "FAIL" if blockers else ("WARN" if warnings else "PASS")
@@ -1161,12 +1242,15 @@ def main() -> int:
 
     p_audit = sub.add_parser("audit", help="Full deterministic audit + Markdown report")
     p_audit.add_argument("--file", required=True, help="Relative path to target SCR-*.md from repo root")
+    p_audit.add_argument("--prototype-dir", default=None, help="Optional directory containing companion HTML/CSS prototypes (or set DTEAM_PROTOTYPE_DIR)")
 
     p_lint = sub.add_parser("lint", help="Fast console linting without report generation")
     p_lint.add_argument("--file", required=True, help="Relative path to target SCR-*.md from repo root")
+    p_lint.add_argument("--prototype-dir", default=None, help="Optional directory containing companion HTML/CSS prototypes (or set DTEAM_PROTOTYPE_DIR)")
 
     p_all = sub.add_parser("audit-all", help="Scan and audit all screen specifications")
     p_all.add_argument("--output", default=None, help="Optional summary output report path")
+    p_all.add_argument("--prototype-dir", default=None, help="Optional directory containing companion HTML/CSS prototypes (or set DTEAM_PROTOTYPE_DIR)")
 
     args = parser.parse_args()
 
