@@ -39,7 +39,7 @@ status: Stable
 ### 2.1. Rotable Asset Swap Modal (Dark Theme)
 ![SCR-INV-025 Rotable Asset Swap](assets/SCR-INV-025-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the centered rotable asset swap modal at 1280×800 in Dark Theme. Exhibits the continuous two-column comparative split (Dismounted Asset on the left vs. Replacement Asset on the right with Key-Top / Value-Bottom modular metadata grids), dual-column auxiliary row with Work Order linkage (CMP-07) and subtle SHA-256 integrity seal (CMP-08), and grounded commit trigger (CMP-09) paired with taxonomic compatibility badge (CMP-06).*
+> *Note: Production UI prototype capture illustrating the centered rotable asset swap modal at 1280×800 in Dark Theme. Exhibits the sequential single-column vertical stack (Dismounted Asset CMP-02 stacked above Replacement Asset CMP-04 with Key-Top / Value-Bottom metadata grids), auxiliary stack with Work Order linkage (CMP-07) and SHA-256 digital integrity seal (CMP-08), and grounded commit trigger (CMP-09) paired with capsule validation pill (CMP-06).*
 
 ### 2.2. Rotable Asset Swap Modal (Light Theme)
 ![SCR-INV-025 Rotable Asset Swap Light](assets/SCR-INV-025-light.png)
