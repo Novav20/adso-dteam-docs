@@ -228,8 +228,12 @@ public enum MaintenanceCraft
 {
     Mechanical,
     Electrical,
-    Instrumentation,
-    Reliability
+    InstrumentationAndControl,
+    Lubrication,
+    ConditionMonitoring,
+    Electronics,
+    WeldingFabrication,
+    Facilities
 }
 
 public record MaintenancePlanSummaryDto(

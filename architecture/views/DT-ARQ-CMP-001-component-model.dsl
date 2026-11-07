@@ -12,7 +12,7 @@ workspace "System Component Model" {
         redis_cache = softwareSystem "Redis Cache" "Distributed cache for idempotency keys." "Database"
         scada_node = softwareSystem "SCADA Control Station" "Local control station (Edge Node) sending industrial telemetry to Azure IoT." "External"
 
-        monolith = softwareSystem "Modular Monolith" "Sistema Central de Mantenimiento y LOTO (.NET 10)" {
+        monolith = softwareSystem "Modular Monolith" "Central Maintenance and LOTO System (.NET 10)" {
             appContainer = container "Backend Web API" "Modular Monolith Runtime" ".NET 10" {
                 group "Driving Adapters" {
                     idempotency_filter = component "Idempotency Filter" "Intercepts requests with the Idempotency-Key header; prevents reprocessing critical transitions resent after reconnection (TR-007)." "IActionFilter" "ComponentShape"
@@ -63,6 +63,7 @@ workspace "System Component Model" {
         tax_port -> asset_repo "Abstraction for taxonomy graph persistence operations." "C# Interface (DI)"
         mtto_port -> mtto_repo "Abstraction for work order and failure record persistence." "C# Interface (DI)"
         inv_port -> inv_repo "Abstraction for inventory transactions and stock levels." "C# Interface (DI)"
+        inv_port -> asset_repo "Coordinates taxonomic slot uninstallation/installation during atomic rotable swaps (INV-025)." "C# Interface (DI)"
         sec_port -> sec_repo "Abstraction for identity management and chained hash audit logging." "C# Interface (DI)"
         loto_port -> notify_port "Abstraction for broadcasting critical safety alerts." "C# Interface (DI)"
         asset_repo -> tax_ef_adapter "Implements persistence via TaxonomyDbContext." "C# Class Inheritance"

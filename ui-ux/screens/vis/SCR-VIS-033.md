@@ -258,7 +258,7 @@ public record EquipmentHeaderDto
     public required Guid EquipmentId { get; init; }
     public required string TagNumber { get; init; }
     public required string Description { get; init; }
-    public required Criticality Criticality { get; init; }
+    public required int CriticalityIndex { get; init; } // 1..10 per tax.functional_locations.criticality
     public required OperationalStatus OperationalStatus { get; init; }
 }
 
@@ -294,13 +294,6 @@ public record ActiveWorkOrderSummaryDto
     public required int RimePriorityScore { get; init; }
 }
 
-public enum Criticality
-{
-    High,
-    Medium,
-    Low
-}
-
 public enum OperationalStatus
 {
     Up,
@@ -317,15 +310,21 @@ public enum LotoLockoutState
 
 public enum WorkOrderType
 {
+    Corrective,
     Preventive,
-    Corrective
+    Predictive,
+    Improvement
 }
 
 public enum WorkOrderStatus
 {
+    Planning,
+    WaitingParts,
     Scheduled,
     InProgress,
-    Completed
+    Suspended,
+    Complete,
+    Closed
 }
 ```
 

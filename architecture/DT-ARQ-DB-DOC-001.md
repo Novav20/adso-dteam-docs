@@ -1,7 +1,7 @@
 ---
 code: DT-ARQ-DB-DOC-001
-version: 1.0
-date: 2026-09-10
+version: 1.1
+date: 2026-11-07
 status: Active
 author: Juan David Julio Serrano
 standard:
@@ -80,3 +80,13 @@ To guarantee compliance with the Zero Energy standard (Fail-Safe), the initiatio
 
 ### 3.8. GIN Indexing for JSONB Immutable Audit ([ADM-032](../requirements/user-stories/adm/ADM-032.md))
 To guarantee efficient searches over the massive audit trail, the `previous_state` and `new_state` columns (`JSONB` type) of the `adm.audit_logs` table must be indexed using the **`jsonb_path_ops`** operator class (GIN Index). Historical search queries from the .NET application must be implemented using the native containment operator (`@>`) to take advantage of path structure optimization (hash paths).
+
+### 3.9. Cross-DbContext Atomic Transactions (`IDbContextTransaction` Sharing) ([TR-001](../requirements/common/TR-001.md), [TR-005](../requirements/common/TR-005.md), [INV-025](../requirements/user-stories/inv/INV-025.md))
+Each Bounded Context schema (`tax`, `mtto`, `inv`, `vis`, `adm`) is mapped to an isolated Entity Framework Core `DbContext` (`TaxonomyDbContext`, `MaintenanceDbContext`, `InventoryDbContext`, `TelemetryDbContext`, `SecurityDbContext`). Direct ORM navigation properties across `DbContext` boundaries are strictly prohibited.
+
+When an Application Command must mutate state across multiple schemas atomically (for example, `INV-025` Atomic Asset Swap mutating `tax.equipment_units`, `tax.asset_installations`, `inv.inventory_transactions`, and appending a SHA-256 hash-chained record in `adm.audit_logs`), **wrapping multiple independent connections in `System.Transactions.TransactionScope` is prohibited** to avoid Npgsql distributed transaction promotion errors. Instead:
+1. **Shared Connection & Explicit Transaction Coordinator:** All scoped `DbContext` instances within the request lifetime share the same underlying physical `NpgsqlConnection`. The orchestrating use case opens a single `DbTransaction` (`await dbContext.Database.BeginTransactionAsync(ct)`) and binds every participating `DbContext` via `await secondaryDbContext.Database.UseTransactionAsync(dbTransaction.GetDbTransaction(), ct)`.
+2. **Audit Log Chaining Within the Same Transaction:** The `AuditSaveChangesInterceptor` (or `ISecurityRepository.AppendAuditEntry`) executes on the active shared `DbConnection` and `DbTransaction` before `await dbTransaction.CommitAsync(ct)` is invoked, guaranteeing that domain state mutations and cryptographic audit log records (`previous_hash` $\to$ `integrity_hash`) succeed or roll back as a single ACID unit.
+
+### 3.10. In-Process Domain Event Dispatch Semantics (`IEventBus`)
+Domain events published via `IEventBus` (`WorkOrderStatusChanged`, `AssetSwapCompletedEvent`, `EquipmentDecommissioned`) execute **in-process and pre-commit** within the active shared `DbTransaction` whenever the subscriber enforces a synchronous domain invariant (such as deducting reserved stock in `inv` upon Work Order technical closure in `mtto`). Side-effect handlers that communicate with external I/O (such as `INotificationPort` SignalR broadcasts) are dispatched **post-commit** only after `dbTransaction.CommitAsync()` succeeds.

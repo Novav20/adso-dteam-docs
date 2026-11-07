@@ -268,8 +268,11 @@ public enum MaintenanceCraft
     Mechanical,
     Electrical,
     InstrumentationAndControl,
+    Lubrication,
     ConditionMonitoring,
-    Lubrication
+    Electronics,
+    WeldingFabrication,
+    Facilities
 }
 ```
 

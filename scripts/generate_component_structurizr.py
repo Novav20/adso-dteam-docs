@@ -86,7 +86,7 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
         dsl.append(f"        {c_id} = softwareSystem \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{tag}\"")
         
     dsl.append("")
-    dsl.append("        monolith = softwareSystem \"Modular Monolith\" \"Sistema Central de Mantenimiento y LOTO (.NET 10)\" {")
+    dsl.append("        monolith = softwareSystem \"Modular Monolith\" \"Central Maintenance and LOTO System (.NET 10)\" {")
     
     # We map C4 Components to Components within a default Container
     dsl.append("            appContainer = container \"Backend Web API\" \"Modular Monolith Runtime\" \".NET 10\" {")
