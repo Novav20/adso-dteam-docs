@@ -154,7 +154,7 @@ sequenceDiagram
      * **Actual Labor Hours Section (`ActualLaborHoursSection`):** Hosts the official CMMS accounting field featuring circular steppers (`−` / `+`), recessed numeric display sharing the identical surface treatment as the steppers, monochromatic left-aligned quick preset pills with content-fit widths (`2.0h`, `2.5h`, `3.0h`, `3.5h (Planned)`), horizontal divider line, and full-width CTA pill (`[Log Time to Record]`) bound to `--dt-color-state-info`.
 3. **Sticky Bottom Finalization Bar (`CMP-09`):**
    * Pinned to the bottom viewport boundary with height `--dt-layout-footer-height` and elevation `--dt-z-header-sticky`, separated via `--dt-color-border-subtle`.
-   * Workspace container uses standard internal padding (`--dt-space-5`) without artificial bottom scroll padding, allowing checklist items to scroll naturally with `--dt-layout-footer-clearance`.
+   * Workspace container uses standard internal padding (`--dt-space-4` inline, `--dt-space-6` bottom) without artificial bottom scroll padding, allowing checklist items to scroll naturally with `--dt-layout-footer-clearance`.
    * Guided workflow: Progressive navigation (`← Previous` and `Next →`) guides the technician sequentially; primary action `[Finalize Work Order]` unlocks strictly on Step 4 (Evidence) once quality gates are satisfied.
 4. **Flush Tab Navigation Physics (`CMP-02`):**
    * Edge-to-edge flush tab bar with zero inter-tab gap or rounded corners, sitting directly adjacent to the LOTO handover strip and workspace bounds.
