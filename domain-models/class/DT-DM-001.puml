@@ -21,7 +21,7 @@ package "Asset Taxonomy (ISO 14224)" <<Folder>> #F0F0F0 {
         - TagNumber: String
         - Name: String
         - Description: String
-        - Criticality: String
+        - Criticality: Integer?
         - GeographicLocation: String
         - EnvironmentalExposure: String
         - HierarchyLevel: Integer
@@ -72,7 +72,15 @@ package "Asset Taxonomy (ISO 14224)" <<Folder>> #F0F0F0 {
         + Decommission(reason: String, disposalDate: Date): void
         + RejectCommissioning(reason: String): void
         + TransitionToStorage(warehouseId: UUID): void
-        + TransitionToRepair(): void
+        + TransitionToRepair(warehouseId: UUID): void
+        + TransitionToDamaged(warehouseId: UUID): void
+    }
+    class AssetInstallation <<Entity>> {
+        - Id: UUID
+        - FunctionalLocationId: UUID
+        - EquipmentUnitId: UUID
+        - InstalledAt: DateTime
+        - RemovedAt: DateTime?
     }
     class Subunit <<Entity>> {
         - Id: UUID
@@ -93,13 +101,6 @@ package "Asset Taxonomy (ISO 14224)" <<Folder>> #F0F0F0 {
         --
         + UpdateStatus(newStatus: Enum): void
     }
-    class AssetInstallation <<Entity>> {
-        - Id: UUID
-        - FunctionalLocationId: UUID
-        - EquipmentUnitId: UUID
-        - InstalledAt: DateTime
-        - RemovedAt: DateTime?
-    }
 }
 
 package "Maintenance Management (MTTO)" <<Folder>> #F0F0F0 {
@@ -119,15 +120,20 @@ package "Maintenance Management (MTTO)" <<Folder>> #F0F0F0 {
     class MaintenancePlan <<Aggregate Root>> {
         - Id: UUID
         - EquipmentUnitId: UUID
+        - SubunitId: UUID?
+        - MaintainableItemId: UUID?
         - MaintenanceMethod: String
         - Frequency: String
         - FrequencyType: String
-        - NextWorkOrderDate: DateTime?
         - IntervalValue: Decimal?
+        - IntervalUnit: String
+        - MonitoredSignalType: String
+        - NextWorkOrderDate: DateTime?
         - NextTriggerLimit: Decimal?
         - EstimatedLaborHours: Decimal
         - RequiredSpecialty: String
         - TechnicalDescription: String
+        - CadenceOverrideJustification: String
         - Status: String
         --
         + GenerateWorkOrder(targetDate: DateTime): WorkOrder
@@ -148,6 +154,7 @@ package "Maintenance Management (MTTO)" <<Folder>> #F0F0F0 {
         - ActualStart: DateTime?
         - ActualFinish: DateTime?
         - ActualLaborHours: Decimal?
+        - ScopeChecklist: JSON
         - Criticality: String
         --
         + Schedule(scheduledDate: DateTime): void
@@ -156,7 +163,7 @@ package "Maintenance Management (MTTO)" <<Folder>> #F0F0F0 {
         + CompleteExecution(actualLaborHours: Decimal): void
         + CloseAdministratively(): void
         + ReportFailure(maintainableItemId: UUID, mode: Enum, mechanism: Enum, cause: Enum, detectionMethod: Enum, operationalCondition: Enum, operationalImpact: Enum, downtime: Decimal, technicianNotes: String): void
-        + AddMediaAttachment(fileUrl: String, fileType: Enum): void
+        + AddMediaAttachment(fileUrl: String, fileType: Enum, integrityHashSha256: String, capturedOffline: Boolean): void
         + SuspendExecution(reason: String): void
     }
     class MediaAttachment <<Value Object>> {
@@ -165,6 +172,8 @@ package "Maintenance Management (MTTO)" <<Folder>> #F0F0F0 {
         - FailureRecordId: UUID?
         - FileUrl: String
         - FileType: String
+        - IntegrityHashSha256: String
+        - CapturedOffline: Boolean
         - UploadedAt: DateTime
     }
     class WorkOrderHistory <<Entity>> {
@@ -297,13 +306,13 @@ package "Digital Twin Convergence (VIS)" <<Folder>> #F0F0F0 {
         - LastSyncTime: DateTime?
     }
     class TelemetrySignal <<Entity>> {
+        - Timestamp: DateTime
         - Id: UUID
         - EquipmentUnitId: UUID
         - SignalType: String
         - Value: Decimal
         - Unit: String
         - Threshold: Decimal?
-        - Timestamp: DateTime
         - IsSafetyCritical: Boolean
     }
     class WorkPermit <<Aggregate Root>> {
@@ -347,6 +356,7 @@ package "Digital Twin Convergence (VIS)" <<Folder>> #F0F0F0 {
     class WorkOrderIsolation <<Entity>> {
         - WorkOrderId: UUID
         - IsolationPointId: UUID
+        - IsolationStatus: String
         - IsIsolated: Boolean
         - IsolatedAt: DateTime?
         - PadlockTagId: String
@@ -356,9 +366,13 @@ package "Digital Twin Convergence (VIS)" <<Folder>> #F0F0F0 {
         - TryOutReading: String
         - TelemetrySnapshot: JSON
         - SignatureHash: String
+        - LeaseHolderUserId: UUID?
+        - LeasedUntil: DateTime?
         --
         + VerifyIsolation(padlockTagId: String): void
         + ConfirmTryOut(method: TryOutMethod, observedReading: String, technicianSignatureHash: String, telemetrySnapshot: JSON): void
+        + AcquireOfflineLease(leaseHolderUserId: UUID, leasedUntil: DateTime): void
+        + ReleaseOfflineLease(): void
     }
 }
 
@@ -424,13 +438,10 @@ package "Safety and Governance (ADM)" <<Folder>> #F0F0F0 {
         - NewState: JSON
         - IpAddress: String
         - UserAgent: String
+        - PreviousHash: String
         - IntegrityHash: String
         --
         + VerifyIntegrity(): boolean
-    }
-    class UserRole <<Entity>> {
-        - UserId: UUID
-        - RoleId: UUID
     }
     class IdempotencyLog <<Entity>> {
         - Id: UUID
@@ -439,6 +450,10 @@ package "Safety and Governance (ADM)" <<Folder>> #F0F0F0 {
         - RequestHash: String
         - Status: String
         - CreatedAt: DateTime
+    }
+    class UserRole <<Entity>> {
+        - UserId: UUID
+        - RoleId: UUID
     }
 }
 
@@ -451,6 +466,8 @@ EquipmentUnit "1" *-- "0..*" AssetInstallation : mounted at
 EquipmentUnit "1" *-- "0..*" Subunit : broken down into
 Subunit "1" *-- "0..*" MaintainableItem : built by
 EquipmentUnit "1" *-- "0..*" MaintenancePlan : governed by
+Subunit "1" o-- "0..*" MaintenancePlan : targeted by
+MaintainableItem "1" o-- "0..*" MaintenancePlan : maintained via
 EquipmentUnit "1" --> "0..*" WorkOrder : generates
 MaintenancePlan "1" o-- "0..*" WorkOrder : instantiates
 WorkRequest "1" o-- "0..*" WorkOrder : originates
@@ -482,6 +499,7 @@ WorkPermit "1" --> "0..*" WorkOrder : validates execution of
 WorkOrder "1" *-- "0..*" VisualLayer : visualized in
 WorkOrder "1" *-- "1..*" WorkOrderIsolation : requires
 IsolationPoint "1" --> "1..*" WorkOrderIsolation : locked by
+User "1" o-- "0..*" WorkOrderIsolation : leases offline
 User "1" *-- "1..*" UserRole : associated to
 Role "1" *-- "1..*" UserRole : granted to
 Role "1" *-- "0..*" RolePermission : contains

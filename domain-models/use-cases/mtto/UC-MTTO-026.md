@@ -25,7 +25,7 @@ Automatically calculates and assigns an objective, quantitative priority score t
 2. The System queries all active work requests in `NEW` status and constructs or updates the corresponding backlog prioritization item projections.
 3. The System automatically evaluates the priority score for each backlog item by delegating calculation to the industrial RIME prioritization engine ([FR-060](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr), [ADR-002](../../../architecture/adr/ADR-002.md)):
    1. Retrieves the static asset criticality index ($C \in [1, 10]$) from the master record of the associated ISO 14224 Equipment Unit or Functional Location ([FR-058](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)).
-   2. Retrieves the standardized numerical weight ($W \in [1, 10]$) corresponding to the assigned Work Class ([FR-059](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr), [DT-DM-DOC-001 §4.20](../../../domain-models/class/DT-DM-DOC-001.md#420-workrequestworkclasscode-work-class-rime)).
+   2. Retrieves the standardized numerical weight ($W \in [1, 10]$) corresponding to the assigned Work Class ([FR-059](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr), [DT-DM-DOC-001 §4.24](../../../domain-models/class/DT-DM-DOC-001.md#424-workrequestworkclasscode-work-class-rime)).
    3. Computes the deterministic RIME priority score:
       $$\text{Score} = C \times W \quad (\text{Range: } 1..100)$$
       guaranteeing that identical criticality and work-class inputs produce identical scores across the enterprise ([FR-074](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)).
@@ -42,7 +42,7 @@ Automatically calculates and assigns an objective, quantitative priority score t
 ### AF-001: Work Class Modification (Priority Adjustment)
 If operational conditions shift and the Planner determines that a pending request requires an altered urgency classification:
 1. The Planner selects the target backlog item and initiates a work-class adjustment dialog.
-2. The Planner selects an updated canonical Work Class from the standardized taxonomy ([DT-DM-DOC-001 §4.20](../../../domain-models/class/DT-DM-DOC-001.md#420-workrequestworkclasscode-work-class-rime)), such as escalating from Code 6 (*Systematic Preventive Maintenance*, weight 6) to Code 8 (*High Priority Process Work*, weight 8) or Code 10 (*Safety and Environmental Emergency*, weight 10), and provides a mandatory technical justification text.
+2. The Planner selects an updated canonical Work Class from the standardized taxonomy ([DT-DM-DOC-001 §4.24](../../../domain-models/class/DT-DM-DOC-001.md#424-workrequestworkclasscode-work-class-rime)), such as escalating from Code 6 (*Systematic Preventive Maintenance*, weight 6) to Code 8 (*High Priority Process Work*, weight 8) or Code 10 (*Safety and Environmental Emergency*, weight 10), and provides a mandatory technical justification text.
 3. The System calculates the candidate RIME score in real-time ($< 100\text{ms}$ per [NFR-070](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr)) and displays the updated priority band.
 4. The Planner confirms the adjustment.
 5. The System persists the change within a single atomic transactional boundary:

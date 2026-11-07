@@ -92,7 +92,7 @@ status: Stable
       * Both affected `CMP-05` badges display an animated pulsing conflict halo in `--dt-color-alarm-critical`.
       * `CMP-02` Toolbar activates a dedicated conflict pill: `[⚠️ SIMOPS CONFLICT: PTW-XXXX / PTW-YYYY]`. Tapping the pill centers the viewport over the conflict site and opens the conflict detail card.
 5. **Mandatory 4-Channel Redundant Coding Matrix (FR-183, TR-011, WCAG 2.1 AA):**
-   * To prevent single-channel color dependency and ensure pre-attentive salience, every `CMP-05` badge encodes its permit classification across four sensory channels (Color + Geometric Shape + Vector Icon + Alphanumeric Label) per [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) and [DT-DM-DOC-001 §4.28](../../../domain-models/class/DT-DM-DOC-001.md#428-workpermitpermittype):
+   * To prevent single-channel color dependency and ensure pre-attentive salience, every `CMP-05` badge encodes its permit classification across four sensory channels (Color + Geometric Shape + Vector Icon + Alphanumeric Label) per [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) and [DT-DM-DOC-001 §4.34](../../../domain-models/class/DT-DM-DOC-001.md#434-workpermitpermittype):
      * **HOT_WORK:** `--dt-color-alarm-critical` | Square ($20\times 20\text{px}$) | `#icon-hot-work` | `HOT WORK`
      * **WORK_AT_HEIGHT:** `--dt-color-state-info` | Triangle ($20\times 18\text{px}$) | `#icon-heights` | `HEIGHTS`
      * **CONFINED_SPACE:** `--dt-color-alarm-warning` | Circle ($\varnothing 20\text{px}$) | `#icon-confined-space` | `CONFINED`
@@ -284,7 +284,7 @@ public EventCallback<PermitType?> OnFilterChanged { get; set; }
 
 ```csharp
 /// <summary>
-/// Controlled permit risk classification vocabulary per DT-DM-DOC-001 §4.28.
+/// Controlled permit risk classification vocabulary per DT-DM-DOC-001 §4.34.
 /// </summary>
 public enum PermitType
 {
@@ -298,7 +298,7 @@ public enum PermitType
 }
 
 /// <summary>
-/// Controlled permit lifecycle status vocabulary per DT-DM-DOC-001 §4.29.
+/// Controlled permit lifecycle status vocabulary per DT-DM-DOC-001 §4.35.
 /// </summary>
 public enum WorkPermitStatus
 {

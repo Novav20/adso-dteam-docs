@@ -1,7 +1,7 @@
 ---
 code: DT-DM-DOC-001
-version: 1.6
-date: 2026-10-11
+version: 1.7
+date: 2026-11-06
 status: Approved — Domain Conceptual Specification
 author: Juan David Julio Serrano
 standard:
@@ -55,11 +55,11 @@ The approved capsules set provides strong guidance for LOTO, competencies, and s
 
 To reflect the Modular Monolith architecture in the persistence layer and avoid saturating the default schema (`public`), the system tables are distributed into dedicated schemas corresponding to the DDD Bounded Contexts:
 
-- `tax`: Taxonomy and assets according to ISO 14224 (`functional_locations`, `equipment_units`, `subunits`, `maintainable_items`, `equipment_classes`).
-- `mtto`: Maintenance and reliability management (`work_requests`, `work_orders`, `maintenance_plans`, `failure_records`, `backlog_items`).
-- `inv`: Resource and supply control (`spare_parts`, `inventory_transactions`, `material_requirements`, `warehouses`, `suppliers`).
-- `vis`: Digital twin and operational safety layers (`mesh_mappings`, `spatial_metadata`, `telemetry_signals`, `work_permits`, `isolation_points`).
-- `adm`: Perimeter security, IAM, and immutable audit (`users`, `roles`, `role_permissions`, `auth_tokens`, `audit_logs`).
+- `tax`: Taxonomy and assets according to ISO 14224 (`functional_locations`, `equipment_units`, `asset_installations`, `subunits`, `maintainable_items`, `equipment_classes`).
+- `mtto`: Maintenance and reliability management (`work_requests`, `work_orders`, `work_order_histories`, `maintenance_plans`, `failure_records`, `media_attachments`, `backlog_items`).
+- `inv`: Resource and supply control (`spare_parts`, `inventory_transactions`, `material_requirements`, `warehouses`, `locators`, `suppliers`).
+- `vis`: Digital twin and operational safety layers (`mesh_mappings`, `spatial_metadata`, `visual_layers`, `telemetry_signals`, `work_permits`, `isolation_points`, `work_order_isolations`).
+- `adm`: Perimeter security, IAM, and immutable audit (`users`, `roles`, `user_roles`, `role_permissions`, `auth_tokens`, `work_order_assignments`, `audit_logs`, `idempotency_logs`).
 
 This segregation allows for:
 1. **Defense in Depth:** Granular assignment of SQL privileges (GRANT/REVOKE) per module to prevent unauthorized cross-access.
@@ -72,7 +72,8 @@ This segregation allows for:
 | --- | --- | --- | --- |
 | FunctionalLocation | Aggregate Root | Owns the asset's location hierarchy and boundary definition. | ISO 14224 Chapters 8.1 and 8.2 |
 | EquipmentClass | Aggregate Root | Owns the asset class taxonomy and class-specific boundary semantics. | ISO 14224 Annex A |
-| EquipmentUnit | Aggregate Root | Owns the inventory record and the three-way status split for a physical asset. | ISO 14224 Chapter 9.1 and Table 5 |
+| EquipmentUnit | Aggregate Root | Owns the inventory record and the four-dimensional orthogonal status split (`operationalStatus`, `lifecycleStatus`, `maintenanceStatus`, `healthStatus`) for a physical asset. | ISO 14224 Chapter 9.1 and Table 5 |
+| AssetInstallation | Entity | Chronological mounting/dismounting record linking an `EquipmentUnit` to a `FunctionalLocation` slot (`ADR-008`). | ISO 14224 Installation History |
 | Subunit | Entity | Depends on the parent asset's lifecycle and taxonomy context. | ISO 14224 Taxonomy Levels 6–9 |
 | MaintainableItem | Entity | Represents the lowest repairable level used for maintenance and failure analysis. | ISO 14224 Taxonomy Levels 8–9 |
 | WorkRequest | Aggregate Root | Initiates the maintenance intake flow and owns the RIME prioritization factors. | ISO 55000 risk and decision guidance; ADR 002 |
@@ -99,7 +100,8 @@ This segregation allows for:
 | Permission | Value Object | Atomic authorization rule without an independent lifecycle. | ISO 9000 controlled workflow |
 | AuthToken | Entity | Has a lifecycle of issuance, usage, and expiration, and must remain traceable back to its owner. | ISO 9000 traceability |
 | WorkOrderAssignment | Entity | Auditable relationship between a user/role and a work order. | ISO 55000 competence control |
-| AuditLog | Entity | Append-only audit record containing the before/after state. | ISO 9000 audit evidence and record immutability |
+| AuditLog | Entity | Append-only audit record containing the before/after state and chained SHA-256 hashes. | ISO 9000 audit evidence and record immutability |
+| IdempotencyLog | Entity | Deduplication ledger preventing duplicate execution of retransmitted offline or API commands (`ADR-007`). | Distributed Systems Idempotency |
 | MaterialRequirement | Entity | Represents future planning and consumption reservation of a spare part for a specific work order. | ISO 55000 resource planning |
 
 ## 4. Controlled Vocabulary
@@ -143,7 +145,22 @@ This segregation allows for:
 | DOWN | The asset is unavailable due to failure or outage. | |
 | STANDBY | The asset is ready but not actively producing. | |
 
-#### 4.5 FunctionalLocation.environmentalExposure
+#### 4.5 FunctionalLocation.criticality
+
+| Code (Index) | Criticality Tier | Operational / Safety Impact |
+| --- | --- | --- |
+| 10 | Safety / Environmental Catastrophic | Loss of containment, fire/explosion risk, or regulatory shutdown (ISO 55001 / SCE). |
+| 9 | Total Plant Shutdown | Single point of failure halting entire plant throughput without redundancy. |
+| 8 | Major Process Unit Bottleneck | Severe throughput curtailment (>50%) on primary process train. |
+| 7 | High Process Impact | Partial production loss (20%–50%) or standby redundancy exhausted. |
+| 6 | Essential Process Support | Active duty equipment with available hot/cold standby redundancy. |
+| 5 | Moderate Operational Support | Utility or secondary system with buffered surge capacity. |
+| 4 | Minor Process Auxiliary | Localized impact with manual bypass capability. |
+| 3 | Non-Process Utility | Indirect support asset with no immediate production impact. |
+| 2 | General Facility Infrastructure | Lighting, perimeter, or non-critical building systems. |
+| 1 | Non-Essential / Redundant Auxiliary | Zero impact on safety, environment, or production continuity. |
+
+#### 4.6 FunctionalLocation.environmentalExposure
 
 | Value | Meaning | Reference Norm |
 | --- | --- | --- |
@@ -152,7 +169,7 @@ This segregation allows for:
 | LOW | Enclosed or indoor facilities; minimal exposure; mechanical ventilation. | ISO 14224:2016 Table A.70 |
 | UNKNOWN | Information on environmental exposure is not available. | ISO 14224:2016 Table A.70 |
 
-#### 4.6 MaintainableItem.status
+#### 4.7 MaintainableItem.status
 
 | Value | Meaning | Reference Norm |
 | --- | --- | --- |
@@ -164,7 +181,7 @@ This segregation allows for:
 
 ### Schema: MTTO
 
-#### 4.7 BacklogItem.status
+#### 4.8 BacklogItem.status
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -172,7 +189,7 @@ This segregation allows for:
 | READY | Fully planned and ready to be scheduled. | Ready to Schedule |
 | DEFERRED | Intentionally postponed (lack of budget or plant turnaround). | Queue Suspension |
 
-#### 4.8 FailureRecord.detectionMethod
+#### 4.9 FailureRecord.detectionMethod
 
 | Value | Meaning | Reference Norm |
 | --- | --- | --- |
@@ -188,7 +205,7 @@ This segregation allows for:
 | ON_DEMAND | Discovered during an actual attempt to activate (e.g., failure of an ESD valve to close). | ISO 14224:2016 Table B.4 |
 | OTHER | Other unclassified detection method. | ISO 14224:2016 Table B.4 |
 
-#### 4.9 FailureRecord.operationalCondition
+#### 4.10 FailureRecord.operationalCondition
 
 | Value | Meaning | Reference Norm |
 | --- | --- | --- |
@@ -200,7 +217,7 @@ This segregation allows for:
 | IDLE | Available but not required by the process. | ISO 14224:2016 Table 6 |
 | TESTING | Occurred during the execution of a functional test. | ISO 14224:2016 Table 6 |
 
-#### 4.10 FailureRecord.operationalImpact
+#### 4.11 FailureRecord.operationalImpact
 
 | Value | Meaning | Reference Norm |
 | --- | --- | --- |
@@ -209,7 +226,16 @@ This segregation allows for:
 | STOP_BELOW_ACCEPTABLE | Production shutdown below the acceptable limit. | ISO 14224:2016 Table C.2 |
 | STOP_MINOR | Minor or negligible production impact. | ISO 14224:2016 Table C.2 |
 
-#### 4.11 MaintenancePlan.frequencyType
+#### 4.12 FailureRecord.status
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| DRAFT | Captured partially or queued offline pending technical submission. | Field Execution |
+| REPORTED | Submitted by technician upon technical Work Order completion (`COMPLETE`). | ISO 14224 Event Capture |
+| VERIFIED | Validated by Reliability Engineer or Supervisor during QA review. | Reliability Governance |
+| CLOSED | Locked permanently upon administrative Work Order closure (`CLOSED`). | ISO 9001 Record Control |
+
+#### 4.13 MaintenancePlan.frequencyType
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -217,7 +243,20 @@ This segregation allows for:
 | OPERATING_HOURS | The plan is driven by accumulated operating hours. | |
 | CYCLES | The plan is driven by cycles or starts. | |
 
-#### 4.12 MaintenancePlan.maintenanceMethod
+#### 4.14 MaintenancePlan.intervalUnit
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| DAYS | Calendar interval measured in days. | Preventive Cadence |
+| WEEKS | Calendar interval measured in weeks. | Preventive Cadence |
+| MONTHS | Calendar interval measured in months. | Preventive Cadence |
+| YEARS | Calendar interval measured in years. | Preventive Cadence |
+| OPERATING_HOURS | Cumulative run-time hours from SCADA/hour meter (`MTTO-023`). | Usage-Based / CBM |
+| CYCLES | Cumulative actuation cycles or starts (`MTTO-023`). | Usage-Based / CBM |
+| KILOMETERS | Cumulative distance counter for mobile fleet assets. | Usage-Based / CBM |
+| WEAR_DEPTH_MM | Physical thickness or wear delta threshold in millimeters. | Condition-Based (ISO 13374) |
+
+#### 4.15 MaintenancePlan.maintenanceMethod
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -225,7 +264,20 @@ This segregation allows for:
 | PREDICTIVE | Predictive monitoring (vibration analysis, thermography, etc.). | ISO 14224 (Condition-based) |
 | CONDITION_BASED | Direct actions triggered by sensor limits in telemetry. | ISO 13374 / CBM |
 
-#### 4.13 MaintenancePlan.requiredSpecialty
+#### 4.16 MaintenancePlan.monitoredSignalType
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| TEMPERATURE | Thermal threshold trigger. | Condition-Based Monitoring (ISO 13374) |
+| PRESSURE | Fluid/gas pressure differential or threshold trigger. | Condition-Based Monitoring (ISO 13374) |
+| VIBRATION | Mechanical oscillation threshold trigger. | Condition-Based Monitoring (ISO 13374) |
+| FLOW_RATE | Flow rate degradation trigger. | Condition-Based Monitoring (ISO 13374) |
+| VOLTAGE | Electrical voltage deviation trigger. | Condition-Based Monitoring (ISO 13374) |
+| RPM | Angular velocity threshold trigger. | Condition-Based Monitoring (ISO 13374) |
+| OPERATING_HOURS | Monotonic cumulative operating hour counter (`MTTO-023`). | Usage-Based Cadence (ISO 14224) |
+| CYCLES | Monotonic cumulative start/actuation counter (`MTTO-023`). | Usage-Based Cadence (ISO 14224) |
+
+#### 4.17 MaintenancePlan.requiredSpecialty
 
 | Value | Meaning | Reference / Framework |
 | --- | --- | --- |
@@ -238,7 +290,7 @@ This segregation allows for:
 | WELDING_FABRICATION | Welding, boilermaking, pipefitting, and structural repairs. | Internal Vocabulary (SMRP Practices) |
 | FACILITIES | Civil infrastructure, structures, lighting, and general services. | Internal Vocabulary (EAM Practices) |
 
-#### 4.14 MaintenancePlan.status
+#### 4.18 MaintenancePlan.status
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -247,7 +299,7 @@ This segregation allows for:
 | INACTIVE | Temporarily deactivated due to outage or operational change. | Cycle suspension |
 | ARCHIVED | Obsolete or replaced; retained for audit history. | ISO 55001 Lifecycle |
 
-#### 4.15 MediaAttachment.fileType
+#### 4.19 MediaAttachment.fileType
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -255,7 +307,7 @@ This segregation allows for:
 | JPG | JPEG image file. | |
 | PNG | Portable Network Graphics image file. | |
 
-#### 4.16 WorkOrder.criticality
+#### 4.20 WorkOrder.criticality
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -264,7 +316,7 @@ This segregation allows for:
 | NORMAL | Plannable within weekly cycles and windows. | Medium Priority |
 | LOW | Aesthetic tasks or minor operational convenience. | Low Priority |
 
-#### 4.17 WorkOrder.currentStatus
+#### 4.21 WorkOrder.currentStatus
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -280,10 +332,10 @@ This segregation allows for:
 
 - To transition from any previous state (`PLANNING`, `SCHEDULED`, `WAITING_PARTS`) to **`IN_PROGRESS`**, the system must programmatically verify the following preconditions:
   1. **Work Permit (`WorkPermit`):** An associated work permit must exist and its `status` must be strictly `APPROVED`.
-  2. **Lockout/Tagout (LOTO):** All isolation points declared for the work order in the intermediate `work_order_isolations` table must have their lockout status verified (`is_isolated = TRUE` and `isolated_at` not null).
+  2. **Lockout/Tagout (LOTO):** All isolation points declared for the work order in the intermediate `work_order_isolations` table must have their zero-energy lockout and Try-Out verified (`isolation_status = 'VERIFIED_ZERO_ENERGY'`, `is_isolated = TRUE`, `try_out_confirmed = TRUE`, and `isolated_at` / `try_out_at` not null).
 - If IoT telemetry or safety monitoring detects hazardous energy during **`IN_PROGRESS`** execution, the system immediately invokes `WorkOrder.SuspendExecution(reason)`, transitioning the state to **`SUSPENDED`** to enforce fail-safe life protection.
 
-#### 4.18 WorkOrder.maintenanceMethod
+#### 4.22 WorkOrder.maintenanceMethod
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -292,7 +344,7 @@ This segregation allows for:
 | PREDICTIVE | Scheduled predictive monitoring or inspection. | ISO 14224 (Condition-based) |
 | IMPROVEMENT | Modification, redesign, or technical improvement (CAPEX/OPEX). | Change Management / Engineering |
 
-#### 4.19 WorkRequest.status
+#### 4.23 WorkRequest.status
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -300,7 +352,7 @@ This segregation allows for:
 | APPROVED | Approved and promoted to Work Order (`WorkOrder`). | Transition to planning |
 | REJECTED | Rejected for being invalid, duplicated, or a false alarm. | False positive traceability |
 
-#### 4.20 WorkRequest.workClassCode (Work Class RIME)
+#### 4.24 WorkRequest.workClassCode (Work Class RIME)
 
 | Code (Weight) | Work Class | Industrial Example |
 | --- | --- | --- |
@@ -317,7 +369,7 @@ This segregation allows for:
 
 ### Schema: INV
 
-#### 4.21 InventoryTransaction.transactionType
+#### 4.25 InventoryTransaction.transactionType
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -325,7 +377,7 @@ This segregation allows for:
 | ISSUE | Inventory output (consumption in Work Order). | Charge to WO Costs |
 | ADJUSTMENT | Manual/automatic adjustment due to physical count discrepancy. | Inventory Reconciliation |
 
-#### 4.22 SparePart.status
+#### 4.26 SparePart.status
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -333,16 +385,17 @@ This segregation allows for:
 | OBSOLETE | Obsolete, no new purchase allowed (kept for history). | ISO 55001 Lifecycle |
 | SUSPENDED | Temporarily blocked due to quality control or supplier issues. | Quality Control |
 
-#### 4.23 SparePart.stockPolicy
+#### 4.27 SparePart.stockPolicy
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
 | REORDER_POINT | Replenish when inventory reaches an activation threshold (trigger). | |
 | MIN_MAX | Maintain stock between minimum and maximum levels. | |
 | JUST_IN_TIME | Replenish only when demand is expected. | |
+
 ### Schema: VIS
 
-#### 4.24 IsolationPoint.isolationType
+#### 4.28 IsolationPoint.isolationType
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -354,7 +407,7 @@ This segregation allows for:
 | THERMAL | Thermal isolation of hot or cryogenic surfaces. | Thermal LOTO |
 | GRAVITATIONAL | Physical blocks to prevent suspended masses from falling. | Gravitational LOTO |
 
-#### 4.25 MeshMapping.mappingStatus
+#### 4.29 MeshMapping.mappingStatus
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -362,7 +415,7 @@ This segregation allows for:
 | UNMAPPED | The asset's 3D mesh is missing or unpositioned. | Incomplete Twin |
 | SYNC_ERROR | Consistency or loading error between the graphics engine and the DB. | Synchronization Error |
 
-#### 4.26 TelemetrySignal.signalType
+#### 4.30 TelemetrySignal.signalType
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -372,8 +425,10 @@ This segregation allows for:
 | FLOW_RATE | Flow rate measurement. | Flowmeter |
 | VOLTAGE | Electrical voltage measurement. | Voltage Sensor |
 | RPM | Angular velocity measurement. | Tachometer |
+| OPERATING_HOURS | Monotonic cumulative operating hour counter (`MTTO-023`). | Usage Hour Meter |
+| CYCLES | Monotonic cumulative start/actuation counter (`MTTO-023`). | Cycle Counter |
 
-#### 4.27 VisualLayer.status
+#### 4.31 VisualLayer.status
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -381,7 +436,25 @@ This segregation allows for:
 | HIDDEN | Layer temporarily hidden. | Rendered State |
 | GHOSTED | Layer visible with transparency to reveal interiors. | Rendered State |
 
-#### 4.28 WorkPermit.permitType
+#### 4.32 WorkOrderIsolation.isolationStatus
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| PENDING_ISOLATION | Isolation point linked to Work Order, physical lockout not yet applied. | LOTO Matrix Preparation |
+| ISOLATED | Physical padlock and tag applied, awaiting physical Try-Out verification. | OSHA 1910.147 (d)(4) |
+| VERIFIED_ZERO_ENERGY | Physical lockout and Try-Out attestation confirmed at zero energy. | OSHA 1910.147 (d)(6) |
+| LEASED_OFFLINE | Governed by an active HMAC-SHA256 cryptographic offline safety lease (`ADR-006`). | Distributed LOTO Safety Lease |
+| RELEASED | Padlock removed and energy restored following formal Work Permit closure. | LOTO Restoration |
+
+#### 4.33 WorkOrderIsolation.tryOutMethod
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| MULTIMETER_PROBE | Direct dead-test on electrical conductors using a calibrated field multimeter. | NFPA 70E / OSHA 1910.147 (d)(6) |
+| ATMOSPHERIC_VENT_BLEED | Verification of depressurization by venting/bleeding to atmosphere. | Process Safety LOTO / API |
+| LOCAL_PUSHBUTTON_ATTEMPT | Attempted local start to verify absence of mechanical motion. | Machine Safety / OSHA 1910.147 (d)(6) |
+
+#### 4.34 WorkPermit.permitType
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -393,7 +466,7 @@ This segregation allows for:
 | EXCAVATION | Excavations, trenches, or deep earthworks. | Excavation (OSHA) |
 | CHEMICAL | Handling or exposure to hazardous chemicals or noxious gases. | Chemical Risk |
 
-#### 4.29 WorkPermit.status
+#### 4.35 WorkPermit.status
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -404,25 +477,38 @@ This segregation allows for:
 | REVOKED | Immediately canceled due to unsafe conditions in the field. | Emergency Intervention |
 | CLOSED | Formally finished after concluding the intervention and removing LOTO. | Operation Closure |
 
-#### 4.30 WorkOrderIsolation.tryOutMethod
-
-| Value | Meaning | Reference Norm / Concept |
-| --- | --- | --- |
-| MULTIMETER_PROBE | Direct dead-test on electrical conductors using a calibrated field multimeter. | NFPA 70E / OSHA 1910.147 (d)(6) |
-| ATMOSPHERIC_VENT_BLEED | Verification of depressurization by venting/bleeding to atmosphere. | Process Safety LOTO / API |
-| LOCAL_PUSHBUTTON_ATTEMPT | Attempted local start to verify absence of mechanical motion. | Machine Safety / OSHA 1910.147 (d)(6) |
-
 ### Schema: ADM
 
-#### 4.31 AuditLog.actionType
+#### 4.36 AuditLog.actionType
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
 | CREATE | Initial record of a new object in the system. | ISO 9001 Audit |
 | UPDATE | Modification of existing fields (tracks previous state). | ISO 9001 Audit |
 | DELETE | Logical or physical deletion of a critical entity. | ISO 9001 Audit |
+| QUERY | Audited read/export of sensitive or immutable audit records (Meta-Audit). | TR-001-FR-361 |
+| ADJUST | Calibrated priority, inventory reconciliation, or safety override mutation. | TR-001-FR-361 |
+| SECURITY_ALERT | Failed integrity hash check, brute-force lockout, or SoD violation block. | TR-003-NFR-377 / ISO 27001 |
 
-#### 4.32 RolePermission.module
+#### 4.37 AuthToken.purpose
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| ACCESS | Short-lived bearer token for authenticated session authorization. | IAM Session Control |
+| SESSION_REFRESH | Cryptographic token for rotating expired access tokens. | IAM Session Control |
+| REGISTRATION | Single-use onboarding token for initial account activation (`UC-ADM-014`). | Provisioning Security |
+| PASSWORD_RESET | Single-use recovery token for credential reset (`UC-ADM-014`). | Credential Recovery |
+| OFFLINE_LOTO_LEASE | Bounded HMAC-SHA256 token authorizing disconnected LOTO operations (`ADR-006`). | Field Safety Cryptography |
+
+#### 4.38 IdempotencyLog.status
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| PROCESSING | Command execution currently in flight within an active database transaction. | ADR-007 Idempotency |
+| COMPLETED | Command committed atomically; cached response returned on duplicate retries. | ADR-007 Idempotency |
+| FAILED | Unrecoverable domain or validation error recorded for diagnostic audit. | ADR-007 Idempotency |
+
+#### 4.39 RolePermission.module
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -432,7 +518,7 @@ This segregation allows for:
 | SAFETY | Management of telemetry, LOTO permits, and isolations. | Safety Domain |
 | SYSTEM | Governance, users, roles, and audit logs. | IAM Domain |
 
-#### 4.33 User.status
+#### 4.40 User.status
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
@@ -440,13 +526,14 @@ This segregation allows for:
 | INACTIVE | Account deactivated temporarily or permanently (history preserved). | Account Lifecycle |
 | LOCKED | Automatically locked after exceeding failed login attempts. | Brute Force Mitigation |
 
-#### 4.34 WorkOrderAssignment.roleInWork
+#### 4.41 WorkOrderAssignment.roleInWork
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
 | TECHNICIAN | Executing technician who performs the labor and logs wrench time. | Technical Execution |
 | SUPERVISOR | Supervisor who signs the technical closure and approves LOTO. | Line Manager |
 | PLANNER | Planner who designs the order, assigns spare parts, and times. | Maintenance Engineering |
+| SAFETY_AUTHORITY | Authorized HSE / Isolation officer verifying high-risk permits and LOTO. | ISO 45001 Safety Governance |
 
 ## 5. Physical Mapping and Data Dictionary
 

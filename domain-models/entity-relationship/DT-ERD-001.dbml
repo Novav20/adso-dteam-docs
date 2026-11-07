@@ -1,6 +1,6 @@
 Project DT_ERD {
   database_type: 'PostgreSQL'
-  Note: 'Physical Relational and Data Dictionary (Auto-generado desde Markdown)'
+  Note: 'Physical Relational and Data Dictionary (Auto-generated from Markdown)'
 }
 
 TableGroup tax {
@@ -91,7 +91,7 @@ Table "tax"."functional_locations" {
   "tag_number" "VARCHAR(50)" [unique, not null, note: 'ISO 14224 tag identity and location traceability.']
   "name" "VARCHAR(150)" [not null, note: 'Human-readable location name.']
   "description" "VARCHAR(255)" [note: 'Optional explanatory text.']
-  "criticality" "VARCHAR(30)" [not null, note: 'Controlled priority vocabulary.']
+  "criticality" "SMALLINT" [note: 'Numeric asset criticality index (1..10) for RIME; NULL triggers AF-002 fail-safe floor (75).']
   "geographic_location" "VARCHAR(150)" [note: 'Physical context of the location.']
   "environmental_exposure" "VARCHAR(150)" [note: 'Environmental conditions for reliability calculations (ISO 14224).']
   "hierarchy_level" "SMALLINT" [not null, note: 'Levels 1 to 5 of the ISO 14224 taxonomy (Functional Locations govern the plant\'s spatial structure down to the process, while L6 to L8 correspond to physical equipment and components).']
@@ -119,8 +119,8 @@ Table "tax"."asset_installations" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the installation record.']
   "functional_location_id" "UUID" [not null, note: 'The physical position (slot) where the asset is installed.']
   "equipment_unit_id" "UUID" [not null, note: 'The specific serialized asset installed.']
-  "installed_at" "TIMESTAMP" [not null, default: `now()`, note: 'Timestamp of physical installation.']
-  "removed_at" "TIMESTAMP" [unique, note: 'Timestamp of physical removal. Unique constraint pairs with location to ensure 1 active asset.']
+  "installed_at" "TIMESTAMPTZ" [not null, default: `now()`, note: 'UTC timestamp of physical installation.']
+  "removed_at" "TIMESTAMPTZ" [note: 'UTC timestamp of physical removal. Partial unique indexes WHERE removed_at IS NULL enforce 1:1 active occupancy.']
 }
 
 Table "mtto"."backlog_items" {
@@ -143,21 +143,26 @@ Table "mtto"."failure_records" {
   "operational_impact" "VARCHAR(120)" [not null, note: 'Operational impact of the failure (ISO 14224).']
   "technician_notes" "TEXT" [note: 'Qualitative field diagnosis and observations from the technician.']
   "downtime" "DECIMAL(10,2)" [not null, note: 'Reliability analysis metric (Calculated).']
-  "status" "VARCHAR(20)" [not null, note: 'Status of the failure record.']
+  "status" "VARCHAR(20)" [not null, default: `'REPORTED'`, note: 'Controlled lifecycle status of the failure record.']
 }
 
 Table "mtto"."maintenance_plans" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
-  "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
+  "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the target Level 6 Equipment Unit.']
+  "subunit_id" "UUID" [note: 'Optional ISO 14224 Level 7 Subunit target (MTTO-001, MTTO-023).']
+  "maintainable_item_id" "UUID" [note: 'Optional ISO 14224 Level 8 Maintainable Item target (MTTO-001, MTTO-023).']
   "maintenance_method" "VARCHAR(80)" [not null, note: 'Maintenance strategy (PM, PdM, CBM).']
   "frequency" "VARCHAR(50)" [not null, note: 'Human-readable frequency description.']
-  "frequency_type" "VARCHAR(20)" [not null, note: 'Controlled cadence of the plan.']
+  "frequency_type" "VARCHAR(20)" [not null, note: 'Controlled cadence driver of the plan.']
+  "interval_value" "DECIMAL(12,2)" [note: 'Numeric value of the calendar or telemetry interval (e.g., 4 weeks, 500 hours).']
+  "interval_unit" "VARCHAR(30)" [note: 'Controlled unit of the interval (WEEKS, MONTHS, OPERATING_HOURS, CYCLES, etc.).']
+  "monitored_signal_type" "VARCHAR(80)" [note: 'Monitored telemetry signal type on the Equipment Unit for CBM plans (MTTO-023).']
   "next_work_order_date" "DATE" [note: 'Scheduled execution date (Calculated).']
-  "interval_value" "DECIMAL(12,2)" [note: 'Numeric value of the interval for telemetry (e.g., 500 hours).']
   "next_trigger_limit" "DECIMAL(12,2)" [note: 'Accumulated limit calculated for the next trigger.']
   "estimated_labor_hours" "DECIMAL(10,2)" [not null, note: 'Estimated Man-Hours (Wrench Time) for planning.']
   "required_specialty" "VARCHAR(80)" [not null, note: 'Required technical specialty (e.g., Mechanical, Electrical).']
   "technical_description" "VARCHAR(255)" [not null, note: 'Technical description of the task scope.']
+  "cadence_override_justification" "VARCHAR(255)" [note: 'Mandatory audit justification when overriding recommended cadence on critical assets (MTTO-001).']
   "status" "VARCHAR(20)" [not null, note: 'Plan (document) lifecycle status.']
 }
 
@@ -167,7 +172,9 @@ Table "mtto"."media_attachments" {
   "failure_record_id" "UUID" [note: 'Foreign key to the specific failure occurrence.']
   "file_url" "VARCHAR(255)" [not null, note: 'Evidence location.']
   "file_type" "VARCHAR(20)" [not null, note: 'Controlled attachment file format.']
-  "uploaded_at" "TIMESTAMP" [not null, note: 'Upload/ingestion time of the evidence.']
+  "integrity_hash_sha256" "VARCHAR(64)" [not null, note: 'SHA-256 cryptographic digest calculated at capture for tamper detection (TR-003).']
+  "captured_offline" "BOOLEAN" [not null, default: false, note: 'Flag indicating whether evidence was acquired during disconnected field execution (MTTO-002).']
+  "uploaded_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC upload/ingestion time of the evidence.']
 }
 
 Table "mtto"."work_order_histories" {
@@ -175,7 +182,7 @@ Table "mtto"."work_order_histories" {
   "work_order_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "old_status" "VARCHAR(20)" [note: 'Previous lifecycle status (NULL if first status).']
   "new_status" "VARCHAR(20)" [not null, note: 'New lifecycle status.']
-  "timestamp" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Transition time.']
+  "timestamp" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC transition time.']
   "duration_seconds" "BIGINT" [note: 'Time spent in the state (Calculated upon transition).']
 }
 
@@ -187,11 +194,12 @@ Table "mtto"."work_orders" {
   "work_permit_id" "UUID" [note: 'Foreign key to the related table.']
   "current_status" "VARCHAR(20)" [not null, note: 'Execution lifecycle status (FSM).']
   "maintenance_method" "VARCHAR(80)" [not null, note: 'Maintenance method (Corrective, Preventive, etc.).']
-  "creation_date" "TIMESTAMP" [not null, note: 'Timestamp of order creation.']
-  "scheduled_date" "TIMESTAMP" [note: 'Planned start.']
-  "actual_start" "TIMESTAMP" [note: 'Actual execution start.']
-  "actual_finish" "TIMESTAMP" [note: 'Actual execution finish.']
+  "creation_date" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC timestamp of order creation.']
+  "scheduled_date" "TIMESTAMPTZ" [note: 'Planned start (UTC).']
+  "actual_start" "TIMESTAMPTZ" [note: 'Actual execution start (UTC).']
+  "actual_finish" "TIMESTAMPTZ" [note: 'Actual execution finish (UTC).']
   "actual_labor_hours" "DECIMAL(10,2)" [note: 'Actual labor duration (Calculated).']
+  "scope_checklist" "JSONB" [note: 'Structured task checklist items (`ScopeTaskItemDto[]`) for field execution (MTTO-002).']
   "criticality" "VARCHAR(20)" [not null, note: 'WO criticality / priority label.']
 }
 
@@ -200,10 +208,10 @@ Table "mtto"."work_requests" {
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "description" "VARCHAR(255)" [not null, note: 'Request narrative.']
   "priority" "VARCHAR(20)" [not null, note: 'Request priority label.']
-  "request_date" "TIMESTAMP" [not null, note: 'Timeline for audit.']
+  "request_date" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC timeline for audit.']
   "request_source" "VARCHAR(80)" [not null, note: 'Origin of the request.']
   "status" "VARCHAR(20)" [not null, note: 'Request lifecycle status.']
-  "work_class" "SMALLINT" [not null, note: 'Numeric weight of the selected work class for RIME.']
+  "work_class" "SMALLINT" [not null, note: 'Numeric weight (1..10) of the selected work class for RIME.']
 }
 
 Table "inv"."inventory_transactions" {
@@ -213,7 +221,7 @@ Table "inv"."inventory_transactions" {
   "work_order_id" "UUID" [note: 'Foreign key to the related table.']
   "quantity" "DECIMAL(12,4)" [not null, default: 1, note: 'Transacted quantity (positive for receipts, negative for issues).']
   "transaction_type" "VARCHAR(20)" [not null, note: 'Movement type (RECEIPT, ISSUE, ADJUSTMENT).']
-  "timestamp" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Precise temporal record of the movement.']
+  "timestamp" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'Precise UTC temporal record of the movement.']
   "reason" "VARCHAR(255)" [not null, note: 'Reason for movement or reference to external documents.']
   "total_cost" "DECIMAL(12,2)" [not null, note: 'Total cost of the transaction (Quantity \* Cost).']
   "locator_id" "UUID" [note: 'Specific physical storage bin of the transaction.']
@@ -289,7 +297,7 @@ Table "vis"."mesh_mappings" {
   "equipment_unit_id" "UUID" [unique, not null, note: 'Foreign key to the related table.']
   "mesh_uuid" "VARCHAR(80)" [unique, not null, note: 'Identity or path of the asset\'s 3D model.']
   "mapping_status" "VARCHAR(20)" [not null, note: 'Digital twin mapping status.']
-  "last_sync_time" "TIMESTAMP" [note: 'Last synchronization time.']
+  "last_sync_time" "TIMESTAMPTZ" [note: 'Last synchronization time (UTC).']
 }
 
 Table "vis"."spatial_metadata" {
@@ -300,13 +308,13 @@ Table "vis"."spatial_metadata" {
 }
 
 Table "vis"."telemetry_signals" {
-  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
+  "timestamp" "TIMESTAMPTZ" [pk, not null, default: `clock_timestamp()`, note: 'UTC measurement time and TimescaleDB hypertable partitioning column.']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique reading identifier paired with `timestamp` in composite hypertable PK.']
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "signal_type" "VARCHAR(80)" [not null, note: 'Sensor signal label.']
   "value" "DECIMAL(18,6)" [not null, note: 'Raw measurement value.']
   "unit" "VARCHAR(20)" [not null, note: 'Measurement unit.']
   "threshold" "DECIMAL(18,6)" [note: 'Alert threshold.']
-  "timestamp" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Measurement time.']
   "is_safety_critical" "BOOLEAN" [not null, note: 'Safety classification flag.']
 }
 
@@ -321,50 +329,54 @@ Table "vis"."visual_layers" {
 Table "vis"."work_order_isolations" {
   "work_order_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "isolation_point_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
+  "isolation_status" "VARCHAR(30)" [not null, default: `'PENDING_ISOLATION'`, note: 'LOTO isolation lifecycle state including `LEASED_OFFLINE` (`ADR-006`).']
   "is_isolated" "BOOLEAN" [not null, default: false, note: 'Verified lockout state for the specific work.']
-  "isolated_at" "TIMESTAMP" [note: 'Timestamp when the lockout was executed.']
+  "isolated_at" "TIMESTAMPTZ" [note: 'UTC timestamp when the lockout was executed.']
   "padlock_tag_id" "VARCHAR(80)" [note: 'Identifier of the physical padlock or tag (Try-Out).']
   "try_out_confirmed" "BOOLEAN" [not null, default: false, note: 'Verified zero-energy Try-Out confirmation.']
-  "try_out_at" "TIMESTAMP" [note: 'Timestamp when physical Try-Out was performed.']
-  "try_out_method" "VARCHAR(40)" [note: 'Controlled Try-Out verification method (DT-DM-DOC-001 §4.30).']
+  "try_out_at" "TIMESTAMPTZ" [note: 'UTC timestamp when physical Try-Out was performed.']
+  "try_out_method" "VARCHAR(40)" [note: 'Controlled Try-Out verification method (DT-DM-DOC-001 §4.33).']
   "try_out_reading" "VARCHAR(80)" [note: 'Physical observed metric or confirmation text (e.g. 0.00 V, 0.0 psig).']
   "telemetry_snapshot" "JSONB" [note: 'Sensor readings snapshot at lockout verification.']
   "signature_hash" "VARCHAR(64)" [note: 'SHA-256 technician digital signature hash.']
+  "lease_holder_user_id" "UUID" [note: 'Foreign key to `adm.users(id)` holding an active offline safety lease (`ADR-006`).']
+  "leased_until" "TIMESTAMPTZ" [note: 'UTC expiration timestamp of the bounded offline LOTO safety lease (`ADR-006`).']
 }
 
 Table "vis"."work_permits" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "equipment_unit_id" "UUID" [not null, note: 'Foreign key to the related table (`equipment_units`).']
   "permit_identifier" "VARCHAR(80)" [unique, not null, note: 'Permit traceability natural code (e.g. PTW-1042).']
-  "permit_type" "VARCHAR(50)" [not null, note: 'Controlled permit risk classification vocabulary (DT-DM-DOC-001 §4.28).']
+  "permit_type" "VARCHAR(50)" [not null, note: 'Controlled permit risk classification vocabulary (DT-DM-DOC-001 §4.34).']
   "contractor" "VARCHAR(120)" [not null, note: 'Executing contractor or internal company team name.']
   "issuer_user_id" "UUID" [not null, note: 'Foreign key to `adm.users(id)` for authorizing authority.']
-  "valid_from" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Timeline start.']
-  "valid_to" "TIMESTAMP" [not null, note: 'Timeline end.']
-  "status" "VARCHAR(20)" [not null, note: 'Controlled permit lifecycle status vocabulary (DT-DM-DOC-001 §4.29).']
+  "valid_from" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'Permit validity start (UTC).']
+  "valid_to" "TIMESTAMPTZ" [not null, note: 'Permit validity end (UTC).']
+  "status" "VARCHAR(20)" [not null, note: 'Controlled permit lifecycle status vocabulary (DT-DM-DOC-001 §4.35).']
 }
 
 Table "adm"."audit_logs" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "user_id" "UUID" [note: 'Foreign key to the related table.']
-  "event_type" "VARCHAR(80)" [not null, note: 'Action executed (e.g., CREATE, UPDATE, DELETE).']
+  "event_type" "VARCHAR(80)" [not null, note: 'Controlled audit operation type (CREATE, UPDATE, DELETE, QUERY, ADJUST, SECURITY_ALERT).']
   "entity_type" "VARCHAR(80)" [not null, note: 'Affected table or domain entity.']
   "entity_id" "UUID" [not null, note: 'Identifier of the affected record.']
-  "timestamp" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Exact moment of the mutation.']
+  "timestamp" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'Exact UTC moment of the mutation.']
   "previous_state" "JSONB" [note: 'Snapshot of the data before the change.']
   "new_state" "JSONB" [note: 'Snapshot of the data after the change.']
   "ip_address" "VARCHAR(45)" [note: 'Network traceability (IPv4 or IPv6).']
   "user_agent" "VARCHAR(255)" [note: 'Client traceability.']
-  "integrity_hash" "VARCHAR(255)" [not null, note: 'Cryptographic hash for immutability verification.']
+  "previous_hash" "VARCHAR(64)" [not null, note: 'SHA-256 integrity hash of the preceding audit record (`GENESIS` sentinel on first entry, ADR-003).']
+  "integrity_hash" "VARCHAR(64)" [unique, not null, note: 'SHA-256 cryptographic hash chaining `previous_hash` and current payload (ADR-003).']
 }
 
 Table "adm"."auth_tokens" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "user_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "token_hash" "VARCHAR(255)" [unique, not null, note: 'Cryptographic representation of the token.']
-  "expires_at" "TIMESTAMP" [not null, note: 'Temporal validity limit.']
+  "expires_at" "TIMESTAMPTZ" [not null, note: 'UTC temporal validity limit.']
   "is_revoked" "BOOLEAN" [not null, default: false, note: 'Pre-expiration manual revocation flag.']
-  "purpose" "VARCHAR(20)" [not null, note: 'Context of use (e.g., ACCESS, REFRESH, RESET).']
+  "purpose" "VARCHAR(30)" [not null, note: 'Controlled token purpose (ACCESS, SESSION_REFRESH, REGISTRATION, PASSWORD_RESET, OFFLINE_LOTO_LEASE).']
 }
 
 Table "adm"."role_permissions" {
@@ -392,15 +404,15 @@ Table "adm"."users" {
   "full_name" "VARCHAR(150)" [not null, note: 'Real identity.']
   "is_active" "BOOLEAN" [not null, default: true, note: 'Access control flag.']
   "failed_login_attempts" "INT" [not null, default: 0, note: 'Brute force defense counter.']
-  "lockout_until" "TIMESTAMP" [note: 'Temporary block time window.']
-  "last_login_at" "TIMESTAMP" [note: 'Activity traceability.']
+  "lockout_until" "TIMESTAMPTZ" [note: 'UTC temporary block time window.']
+  "last_login_at" "TIMESTAMPTZ" [note: 'UTC activity traceability.']
 }
 
 Table "adm"."work_order_assignments" {
   "work_order_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "user_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "assigned_role" "VARCHAR(80)" [not null, note: 'Operational role of the technician in the specific WO.']
-  "assigned_at" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Moment of assignment.']
+  "assigned_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC moment of assignment.']
 }
 
 Table "adm"."idempotency_logs" {
@@ -408,11 +420,11 @@ Table "adm"."idempotency_logs" {
   "idempotency_key" "VARCHAR(128)" [unique, not null, note: 'Client-provided uniqueness token (ADR-007).']
   "tenant_id" "UUID" [not null, note: 'Multi-tenant isolation boundary.']
   "request_hash" "VARCHAR(64)" [not null, note: 'SHA-256 fingerprint to prevent payload mutation.']
-  "status" "VARCHAR(20)" [not null, note: 'State of the transaction (e.g., COMPLETED).']
-  "created_at" "TIMESTAMP" [not null, default: `clock_timestamp()`, note: 'Partitioning key for MVCC cleanup.']
+  "status" "VARCHAR(20)" [not null, note: 'Controlled state of the transaction (PROCESSING, COMPLETED, FAILED).']
+  "created_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC partitioning key for MVCC cleanup.']
 }
 
-// --- RELACIONES ---
+// --- RELATIONSHIPS ---
 Ref: "tax"."equipment_classes"."id" < "tax"."equipment_units"."equipment_class_id" [delete: restrict, update: cascade]
 Ref: "tax"."functional_locations"."id" < "tax"."functional_locations"."parent_id" [delete: restrict, update: cascade]
 Ref: "tax"."functional_locations"."id" < "tax"."equipment_units"."functional_location_id" [delete: restrict, update: cascade]
@@ -421,6 +433,8 @@ Ref: "tax"."equipment_units"."id" < "tax"."asset_installations"."equipment_unit_
 Ref: "tax"."equipment_units"."id" < "tax"."subunits"."equipment_unit_id" [delete: cascade, update: cascade]
 Ref: "tax"."subunits"."id" < "tax"."maintainable_items"."subunit_id" [delete: cascade, update: cascade]
 Ref: "tax"."equipment_units"."id" < "mtto"."maintenance_plans"."equipment_unit_id" [delete: cascade, update: cascade]
+Ref: "tax"."subunits"."id" < "mtto"."maintenance_plans"."subunit_id" [delete: set null, update: cascade]
+Ref: "tax"."maintainable_items"."id" < "mtto"."maintenance_plans"."maintainable_item_id" [delete: set null, update: cascade]
 Ref: "tax"."equipment_units"."id" < "mtto"."work_orders"."equipment_unit_id" [delete: restrict, update: cascade]
 Ref: "mtto"."maintenance_plans"."id" < "mtto"."work_orders"."maintenance_plan_id" [delete: set null, update: cascade]
 Ref: "mtto"."work_requests"."id" < "mtto"."work_orders"."work_request_id" [delete: set null, update: cascade]
@@ -447,11 +461,12 @@ Ref: "vis"."mesh_mappings"."id" < "vis"."spatial_metadata"."mesh_mapping_id" [de
 Ref: "tax"."equipment_units"."id" < "vis"."telemetry_signals"."equipment_unit_id" [delete: cascade, update: cascade]
 Ref: "tax"."equipment_units"."id" < "vis"."isolation_points"."equipment_unit_id" [delete: restrict, update: cascade]
 Ref: "tax"."equipment_units"."id" < "vis"."work_permits"."equipment_unit_id" [delete: restrict, update: cascade]
-Ref: "adm"."users"."id" < "vis"."work_permits"."user_id" [delete: restrict, update: cascade]
+Ref: "adm"."users"."id" < "vis"."work_permits"."issuer_user_id" [delete: restrict, update: cascade]
 Ref: "vis"."work_permits"."id" < "mtto"."work_orders"."work_permit_id" [delete: restrict, update: cascade]
 Ref: "mtto"."work_orders"."id" < "vis"."visual_layers"."work_order_id" [delete: cascade, update: cascade]
 Ref: "mtto"."work_orders"."id" < "vis"."work_order_isolations"."work_order_id" [delete: cascade, update: cascade]
 Ref: "vis"."isolation_points"."id" < "vis"."work_order_isolations"."isolation_point_id" [delete: restrict, update: cascade]
+Ref: "adm"."users"."id" < "vis"."work_order_isolations"."lease_holder_user_id" [delete: set null, update: cascade]
 Ref: "adm"."users"."id" < "adm"."user_roles"."user_id" [delete: cascade, update: cascade]
 Ref: "adm"."roles"."id" < "adm"."user_roles"."role_id" [delete: cascade, update: cascade]
 Ref: "adm"."roles"."id" < "adm"."role_permissions"."role_id" [delete: cascade, update: cascade]

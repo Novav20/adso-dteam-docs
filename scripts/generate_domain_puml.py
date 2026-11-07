@@ -240,8 +240,8 @@ def generate_domain_puml():
     puml.append("")
     puml.append("@enduml")
     
-    with open(out_puml, "w", encoding="utf-8") as f:
-        f.write("\n".join(puml))
+    with open(out_puml, "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(puml) + "\n")
         
 if __name__ == '__main__':
     generate_domain_puml()
