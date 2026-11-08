@@ -32,9 +32,35 @@ status: Stable
 
 ## 2. Visual Artifact
 
-![SCR-VIS-033 Asset Inspection Card Screenshot](assets/SCR-VIS-033-screenshot.png)
+### 2.1. Industrial Tablet Landscape (Dark Theme — Baseline)
+![SCR-VIS-033 Asset Inspection Card Dark](assets/SCR-VIS-033-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the Level 3 contextual equipment faceplate with telemetry MAI cards, subassembly breakdown, and recent intervention history.*
+> *Note: Production UI prototype capture illustrating the Level 3 contextual equipment faceplate at 1280×800 in Dark Theme. Exhibits the lateral contextual drawer (CMP-05) docked on the right flank with Moving Analog Indicators (CMP-07), active work order list (CMP-10), and 2x2 tactical action buttons (CMP-09).*
+
+### 2.2. Industrial Tablet Landscape (Light Theme)
+![SCR-VIS-033 Asset Inspection Card Light](assets/SCR-VIS-033-light.png)
+
+> *Note: Production UI prototype capture illustrating the Level 3 contextual equipment faceplate at 1280×800 in Light Theme.*
+
+### 2.3. Industrial Tablet Portrait (Bottom Sheet Modality — Dark Theme)
+![SCR-VIS-033 Asset Inspection Portrait Dark](assets/SCR-VIS-033-portrait-800x1280.png)
+
+> *Note: Production UI prototype capture at 800×1280 in Tablet Portrait orientation (Dark Theme). Illustrates CMP-05 operating as an adaptive Bottom Sheet with capsule drag handle nested in the header (CMP-06), unified side-by-side MAI telemetry row, and 4-column elevated action button dock (CMP-09) over a transparent footer dock.*
+
+### 2.4. Industrial Tablet Portrait (Bottom Sheet Modality — Light Theme)
+![SCR-VIS-033 Asset Inspection Portrait Light](assets/SCR-VIS-033-portrait-800x1280-light.png)
+
+> *Note: Production UI prototype capture at 800×1280 in Tablet Portrait orientation (Light Theme).*
+
+### 2.5. Macro Supervisory View (Closed Context Drawer)
+![SCR-VIS-033 Macro Supervisory View](assets/SCR-VIS-033-macro-dark.png)
+
+> *Note: Production UI prototype capture at 1280×800 illustrating the macro supervisory state. CMP-05 resides in its closed state without visual intrusion over the cartographic canvas.*
+
+### 2.6. Desktop Workstation (Full HD 1080p)
+![SCR-VIS-033 Desktop Workstation 1080p](assets/SCR-VIS-033-desktop-1080p.png)
+
+> *Note: Production UI prototype capture at 1920×1080 on Desktop Workstation with full-bleed canvas and fixed lateral faceplate.*
 
 ---
 
