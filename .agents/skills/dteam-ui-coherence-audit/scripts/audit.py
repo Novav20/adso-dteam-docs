@@ -169,6 +169,10 @@ CSS_LEAK_PATTERNS: list[tuple[str, str, str]] = [
      "Raw CSS font-weight '{match}' leaked into specification prose. Use composite typography tokens (--dt-font-*)."),
     (r"\b(?:width|min-width|max-width|height|min-height|max-height|border-radius|padding|margin|gap)\s*:\s*[^;\n]*\b\d+(?:\.\d+)?(?:px|rem|em)\b", "CSS-002",
      "Raw CSS dimension declaration '{match}' leaked into specification prose. Use Design System layout/spacing tokens (--dt-layout-*, --dt-space-*, --dt-radius-*)."),
+    (r"\bbackground(?:-color)?\s*:\s*(?:transparent|none|#[0-9a-fA-F]+|[a-z]+)\b", "CSS-002",
+     "Raw CSS background declaration '{match}' leaked into specification prose. Use Design System surface tokens (--dt-color-surface-*)."),
+    (r"\bdisplay\s*:\s*(?:flex|grid|none|block|inline(?:-[a-z]+)?)\b", "CSS-002",
+     "Raw CSS display declaration '{match}' leaked into specification prose. Use Design System layout rules and component hierarchy."),
     (r"\bweights?\s*\(`?[4-7]00`?\s*[-–]\s*`?[4-7]00`?\)", "CSS-006",
      "Raw numeric font-weight range '{match}' leaked into specification prose. Use composite typography tokens (--dt-font-*)."),
 ]
