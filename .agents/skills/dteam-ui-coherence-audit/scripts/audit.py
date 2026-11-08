@@ -167,6 +167,8 @@ CSS_LEAK_PATTERNS: list[tuple[str, str, str]] = [
      "Raw numeric z-index '{match}' leaked. Use '--dt-z-*' elevation tokens."),
     (r"\bfont-weight:\s*(?:[1-9]00|bold|normal|semibold)\b", "CSS-002",
      "Raw CSS font-weight '{match}' leaked into specification prose. Use composite typography tokens (--dt-font-*)."),
+    (r"\b(?:width|min-width|max-width|height|min-height|max-height|border-radius|padding|margin|gap)\s*:\s*[^;\n]*\b\d+(?:\.\d+)?(?:px|rem|em)\b", "CSS-002",
+     "Raw CSS dimension declaration '{match}' leaked into specification prose. Use Design System layout/spacing tokens (--dt-layout-*, --dt-space-*, --dt-radius-*)."),
     (r"\bweights?\s*\(`?[4-7]00`?\s*[-–]\s*`?[4-7]00`?\)", "CSS-006",
      "Raw numeric font-weight range '{match}' leaked into specification prose. Use composite typography tokens (--dt-font-*)."),
 ]
@@ -575,7 +577,7 @@ def audit_css_and_dimension_leaks(content: str) -> list[Finding]:
     lines = content.splitlines()
 
     hex_pattern = re.compile(r"(?<![a-zA-Z0-9_\(\[/\$-])#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b(?![-a-zA-Z0-9_])")
-    drawer_magic_pattern = re.compile(r"(?:drawer|sidebar|bottom\s*sheet|width).*?(?:\$?(?:440|320)\\?text\{px\}\$?|\b(?:440|320)px\b)", re.IGNORECASE)
+    drawer_magic_pattern = re.compile(r"(?:drawer|sidebar|bottom\s*sheet).*?(?:\$?(?:440|380|320)\\?text\{px\}\$?|\b(?:440|380|320)px\b)", re.IGNORECASE)
 
     in_sec8 = False
     for idx, line in enumerate(lines, start=1):
@@ -617,7 +619,7 @@ def audit_css_and_dimension_leaks(content: str) -> list[Finding]:
                 findings.append(Finding(
                     severity="BLOCKER",
                     code="CSS-004",
-                    message="Hardcoded drawer dimension detected without semantic token. Must reference '--dt-layout-drawer-width-desktop' (440px) or '--dt-layout-drawer-width-tablet' (320px).",
+                    message="Hardcoded drawer dimension detected without semantic token. Must reference '--dt-layout-drawer-width-desktop' (440px) or '--dt-layout-drawer-width-tablet' (380px).",
                     line=idx
                 ))
 
@@ -680,13 +682,21 @@ def audit_domain_meta_text(content: str) -> list[Finding]:
 
 
 def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
-    """Validates that all referenced --dt-* tokens exist in tokens.css and Section 3 uses valid tokens."""
+    """Validates that all referenced --dt-* tokens exist in tokens.css, prevents token-literal shadowing, and verifies Section 3 semantic token hygiene."""
     findings: list[Finding] = []
     lines = content.splitlines()
     token_pattern = re.compile(r"(--dt-[a-z0-9-]+(?:\*)?)")
+    token_shadowing_pattern = re.compile(
+        r"(--dt-[a-z0-9-]+)[,\s:\(=-]+(?:\$|\\\$)*(\d+(?:\.\d+)?(?:px|rem|em|pt|\\text\{px\}|\\text\{rem\}))(?:\$|\\\$|\})*",
+        re.IGNORECASE
+    )
 
     in_sec3 = False
     for idx, line in enumerate(lines, start=1):
+        # Skip guidance blockquotes and explicit normative prohibition alerts
+        if line.strip().startswith(">") or "PROHIBITED" in line or "Prohibited" in line:
+            continue
+
         if re.search(r"^##\s+3\.\s+Functional Component Inventory", line, re.IGNORECASE):
             in_sec3 = True
             continue
@@ -694,6 +704,20 @@ def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
             in_sec3 = False
             continue
 
+        # TOK-003: Detect token-literal shadowing (coupling an abstract token with a hardcoded pixel/rem fallback)
+        shadow_match = token_shadowing_pattern.search(line)
+        if shadow_match:
+            findings.append(Finding(
+                severity="BLOCKER",
+                code="TOK-003",
+                message=(
+                    f"Token-literal shadowing detected: '{shadow_match.group(1)}' is coupled with hardcoded literal '{shadow_match.group(2)}'. "
+                    f"Specifications must reference design tokens exclusively without concrete numeric fallbacks or dimensions."
+                ),
+                line=idx
+            ))
+
+        # TOK-002: Section 3 Semantic Token column validation
         if in_sec3 and line.strip().startswith("|") and not line.strip().startswith("| :---"):
             if re.match(r"\|\s*`CMP-\d+`", line):
                 parts = [p.strip() for p in line.split("|")]
@@ -706,6 +730,23 @@ def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
                             message=f"Section 3 component '{parts[1]}' lacks explicit Design System token in Semantic Token column ('{col4}'). Prohibit placeholder text; bind directly to '--dt-*' tokens.",
                             line=idx
                         ))
+                    else:
+                        unit_match = re.search(r"(?:\b\d+(?:\.\d+)?(?:px|rem)\b|\$\d+.*\\text\{px\}\$)", col4, re.IGNORECASE)
+                        if unit_match:
+                            findings.append(Finding(
+                                severity="BLOCKER",
+                                code="TOK-002",
+                                message=f"Section 3 component '{parts[1]}' has raw dimension '{unit_match.group(0)}' in Semantic Token column. Use design system tokens exclusively.",
+                                line=idx
+                            ))
+                        hex_match = re.search(r"#([0-9a-fA-F]{3,8})\b", col4)
+                        if hex_match:
+                            findings.append(Finding(
+                                severity="BLOCKER",
+                                code="TOK-002",
+                                message=f"Section 3 component '{parts[1]}' has raw hex color '{hex_match.group(0)}' in Semantic Token column. Use semantic color tokens (--dt-color-*).",
+                                line=idx
+                            ))
 
         if valid_tokens:
             matches = token_pattern.findall(line)
