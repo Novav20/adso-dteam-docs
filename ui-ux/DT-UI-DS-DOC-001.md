@@ -231,9 +231,19 @@ Typography is defined under a dual model: high-availability native fonts in the 
 ---
 
 ## 5. Elevation, Borders and Depth Tokens
-To comply with the HPHMI philosophy in dark interfaces, depth is not expressed through decorative or diffuse shadows, but through normative **surface color differentiation and subtle borders**.
 
-### 5.1. Border Radii
+### 5.1. HPHMI Shadow Discipline: Canvas vs. HUD Chrome Separation
+To comply with the High-Performance HMI (ANSI/ISA-101.01 / Hollifield) philosophy and ISO 9241-110 ergonomic principles:
+1. **Process Graphics Canvas ($Z = 0$):** Strictly prohibited. Mimic elements (equipment, tanks, pipes, instruments, and CAD vector geometry) must remain 100% flat 2D. Decorative drop-shadows, gradients, or 3D skeuomorphic bevels on process elements are forbidden to prevent visual clutter and protect alarm salience.
+2. **Floating Viewport Chrome & Overlays ($Z \ge 100$):** Soft ambient elevation shadows (`--dt-shadow-hud`, `--dt-shadow-panel`) are normative per the **Gestalt Law of Figure-Ground Separation**. Floating toolbars, docked lateral panels, and HUD instruments project subtle elevation shadows to cleanly decouple interactive controls from dense underlying CAD vector lines without requiring harsh high-contrast dividing borders.
+
+### 5.2. Elevation Shadows
+| Token | Light Theme Value | Dark Theme Value | Component Application |
+| :------------------ | :------------------------------------------------------------------ | :------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------- |
+| `--dt-shadow-hud`   | `0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.08)`     | `0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35)`    | Floating top toolbar (`CMP-02`), user profile button (`CMP-11`), compass and scale HUD (`CMP-01`). |
+| `--dt-shadow-panel` | `-2px 0 8px rgba(0, 0, 0, 0.12), -1px 0 2px rgba(0, 0, 0, 0.06)`  | `-3px 0 10px rgba(0, 0, 0, 0.50), -1px 0 3px rgba(0, 0, 0, 0.30)` | Docked lateral inspection faceplate (`CMP-05`) separating cleanly from canvas without border lines. |
+
+### 5.3. Border Radii
 | Token | Value (px) | Component Application |
 | ---------------- | ---------- | -------------------------------------------------------------- |
 | --dt-radius-none | 0px        | 2D map canvas, full-bleed mobile containers.           |
@@ -241,9 +251,10 @@ To comply with the HPHMI philosophy in dark interfaces, depth is not expressed t
 | --dt-radius-md   | 6px        | Text fields (InputText), selectors, standard buttons.     |
 | --dt-radius-lg   | 8px        | Information cards (Cards), side panels, dropdowns. |
 | --dt-radius-xl   | 12px       | Modal windows, LOTO lockout dialogs.                    |
+| --dt-radius-2xl  | 20px       | Bottom sheet sliding containers, tactile drawer headers. |
 | --dt-radius-full | 9999px     | Pill-shaped controls, floating toolbars, search bars.   |
 
-### 5.2. Layers and Stacking Levels (Z-Index Hierarchy)
+### 5.4. Layers and Stacking Levels (Z-Index Hierarchy)
 | Z-Index Token          | Value | Assigned Elements                                                  |
 | ---------------------- | ----- | -------------------------------------------------------------------- |
 | --dt-z-canvas          | 0     | SVG vector base layer (Floor plan).                           |
