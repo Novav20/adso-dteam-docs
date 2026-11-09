@@ -17,7 +17,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 - [x] **SCR-VIS-008: Level 1 General Plant Map with SIMOPS Layer**
   - [x] Redundant coding for PTW pins (Color + Geometry + Icon + Label per ANSI/ISA-101).
   - [x] Contextual popovers with viewport boundary clamping.
-  - [x] Canonical specification finalized: [`SCR-VIS-008.md`](ui-ux/screens/vis/SCR-VIS-008.md) (Stable).
+  - [x] Modernize floating HUD elevation (`--dt-shadow-hud`), borderless discrete risk filters, and flat unmapped permits list: [`SCR-VIS-008.md`](ui-ux/screens/vis/SCR-VIS-008.md) (v2.1 Stable).
 
 - [x] **SCR-VIS-011: LOTO Isolation Boundary Matrix**
   - [x] Cognitive Task Analysis (CTA): Physical Try-Out attestation primacy and negative interlock logic.
