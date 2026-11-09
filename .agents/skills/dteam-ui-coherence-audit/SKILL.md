@@ -181,6 +181,10 @@ All screen specifications must strictly align with the canonical standard define
     * **[FAIL] Unicode Emojis (`HTML-EMOJI-001`):** HTML prototypes must use standardized monochrome SVG sprite symbols (`<svg class="dt-icon"><use href="#icon-*" /></svg>`) per ANSI/ISA-101 and HPHMI. Unicode pictorial emojis (e.g., `💡`, `⚠️`, `🔍`, `✔`, `⚡`) are strictly prohibited in user-facing markup and trigger an immediate deterministic blocker.
     * **[FAIL] Leaked Specification Codes (`HTML-SPEC-001`):** Requirement/architecture identifiers (`FR-*`, `AF-*`, `TR-*`, `NFR-*`, `ADR-*`, `Paso *`) are developer meta-text and MUST NEVER appear in user-facing prototype DOM, headers, badges, toasts, or action buttons. Prototypes must exclusively present authentic industrial operational vocabulary (ISO 14224 / RCM).
 
+12. **LaTeX Math & Code-Span Formatting Guardrails (`LTX-001` & `TOK-004`):**
+    * **LaTeX Math Delimiter & Syntax Integrity (`LTX-001`):** Mathematical expressions, dimensions, and percentages must preserve balanced unescaped `$` delimiters. LaTeX math macros (`\text{`, `\times`, `\ge`, `\le`, `\pm`, `\approx`, `\frac{`, `\cdot`) and mathematical percentage tokens (`\%$`) are strictly forbidden outside `$...$` math blocks.
+    * **Token and Component Code-Span Hygiene (`TOK-004`):** Design System tokens (`--dt-*`) and Component identifiers (`CMP-*`) in prose must always be enclosed in code backticks (e.g., `` `--dt-shadow-panel` ``, `` `CMP-05` ``) to prevent visual formatting erosion and shell corruption.
+
 ---
 
 ### Step 5: Tier 2 Deterministic Escalation Evaluation (Triggers G1 to G4)

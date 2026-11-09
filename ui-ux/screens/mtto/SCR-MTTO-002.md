@@ -189,7 +189,7 @@ sequenceDiagram
      1. Displays a reserved dashed dropzone container as empty-state placeholder with direct camera trigger.
      2. Capturing photo via hardware camera or file picker downsamples image to maximum $1920\times 1080$ JPEG format (quality 0.85) to optimize offline storage footprint.
      3. Computes cryptographic checksum asynchronously in a Web Worker via ICryptoInterop (SHA-256).
-     4. Renders individual gallery cards displaying image thumbnail (--dt-layout-thumbnail-size), metadata, delete trigger, and verified monospace hash stamp (`SHA-256: [hash]`).
+     4. Renders individual gallery cards displaying image thumbnail (`--dt-layout-thumbnail-size`), metadata, delete trigger, and verified monospace hash stamp (`SHA-256: [hash]`).
      5. Packages validated media items into `MediaAttachmentDto` records linking image URI, file format, timestamp, and hash string to the failure record context.
      6. If file reading throws an I/O error or hash evaluation fails, the UI enters state `Evidence Corrupt` (`AF-003`), halts finalization, and forces recapture.
 

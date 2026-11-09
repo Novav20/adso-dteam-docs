@@ -704,7 +704,23 @@ def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
     )
 
     in_sec3 = False
+    in_code_block = False
+    in_frontmatter = False
     for idx, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if idx == 1 and stripped == "---":
+            in_frontmatter = True
+            continue
+        if in_frontmatter:
+            if stripped == "---":
+                in_frontmatter = False
+            continue
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+
         # Skip guidance blockquotes and explicit normative prohibition alerts
         if line.strip().startswith(">") or "PROHIBITED" in line or "Prohibited" in line:
             continue
@@ -715,6 +731,30 @@ def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
         elif line.startswith("## "):
             in_sec3 = False
             continue
+
+        # TOK-004: Validate that design tokens (--dt-*) and component identifiers (CMP-*) in prose are enclosed in backticks
+        line_clean = re.sub(r"\[([^\]]*)\]\([^\)]*\)", r"\1", line)
+        line_clean = re.sub(r"<[^>]+>", " ", line_clean)
+        no_code = re.sub(r"`[^`]+`", " ", line_clean)
+        no_math = re.sub(r"\$[^\$]+\$", " ", no_code)
+
+        bare_tokens = re.findall(r"(?<![a-zA-Z0-9_/\.-])(--dt-[a-z0-9-]+(?:\*)?)", no_math)
+        for tok in bare_tokens:
+            findings.append(Finding(
+                severity="BLOCKER",
+                code="TOK-004",
+                message=f"Design token '{tok}' in prose must be enclosed in backticks (`{tok}`) per repository standard.",
+                line=idx
+            ))
+
+        bare_cmps = re.findall(r"(?<![a-zA-Z0-9_/\.-])(CMP-\d+)", no_math)
+        for cmp_id in bare_cmps:
+            findings.append(Finding(
+                severity="BLOCKER",
+                code="TOK-004",
+                message=f"Component identifier '{cmp_id}' in prose must be enclosed in backticks (`{cmp_id}`) per repository standard.",
+                line=idx
+            ))
 
         # TOK-003: Detect token-literal shadowing (coupling an abstract token with a hardcoded pixel/rem fallback)
         shadow_match = token_shadowing_pattern.search(line)
@@ -779,6 +819,61 @@ def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
                         message=f"Referenced design token '{tok}' is not defined in 'tokens.css'. Verify token name against DT-UI-DS-DOC-001.",
                         line=idx
                     ))
+
+    return findings
+
+
+def audit_latex_and_math(content: str) -> list[Finding]:
+    """Validates LaTeX math delimiter parity ($...$), catches orphaned LaTeX macros outside math mode,
+    and detects shell-expansion corruption artifacts in dimensions or percentages."""
+    findings: list[Finding] = []
+    lines = content.splitlines()
+
+    in_frontmatter = False
+    in_code_block = False
+
+    for idx, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if idx == 1 and stripped == "---":
+            in_frontmatter = True
+            continue
+        if in_frontmatter:
+            if stripped == "---":
+                in_frontmatter = False
+            continue
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+        if stripped.startswith(">") or stripped.startswith("<!--"):
+            continue
+
+        # Strip inline code spans `...`
+        no_code = re.sub(r"`[^`]+`", "", line)
+        # Strip escaped dollar signs
+        clean = no_code.replace(r"\$", "")
+
+        # 1. Delimiter parity check: odd number of unescaped $ delimiters
+        dollar_count = clean.count("$")
+        if dollar_count % 2 != 0:
+            findings.append(Finding(
+                severity="BLOCKER",
+                code="LTX-001",
+                message=f"Unbalanced LaTeX math delimiter ($): line contains {dollar_count} unescaped '$' symbols.",
+                line=idx
+            ))
+
+        # 2. Orphaned LaTeX commands outside math mode ($...$) or corrupted percentage fragments
+        outside_math = re.sub(r"\$[^\$]+\$", "", clean)
+        orphaned = re.search(r"\\(text\{|times\b|ge\b|le\b|pm\b|approx\b|frac\{|cdot\b)|(?<![0-9a-zA-Z\)\}])\\?%\$", outside_math)
+        if orphaned:
+            findings.append(Finding(
+                severity="BLOCKER",
+                code="LTX-001",
+                message=f"Orphaned or corrupted LaTeX expression '{orphaned.group(0)}' detected outside math mode ($...). Ensure valid LaTeX math enclosing.",
+                line=idx
+            ))
 
     return findings
 
@@ -1048,6 +1143,7 @@ def run_screen_audit(
     findings += audit_css_and_dimension_leaks(content)
     findings += audit_runtime_leaks(content)
     findings += audit_tokens(content, valid_tokens)
+    findings += audit_latex_and_math(content)
     findings += audit_anti_redundancy(content)
     findings += audit_presentation_boundaries(content)
     findings += audit_domain_meta_text(content)
