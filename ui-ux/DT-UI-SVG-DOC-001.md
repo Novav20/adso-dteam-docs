@@ -16,7 +16,7 @@ standards:
   - API Standard 650/620 (Welded Tanks for Oil Storage)
 ---
 
-# DT-UI-SVG-DOC-001: SVG Ingestion, Layering, and Spatial Data Contract (Rev 2.2)
+# DT-UI-SVG-DOC-001: SVG Ingestion, Layering, and Spatial Data Contract
 
 ## 1. Purpose & Scope
 This normative standard defines the structural, spatial, semantic, and security contract for ingesting 2D vector CAD/BIM layouts (General Arrangement Plot Plans, P&IDs, Hazardous Area Classifications) into the DTEAM Asset Performance Management (APM) and Digital Twin rendering engine.
