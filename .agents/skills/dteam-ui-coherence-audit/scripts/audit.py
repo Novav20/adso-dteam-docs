@@ -218,6 +218,26 @@ SPANISH_HEADER_WORDS: list[str] = [
     "Contrato de Componentes", "Adaptabilidad", "Trazabilidad"
 ]
 
+# Prohibited Spanish vocabulary in specification prose (Language Policy: English only)
+PROHIBITED_SPANISH_PROSE_TERMS: list[tuple[str, str]] = [
+    (r"\balertas?\b", "alerta"),
+    (r"\bsubsistemas?\b", "subsistema"),
+    (r"\bmapead[oa]s?\b", "mapeado/a"),
+    (r"\bpermisos?\b", "permiso"),
+    (r"\bdetalles?\b", "detalle"),
+    (r"\binconsistencias?\b", "inconsistencia"),
+    (r"\bcaliente\b", "caliente"),
+    (r"\bconfinad[oa]s?\b", "confinado/a"),
+    (r"\bórdenes\b", "órdenes"),
+    (r"\b(?:cerrar|guardar|cancelar|eliminar|editar)\b", "common Spanish UI verb"),
+    (r"(?<![A-Z])\btodos\b(?![A-Z])", "todos"),
+    (r"\btrabajo\s+en\s+caliente\b", "trabajo en caliente"),
+    (r"\bespacio\s+confinado\b", "espacio confinado"),
+    (r"\bno\s+mapead[oa]s?\b", "no mapeado/a"),
+    (r"\bver\s+detalles?\b", "ver detalle"),
+    (r"\bresolver\s+inconsistencias?\b", "resolver inconsistencia"),
+]
+
 # Prohibited requirement / specification codes leaked into user-facing DOM
 PROHIBITED_SPEC_CODES: list[tuple[str, str, str]] = [
     (r"\b(?:FR|AF|TR|NFR|ADR)-\d{3}\b", "HTML-SPEC-001",
@@ -382,8 +402,15 @@ def audit_structure(content: str) -> list[Finding]:
     findings: list[Finding] = []
     lines = content.splitlines()
 
-    # Check language of headers
+    # Check language of headers and body prose (Language Policy: 100% Technical English)
+    in_code_block = False
     for idx, line in enumerate(lines, start=1):
+        if line.strip().startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+
         if line.startswith("#"):
             for sp_word in SPANISH_HEADER_WORDS:
                 if sp_word in line:
@@ -391,6 +418,20 @@ def audit_structure(content: str) -> list[Finding]:
                         severity="BLOCKER",
                         code="LANG-001",
                         message=f"Header contains Spanish term '{sp_word}'. All screen specs must be 100% Technical English.",
+                        line=idx
+                    ))
+        else:
+            clean_line = re.sub(r"!\[.*?\]\(.*?\)", "", line)
+            clean_line = re.sub(r"\[([^\]]*)\]\([^)]+\)", r"\1", clean_line)
+            for pat, label in PROHIBITED_SPANISH_PROSE_TERMS:
+                m = re.search(pat, clean_line, re.IGNORECASE)
+                if m:
+                    if label == "todos" and m.group(0).isupper():
+                        continue
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="LANG-001",
+                        message=f"Spanish term '{m.group(0)}' leaked into specification prose. All engineering documentation in adso-dteam-docs must be strictly 100% Technical English.",
                         line=idx
                     ))
 
@@ -584,15 +625,30 @@ def audit_csharp_leaks(content: str, canonical_enums: dict[str, set[str]] | None
 
 
 def audit_css_and_dimension_leaks(content: str) -> list[Finding]:
-    """Scans for raw CSS declarations, hex codes, and magic drawer dimensions."""
+    """Scans for raw CSS declarations, hex codes, magic drawer dimensions, and CSS class selectors."""
     findings: list[Finding] = []
     lines = content.splitlines()
 
     hex_pattern = re.compile(r"(?<![a-zA-Z0-9_\(\[/\$-])#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b(?![-a-zA-Z0-9_])")
     drawer_magic_pattern = re.compile(r"(?:drawer|sidebar|bottom\s*sheet).*?(?:\$?(?:440|380|320)\\?text\{px\}\$?|\b(?:440|380|320)px\b)", re.IGNORECASE)
+    css_selector_pattern = re.compile(r"(?<![a-zA-Z0-9_\.\<\>])\.([a-z][a-z0-9_-]+)")
+
+    known_file_extensions = {
+        ".md", ".png", ".jpg", ".jpeg", ".gif", ".razor", ".css", ".js", ".ts",
+        ".json", ".sql", ".html", ".svg", ".pdf", ".csv", ".yml", ".yaml",
+        ".txt", ".py", ".sln", ".csproj", ".exe", ".zip", ".tar", ".gz", ".resx",
+        ".env", ".toml"
+    }
 
     in_sec8 = False
+    in_code_block = False
     for idx, line in enumerate(lines, start=1):
+        if line.strip().startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+
         if re.search(r"^##\s+8\.\s+Layout and Responsive Adaptability", line, re.IGNORECASE):
             in_sec8 = True
             continue
@@ -642,6 +698,18 @@ def audit_css_and_dimension_leaks(content: str) -> list[Finding]:
                     severity="BLOCKER",
                     code="CSS-005",
                     message="Raw CSS 'calc()' expression found in Section 8. Use descriptive architectural offsets (e.g., 'offsets leftward by 50% of active drawer width (§5.2.3)').",
+                    line=idx
+                ))
+
+        # 5. Check implementation CSS class selectors in prose (CSS-007)
+        clean_css_line = re.sub(r"!\[.*?\]\(.*?\)", "", line)
+        clean_css_line = re.sub(r"\[([^\]]*)\]\([^)]+\)", r"\1", clean_css_line)
+        for c in css_selector_pattern.findall(clean_css_line):
+            if f".{c}" not in known_file_extensions and not c.isdigit():
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="CSS-007",
+                    message=f"Implementation CSS class selector '.{c}' leaked into specification prose. Use functional component names or semantic descriptions.",
                     line=idx
                 ))
 
