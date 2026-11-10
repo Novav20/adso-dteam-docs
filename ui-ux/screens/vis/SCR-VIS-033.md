@@ -98,18 +98,18 @@ status: Stable
    - **Architectural Scope:** Enables direct keyboard/touch tag lookup, triggering tactical canvas centering and `CMP-05` deployment (or entering `Pending Mapping` fallback per `AF-001`). Detailed in §5.2 and §7.2.2.
 
 4. **`CMP-04`: Equipment Hotspot**
-   - **Visual Role:** Addressable ISO 14224 Level 6 SVG equipment symbol linked by `data-tag` and `data-equip-id` ([DT-UI-SVG-DOC-001 §6](../../DT-UI-SVG-DOC-001.md#6-eam-telemetry-binding--identity-schema-iso-14224)).
+   - **Visual Role:** Addressable ISO 14224 Level 6 SVG equipment symbol linked by `data-tag` and `data-equip-id` ([DT-UI-SVG-DOC-001 §6](../../DT-UI-SVG-DOC-001.md#6-eam-telemetry-binding-identity-schema-iso-14224)).
    - **Design Tokens:**
      - Base Shell: `--dt-color-canvas-equip-shell`
      - Border: `--dt-color-border-subtle`
      - Selected Halo: `--dt-color-state-info`
      - Critical Alarm: `--dt-color-alarm-critical`
-   - **Architectural Scope:** Renders neutral outlines in normal steady-state, informational selection halo upon tap/click, and critical alarm border with redundant square symbol upon safety limit breaches or `DOWN` outage (`AF-004`). Touch disambiguation in §5.2.
+   - **Architectural Scope:** Renders neutral outlines in normal steady-state, informational selection halo upon tap/click, and critical alarm border with redundant square symbol upon safety limit breaches or unplanned `DOWN` outage without active LOTO isolation (`AF-004`). Touch disambiguation in §5.2.
 
 5. **`CMP-05`: Context Container**
    - **Visual Role:** Adaptable Level 3 Equipment Task Faceplate deploying as a docked full-height lateral drawer on desktop/landscape or an adaptive bottom sheet on portrait/mobile, hosting `CMP-06` through `CMP-10` inside a scrollable body with stable scrollbar gutter reservation.
    - **Design Tokens:**
-     - Surface: `--dt-color-surface-card`
+     - Surface: `--dt-color-surface-drawer` (container) / `--dt-color-surface-card` (elevated slots)
      - Header Surface: `--dt-color-surface-base`
      - Elevation: `--dt-shadow-panel`
      - Stacking: `--dt-z-drawer-sidebar`
@@ -117,7 +117,7 @@ status: Stable
    - **Architectural Scope:** Operates as an absolute overlay without re-rendering or resizing `CMP-01`, supporting the canvas light-dismiss selection lifecycle. Gesture mechanics and responsive sizing in §5.2 and §8.
 
 6. **`CMP-06`: Asset Header Block**
-   - **Visual Role:** Two-tier header container presenting the close button (`×`), monospace functional `TagNumber` badge, right-aligned safety/status pills (`CMP-08`), equipment technical description, and secondary metadata (`CriticalityIndex`, `FunctionalLocationCode`). In Tablet Portrait, embeds the capsule drag handle as its first child.
+   - **Visual Role:** Two-tier header container presenting the close button (`×`), monospace functional `TagNumber` badge, right-aligned safety/status pills (`CMP-08`), equipment technical description (`EquipmentClass` / `Model`), and secondary metadata (`CriticalityIndex`, `FunctionalLocationCode`, `SerialNumber`). In Tablet Portrait, embeds the capsule drag handle as its first child.
    - **Design Tokens:**
      - Surface: `--dt-color-surface-base`
      - Typography: `--dt-font-h2`, `--dt-font-caption`, `--dt-font-mono-data`
@@ -137,10 +137,11 @@ status: Stable
 8. **`CMP-08`: Safety Context Summary**
    - **Visual Role:** Contextual safety indicators surfacing verified LOTO lockout status and operational outage badges (`[ISOLATED]`, `[DOWN]`) in the `CMP-06` header slot, plus compact 4-channel redundant Work Permit pills (`PTW-*`) attached to affected rows in `CMP-10`.
    - **Design Tokens:**
-     - LOTO Isolated (Safe Neutral): `--dt-color-surface-base`, `--dt-color-border-subtle`, `--dt-color-text-body`
+     - Planned LOTO Isolation & Isolated Outage (`[ISOLATED]`, `[DOWN]` under LOTO): `--dt-color-surface-base`, `--dt-color-border-subtle`, `--dt-color-text-body`
+     - Unplanned Outage / Trip (`[DOWN]` without LOTO — `AF-004`): `--dt-color-alarm-critical`
      - Permit Redundant Coding: `--dt-color-alarm-critical`, `--dt-color-alarm-warning`, `--dt-color-state-info` ([DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto))
      - Radius: `--dt-radius-full`
-   - **Architectural Scope:** Strictly suppresses status pills during normal steady-state running operation per 90/10 HPHMI and Anti-Badge-Inflation rules ([DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge--counter-discipline-anti-badge-inflation-principle)).
+   - **Architectural Scope:** Strictly suppresses status pills during normal steady-state running operation per 90/10 HPHMI and Anti-Badge-Inflation rules ([DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle)).
 
 9. **`CMP-09`: Quick Action Buttons**
    - **Visual Role:** Four tactical navigation and spatial localization buttons (`[Locate]`, `[LOTO Route]`, `[Work Orders]`, `[Master Sheet]`) organized as a 2x2 grid below a hairline divider in landscape/desktop, and a 4-column elevated icon-above-label row over a transparent footer dock in portrait.
@@ -201,7 +202,7 @@ status: Stable
    - **Visual Modification:** Target `CMP-04` highlights with an informational selection halo (`--dt-color-state-info`). `CMP-05` slides smoothly into view displaying `CMP-06` metadata, `CMP-07` MAI bars, conditional `CMP-08` isolation/PTW pills (hidden during normal steady-state), `CMP-10` active work orders, and `CMP-09` tactical action triggers.
 
 4. **Critical Asset Alarm (`AF-004`)**
-   - **Activation Condition:** Physical telemetry breaches safety/trip limits or `EquipmentUnit` enters `DOWN` operational status ([UC-VIS-033](../../../domain-models/use-cases/vis/UC-VIS-033.md) `AF-004`, `FR-602`).
+   - **Activation Condition:** Physical telemetry breaches safety/trip limits or `EquipmentUnit` enters unplanned `DOWN` operational status without active LOTO isolation ([UC-VIS-033](../../../domain-models/use-cases/vis/UC-VIS-033.md) `AF-004`, `FR-602`).
    - **Visual Modification:** `CMP-04` acquires a critical alarm border and square symbol in `--dt-color-alarm-critical`. In `CMP-07`, MAI renders a Priority 1 critical square badge (`--dt-color-alarm-critical`) or Priority 2 warning triangle badge (`--dt-color-alarm-warning`) adjacent to the breached scale limit while maintaining neutral pointer geometry per Hollifield Method 3.
 
 5. **Telemetry Loss (Priority 4 Diagnostic — `AF-002`)**
@@ -235,7 +236,7 @@ status: Stable
    - **Industrial Tablet Tactile Modality:** Single-finger touch dragging across `CMP-01`. Enforces a mandatory $4\text{px}$ movement threshold before transitioning into an active pan state, cleanly disambiguating intentional dragging from stationary tap selections. Ephemeral popovers dismiss immediately upon initiating a canvas drag or zoom.
 2. **Coordinate-Preserving Focal Zoom:**
    - Mouse wheel zooming (`wheel`) computes scale adjustments anchored around exact cursor coordinates $(cx, cy)$ on the canvas so the inspected feature remains stationary under the pointer. Viewport zoom controls (`+` / `−`) inside `CMP-02` scale relative to the unoccluded canvas center.
-   - Crossing semantic zoom thresholds (`--dt-zoom-scale-l1-max` and `--dt-zoom-scale-l2-max`) updates progressive disclosure visibility layers seamlessly without abrupt popping ([DT-UI-SVG-DOC-001 §10](../../DT-UI-SVG-DOC-001.md#10-progressive-disclosure--viewport-kinematics)).
+   - Crossing semantic zoom thresholds (`--dt-zoom-scale-l1-max` and `--dt-zoom-scale-l2-max`) updates progressive disclosure visibility layers seamlessly without abrupt popping ([DT-UI-SVG-DOC-001 §10](../../DT-UI-SVG-DOC-001.md#10-progressive-disclosure-viewport-kinematics)).
 3. **Smooth Equipment Centering (`locateAssetOnMap`):**
    - Selecting an equipment tag via `CMP-03` or pressing `[Locate]` in `CMP-09` animates pan and zoom to `--dt-zoom-scale-tactical` ([DT-UI-DS-DOC-001 §2.5](../../DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports)), centering the asset centroid $(X, Y)$ within the unoccluded canvas area. In desktop and landscape orientations with `CMP-05` deployed, the target shifts leftward by $50\%$ of the active drawer width to avoid occlusion and highlights `CMP-04` with `--dt-color-state-info`.
 4. **Decoupled Viewport & Zero Layout Shift:**
@@ -268,7 +269,7 @@ status: Stable
    - Displays the diagnostic status banner in the fixed `--dt-layout-banner-diagnostic-height` slot: *"Stale data. Connection interrupted at HH:mm:ss UTC"* (runtime localized per [ADR-009](../../../architecture/adr/ADR-009.md)) with `#icon-wifi-off`, avoiding vertical reflow.
    - Transmutes the MAI normal operating zone to slate (`--dt-color-mai-stale-zone` / `--dt-color-mai-stale-zone-border`) without triggering amber/red alarm cues.
    - Attenuates frozen live numbers to muted italic (`--dt-color-text-muted`) and hides alarm severity badges while preserving allocated horizontal space (`CLS = 0`).
-5. **Conditional Safety Context Discipline (`CMP-08`):** Header pills in `CMP-06` surface `DOWN` operational status and neutral LOTO `[ISOLATED]` indicators solely when active isolation or unavailability exists; normal steady-state running units suppress redundant status pills. Linked approved Work Permits display inline inside corresponding `CMP-10` work order rows using 4-channel redundant coding.
+5. **Conditional Safety Context Discipline (`CMP-08`):** Header pills in `CMP-06` surface `DOWN` operational status and neutral LOTO `[ISOLATED]` indicators solely when active isolation or unavailability exists. When an Equipment Unit is intentionally shut down under verified LOTO (`ISOLATED`, `VERIFIED_ZERO_ENERGY`, or `LEASED_OFFLINE`), both `[ISOLATED]` and `[DOWN]` render in monochromatic neutral tones (`--dt-color-surface-base`, `--dt-color-border-subtle`, `--dt-color-text-body`) to prevent nuisance alarm fatigue, reserving `--dt-color-alarm-critical` strictly for unplanned `DOWN` trips (`AF-004`). Normal steady-state running units suppress redundant status pills. Linked approved Work Permits display inline inside corresponding `CMP-10` work order rows using 4-channel redundant coding.
 
 ### 5.4. Tactical Drill-Down Handoffs and Safety Guards
 1. **`[Locate]` (`CMP-09`):** Invokes `locateAssetOnMap(TagNumber)` (§5.2) when `MappingStatus == MAPPED`. Disabled via negative interlock (`--dt-color-state-disabled`) when spatial mapping is pending (`AF-001`).
@@ -284,7 +285,7 @@ status: Stable
 
 * **Read-Only Supervisory Boundary (ISO 45001 §8.1):** `SCR-VIS-033` provides passive spatial inspection and diagnostic telemetry awareness. It cannot issue plant start/stop commands, alter control loops, or bypass LOTO safety interlocks ([DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)).
 * **Spatial Integrity Fail-Safe (`AF-001`):** Equipment records in `UNMAPPED` or `SYNC_ERROR` states are strictly barred from arbitrary fallback coordinate placement (such as $(0, 0)$) and disable `[Locate]` triggers to avoid false spatial confidence (§4, §5.4).
-* **Cartographic Telemetry Offloading (L2 vs. L3 Separation):** The 2D vector canvas retains only equipment geometry and ISA tag callouts ([DT-UI-SVG-DOC-001 §8](../../DT-UI-SVG-DOC-001.md#8-instrumentation--control-loops-ansiisa-51-2009)), offloading continuous numerical readings and alarm bands to `CMP-07` MAI bars to prevent plot plan clutter on high-density equipment skids.
+* **Cartographic Telemetry Offloading (L2 vs. L3 Separation):** The 2D vector canvas retains only equipment geometry and ISA tag callouts ([DT-UI-SVG-DOC-001 §8](../../DT-UI-SVG-DOC-001.md#8-instrumentation-control-loops-ansiisa-51-2009)), offloading continuous numerical readings and alarm bands to `CMP-07` MAI bars to prevent plot plan clutter on high-density equipment skids.
 * **HPHMI & Priority 4 Diagnostic Governance ([TR-011](../../../requirements/common/TR-011.md)):** Neutral 90/10 grayscale baseline, elimination of green for normal running equipment, Hollifield Method 3 MAI alarm boundaries, and mandatory slate Priority 4 differentiation for stale/disconnected timestamps adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope), [§6.1](../../DT-UI-DS-DOC-001.md#61-moving-analog-indicator-mai-specification), and [§6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto).
 
 ---
@@ -296,6 +297,7 @@ status: Stable
 ```text
 Pages/
 └── AssetInspectionPage.razor                 # Root View (SCR-VIS-033)
+    ├── OfflineModeBanner.razor               # Persistent top viewport offline guard banner (AF-003)
     ├── CanvasViewport2D.razor                # CMP-01: 2D SVG canvas with pan/zoom
     │   └── EquipmentHotspot.razor            # CMP-04: Interactive ISO 14224 L6 SVG hotspot
     ├── ViewportToolbar.razor                 # CMP-02: Floating navigation capsule toolbar
@@ -305,8 +307,8 @@ Pages/
     ├── AssetTaskFaceplate.razor              # CMP-05: Level 3 contextual drawer / bottom sheet
     │   ├── AssetHeaderBlock.razor            # CMP-06: Tag, title, metadata & close control
     │   │   └── SafetyContextSummary.razor    # CMP-08: LOTO isolation & outage pills
+    │   ├── TelemetryStaleBanner.razor        # Priority 4 stale telemetry slot (AF-002)
     │   ├── MovingAnalogIndicator.razor       # CMP-07: Real-time MAI scale bars
-    │   ├── DiagnosticStatusBanner.razor      # Stale telemetry & offline cache strip (AF-002/AF-003)
     │   ├── ActiveWorkOrdersList.razor        # CMP-10: Actionable flat work order rows
     │   └── QuickActionButtons.razor          # CMP-09: 2x2 / 4-column tactical action dock
     └── LotoSafetyInterlockModal.razor        # Non-dismissible LOTO execution guard modal (AF-005)
@@ -325,6 +327,10 @@ public string? InitialEquipmentTag { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-12`)
 ```csharp
+// Top Viewport Offline Guard Banner: OfflineModeBanner.razor (AF-003)
+[Parameter]
+public bool IsOfflineMode { get; set; }
+
 // CMP-01: CanvasViewport2D.razor
 [Parameter]
 public required string FunctionalLocationCode { get; set; }
@@ -359,9 +365,6 @@ public EventCallback<string> OnHotspotSelected { get; set; }
 
 // CMP-02: ViewportToolbar.razor
 [Parameter]
-public string CurrentLevel { get; set; } = "L1: Terminal";
-
-[Parameter]
 public double ZoomScale { get; set; } = 1.0;
 
 [Parameter]
@@ -377,7 +380,7 @@ public EventCallback OnZoomInRequested { get; set; }
 public EventCallback OnZoomOutRequested { get; set; }
 
 [Parameter]
-public EventCallback OnToggleLayersRequested { get; set; }
+public EventCallback<bool> OnLayersToggled { get; set; }
 
 // CMP-03: CommandPaletteTrigger.razor
 [Parameter]
@@ -395,9 +398,6 @@ public EventCallback<string> OnTagSearchSubmitted { get; set; }
 // CMP-11: UserProfileButton.razor
 [Parameter]
 public required string UserInitials { get; set; }
-
-[Parameter]
-public required string UserName { get; set; }
 
 [Parameter]
 public EventCallback OnProfileMenuRequested { get; set; }
@@ -421,9 +421,6 @@ public bool IsTelemetryStale { get; set; }
 
 [Parameter]
 public DateTimeOffset? TelemetryLastSyncAt { get; set; }
-
-[Parameter]
-public bool IsOfflineMode { get; set; }
 
 [Parameter]
 public EventCallback<bool> OnOpenChanged { get; set; }
@@ -451,19 +448,16 @@ public required SafetyContextSummaryDto SafetyContext { get; set; }
 [Parameter]
 public required OperationalStatus OperationalStatus { get; set; }
 
-// CMP-07: MovingAnalogIndicator.razor
-[Parameter]
-public required MovingAnalogIndicatorDto Telemetry { get; set; }
-
-// Diagnostic Banner: DiagnosticStatusBanner.razor (AF-002 / AF-003)
+// Priority 4 Telemetry Diagnostic Slot: TelemetryStaleBanner.razor (AF-002)
 [Parameter]
 public bool IsTelemetryStale { get; set; }
 
 [Parameter]
-public bool IsOfflineMode { get; set; }
-
-[Parameter]
 public DateTimeOffset? LastSyncTimestamp { get; set; }
+
+// CMP-07: MovingAnalogIndicator.razor
+[Parameter]
+public required MovingAnalogIndicatorDto Telemetry { get; set; }
 
 // CMP-10: ActiveWorkOrdersList.razor
 [Parameter]
@@ -533,14 +527,17 @@ public record MovingAnalogIndicatorDto
 {
     public required string VariableCode { get; init; }
     public required string VariableName { get; init; }
-    public required double CurrentValue { get; init; }
+    public required TelemetrySignalType SignalType { get; init; }
+    public required decimal CurrentValue { get; init; }
     public required string EngineeringUnit { get; init; }
-    public required double ScaleMin { get; init; }
-    public required double ScaleMax { get; init; }
-    public required double NormalMin { get; init; }
-    public required double NormalMax { get; init; }
-    public double? TripLow { get; init; }
-    public double? TripHigh { get; init; }
+    public required decimal ScaleMin { get; init; }
+    public required decimal ScaleMax { get; init; }
+    public required decimal NormalMin { get; init; }
+    public required decimal NormalMax { get; init; }
+    public decimal? TripLow { get; init; }
+    public decimal? TripHigh { get; init; }
+    public TelemetryAlarmSeverity AlarmSeverity { get; init; } = TelemetryAlarmSeverity.NONE;
+    public bool IsSafetyCritical { get; init; }
     public bool IsStale { get; init; }
     public required DateTimeOffset Timestamp { get; init; }
 }
@@ -653,6 +650,31 @@ public enum WorkOrderStatus
     COMPLETE,
     CLOSED
 }
+
+/// <summary>
+/// Controlled sensor signal classification vocabulary per DT-DM-DOC-001 §4.30.
+/// </summary>
+public enum TelemetrySignalType
+{
+    TEMPERATURE,
+    PRESSURE,
+    VIBRATION,
+    FLOW_RATE,
+    VOLTAGE,
+    RPM,
+    OPERATING_HOURS,
+    CYCLES
+}
+
+/// <summary>
+/// HPHMI Hollifield Method 3 alarm priority projection per DT-UI-DS-DOC-001 §6.1.2.
+/// </summary>
+public enum TelemetryAlarmSeverity
+{
+    NONE,
+    WARNING_P2,
+    CRITICAL_P1
+}
 ```
 
 ### 7.3. Client-Side DOM & Interop Bridge
@@ -663,7 +685,7 @@ public enum WorkOrderStatus
 2. **Context Drawer Touch Gesture Interop (`IDrawerGestureInterop`):**
    * Manages pointer capture on the upper tactile drag handle, continuous height dragging (between `--dt-layout-bottom-sheet-height-initial` and `--dt-layout-bottom-sheet-height-expanded`), hysteresis snap thresholds, and discrete single-tap dismiss.
 3. **Semantic Selection:**
-   * Hotspots in the SVG declare standardized data attributes (`data-equip-id`, `data-tag`, `data-func-loc`) matching ISO 14224 Level 6 Equipment Unit metadata ([DT-UI-SVG-DOC-001 §6](../../DT-UI-SVG-DOC-001.md#6-eam-telemetry-binding--identity-schema-iso-14224)).
+   * Hotspots in the SVG declare standardized data attributes (`data-equip-id`, `data-tag`, `data-func-loc`) matching ISO 14224 Level 6 Equipment Unit metadata ([DT-UI-SVG-DOC-001 §6](../../DT-UI-SVG-DOC-001.md#6-eam-telemetry-binding-identity-schema-iso-14224)).
    * Stationary taps/clicks on an SVG node dispatch `OnEquipmentSelected(tagNumber)`; drags exceeding the $4\text{px}$ tactile threshold suppress accidental asset selection, and clicks on empty canvas trigger `OnEmptyCanvasClicked` to close `CMP-05` cleanly.
 
 ---
@@ -698,6 +720,7 @@ public enum WorkOrderStatus
 | [NFR-605](../../../requirements/user-stories/vis/VIS-033.md#non-functional-requirements-nfr) | `CMP-01`, `CMP-05` | Vector rendering maintains $\ge 30\text{ FPS}$ on industrial tablets ($\ge 60\text{ FPS}$ on desktop) with tactile touch ergonomics (`--dt-touch-target-mobile`). |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-05`, `CMP-07` | All initial REST catalog queries and real-time SCADA SignalR streams execute over encrypted TLS/HTTPS and WSS transport channels. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-09`, `CMP-10`, `CMP-11` | RBAC enforcement restricts LOTO verification navigation, Work Order execution dispatch, and master catalog actions per authorized operational role ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)). |
+| [TR-007](../../../requirements/common/TR-007.md) | `CMP-01`, `CMP-05` | Preserves 2D plot plan inspection and cached equipment faceplate consultation against encrypted local storage (`IOfflineStorage`) during field wireless dropouts (`AF-003`). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-01`, `CMP-04`, `CMP-06` | Enforces ISO 14224 hierarchical integrity across Functional Location (`Levels 1 to 5`) and Equipment Unit (`Level 6`) tags and `CriticalityIndex` inheritance. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-05`, `CMP-07`, `CMP-10` | Persistent debounced SignalR subscription streams telemetry and work order state updates in $< 1\text{s}$ with automatic stale-cache Priority 4 fallback on disconnect. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-04`, `CMP-07`, `CMP-08`, `CMP-12` | High-Performance HMI philosophy: eliminates green for normal equipment state and segregates telemetry loss into slate Priority 4 diagnostic indicators. |

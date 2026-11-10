@@ -109,7 +109,7 @@ def run_mutation_tests() -> int:
         # --- Negative Control Cases (Must PASS with Zero Findings) ---
         {
             "name": "Negative Control: Clean Token Reference (No Shadowing)",
-            "content": "Context Container CMP-05 docks as lateral panel (sized by --dt-layout-drawer-width-tablet, strictly preserving $\\ge 70\\%$ canvas visibility).",
+            "content": "Context Container `CMP-05` docks as lateral panel (sized by `--dt-layout-drawer-width-tablet`, strictly preserving $\\ge 70\\%$ canvas visibility).",
             "audit_fn": lambda c: audit_tokens(c, valid_tokens),
             "expected_code": None,
             "must_hit": False,

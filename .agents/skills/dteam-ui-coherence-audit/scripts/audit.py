@@ -155,6 +155,7 @@ SUBSET_ENUM_MAP: dict[str, str] = {
 # Validated presentation/composite UI projection enums (must match exact member set)
 PRESENTATION_PROJECTION_ENUMS: dict[str, set[str]] = {
     "DismountDestinationStatus": {"IN_REPAIR", "IN_STORAGE", "DAMAGED"},
+    "TelemetryAlarmSeverity": {"NONE", "WARNING_P2", "CRITICAL_P1"},
 }
 
 # Prohibited CSS / styling / magic dimension patterns

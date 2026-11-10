@@ -10,9 +10,9 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 
 ### Core Spatial & Supervisory Viewports (Digital Twin HMI)
 - [x] **SCR-VIS-033: Level 3 Equipment Task Faceplate**
-  - [x] Responsive layout on Desktop ($1440\times 900$) and Industrial Tablet Portrait ($800\times 1280$).
-  - [x] Touch physics: upward drag height retention, snap hysteresis, and docked $36\text{px}$ peek tab.
-  - [x] Canonical specification finalized: [`SCR-VIS-033.md`](ui-ux/screens/vis/SCR-VIS-033.md) (Stable).
+  - [x] Responsive layout on Desktop ($1920\times 1080$), Tablet Landscape ($1280\times 800$), and Industrial Tablet Portrait ($800\times 1280$).
+  - [x] Touch physics: upward drag height retention, snap hysteresis, Google Maps light-dismiss (zero peek tab), and discrete single-tap handle dismiss.
+  - [x] Canonical specification finalized and locked as Gold Standard Baseline: [`SCR-VIS-033.md`](ui-ux/screens/vis/SCR-VIS-033.md) (v2.2 Stable — `decimal` MAI precision, `TelemetrySignalType`/`TelemetryAlarmSeverity`, decoupled `OfflineModeBanner`/`TelemetryStaleBanner`, `TR-007` traceability).
 
 - [x] **SCR-VIS-008: Level 1 General Plant Map with SIMOPS Layer**
   - [x] Redundant coding for PTW pins (Color + Geometry + Icon + Label per ANSI/ISA-101).
