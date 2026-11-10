@@ -165,8 +165,12 @@ CSS_LEAK_PATTERNS: list[tuple[str, str, str]] = [
      "Raw CSS rule '{match}' leaked into specification prose."),
     (r"\bz-index:\s*\d+\b", "CSS-003",
      "Raw numeric z-index '{match}' leaked. Use '--dt-z-*' elevation tokens."),
-    (r"\bfont-weight:\s*(?:[1-9]00|bold|normal|semibold)\b", "CSS-002",
+    (r"\bfont-weight(?:\s*:\s*|\s+)(?:[1-9]00|bold|normal|semibold)\b", "CSS-002",
      "Raw CSS font-weight '{match}' leaked into specification prose. Use composite typography tokens (--dt-font-*)."),
+    (r"\bborder\s*:\s*(?:none|0|\d+(?:\.\d+)?(?:px|rem)\s+[a-z]+)\b", "CSS-002",
+     "Raw CSS border rule '{match}' leaked into specification prose. Describe borderless or framed styling functionally using '--dt-color-border-*' tokens."),
+    (r"\bvar\(\s*--dt-[a-z0-9-]+[^)]*\)", "CSS-002",
+     "Raw CSS function syntax '{match}' leaked into specification prose. Cite design tokens directly inside backticks (`--dt-*`)."),
     (r"\b(?:width|min-width|max-width|height|min-height|max-height|border-radius|padding|margin|gap)\s*:\s*[^;\n]*\b\d+(?:\.\d+)?(?:px|rem|em)\b", "CSS-002",
      "Raw CSS dimension declaration '{match}' leaked into specification prose. Use Design System layout/spacing tokens (--dt-layout-*, --dt-space-*, --dt-radius-*)."),
     (r"\bbackground(?:-color)?\s*:\s*(?:transparent|none|#[0-9a-fA-F]+|[a-z]+)\b", "CSS-002",
@@ -699,7 +703,11 @@ def audit_css_and_dimension_leaks(content: str) -> list[Finding]:
     lines = content.splitlines()
 
     hex_pattern = re.compile(r"(?<![a-zA-Z0-9_\(\[/\$-])#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b(?![-a-zA-Z0-9_])")
-    drawer_magic_pattern = re.compile(r"(?:drawer|sidebar|bottom\s*sheet).*?(?:\$?(?:440|380|320)\\?text\{px\}\$?|\b(?:440|380|320)px\b)", re.IGNORECASE)
+    drawer_magic_pattern = re.compile(
+        r"(?:(?:drawer|panel|sidebar|bottom\s*sheet)[^.\n]*?(?:\$?(?:3\d{2}|4\d{2}|5\d{2})\\?text\{px\}\$?|\b(?:3\d{2}|4\d{2}|5\d{2})px\b)"
+        r"|(?:\$?(?:3\d{2}|4\d{2}|5\d{2})\\?text\{px\}\$?|\b(?:3\d{2}|4\d{2}|5\d{2})px\b)[^.\n]*?(?:drawer|panel|sidebar|bottom\s*sheet))",
+        re.IGNORECASE
+    )
     css_selector_pattern = re.compile(r"(?<![a-zA-Z0-9_\.\<\>])\.([a-z][a-z0-9_-]+)")
 
     known_file_extensions = {
@@ -750,15 +758,16 @@ def audit_css_and_dimension_leaks(content: str) -> list[Finding]:
                 line=idx
             ))
 
-        # 3. Check magic drawer dimensions
-        if drawer_magic_pattern.search(line):
-            if "--dt-layout-drawer-width" not in line:
-                findings.append(Finding(
-                    severity="BLOCKER",
-                    code="CSS-004",
-                    message="Hardcoded drawer dimension detected without semantic token. Must reference '--dt-layout-drawer-width-desktop' (440px) or '--dt-layout-drawer-width-tablet' (380px).",
-                    line=idx
-                ))
+        # 3. Check magic drawer/panel dimensions
+        if not line.strip().startswith("#") and not line.strip().startswith(">"):
+            if drawer_magic_pattern.search(line):
+                if "--dt-layout-drawer-width" not in line:
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="CSS-004",
+                        message="Hardcoded drawer/panel pixel dimension detected. Reference '--dt-layout-drawer-width-desktop' or '--dt-layout-drawer-width-tablet' exclusively in §8.",
+                        line=idx
+                    ))
 
         # 4. Check raw CSS calc() in Section 8
         if in_sec8 and not line.strip().startswith(">") and not line.strip().startswith("<!--"):
@@ -846,6 +855,7 @@ def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
 
     in_sec3 = False
     in_code_block = False
+    code_block_lang = ""
     in_frontmatter = False
     current_sec3_cmp = None
     current_sec3_cmp_line = 0
@@ -861,9 +871,26 @@ def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
                 in_frontmatter = False
             continue
         if stripped.startswith("```"):
-            in_code_block = not in_code_block
+            if not in_code_block:
+                in_code_block = True
+                code_block_lang = stripped[3:].strip().lower()
+            else:
+                in_code_block = False
+                code_block_lang = ""
             continue
         if in_code_block:
+            if code_block_lang in ("", "text"):
+                zoom_magic = re.search(r"\bZ\s*(?:<|<=|>|>=|==)\s*\d+(?:\.\d+)?", line)
+                if zoom_magic:
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="TOK-003",
+                        message=(
+                            f"Hardcoded zoom threshold '{zoom_magic.group(0)}' detected in specification diagram. "
+                            f"Reference '--dt-zoom-scale-l1-max' or '--dt-zoom-scale-l2-max' instead."
+                        ),
+                        line=idx
+                    ))
             continue
 
         # Skip guidance blockquotes and explicit normative prohibition alerts
@@ -1094,8 +1121,20 @@ def audit_anti_redundancy(content: str) -> list[Finding]:
     lines = content.splitlines()
 
     current_section = 0
+    in_code_block = False
+    ssot_inversion_pattern = re.compile(
+        r"(?:`(?:SCR-)?(?:INV|MTTO|VIS|SEC|CFG|LOG)-\d+`|\b(?:SCR-)?(?:INV|MTTO|VIS|SEC|CFG|LOG)-\d+\b)\s+(?:standard|capsule|styling|style|theme)\b",
+        re.IGNORECASE
+    )
 
     for idx, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+
         # Section boundary tracking
         sec_match = re.match(r"^##\s+(\d+)\.", line)
         if sec_match:
@@ -1106,9 +1145,21 @@ def audit_anti_redundancy(content: str) -> list[Finding]:
             continue
 
         # Skip blockquotes (guidance rules) and comments
-        stripped = line.strip()
         if stripped.startswith(">") or stripped.startswith("<!--"):
             continue
+
+        # 0. SSoT Inversion Guardrail (Sibling screens must not be cited as UI design standards)
+        ssot_match = ssot_inversion_pattern.search(line)
+        if ssot_match:
+            findings.append(Finding(
+                severity="BLOCKER",
+                code="SSOT-001",
+                message=(
+                    f"SSoT inversion detected: '{ssot_match.group(0)}' treats a sibling screen specification as a UI design standard. "
+                    f"Cite DT-UI-DS-DOC-001 or Design System tokens instead."
+                ),
+                line=idx
+            ))
 
         # 1. Section 1 SSoT: Qualitative operational context only
         if current_section == 1:

@@ -43,28 +43,30 @@ status: Stable
 > The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This inventory defines the canonical components present on the screen, their design tokens, and their architectural scope. Interaction rules and geometric algorithms are specified in Section 5; responsive container adaptations are governed by Section 8.
 
 1. **`CMP-01`: L1 Plot Plan Canvas**
-   - **Visual Role:** Macro plant SVG vector canvas rendering Functional Locations (ISO 14224 Levels 1 to 4) and Level 6 equipment nodes in neutral grayscale.
+   - **Visual Role:** Macro plant SVG vector canvas rendering Functional Locations (ISO 14224 Levels 1 to 5) and Level 6 Equipment Units in a flat 2D neutral grayscale palette.
    - **Design Tokens:** 
 	   - Surface: `--dt-color-bg-canvas` 
 	   - Elevation: `--dt-z-canvas`
-   - **Architectural Scope:** Primary spatial viewport. Supports middle-click desktop panning, single-finger touch dragging, and semantic zoom clustering. Detailed in §5.4.
+   - **Architectural Scope:** Primary spatial viewport ([DT-UI-DS-DOC-001 §5.1](../../DT-UI-DS-DOC-001.md#51-hphmi-shadow-discipline-canvas-vs-hud-chrome-separation)). Supports middle-click desktop panning, single-finger touch dragging, and semantic zoom clustering. Detailed in §5.4.
 
 2. **`CMP-02`: Viewport Toolbar & HUD Navigation Cluster**
-   - **Visual Role:** Centered floating capsule toolbar and adjacent non-modal alert pills (`SIMOPS Conflict`, `Unmapped Permits`).
+   - **Visual Role:** Centered floating capsule toolbar hosting an inline search input, level indicator, viewport controls, binary Work Permits layer toggle, and adjacent non-modal alert pills (`SIMOPS Conflict`, `Unmapped Permits`).
    - **Design Tokens:** 
 	   - Surface: `--dt-color-surface-card` 
 	   - Elevation: `--dt-shadow-hud` 
 	   - Radius: `--dt-radius-full`
-   - **Architectural Scope:** Hosts level indicator (`L2: Subsystem`), reset view (1:1), zoom controls (+ / −), layer selector (`[≡ Layers]`), and dynamic alert badges. Shared structure with [SCR-VIS-033](./SCR-VIS-033.md). Adaptive condensation specified in §5.2.
+	   - Level Badge Width: `--dt-layout-toolbar-badge-width`
+   - **Architectural Scope:** Hosts quick search (`Search PTW or Equipment...`), fixed-width level indicator (`L1: Terminal` / `L2: Subsystem`), reset view (1:1), zoom controls (+ / −), binary Work Permits layer toggle (`[#icon-layers]`), and dynamic alert badges per [DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Adaptive condensation specified in §5.2.
 
 3. **`CMP-03`: User Profile Indicator**
-   - **Visual Role:** Circular floating button displaying active user initials.
+   - **Visual Role:** Circular floating button displaying active operator initials and static session presence dot.
    - **Design Tokens:** 
 	   - Surface: `--dt-color-surface-card`
 	   - Elevation: `--dt-shadow-hud`
 	   - Radius: `--dt-radius-full`
 	   - Touch Target: `--dt-touch-target-mobile`
-   - **Architectural Scope:** Anchored at top-left margin per layout grid. Triggers user settings and active session menu. Aligned with `CMP-11` in [SCR-VIS-033](./SCR-VIS-033.md).
+	   - Session Dot: `--dt-color-state-success`
+   - **Architectural Scope:** Anchored at top-left viewport margin per [DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Triggers operator session and profile menu.
 
 4. **`CMP-04`: Functional Zone Polygon**
    - **Visual Role:** Vector boundaries representing plant Functional Locations rendered in neutral grayscale.
@@ -100,12 +102,12 @@ status: Stable
    - **Architectural Scope:** Manages orphan permit resolution (`AF-001`). Dismissed via header close action or by tapping empty canvas. Escalation rules in §5.2; responsive docking in §8.
 
 8. **`CMP-08`: Filter Chips Panel**
-   - **Visual Role:** Discrete floating touch pills at screen bottom for toggling permit visibility, with hazard-tinted active states and elevated count capsules.
+   - **Visual Role:** Discrete floating touch pills at screen bottom for toggling permit visibility, with hazard-tinted active states and elevated count capsules tracking mapped spatial permits.
    - **Design Tokens:** 
 	   - Surface: `--dt-color-surface-card`
 	   - Elevation: `--dt-shadow-hud`
 	   - Radius: `--dt-radius-full`
-   - **Architectural Scope:** Direct-touch filter controls. Supports touch swiping and desktop `Shift + Wheel` horizontal scrolling. Interaction rules in §5.4.
+   - **Architectural Scope:** Direct-touch filter controls and permanent visual permit legend (excluding unmapped orphan permits per §5.2 and §6). Supports touch swiping and desktop `Shift + Wheel` horizontal scrolling. Interaction rules in §5.4.
 
 9. **`CMP-09`: Zone Cluster Pill**
    - **Visual Role:** High-salience overview capsule pills rendered at Functional Location centroids consolidating tactical permit counts.
@@ -114,6 +116,15 @@ status: Stable
 	   - Elevation: `--dt-shadow-hud`
 	   - Radius: `--dt-radius-full`
    - **Architectural Scope:** Macro density aggregation ($Z < \text{--dt-zoom-scale-l1-max}$). Mutually exclusive with discrete badges (`CMP-05`). Tapping zooms into the target functional zone. Semantic zoom mechanics in §5.4.
+
+10. **`CMP-10`: Cartographic Compass & Metric Scale HUD**
+    - **Visual Role:** Fixed bottom-left spatial HUD combining a circular north-orientation compass indicator and a dynamic metric scale bar (e.g., `20 m`).
+    - **Design Tokens:** 
+	    - Surface: `--dt-color-surface-card`
+	    - Elevation: `--dt-shadow-hud`
+	    - Compass Footprint: `--dt-control-size-hud`
+	    - Radius: `--dt-radius-full` (Compass)
+    - **Architectural Scope:** Decoupled HTML overlay anchored at the bottom-left margin per [DT-UI-DS-DOC-001 §2.2](../../DT-UI-DS-DOC-001.md#22-dimensions-of-controls-and-touch-areas) and [§5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Computes real-world meter intervals dynamically from the SVG `CALIBRATION-VECTOR` ([DT-UI-SVG-DOC-001 §11](../../DT-UI-SVG-DOC-001.md#11-spatial-metric-calibration)) and active viewport zoom scale.
 
 ---
 
@@ -156,7 +167,7 @@ status: Stable
 ## 5. Interaction Rules and Data Flow
 
 ### 5.1. Spatial Resolution, Proximity Engine, and Layer Rendering
-1. Upon loading the view, the system retrieves the vector layout representing the facility's Functional Locations (ISO 14224 Levels 1 to 4).
+1. Upon loading the view, the system retrieves the vector layout representing the facility's Functional Locations (ISO 14224 Levels 1 to 5).
 2. When the Work Permits layer is active, the system queries all `WorkPermits` in the `APPROVED` lifecycle state.
 3. **Referential Resolution Path:**
    $$\text{WorkPermit} \xrightarrow{\text{EquipmentUnitId}} \text{EquipmentUnit} \xrightarrow{\text{MeshMapping}} \text{SVG Coordinates / Centroid}$$
@@ -167,12 +178,12 @@ status: Stable
      $$D_{AB} = \sqrt{(X_B - X_A)^2 + (Y_B - Y_A)^2}$$
    * **Dynamic Spatial Hazard Buffers (`--dt-z-layer-ptw`):**
      * **HOT_WORK:** $15\text{m}$ physical radius rendered as a semi-transparent circle (`--dt-color-alarm-critical` at $15\%$ opacity).
-     * **CONFINED_SPACE:** $10\text{m}$ physical radius rendered as an amber semi-transparent circle (`--dt-color-alarm-warning` at $15\%$ opacity).
+     * **CONFINED_SPACE:** $13\text{m}$ safe clearance radius rendered as an amber semi-transparent circle (`--dt-color-alarm-warning` at $15\%$ opacity).
      * **Other Types:** Configurable safe operational clearance buffer ($5\text{m}$ default).
    * **Collision Trigger:** When $D_{AB} < R_A + R_B$, a SIMOPS conflict is automatically triggered:
       * Overlapping intersection zone renders a high-contrast pulsing diagonal hatch pattern.
       * Both affected `CMP-05` badges display an animated pulsing conflict halo in `--dt-color-alarm-critical`.
-      * `CMP-02` Toolbar activates a dedicated conflict pill: `[#icon-warning SIMOPS CONFLICT]`. Tapping the pill centers the viewport over the conflict site and opens the conflict detail card.
+      * `CMP-02` Toolbar activates a dedicated conflict pill: `[#icon-warning SIMOPS CONFLICT]`. Tapping the pill centers the viewport over the conflict zone midpoint and surfaces the non-modal SIMOPS conflict alert banner.
       * An operational SIMOPS alert banner slides down non-modally at the top viewport edge: *"SIMOPS ALERT: Co-activity incompatibility between Hot Work (PTW-1042) and Confined Space (PTW-1043) in Tank Farm."*
 5. **Mandatory 4-Channel Redundant Coding Matrix (FR-183, TR-011, WCAG 2.1 AA):**
    * To prevent single-channel color dependency and ensure pre-attentive salience, every `CMP-05` badge encodes its permit classification across four sensory channels (Color + Geometric Shape + Vector Icon + Alphanumeric Label) governed strictly by [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) and canonical permit vocabulary in [DT-DM-DOC-001 §4.34](../../../domain-models/class/DT-DM-DOC-001.md#434-workpermitpermittype).
@@ -194,8 +205,8 @@ status: Stable
    * **Canvas Light-Dismiss:** Tapping or clicking any empty region of the vector canvas (`CMP-01`) immediately dismisses `CMP-07`, enabling effortless one-touch closure without requiring explicit interaction with the close ('X') button.
    * Container toggling operates via **discrete single taps** on dedicated handles governed by `--dt-touch-target-mobile` (per [DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)). Continuous drag gestures are optional and never mandatory.
 5. **Flat List Ergonomics for Visualization Failures:**
-   * To prevent visual crowding and eliminate nested card borders ("Russian doll" effect) within the $340\text{px}$ panel, orphan items are rendered directly on the drawer background surface as flat rows separated by hairline dividers (`--dt-color-border-subtle`).
-   * Each orphan record presents: `Permit Identifier` with a compact `VIS-033` capsule type badge, expiration timestamp, `Expected TagNumber`, Contractor, a decoupled warning issue description on its own line, and a compact top-right icon button (`#icon-location`, `FR-186`) to trigger spatial reassignment.
+   * To prevent visual crowding and eliminate nested card borders ("Russian doll" effect) inside `CMP-07` (layout dimensions in §8), orphan items are rendered directly on the drawer background surface (`--dt-color-surface-drawer`) as flat rows separated by hairline dividers (`--dt-color-border-subtle`).
+   * Each orphan record presents: `Permit Identifier` with a compact 4-channel hazard capsule pill, expiration timestamp, `Expected TagNumber`, Contractor, a decoupled warning issue description on its own line, and a compact top-right icon button (`#icon-location`, `FR-186`) to trigger spatial reassignment.
 6. **Adaptive Toolbar Badge Condensation (`CMP-02`):**
    * In tablet landscape with `CMP-07` deployed, toolbar `CMP-02` condenses the unmapped orphan badge to an icon-only `[#icon-warning 3]` format to prevent toolbar crowding.
    * On desktop workstations, in tablet portrait, and whenever `CMP-07` is closed, the badge displays its full alphanumeric label `[#icon-warning 3 Unmapped]`. Responsive breakpoint mapping is detailed in Section 8.
@@ -209,7 +220,7 @@ status: Stable
 
 ### 5.4. Dual Navigation, Tactile Controllability, and Semantic Zoom Clustering
 1. **Semantic Zoom Clustering (ANSI/ISA-101.01 §6.3.1 / Hollifield Ch. 8):** The viewport supports continuous pan/zoom governed by the canonical Design System tokens ([DT-UI-DS-DOC-001 §2.5](../../DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports)):
-   * **Scale $Z < \text{--dt-zoom-scale-l1-max}$ (Level 1 Plant Overview / COP):** Discrete equipment badges are **completely suppressed**. Functional Locations render consolidated **Zone Cluster Pills** (`CMP-09`) at centroids (e.g., `Zone A: 5 PTWs [#icon-hot-work 1 \| #icon-heights 2 \| #icon-chemical 2]`), preserving the 90/10 grayscale rule and preventing visual clutter (`NFR-190`).
+   * **Scale $Z < \text{--dt-zoom-scale-l1-max}$ (Level 1 Plant Overview / COP):** Discrete equipment badges are **completely suppressed**. Functional Locations render consolidated **Zone Cluster Pills** (`CMP-09`) at centroids (e.g., `[#icon-warning Tank Farm \| 3 PTW]` when conflict-active or `[#icon-hot-work Pump House \| 2 PTW]` in normal state), preserving the 90/10 grayscale rule and preventing visual clutter (`NFR-190`).
    * **Scale $\text{--dt-zoom-scale-l1-max} \le Z < \text{--dt-zoom-scale-l2-max}$ (Level 2 Process Area Layout):** Cluster pills are suppressed and expand into individual **Discrete Equipment Badges** (`CMP-05`) positioned over ISO 14224 Level 6 Equipment Units with dynamic spatial hazard buffers.
    * **Scale $Z \ge \text{--dt-zoom-scale-l2-max}$ (Level 3 Equipment Detail Faceplate):** Micro tactical detail disclosing nozzles, valves, local instrument numbers, and active LOTO lock numbers.
 2. **Dual-Mode Canvas Pan Ergonomics:**
@@ -218,9 +229,9 @@ status: Stable
 3. **Transient Popover Card Dismissal and Viewport Clamping (`CMP-06`):**
    * **Adaptive Viewport Clamping & Collision Flipping:** Dynamically calculates bounding box and flips leftward when colliding with the right viewport margin ($X + W > \text{Viewport}_W - \text{--dt-space-4}$); clamps vertically within safe boundaries ($[\text{--dt-layout-popover-top-clearance}, \text{Viewport}_H - H - \text{--dt-space-4}]$) respecting top toolbar clearance.
    * **Transient Light-Dismiss:** Moving the canvas via pan drag or adjusting zoom immediately dismisses `CMP-06` to maintain unobstructed visual scanning. Ending a pan gesture immediately unblocks input handling so subsequent stationary clicks or taps on equipment badges deploy `CMP-06` without gesture-lock.
-   * **Secondary Action Button Styling:** Features a secondary drill-down button aligned with the `INV-005` standard (`var(--dt-font-family-base)`, $13\text{px}$, font-weight 500, `border: none` in light mode, subtle hairline in dark mode, without trailing chevron) labeled `"View Permit Details"` to initiate Level 3 inspection.
+   * **Secondary Action Trigger:** Features a label-only secondary action button (`[View Permit Details]`, borderless in light theme with subtle hairline framing in dark theme, without trailing chevron, per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons)) to initiate Level 3 inspection (§5.5).
 4. **Horizontal Filter Chips Ergonomics (`CMP-08`):**
-   * Floating bar at screen bottom hosting discrete floating pills with `--dt-shadow-hud` elevation and borderless styling (`border: none`).
+   * Transparent horizontal container anchored at the bottom viewport margin hosting independently floating, borderless filter pills elevated with `--dt-shadow-hud`.
    * Applies hazard-specific tinted fills upon selection (`HOT_WORK`, `CONFINED_SPACE`, etc.) and `--dt-color-surface-raised` for `ALL`, with widened count capsules.
    * Supports direct touch swipe on field tablets.
    * Supports horizontal scrolling on desktop via mouse wheel combined with the `Shift` key (`Shift + Wheel`).
@@ -228,18 +239,16 @@ status: Stable
 6. **Hover vs. Tap Bifurcation:** Desktop pointers display a compact hover tooltip (`FR-189`). Touch devices deploy the persistent `CMP-06` card upon direct tap (`FR-184`), dismissible via tap-away, pan/zoom motion, or close ('X') button.
 
 ### 5.5. Hierarchical Escalation (L1 $\to$ L3 Transition)
-1. Clicking on `'View Permit Details'` within `CMP-06` initiates an operational drill-down, transitioning the inspector directly into the Level 3 Equipment Task Faceplate ([SCR-VIS-033](./SCR-VIS-033.md)) for the target equipment unit.
+1. Clicking on `[View Permit Details]` within `CMP-06` initiates an operational drill-down, transitioning the inspector directly into the Level 3 Equipment Task Faceplate ([SCR-VIS-033](./SCR-VIS-033.md)) for the target equipment unit.
 2. Direct selection of an Equipment Unit on the canvas (outside a PTW badge) seamlessly deploys the [SCR-VIS-033](./SCR-VIS-033.md) contextual drawer without changing screens.
 
 ---
 
 ## 6. Industrial and Safety Considerations
 
-* **90/10 HPHMI Philosophy ([TR-011](../../../requirements/common/TR-011.md)):** The plant layout operates in a neutral grayscale palette (`--dt-color-bg-canvas`). Saturated color is strictly quarantined to active safety permits, orphan alerts, and process anomalies. By clustering badges at $Z < \text{--dt-zoom-scale-l1-max}$, pre-attentive salience for process alarms is strictly maintained. The use of industrial green for normal operation is strictly prohibited.
-* **Redundant Coding for Accessibility (WCAG 2.1 AA):** No hazard or permit class is communicated solely through color. Every `CMP-05` badge combines **Geometric Shape + Vector Icon + Saturated Token + Mandatory Alphanumeric Text** (`HOT WORK`, `HEIGHTS`, `CONFINED`) per [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto).
-* **Level 3 Situation Awareness & Automated Risk Control (Endsley & ISO 45001 §8.1):** Relying on passive human visual scanning to detect SIMOPS interferences fails cognitive projection. Automated buffer calculations ($D_{AB} < R_A + R_B$) enforce systematic OH&S operational controls.
-* **Alarm vs. Diagnostic Segregation (ISA-101):** Signal loss and data staleness are Priority 4 Diagnostics. They are represented with neutral slate styling and muted typography, strictly preventing the use of amber (`--dt-color-alarm-warning`) or red (`--dt-color-alarm-critical`) to avoid distracting operators during actual plant emergencies.
-* **SIMOPS Situational Awareness:** The `CMP-06` popover is dimensionally constrained so that inspecting a Hot Work permit never occludes nearby Confined Space or Height Work badges, preserving peripheral hazard visibility.
+* **Read-Only Supervisory Boundary (ISO 45001 §8.1):** `SCR-VIS-008` operates strictly as a passive spatial supervision and SIMOPS audit interface. It cannot issue equipment start/stop commands, alter process setpoints, or bypass LOTO interlocks ([DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)).
+* **Spatial Integrity Fail-Safe (`AF-001`):** Unmapped permits (`MeshMapping` status `UNMAPPED` or `SYNC_ERROR`) are strictly withheld from arbitrary canvas placement and excluded from mapped spatial filter counts (`CMP-08`) to prevent false spatial confidence during co-activity risk assessment (§5.2).
+* **HPHMI & Accessibility Governance ([TR-011](../../../requirements/common/TR-011.md)):** Visual salience, 4-channel redundant permit coding, semantic zoom decluttering, and Priority 4 diagnostic state segregation adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope), [§6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto), and the interaction mechanics in §4 and §5.
 
 ---
 
@@ -252,14 +261,15 @@ Pages/
 └── GeneralPlantMapPage.razor                 # Root View (SCR-VIS-008)
     ├── PlotPlanCanvas2D.razor                # CMP-01: Macro SVG canvas with pan/zoom
     │   ├── FunctionalZonePolygon.razor       # CMP-04: Functional Location vector polygon
-    │   ├── ZoneClusterPill.razor             # CMP-09: Macro density aggregation pill (Z < 1.15)
-    │   ├── PtwOverlayBadge.razor             # CMP-05: Redundant coding safety badge (Z >= 1.15)
+    │   ├── ZoneClusterPill.razor             # CMP-09: Macro density aggregation pill (Z < --dt-zoom-scale-l1-max)
+    │   ├── PtwOverlayBadge.razor             # CMP-05: Redundant coding safety badge (Z >= --dt-zoom-scale-l1-max)
     │   └── SimopsHazardBuffer.razor          # Dynamic spatial buffer circle & conflict hatch
-    ├── ViewportToolbar.razor                 # CMP-02: Floating navigation & layer bar
+    ├── ViewportToolbar.razor                 # CMP-02: Floating navigation & binary PTW layer bar
     ├── UserProfileButton.razor               # CMP-03: Top-left user profile indicator
     ├── PtwContextPopover.razor               # CMP-06: Compact permit popover card
     ├── SimopsIntegrityDrawer.razor           # CMP-07: Visualization failures side drawer (--dt-layout-drawer-width)
     ├── PtwFilterChips.razor                  # CMP-08: Bottom floating risk filter chips
+    ├── CartographicHud.razor                 # CMP-10: Bottom-left compass & metric scale HUD
     └── StaleCacheBanner.razor                # Diagnostic stale cache banner (AF-002)
 ```
 
@@ -357,10 +367,78 @@ public EventCallback<Guid> OnResolveInconsistencyRequested { get; set; }
 public PermitType? SelectedFilter { get; set; }
 
 [Parameter]
-public required IReadOnlyDictionary<PermitType?, int> PermitCounts { get; set; }
+public int TotalMappedPermitsCount { get; set; }
+
+[Parameter]
+public required IReadOnlyDictionary<PermitType, int> PermitCounts { get; set; }
 
 [Parameter]
 public EventCallback<PermitType?> OnFilterChanged { get; set; }
+
+// CMP-02: ViewportToolbar.razor
+[Parameter]
+public string? SearchQuery { get; set; }
+
+[Parameter]
+public EventCallback<string?> OnSearchQueryChanged { get; set; }
+
+[Parameter]
+public double ZoomScale { get; set; } = 1.0;
+
+[Parameter]
+public bool IsPtwLayerActive { get; set; } = true;
+
+[Parameter]
+public int SimopsConflictCount { get; set; }
+
+[Parameter]
+public int OrphanPermitsCount { get; set; }
+
+[Parameter]
+public bool IsIntegrityDrawerOpen { get; set; }
+
+[Parameter]
+public EventCallback OnZoomInRequested { get; set; }
+
+[Parameter]
+public EventCallback OnZoomOutRequested { get; set; }
+
+[Parameter]
+public EventCallback OnResetViewRequested { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnPtwLayerToggled { get; set; }
+
+[Parameter]
+public EventCallback OnSimopsConflictBadgeClicked { get; set; }
+
+[Parameter]
+public EventCallback OnOrphanBadgeClicked { get; set; }
+
+// CMP-03: UserProfileButton.razor
+[Parameter]
+public required string UserInitials { get; set; }
+
+[Parameter]
+public EventCallback OnProfileMenuRequested { get; set; }
+
+// CMP-04: FunctionalZonePolygon.razor
+[Parameter]
+public required PlantZoneDto Zone { get; set; }
+
+// CMP-10: CartographicHud.razor
+[Parameter]
+public double ZoomScale { get; set; } = 1.0;
+
+[Parameter]
+public double ScaleRatioMetersPerUnit { get; set; } = 0.2;
+
+// Diagnostic Banner: StaleCacheBanner.razor (AF-002)
+[Parameter]
+public bool IsStale { get; set; }
+
+[Parameter]
+public DateTimeOffset? LastSyncTimestamp { get; set; }
 ```
 
 #### 7.2.3. Data Transfer Objects (DTOs)
@@ -410,7 +488,7 @@ public record PtwOverlayDto
     public required WorkPermitStatus Status { get; init; }
     public bool IsExpiringSoon { get; init; }
     public string? AssociatedLotoNumber { get; init; }
-    public double BufferRadiusMeters { get; init; } = 5.0; // 15m Hot Work, 10m Confined Space
+    public double BufferRadiusMeters { get; init; } = 5.0; // 15m HOT_WORK, 13m CONFINED_SPACE, 5m default
     public bool HasSimopsConflict { get; init; }
     public IReadOnlyList<Guid> ConflictingPermitIds { get; init; } = [];
 }
@@ -422,10 +500,8 @@ public record ZoneClusterPillDto
     public required double CentroidX { get; init; }
     public required double CentroidY { get; init; }
     public required int TotalPermitsCount { get; init; }
-    public required int HotWorkCount { get; init; }
-    public required int HeightsCount { get; init; }
-    public required int ConfinedSpaceCount { get; init; }
-    public required int OtherPermitsCount { get; init; }
+    public bool HasSimopsConflict { get; init; }
+    public PermitType? DominantPermitType { get; init; }
 }
 
 public record SimopsConflictDto
@@ -448,7 +524,9 @@ public record OrphanPermitDto
     public required string PermitIdentifier { get; init; }
     public required PermitType Type { get; init; }
     public required string Contractor { get; init; }
+    public required Guid EquipmentUnitId { get; init; }
     public required string ExpectedEquipmentTag { get; init; }
+    public required string DiagnosticMessage { get; init; }
     public required DateTimeOffset ValidTo { get; init; }
 }
 
@@ -484,25 +562,25 @@ public record PlantZoneDto
 
 ## 8. Layout and Responsive Adaptability
 
-### 8.1. Desktop Workstation ($\ge 1920\text{px}$, `--dt-breakpoint-xl`)
+### 8.1. Desktop Workstation (`--dt-breakpoint-xl`)
 * **Layout Organization:** Canvas `CMP-01` occupies full viewport.
-  Floating pill toolbar `CMP-02` displays level badge (`L2: Subsystem`) and full alphanumeric orphan badge (`[#icon-warning 3 Unmapped]`).
-  Filter chips panel `CMP-08` displays uncompressed risk chips (`HOT_WORK`, `CONFINED_SPACE`, etc.) along the bottom viewport edge.
-  Non-modal integrity drawer `CMP-07` docks as lateral right panel (sized by `--dt-layout-drawer-width-desktop`).
+  Floating pill toolbar `CMP-02` displays level badge (`L1: Terminal` / `L2: Subsystem`) and full alphanumeric orphan badge (`[#icon-warning 3 Unmapped]`).
+  Filter chips panel `CMP-08` displays uncompressed risk chips (`HOT_WORK`, `CONFINED_SPACE`, etc.) along the bottom viewport edge, with cartographic HUD `CMP-10` anchored at the bottom-left margin.
+  Non-modal integrity drawer `CMP-07` docks as a lateral right panel sized by `--dt-layout-drawer-width-desktop`.
 * **Ergonomic Rules:** Mouse wheel focal zoom; middle-click canvas pan; cursor tooltips enabled on hover; popover cards `CMP-06` clamp within viewport bounds; tapping empty canvas dismisses `CMP-07`.
 
-### 8.2. Industrial Tablet Landscape ($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$)
-* **Layout Organization:** Canvas `CMP-01` full screen.
+### 8.2. Industrial Tablet Landscape (`--dt-breakpoint-lg`)
+* **Layout Organization:** Canvas `CMP-01` occupies full viewport.
   Toolbar `CMP-02` applies adaptive badge condensation when `CMP-07` is deployed (`[#icon-warning 3]`).
-  Filter chips panel `CMP-08` enables horizontal touch swipe.
-  Integrity drawer `CMP-07` slides over right flank (sized by `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 75\%$ canvas visibility).
-* **Ergonomic Rules:** Touch pan threshold ($4\text{px}$); touch targets comply with `--dt-touch-target-mobile`; hover tooltips disabled, direct tap opens popover card; tapping empty canvas dismisses `CMP-07`.
+  Filter chips panel `CMP-08` enables horizontal touch swipe, with cartographic HUD `CMP-10` anchored at bottom-left.
+  Integrity drawer `CMP-07` slides over the right flank sized by `--dt-layout-drawer-width-tablet`, preserving $\ge 70\%$ canvas visibility per [DT-UI-DS-DOC-001 §2.4](../../DT-UI-DS-DOC-001.md#24-structural-layout-and-dimensional-tokens).
+* **Ergonomic Rules:** Touch pan dead-zone threshold (§5.4); interactive touch targets governed by `--dt-touch-target-mobile`; hover tooltips disabled, direct tap opens popover card; tapping empty canvas dismisses `CMP-07`.
 
-### 8.3. Industrial Tablet Portrait ($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$)
-* **Layout Organization:** Canvas `CMP-01` full screen.
-  Toolbar `CMP-02` wraps to compact icon-only controls.
-  Integrity drawer `CMP-07` operates as a bottom sheet with tactile drag handle nested inside the drawer header container (natural initial height: `--dt-layout-bottom-sheet-height-initial`).
-* **Ergonomic Rules:** Single-finger drag pan; pinch-to-zoom; bottom-sheet snap mechanics; floating HUD elements dock to lower corners; tapping empty canvas dismisses `CMP-07`.
+### 8.3. Industrial Tablet Portrait (`--dt-breakpoint-md`)
+* **Layout Organization:** Canvas `CMP-01` occupies full viewport.
+  Toolbar `CMP-02` retains the inline search bar and stacks the alert strip directly below the main toolbar capsule, displaying the uncompressed orphan badge (`[#icon-warning 3 Unmapped]`) per §5.2.
+  Integrity drawer `CMP-07` operates as a bottom sheet with its tactile drag handle nested inside the drawer header container (initial resting height governed by `--dt-layout-bottom-sheet-height-initial`, expanding up to `--dt-layout-bottom-sheet-height-expanded`).
+* **Ergonomic Rules:** Single-finger drag pan; pinch-to-zoom; discrete tap switching on `--dt-touch-target-mobile` handle ([DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)); floating HUD chrome (`CMP-10` bottom-left, `CMP-08` bottom-center) docks to bottom viewport margins; tapping empty canvas dismisses `CMP-07`.
 
 ---
 
@@ -521,8 +599,10 @@ public record PlantZoneDto
 | [NFR-190](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | SVG rendering maintains $\ge 30\text{ FPS}$ on mobile/tablets and $\ge 60\text{ FPS}$ on desktop during pan/zoom with up to 100 icons. |
 | [NFR-191](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-07` | Orphan detection integrity check completes in $< 5\text{s}$ for up to 100 active permits. |
 | [NFR-192](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-05` | Permit status updates reflect on the canvas within $< 5\text{s}$ from backend event publication. |
-| [NFR-193](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-05`, `CMP-06` | Visual coding complies with WCAG 2.1 AA redundant coding for color blindness with permanent visual legend. |
-| [NFR-194](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | Displays last known state with a clear visual diagnostic banner if permit service is offline, without blocking navigation. |
-| [NFR-195](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | 2D vector fallback rendering ensures full functionality on hardware lacking WebGL 3D acceleration. |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-02`, `CMP-03`, `CMP-07`, `CMP-08` | Tactile touch targets governed by `--dt-touch-target-mobile` for industrial field gloved operation. |
-| [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-05` | High-Performance HMI (ANSI/ISA-101): Grayscale canvas, reserving color strictly for alarms and active permit types. |
+| [NFR-193](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-05`, `CMP-06`, `CMP-08` | Visual coding complies with WCAG 2.1 AA 4-channel redundant coding ([DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto)), with `CMP-08` serving as a permanent visual legend. |
+| [NFR-194](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | Displays last known state with a Priority 4 diagnostic banner (`StaleCacheBanner`) if the permit stream is offline, without blocking navigation. |
+| [NFR-195](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | 2D vector rendering guarantees full spatial supervision on hardware lacking WebGL 3D acceleration. |
+| [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-05` | All initial REST queries and real-time permit synchronization streams execute over encrypted TLS/HTTPS and WSS transport channels. |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-06`, `CMP-07` | RBAC enforcement restricts permit layer inspection, orphan resolution, and L3 escalation to authorized roles (`HSEQ Inspector`, `Maintenance Supervisor`). |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-05`, `CMP-09` | Persistent real-time event subscription updates permit badges and cluster counts with $<1\text{s}$ publication latency and graceful polling fallback. |
+| [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-05`, `CMP-09`, `CMP-10` | High-Performance HMI (ANSI/ISA-101): Neutral grayscale canvas (`--dt-color-bg-canvas`), reserving saturated tokens strictly for active permits and alarms. |

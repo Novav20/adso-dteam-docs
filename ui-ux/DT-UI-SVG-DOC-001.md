@@ -162,7 +162,7 @@ Every maintainable, addressable, or interactive plant entity MUST decouple its p
 * `data-cmp-id`: Standardized component archetype classification.
 * `data-func-loc`: Canonical ISO 14224 Functional Location code.
 * `data-equip-id`: Unique physical asset identifier in EAM Master Catalog.
-* `data-tag`: Alphanumeric functional tag number matching `SCR-VIS-008 §7.3.3` and `SCR-VIS-033 §7.3.3`.
+* `data-tag`: Alphanumeric functional tag number matching `SCR-VIS-008` §7.3 and `SCR-VIS-033` §7.3.
 
 ### Component Archetypes (`data-cmp-id`)
 The ingestion engine validates vector entities against standardized APM/EAM component classes:
@@ -252,7 +252,7 @@ Field instrumentation nodes in layer `L-INSP-INST` represent real-time SCADA/DCS
 *Rules:*
 1. **Loop Decoupling:** General BPCS transmitters use standard circular bubbles ($\varnothing 9.2$). Safety-Critical SIS loops (e.g., API 2350 overfill switches `LSHH`, hazardous gas detectors `AIT`) MUST enclose the bubble within a bounding square.
 2. **Impulse Lead Lines (`L-INSP-LEADS`):** Instruments mounted on stanchions off equipment skids MUST carry fine dashed lead lines (`stroke-dasharray="3 2"`, width `0.7px`) linking the process physical tap point to the instrument bubble centroid.
-3. **Telemetry Boundary:** Process variable units, live engineering readings, and trip setpoints reside strictly within the C# telemetry DTO contracts (`SCR-VIS-033 §7.2.5`); embedding transient telemetry values in SVG DOM attributes is strictly prohibited.
+3. **Telemetry Boundary:** Process variable units, live engineering readings, and trip setpoints reside strictly within the C# telemetry DTO contracts (`SCR-VIS-033` §7.2.3); embedding transient telemetry values in SVG DOM attributes is strictly prohibited.
 4. **Client-Driven Criticality Governance:** The ingestion engine and rendering pipeline MUST NEVER unilaterally omit, censor, or designate an instrument as non-critical. Criticality and life-safety priority are strictly data-driven and authoritatively defined by the plant operator's EAM Master Catalog and process safety studies (e.g., HAZOP, LOPA, SIL assignment) via `is_safety_critical` or LOTO Zero-Energy verification bindings. Safety-critical loops receive mandatory pre-attentive SIS symbology (bounding square enclosure) per ANSI/ISA-5.1. General process instruments follow standard BPCS symbology and are progressively disclosed via `.dt-zoom-l2` and `.dt-zoom-l3` tiers without saturating Level 1 macro supervision.
 
 ---

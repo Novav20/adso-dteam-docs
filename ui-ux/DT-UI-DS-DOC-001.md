@@ -240,7 +240,7 @@ To comply with the High-Performance HMI (ANSI/ISA-101.01 / Hollifield) philosoph
 ### 5.2. Elevation Shadows
 | Token | Light Theme Value | Dark Theme Value | Component Application |
 | :------------------ | :------------------------------------------------------------------ | :------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------- |
-| `--dt-shadow-hud`   | `0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.08)`     | `0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35)`    | Floating top toolbar (`CMP-02`), user profile button (`CMP-11`), compass and scale HUD (`CMP-01`). |
+| `--dt-shadow-hud`   | `0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.08)`     | `0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35)`    | Floating top toolbar (`ViewportToolbar`), user profile button (`UserProfileButton`), compass and scale HUD (`CartographicHud`). |
 | `--dt-shadow-panel` | `-2px 0 8px rgba(0, 0, 0, 0.12), -1px 0 2px rgba(0, 0, 0, 0.06)`  | `-3px 0 10px rgba(0, 0, 0, 0.50), -1px 0 3px rgba(0, 0, 0, 0.30)` | Docked lateral inspection faceplate (`CMP-05`) separating cleanly from canvas without border lines. |
 
 ### 5.3. Border Radii
@@ -317,6 +317,7 @@ To avoid direct coupling of hexadecimal codes and ensure compatibility between t
 | **Cold Work Permit**   | --dt-color-state-info     | Hexagon ( $20\times20\text{px}$ )   | Wrench ( `#icon-cold-work` ) | COLD WORK           |
 | **Confined Space**      | --dt-color-alarm-warning  | Circle ( $\varnothing 20\text{px}$ ) | Silhouette / Tank ( `#icon-confined-space` ) | CONFINED            |
 | **Chemical Permit**    | --dt-color-alarm-warning  | Rhombus ( $20\times20\text{px}$ )   | Flask ( `#icon-chemical` ) | CHEMICAL            |
+| **Excavation Permit**  | --dt-color-alarm-warning  | Triangle ( $20\times18\text{px}$ )  | Warning / Trench ( `#icon-warning` ) | EXCAVATION          |
 | **LOTO Point Locked (Safe)**     | --dt-color-state-success  | Closed padlock                       | Padlock ( `#icon-loto-locked` ) | ISOLATED - 0 ENERGY |
 | **LOTO Point Energized (Danger)**   | --dt-color-alarm-critical | Open padlock with halo              | Lightning / Alert ( `#icon-loto-energized` ) | DANGER - ENERGIZED  |
 | **Telemetry Loss (Fail-Safe)** | --dt-color-alarm-warning  | Rhombus                                 | Disconnection ( `#icon-wifi-off` / `#icon-signal-lost` ) | SIGNAL LOST - STALE |
