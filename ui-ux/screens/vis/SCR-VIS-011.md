@@ -48,10 +48,10 @@ status: Stable
 | ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
 | :--- | :--- | :--- | :--- | :--- |
 | `CMP-01` | Canvas Viewport 2D & LOTO Layer | Spatial SVG canvas with LOTO overlay | Surface: `--dt-color-bg-canvas`<br>Elevation: `--dt-z-canvas` | Renders the 2D plot plan with dynamic LOTO vector overlays tracing energy paths to target Equipment Unit (`data-equip-id`). Employs Focal Island De-emphasis to dim non-isolated plant sectors. Spatial kinematics, focal zoom, and clamping specified in §5.1 and §5.2. |
-| `CMP-02` | Viewport Toolbar | Contextual LOTO toolbar | Surface: `--dt-color-surface-card`<br>Radius: `--dt-radius-full` | Floating pill toolbar centered over viewport. Hosts level badge (`L4: LOTO MATRIX`), zoom controls (+ / − / 1:1), and dynamic safety status badge. Shared structure with [SCR-VIS-008](./SCR-VIS-008.md) and [SCR-VIS-033](./SCR-VIS-033.md). Details in §4 and §5.2. |
-| `CMP-03` | User Profile Button | Active user session indicator | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-panel`<br>Radius: `--dt-radius-full` | Circular floating button anchored at top-left margin per layout grid. Displays technician initials. Touch target complies with `--dt-touch-target-mobile`. Detailed in §5.2. |
+| `CMP-02` | Viewport Toolbar | Contextual LOTO toolbar | Surface: `--dt-color-surface-card`<br>Shadow: `--dt-shadow-hud`<br>Radius: `--dt-radius-full` | Floating pill toolbar centered over viewport. Elevated via `--dt-shadow-hud` (borderless). Hosts level badge (`L4: LOTO MATRIX`), zoom controls (+ / − / 1:1), and dynamic safety status badge. Shared structure with [SCR-VIS-008](./SCR-VIS-008.md) and [SCR-VIS-033](./SCR-VIS-033.md). Details in §4 and §5.2. |
+| `CMP-03` | User Profile Button | Active user session indicator | Surface: `--dt-color-surface-raised`<br>Border: `--dt-color-border-panel`<br>Shadow: `--dt-shadow-hud`<br>Radius: `--dt-radius-full` | Circular floating button anchored at top-left margin per layout grid. Elevated via `--dt-shadow-hud`. Displays technician initials. Touch target complies with `--dt-touch-target-mobile`. Detailed in §5.2. |
 | `CMP-04` | Isolation Cutoff Nodes | Cutoff points on SVG canvas | Border: `--dt-color-border-subtle`<br>Elevation: `--dt-z-layer-loto` | Vector hotspots over physical cutoff points (breakers, valves, blinds, bleeds). Applies 4-channel redundant coding (`#icon-loto-locked` vs `#icon-loto-energized`). Touch disambiguation in §5.2; cross-selection behavior in §5.3. |
-| `CMP-05` | LOTO Isolation Drawer | Contextual safety panel | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel` | Adaptable contextual container (lateral drawer in landscape/desktop; bottom sheet in portrait). Hosts Equipment Unit header, Work Order reference, SOP documentation link, PPE requirements, and subcomponents `CMP-06` through `CMP-10`. Lifecycle, snap physics, and layout rules in §5.2 and §8. |
+| `CMP-05` | LOTO Isolation Drawer | Contextual safety panel | Surface: `--dt-color-surface-drawer`<br>Border: `--dt-color-border-panel`<br>Shadow: `--dt-shadow-panel` | Adaptable contextual container (lateral drawer in landscape/desktop with `--dt-shadow-panel`; bottom sheet in portrait). Hosts Equipment Unit header, Work Order reference, SOP documentation link, PPE requirements, and subcomponents `CMP-06` through `CMP-10`. Lifecycle, snap physics, and layout rules in §5.2 and §8. |
 | `CMP-06` | Sequential Isolation Checklist | Physical lockout step-by-step list | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle` | Ordered list of physical isolation actions. Enforces sequential padlock Tag ID validation and technician sign-off. Validation rules in §5.3. |
 | `CMP-07` | Telemetry Verification Matrix | Real-time multi-sensor MAI scale bars | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-subtle`<br>Track: `--dt-color-mai-track`<br>Zone: `--dt-color-mai-normal-zone`<br>Pointer: `--dt-color-mai-pointer`<br>Interlock: `--dt-color-mai-interlock` | Moving Analog Indicators (MAI) contextualizing continuous process variables ($V, I, P, Q$) against calibrated scale bars with zero-energy trip thresholds. Mathematical mapping and threshold rules in §5.3.2; traceability in §9. |
 | `CMP-08` | Physical Try-Out Verification Card | Absence-of-energy test card | Surface: `--dt-color-surface-base`<br>Border: `--dt-color-border-focus` | Card mandating physical absence-of-energy test (OSHA 1910.147 §(d)(6)). Hosts verification method selector, observed physical reading input, technician digital signature hash (`TechnicianSignatureHash`), and telemetry snapshot persistence. Detailed in §5.3 and §7.2. |
@@ -64,19 +64,49 @@ status: Stable
 
 ## 4. Screen State Matrix
 
-| State | Visual Modification in the Interface | Activation Condition |
-| :--- | :--- | :--- |
-| **Normal / Energized (Default Baseline)** | Energy routes render solid red (`--dt-color-alarm-critical`). Cutoff nodes show `#icon-loto-energized`. Checklist shows pending steps. `CMP-09` is hard-disabled via safety interlock. Status badge in `CMP-02` displays `[⚡ HAZARDOUS ENERGY DETECTED]`. | Initial opening of LOTO mode for a scheduled Work Order prior to field cutoff. |
-| **Loading** | Canvas vector overlays and drawer content display animated skeleton shimmer (`--dt-color-surface-raised`). Telemetry MAIs render neutral placeholder tracks without pointers. Action controls disabled. | Initial view load, asynchronous SVG layer parsing, or SignalR/WebSocket connection handshake in progress. |
-| **Selected** | Selected cutoff node in `CMP-04` renders high-contrast focus ring (`--dt-color-border-focus`). Corresponding checklist item in `CMP-06` and MAI card in `CMP-07` smoothly scroll into view with elevated background (`--dt-color-surface-raised`). | Technician taps/clicks a cutoff node on the canvas or selects an item in the checklist. |
-| **Field Cutoff in Progress** | Energy routes transition to amber dashed as cutoffs are registered. Checklist items show confirmed padlocks with Teal checkmarks (`--dt-color-state-success`). Telemetry MAIs show pointers moving toward zero-energy zone. `CMP-09` remains hard-disabled. | Technician applies physical padlocks and enters Tag IDs sequentially in `CMP-06`. |
-| **Active Energy Detected (AF-001)** | High-contrast critical alert banner deployed across drawer header (`--dt-color-alarm-critical`). Offending cutoff node pulses with an animated red highlight halo (`--dt-color-alarm-critical`). Interlock marker on MAI scale bar highlights critical red (`--dt-color-mai-interlock`). `CMP-09` remains hard-disabled. | Telemetry reports energy above safe threshold ($V > 0\text{V}$ or $P > 0.5\text{psig}$) after cutoff attempt or backfeed (`AF-001`, `FR-232`). |
-| **Zero Energy Verified (Pre-Start)** | All cutoff nodes show `#icon-loto-locked` in Teal (`--dt-color-state-success`). Energy boundary lines render in neutral slate dashed (`--dt-color-border-subtle`). MAI pointers rest in normal zero-energy zone ($0\text{V}$, $0\text{psig}$). Status badge in `CMP-02` displays `[🔒 TELEMETRY CORROBORATES ZERO STATE (PHYSICAL TRY-OUT REQUIRED)]`. Try-Out card `CMP-08` becomes actionable with focus border (`--dt-color-border-focus`). `CMP-09` remains disabled. | Telemetry confirms all points below threshold ($0\text{V}$, $0\text{psig}$) AND all checklist padlocks are validated. |
-| **Ready to Execute (Unlocked)** | `CMP-09` `[Start Work]` unlocks with solid Teal background (`--dt-color-state-success`) and active elevation. Status badge in `CMP-02` transitions to `[🔒 ZERO ENERGY VERIFIED (READY TO START)]`. | Zero Energy corroborated by telemetry + Checklist 100% complete + Physical Try-Out attested and cryptographically signed (`FR-230`). |
-| **Work Order In Progress** | Header status badge reflects active execution (`IN_PROGRESS`). Primary button `CMP-09` transitions to `[Complete Work & De-isolate]` (`--dt-color-surface-raised`). Boundary route stays locked in slate dashed. | Technician activates `[Start Work]`. |
-| **Re-energization Emergency (AF-003)** | Full-screen non-interactive passive evacuation warning deployed via `CMP-12`. Touchscreen input completely locked out (zero buttons/dismissals to eliminate cognitive friction under acute threat per ISO 11064-5). Display flashes high-contrast diagonal red/black hazard stripes (`--dt-color-alarm-critical` at $2\text{Hz}$) with large-format imperative message: "⚡ DANGER: HAZARDOUS ENERGY BREACH — EVACUATE AREA IMMEDIATELY". Emits pulsed high-urgency audio sweep via IEvacuationAudioInterop at maximum device volume. Serves as local supplementary warning alongside certified plant sirens. Status badge changes to `[⚡ CRITICAL EVACUATION]`. Offending node and energy path flash critical red. | Backend telemetry processing detects hazardous energy flow ($V > 0\text{V}$ or $P > 0.5\text{psig}$) during active execution and broadcasts emergency alert (`FR-232`, `AF-003`). |
-| **Disconnectivity / Fail-Safe (AF-002)** | Diagnostic banner `CMP-11` deployed at top of drawer (`--dt-color-surface-raised`, `--dt-color-text-muted`). If lease is valid: displays offline mode badge with countdown expiration timer. If lease is expired/missing: `CMP-09` renders locked glyph with fail-safe lockout notification. | Telemetry communication lost prior to work start (`ADR-006`, `NFR-238`). |
-| **Unmapped / Offline (Geometry Unresolved)** | Cutoff node on canvas displays neutral unmapped diagnostic pin glyph (`--dt-color-text-muted`). Drawer item shows informational fallback pill `[Coordinates Pending CAD Ingestion]`. Spatial pan-to-node disabled for unmapped point. | Cutoff point defined in work order isolation plan lacks valid coordinate mapping in spatial metadata repository (`MeshMapping`). |
+### 4.1. Normal / Energized (Default Baseline)
+* **Activation Condition:** Initial opening of LOTO mode for a scheduled Work Order prior to field cutoff.
+* **Visual Modification:** Energy routes render solid red (`--dt-color-alarm-critical`). Cutoff nodes show `#icon-loto-energized`. Sequential checklist `CMP-06` shows pending steps. Primary action control `CMP-09` is hard-disabled via active safety interlock. Status badge in Viewport Toolbar `CMP-02` displays `[⚡ HAZARDOUS ENERGY DETECTED]`.
+
+### 4.2. Loading
+* **Activation Condition:** Initial view load, asynchronous SVG layer parsing, or SignalR duplex WebSocket connection handshake in progress.
+* **Visual Modification:** Canvas vector overlays and drawer content display animated skeleton shimmer (`--dt-color-surface-raised`). Telemetry MAIs render neutral placeholder tracks without pointers. Action controls remain disabled throughout load progression.
+
+### 4.3. Selected Cutoff Node
+* **Activation Condition:** Technician taps or clicks a cutoff node on the canvas or selects an item in the checklist.
+* **Visual Modification:** Selected cutoff node in `CMP-04` renders high-contrast focus ring (`--dt-color-border-focus`). Corresponding checklist item in `CMP-06` and MAI card in `CMP-07` smoothly scroll into view with elevated background (`--dt-color-surface-raised`).
+
+### 4.4. Field Cutoff in Progress
+* **Activation Condition:** Technician applies physical padlocks and enters Tag IDs sequentially in `CMP-06`.
+* **Visual Modification:** Energy routes transition to amber dashed as cutoffs are registered. Checklist items show confirmed padlocks with Teal checkmarks (`--dt-color-state-success`). Telemetry MAIs show pointers moving toward zero-energy zone. Primary action control `CMP-09` remains hard-disabled.
+
+### 4.5. Active Energy Detected (AF-001)
+* **Activation Condition:** Telemetry reports energy above safe threshold ($V > 0\text{V}$ or $P > 0.5\text{psig}$) after cutoff attempt or backfeed (`AF-001`, `FR-232`).
+* **Visual Modification:** High-contrast critical alert banner deployed across drawer header container (`--dt-color-alarm-critical`). Offending cutoff node pulses with an animated red highlight halo (`--dt-color-alarm-critical`). Interlock marker on MAI scale bar highlights critical red (`--dt-color-mai-interlock`). Primary action control `CMP-09` remains hard-disabled.
+
+### 4.6. Zero Energy Verified (Pre-Start)
+* **Activation Condition:** Telemetry confirms all points below threshold ($0\text{V}$, $0\text{psig}$) AND all checklist padlocks are validated.
+* **Visual Modification:** All cutoff nodes show `#icon-loto-locked` in Teal (`--dt-color-state-success`). Energy boundary lines render in neutral slate dashed (`--dt-color-border-subtle`). MAI pointers rest in normal zero-energy zone ($0\text{V}$, $0\text{psig}$). Status badge in Viewport Toolbar `CMP-02` displays `[🔒 TELEMETRY CORROBORATES ZERO STATE (PHYSICAL TRY-OUT REQUIRED)]`. Try-Out card `CMP-08` becomes actionable with focus border (`--dt-color-border-focus`). Primary action control `CMP-09` remains disabled.
+
+### 4.7. Ready to Execute (Unlocked)
+* **Activation Condition:** Zero Energy corroborated by telemetry + Checklist 100% complete + Physical Try-Out attested and cryptographically signed (`FR-230`).
+* **Visual Modification:** Primary action control `CMP-09` `[Start Work]` unlocks with solid Teal background (`--dt-color-state-success`) and active elevation. Status badge in Viewport Toolbar `CMP-02` transitions to `[🔒 ZERO ENERGY VERIFIED (READY TO START)]`.
+
+### 4.8. Work Order In Progress
+* **Activation Condition:** Technician activates `[Start Work]`.
+* **Visual Modification:** Header status badge reflects active execution (`IN_PROGRESS`). Primary action button `CMP-09` transitions to `[Complete Work & De-isolate]` (`--dt-color-surface-raised`). Boundary route stays locked in slate dashed.
+
+### 4.9. Re-energization Emergency (AF-003)
+* **Activation Condition:** Backend telemetry processing detects hazardous energy flow ($V > 0\text{V}$ or $P > 0.5\text{psig}$) during active execution and broadcasts emergency alert (`FR-232`, `AF-003`).
+* **Visual Modification:** Full-screen non-interactive passive evacuation warning deployed via `CMP-12`. Touchscreen input completely locked out (zero buttons or dismissals to eliminate cognitive friction under acute threat per ISO 11064-5). Display flashes high-contrast diagonal red/black hazard stripes (`--dt-color-alarm-critical` at $2\text{Hz}$) with large-format imperative message: "⚡ DANGER: HAZARDOUS ENERGY BREACH — EVACUATE AREA IMMEDIATELY". Emits pulsed high-urgency audio sweep via `IEvacuationAudioInterop` at maximum device volume. Serves as local supplementary warning alongside certified plant sirens. Status badge changes to `[⚡ CRITICAL EVACUATION]`. Offending cutoff node and energy path flash critical red.
+
+### 4.10. Disconnectivity / Fail-Safe (AF-002)
+* **Activation Condition:** Telemetry communication lost prior to work start (`ADR-006`, `NFR-238`).
+* **Visual Modification:** Diagnostic banner `CMP-11` deployed at top of drawer (`--dt-color-surface-raised`, `--dt-color-text-muted`). If lease is valid: displays offline mode badge with countdown expiration timer. If lease is expired or missing: `CMP-09` renders locked glyph with fail-safe lockout notification.
+
+### 4.11. Unmapped / Offline (Geometry Unresolved)
+* **Activation Condition:** Cutoff point defined in work order isolation plan lacks valid coordinate mapping in spatial metadata repository (`MeshMapping`).
+* **Visual Modification:** Cutoff node on canvas displays neutral unmapped diagnostic pin glyph (`--dt-color-text-muted`). Drawer item shows informational fallback pill `[Coordinates Pending CAD Ingestion]`. Spatial pan-to-node disabled for unmapped point.
 
 ---
 
@@ -432,11 +462,17 @@ public enum PhysicalVerificationMethod
 
 ## 8. Layout and Responsive Adaptability
 
-| Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
-| :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Canvas `CMP-01` occupies full left workspace; LOTO Drawer `CMP-05` docks as fixed lateral panel (sized by `--dt-layout-drawer-width-desktop`, $100\text{vh}$) on right flank. | Mouse wheel focal zoom; middle-click pan; dual-column checklist and telemetry matrix. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$) | Canvas `CMP-01` occupies left workspace; LOTO Drawer `CMP-05` docks as lateral panel (sized by `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 75\%$ canvas visibility). Viewport toolbar `CMP-02` auto-centers over viewable canvas. | Touch pan threshold ($4\text{px}$); gloved touch targets comply with $\ge 48\times 48\text{px}$ (`--dt-touch-target-mobile`); drawer minimizes to peek tab (`--dt-layout-bottom-sheet-peek-height`). |
-| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$) | Canvas `CMP-01` occupies full width; LOTO Drawer `CMP-05` operates as **Bottom Sheet** docked at bottom, initializing at natural content height (`--dt-layout-bottom-sheet-height-initial`), expandable via drag handle to maximum ceiling (`--dt-layout-bottom-sheet-height-expanded`). | Drag handle gesture support with hysteresis; mandatory discrete tap toggling between resting and expanded heights; sticky `[Start Work]` footer button always visible above viewport edge. |
+### 8.1. Desktop Workstation ($\ge 1920\text{px}$, `--dt-breakpoint-xl`)
+* **Layout Organization:** Canvas `CMP-01` occupies full left workspace; LOTO Drawer `CMP-05` docks as fixed lateral panel (sized by `--dt-layout-drawer-width-desktop`, $100\text{vh}$) on right flank.
+* **Ergonomic Rules:** Mouse wheel focal zoom; continuous middle-click pan; dual-column presentation for sequential checklist and telemetry verification matrix.
+
+### 8.2. Industrial Tablet Landscape ($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$)
+* **Layout Organization:** Canvas `CMP-01` occupies left workspace; LOTO Drawer `CMP-05` docks as lateral panel (sized by `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 75\%$ canvas visibility). Viewport toolbar `CMP-02` auto-centers over viewable canvas.
+* **Ergonomic Rules:** Touch pan threshold ($4\text{px}$); gloved touch targets comply with `--dt-touch-target-mobile`; drawer minimizes to peek tab (`--dt-layout-bottom-sheet-peek-height`).
+
+### 8.3. Industrial Tablet Portrait ($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$)
+* **Layout Organization:** Canvas `CMP-01` occupies full width; LOTO Drawer `CMP-05` operates as **Bottom Sheet** docked at bottom, initializing at natural content height (`--dt-layout-bottom-sheet-height-initial`), expandable via drag handle to maximum ceiling (`--dt-layout-bottom-sheet-height-expanded`).
+* **Ergonomic Rules:** Drag handle gesture support with hysteresis; mandatory discrete tap toggling between resting and expanded heights; sticky `[Start Work]` footer button always visible above viewport edge.
 
 ---
 

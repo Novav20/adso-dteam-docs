@@ -47,7 +47,7 @@ CANONICAL_SECTIONS: list[tuple[int, str, str]] = [
     (1, r"^##\s+1\.\s+Purpose and Operational Context", "## 1. Purpose and Operational Context"),
     (2, r"^##\s+2\.\s+Visual Artifact", "## 2. Visual Artifact"),
     (3, r"^##\s+3\.\s+Functional Component Inventory", "## 3. Functional Component Inventory"),
-    (4, r"^##\s+4\.\s+Screen State Matrix", "## 4. Screen State Matrix"),
+    (4, r"^##\s+4\.\s+Screen State(?:s|\s+(?:Matrix|Catalog|Inventory))", "## 4. Screen State Catalog"),
     (5, r"^##\s+5\.\s+Interaction Rules and Data Flow", "## 5. Interaction Rules and Data Flow"),
     (6, r"^##\s+6\.\s+Industrial and Safety Considerations", "## 6. Industrial and Safety Considerations"),
     (7, r"^##\s+7\.\s+Frontend Component Contract", "## 7. Frontend Component Contract (Blazor / Razor)"),
@@ -183,6 +183,8 @@ CSS_LEAK_PATTERNS: list[tuple[str, str, str]] = [
      "Raw CSS property declaration '{match}' leaked into specification prose. Use Design System tokens or functional descriptions."),
     (r"\bweights?\s*\(`?[4-7]00`?\s*[-–]\s*`?[4-7]00`?\)", "CSS-006",
      "Raw numeric font-weight range '{match}' leaked into specification prose. Use composite typography tokens (--dt-font-*)."),
+    (r"\b(?:filter\s*:\s*drop-shadow|rx\s*=\s*[\"']?\d+|ry\s*=\s*[\"']?\d+)\b", "CSS-002",
+     "Raw SVG attribute or filter declaration '{match}' leaked into specification prose. Use Design System elevation and radius tokens."),
 ]
 
 # Prohibited browser / runtime globals
@@ -464,6 +466,62 @@ def audit_structure(content: str) -> list[Finding]:
                 message=f"Section {current_num} (line {section_positions[current_num]}) appears after Section {next_num} (line {section_positions[next_num]}). Sections must be strictly ordered 1 through 9.",
                 line=section_positions[current_num]
             ))
+
+    # Check §4 state structure if §4 exists and uses list format
+    if 4 in section_positions:
+        sec4_start = section_positions[4]
+        sec5_start = section_positions.get(5, len(lines))
+        sec4_lines = lines[sec4_start : sec5_start - 1]
+
+        current_state_title = None
+        current_state_line = 0
+        has_activation = False
+        has_visual = False
+
+        for offset, l in enumerate(sec4_lines):
+            l_idx = sec4_start + offset + 1
+            m_state = re.match(r"^\s*\d+\.\s+\*\*([^*]+)\*\*", l.strip())
+            if m_state:
+                if current_state_title:
+                    if not has_activation:
+                        findings.append(Finding(
+                            severity="BLOCKER",
+                            code="STR-007",
+                            message=f"Screen state '{current_state_title}' in §4 lacks mandatory '**Activation Condition:**' specification.",
+                            line=current_state_line
+                        ))
+                    if not has_visual:
+                        findings.append(Finding(
+                            severity="BLOCKER",
+                            code="STR-007",
+                            message=f"Screen state '{current_state_title}' in §4 lacks mandatory '**Visual Modification:**' specification.",
+                            line=current_state_line
+                        ))
+                current_state_title = m_state.group(1).strip()
+                current_state_line = l_idx
+                has_activation = False
+                has_visual = False
+            elif current_state_title:
+                if re.search(r"\bActivation Condition\b", l, re.IGNORECASE):
+                    has_activation = True
+                if re.search(r"\bVisual Modification\b", l, re.IGNORECASE):
+                    has_visual = True
+
+        if current_state_title:
+            if not has_activation:
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="STR-007",
+                    message=f"Screen state '{current_state_title}' in §4 lacks mandatory '**Activation Condition:**' specification.",
+                    line=current_state_line
+                ))
+            if not has_visual:
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="STR-007",
+                    message=f"Screen state '{current_state_title}' in §4 lacks mandatory '**Visual Modification:**' specification.",
+                    line=current_state_line
+                ))
 
     # Check §7 subsections if §7 exists
     if 7 in section_positions:
@@ -770,10 +828,18 @@ def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
         r"(--dt-[a-z0-9-]+)[,\s:\(=-]+(?:\$|\\\$)*(\d+(?:\.\d+)?(?:px|rem|em|pt|\\text\{px\}|\\text\{rem\}))(?:\$|\\\$|\})*",
         re.IGNORECASE
     )
+    reverse_shadowing_pattern = re.compile(
+        r"(?:\$|\\\$)*(\d+(?:\s*(?:[x×]|\\times)\s*\d+)?(?:\.\d+)?(?:px|rem|em|pt|\\text\{px\}|\\text\{rem\}))(?:\$|\\\$|\})*[\s:\(=-]+(`?--dt-[a-z0-9-]+`?)",
+        re.IGNORECASE
+    )
 
     in_sec3 = False
     in_code_block = False
     in_frontmatter = False
+    current_sec3_cmp = None
+    current_sec3_cmp_line = 0
+    current_sec3_has_tokens = False
+    in_sec3_token_block = False
     for idx, line in enumerate(lines, start=1):
         stripped = line.strip()
         if idx == 1 and stripped == "---":
@@ -797,6 +863,15 @@ def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
             in_sec3 = True
             continue
         elif line.startswith("## "):
+            if in_sec3 and current_sec3_cmp and not current_sec3_has_tokens:
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="TOK-002",
+                    message=f"Section 3 component '{current_sec3_cmp}' lacks explicit Design System token in Design Tokens definition. Prohibit placeholder text; bind directly to '--dt-*' tokens.",
+                    line=current_sec3_cmp_line
+                ))
+            current_sec3_cmp = None
+            in_sec3_token_block = False
             in_sec3 = False
             continue
 
@@ -836,35 +911,91 @@ def audit_tokens(content: str, valid_tokens: set[str]) -> list[Finding]:
                 ),
                 line=idx
             ))
+        else:
+            rev_match = reverse_shadowing_pattern.search(line)
+            if rev_match:
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="TOK-003",
+                    message=(
+                        f"Token-literal shadowing detected: hardcoded literal '{rev_match.group(1)}' is coupled with token '{rev_match.group(2)}'. "
+                        f"Specifications must reference design tokens exclusively without concrete numeric fallbacks or dimensions."
+                    ),
+                    line=idx
+                ))
 
-        # TOK-002: Section 3 Semantic Token column validation
-        if in_sec3 and line.strip().startswith("|") and not line.strip().startswith("| :---"):
-            if re.match(r"\|\s*`CMP-\d+`", line):
-                parts = [p.strip() for p in line.split("|")]
-                if len(parts) >= 5:
-                    col4 = parts[4]
-                    if not ("--dt-" in col4 or "DT-UI-DS" in col4):
-                        findings.append(Finding(
-                            severity="BLOCKER",
-                            code="TOK-002",
-                            message=f"Section 3 component '{parts[1]}' lacks explicit Design System token in Semantic Token column ('{col4}'). Prohibit placeholder text; bind directly to '--dt-*' tokens.",
-                            line=idx
-                        ))
+        # TOK-002: Section 3 Semantic Token validation (table & structured list formats)
+        if in_sec3:
+            # Table format: | `CMP-01` | ...
+            if line.strip().startswith("|") and not line.strip().startswith("| :---"):
+                if re.match(r"\|\s*`CMP-\d+`", line):
+                    parts = [p.strip() for p in line.split("|")]
+                    if len(parts) >= 5:
+                        col4 = parts[4]
+                        if not ("--dt-" in col4 or "DT-UI-DS" in col4):
+                            findings.append(Finding(
+                                severity="BLOCKER",
+                                code="TOK-002",
+                                message=f"Section 3 component '{parts[1]}' lacks explicit Design System token in Semantic Token column ('{col4}'). Prohibit placeholder text; bind directly to '--dt-*' tokens.",
+                                line=idx
+                            ))
+                        else:
+                            unit_match = re.search(r"(?:\b\d+(?:\.\d+)?(?:px|rem)\b|\$\d+.*\\text\{px\}\$)", col4, re.IGNORECASE)
+                            if unit_match:
+                                findings.append(Finding(
+                                    severity="BLOCKER",
+                                    code="TOK-002",
+                                    message=f"Section 3 component '{parts[1]}' has raw dimension '{unit_match.group(0)}' in Semantic Token column. Use design system tokens exclusively.",
+                                    line=idx
+                                ))
+                            hex_match = re.search(r"#([0-9a-fA-F]{3,8})\b", col4)
+                            if hex_match:
+                                findings.append(Finding(
+                                    severity="BLOCKER",
+                                    code="TOK-002",
+                                    message=f"Section 3 component '{parts[1]}' has raw hex color '{hex_match.group(0)}' in Semantic Token column. Use semantic color tokens (--dt-color-*).",
+                                    line=idx
+                                ))
+            # List format: 1. **`CMP-01`: ...**
+            cmp_list_match = re.match(r"^\s*\d+\.\s+\*\*(`CMP-\d+`):?", line)
+            if cmp_list_match:
+                if current_sec3_cmp and not current_sec3_has_tokens:
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="TOK-002",
+                        message=f"Section 3 component '{current_sec3_cmp}' lacks explicit Design System token in Design Tokens definition. Prohibit placeholder text; bind directly to '--dt-*' tokens.",
+                        line=current_sec3_cmp_line
+                    ))
+                current_sec3_cmp = cmp_list_match.group(1)
+                current_sec3_cmp_line = idx
+                current_sec3_has_tokens = False
+                in_sec3_token_block = False
+
+            if current_sec3_cmp:
+                if re.search(r"\bDesign Tokens\b", line, re.IGNORECASE):
+                    in_sec3_token_block = True
+                    if "--dt-" in line or "DT-UI-DS" in line or "transparent" in line or "neutral" in line:
+                        current_sec3_has_tokens = True
+                elif in_sec3_token_block:
+                    if re.match(r"^\s*-\s+\*\*(?!Design Tokens)[^*]+:\*\*", line) or re.match(r"^\s*\d+\.", line) or line.strip().startswith("#"):
+                        in_sec3_token_block = False
                     else:
-                        unit_match = re.search(r"(?:\b\d+(?:\.\d+)?(?:px|rem)\b|\$\d+.*\\text\{px\}\$)", col4, re.IGNORECASE)
+                        if "--dt-" in line or "DT-UI-DS" in line or "transparent" in line or "neutral" in line:
+                            current_sec3_has_tokens = True
+                        unit_match = re.search(r"(?:\b\d+(?:\.\d+)?(?:px|rem)\b|\$\d+.*\\text\{px\}\$)", line, re.IGNORECASE)
                         if unit_match:
                             findings.append(Finding(
                                 severity="BLOCKER",
                                 code="TOK-002",
-                                message=f"Section 3 component '{parts[1]}' has raw dimension '{unit_match.group(0)}' in Semantic Token column. Use design system tokens exclusively.",
+                                message=f"Section 3 component '{current_sec3_cmp}' has raw dimension '{unit_match.group(0)}' in Design Tokens. Use design system tokens exclusively.",
                                 line=idx
                             ))
-                        hex_match = re.search(r"#([0-9a-fA-F]{3,8})\b", col4)
+                        hex_match = re.search(r"#([0-9a-fA-F]{3,8})\b", line)
                         if hex_match:
                             findings.append(Finding(
                                 severity="BLOCKER",
                                 code="TOK-002",
-                                message=f"Section 3 component '{parts[1]}' has raw hex color '{hex_match.group(0)}' in Semantic Token column. Use semantic color tokens (--dt-color-*).",
+                                message=f"Section 3 component '{current_sec3_cmp}' has raw hex color '{hex_match.group(0)}' in Design Tokens. Use semantic color tokens (--dt-color-*).",
                                 line=idx
                             ))
 
@@ -994,38 +1125,55 @@ def audit_anti_redundancy(content: str) -> list[Finding]:
 
         # 2. Section 3 SSoT: Clean component cataloging
         elif current_section == 3:
-            if stripped.startswith("|") and not stripped.startswith("| :---"):
+            if not stripped.startswith(">"):
                 if re.search(r"\bMath\.(?:min|max|clamp)\b", line) or re.search(r"\bclamp\(", line):
                     findings.append(Finding(
                         severity="BLOCKER",
                         code="RED-001",
-                        message="Section 3 table cell contains mathematical calculation or clamping logic. §3 is a catalog; interaction algorithms belong exclusively in §5.",
+                        message="Section 3 contains mathematical calculation or clamping logic. §3 is a catalog; interaction algorithms belong exclusively in §5.",
                         line=idx
                     ))
-                if re.match(r"\|\s*`CMP-\d+`", line):
-                    if re.search(r"--dt-layout-drawer-width[a-z-]*", line):
-                        findings.append(Finding(
-                            severity="BLOCKER",
-                            code="RED-003",
-                            message="Section 3 table cell contains layout drawer token. Layout dimensions belong in §5.2 and §8.",
-                            line=idx
-                        ))
-                    if re.search(r"\b\d+vh\b", line):
-                        findings.append(Finding(
-                            severity="BLOCKER",
-                            code="RED-003",
-                            message="Section 3 table cell contains viewport height (vh). Container dimensions and gesture physics belong in §5.2 and §8.",
-                            line=idx
-                        ))
-                    if re.search(r"\([A-Z_]{3,}(?:,\s*[A-Z_]{3,})+\)", line):
-                        findings.append(Finding(
-                            severity="BLOCKER",
-                            code="RED-003",
-                            message="Section 3 table cell contains domain enum list. Domain enums belong in §7.2.3.",
-                            line=idx
-                        ))
+                if re.search(r"--dt-layout-drawer-width[a-z-]*", line):
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="RED-003",
+                        message="Section 3 contains layout drawer token. Layout dimensions belong in §5.2 and §8.",
+                        line=idx
+                    ))
+                if re.search(r"\b\d+vh\b", line):
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="RED-003",
+                        message="Section 3 contains viewport height (vh). Container dimensions and gesture physics belong in §5.2 and §8.",
+                        line=idx
+                    ))
+                if re.search(r"\([A-Z_]{3,}(?:,\s*[A-Z_]{3,})+\)", line):
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="RED-003",
+                        message="Section 3 contains domain enum list. Domain enums belong in §7.2.3.",
+                        line=idx
+                    ))
 
-        # 3. Section 5 SSoT: Zero exhaustive LaTeX enum sets
+        # 3. Section 4 SSoT: Screen State Catalog validation
+        elif current_section == 4:
+            if not stripped.startswith(">"):
+                if re.search(r"--dt-layout-drawer-width[a-z-]*", line):
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="RED-005",
+                        message="Section 4 contains layout drawer dimension token. Drawer layout dimensions belong in §5.2 and §8.",
+                        line=idx
+                    ))
+                if re.search(r"\bMath\.(?:min|max|clamp)\b", line) or re.search(r"\bclamp\(", line):
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="RED-005",
+                        message="Section 4 contains mathematical calculation or clamping logic. §4 is a state catalog; interaction algorithms belong exclusively in §5.",
+                        line=idx
+                    ))
+
+        # 4. Section 5 SSoT: Zero exhaustive LaTeX enum sets
         elif current_section == 5:
             if re.search(r"\\in\s*\\\{[^\}]+\}", line):
                 findings.append(Finding(
@@ -1073,6 +1221,127 @@ def audit_presentation_boundaries(content: str) -> list[Finding]:
                     severity="BLOCKER",
                     code="DIAG-002",
                     message=f"Presentation sequence diagram leaks internal backend self-call '{backend_self_match.group(0).rstrip(':')}'. Internal domain execution must not be modeled as client sequence transitions.",
+                    line=idx
+                ))
+
+    return findings
+
+
+DOC_SECTIONS_CACHE: dict[Path, dict[str, str]] = {}
+
+
+def get_document_sections(file_path: Path) -> dict[str, str]:
+    """Caches and returns a mapping of section numbers ('4.1', '6.5.1') to heading titles for a markdown document."""
+    if file_path in DOC_SECTIONS_CACHE:
+        return DOC_SECTIONS_CACHE[file_path]
+    if not file_path.exists():
+        return {}
+    sections: dict[str, str] = {}
+    try:
+        lines = file_path.read_text(encoding="utf-8").splitlines()
+        for line in lines:
+            m = re.match(r"^#{1,6}\s+(\d+(?:\.\d+)*)\.?\s+(.*)", line.strip())
+            if m:
+                sec_num = m.group(1)
+                title = m.group(2).strip()
+                sections[sec_num] = title
+    except Exception:
+        pass
+    DOC_SECTIONS_CACHE[file_path] = sections
+    return sections
+
+
+def audit_cross_references(
+    content: str,
+    repo_root: Path,
+    spec_file_path: Path | None = None,
+) -> list[Finding]:
+    """Validates that cited document sections (§X.Y) exist in the referenced repository documents or within the screen itself."""
+    findings: list[Finding] = []
+    lines = content.splitlines()
+
+    internal_sections: dict[str, str] = {}
+    for line in lines:
+        m = re.match(r"^#{1,6}\s+(\d+(?:\.\d+)*)\.?\s+(.*)", line.strip())
+        if m:
+            internal_sections[m.group(1)] = m.group(2).strip()
+
+    base_dir = spec_file_path.parent if spec_file_path else (repo_root / "ui-ux" / "screens")
+
+    in_code_block = False
+    for idx, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+
+        if stripped.startswith("<!--"):
+            continue
+
+        # 1. Markdown links to markdown documents with section numbers: [label §X.Y](path.md[#anchor])
+        md_links = re.findall(r"\[([^\]]*§(\d+(?:\.\d+)*)[^\]]*)\]\(([^)#]+\.md)(?:#([^)]+))?\)", line)
+        for label, sec_num, rel_path, anchor in md_links:
+            target_path = (base_dir / rel_path).resolve()
+            if not target_path.exists():
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="REF-001",
+                    message=f"Broken document link: target file '{rel_path}' does not exist.",
+                    line=idx
+                ))
+                continue
+            valid_sections = get_document_sections(target_path)
+            if sec_num not in valid_sections:
+                major_sec = sec_num.split(".")[0]
+                available = [s for s in valid_sections if s.startswith(major_sec + ".")] or [s for s in valid_sections if "." not in s]
+                avail_str = f"Available under §{major_sec}: {', '.join('§' + s for s in available[:8])}" if available else f"No subsections under §{major_sec}"
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="REF-002",
+                    message=(
+                        f"Referenced section '§{sec_num}' does not exist in target document '{target_path.name}'. "
+                        f"{avail_str}. Verify citation against target document."
+                    ),
+                    line=idx
+                ))
+
+        # 2. Prose citations to known DT-* documents: (DT-[A-Z]+-[A-Z]+-\d+)\s+§(\d+(?:\.\d+)*)
+        prose_cites = re.findall(r"\b(DT-[A-Z]+-[A-Z]+-\d+)\s+§(\d+(?:\.\d+)*)", line)
+        for doc_id, sec_num in prose_cites:
+            matches = list(repo_root.glob(f"**/{doc_id}.md"))
+            if matches:
+                target_path = matches[0]
+                valid_sections = get_document_sections(target_path)
+                if sec_num not in valid_sections:
+                    major_sec = sec_num.split(".")[0]
+                    available = [s for s in valid_sections if s.startswith(major_sec + ".")] or [s for s in valid_sections if "." not in s]
+                    avail_str = f"Available under §{major_sec}: {', '.join('§' + s for s in available[:8])}" if available else f"No subsections under §{major_sec}"
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="REF-002",
+                        message=(
+                            f"Referenced section '§{sec_num}' does not exist in target document '{doc_id}.md'. "
+                            f"{avail_str}. Verify citation against target document."
+                        ),
+                        line=idx
+                    ))
+
+        # 3. Internal section citations within the same screen spec: e.g. "detailed in §5.4", "rules in §5.1"
+        clean_line = re.sub(r"\[[^\]]*\]\([^)]+\)", "", line)
+        clean_line = re.sub(r"\b(?:ISO|ANSI|IEC|IEEE|ISA|ITU|DIN|EN|BS|ASTM|NFPA|OSHA)[A-Za-z0-9\/\-\.]*\s+§\d+(?:\.\d+)*", "", clean_line)
+        clean_line = re.sub(r"\bDT-[A-Z]+-[A-Z]+-\d+\s+§\d+(?:\.\d+)*", "", clean_line)
+        for m in re.finditer(r"(?<![a-zA-Z0-9_\.\/-])§([1-9](?:\.\d+)*)", clean_line):
+            sec = m.group(1)
+            if sec not in internal_sections:
+                findings.append(Finding(
+                    severity="BLOCKER",
+                    code="REF-003",
+                    message=(
+                        f"Internal section reference '§{sec}' does not exist in this specification. "
+                        f"Verify section numbering."
+                    ),
                     line=idx
                 ))
 
@@ -1198,6 +1467,7 @@ def run_screen_audit(
     repo_root: Path,
     screen_id: str | None = None,
     prototype_dir: Path | None = None,
+    spec_file_path: Path | None = None,
 ) -> list[Finding]:
     """Executes all deterministic audit axes and returns deduplicated findings."""
     valid_tokens = load_canonical_tokens(repo_root)
@@ -1215,6 +1485,7 @@ def run_screen_audit(
     findings += audit_anti_redundancy(content)
     findings += audit_presentation_boundaries(content)
     findings += audit_domain_meta_text(content)
+    findings += audit_cross_references(content, repo_root, spec_file_path=spec_file_path)
 
     if screen_id:
         findings += audit_companion_html_prototype(screen_id, repo_root, prototype_dir=prototype_dir)
@@ -1353,7 +1624,7 @@ def cmd_audit(args: argparse.Namespace, repo_root: Path) -> int:
     print(f"[INFO] Auditing screen specification: {rel_path}")
 
     proto_dir = Path(args.prototype_dir).resolve() if getattr(args, "prototype_dir", None) else None
-    findings = run_screen_audit(content, repo_root, screen_id=target_path.stem, prototype_dir=proto_dir)
+    findings = run_screen_audit(content, repo_root, screen_id=target_path.stem, prototype_dir=proto_dir, spec_file_path=target_path)
 
     blockers = [f for f in findings if f.severity == "BLOCKER"]
     warnings = [f for f in findings if f.severity == "WARNING"]
@@ -1391,7 +1662,7 @@ def cmd_lint(args: argparse.Namespace, repo_root: Path) -> int:
 
     content = target_path.read_text(encoding="utf-8")
     proto_dir = Path(args.prototype_dir).resolve() if getattr(args, "prototype_dir", None) else None
-    findings = run_screen_audit(content, repo_root, screen_id=target_path.stem, prototype_dir=proto_dir)
+    findings = run_screen_audit(content, repo_root, screen_id=target_path.stem, prototype_dir=proto_dir, spec_file_path=target_path)
 
     blockers = [f for f in findings if f.severity == "BLOCKER"]
     warnings = [f for f in findings if f.severity == "WARNING"]
@@ -1427,7 +1698,7 @@ def cmd_audit_all(args: argparse.Namespace, repo_root: Path) -> int:
 
     for spec_file in spec_files:
         content = spec_file.read_text(encoding="utf-8")
-        findings = run_screen_audit(content, repo_root, screen_id=spec_file.stem, prototype_dir=proto_dir)
+        findings = run_screen_audit(content, repo_root, screen_id=spec_file.stem, prototype_dir=proto_dir, spec_file_path=spec_file)
         blockers = sum(1 for f in findings if f.severity == "BLOCKER")
         warnings = sum(1 for f in findings if f.severity == "WARNING")
         status = "FAIL" if blockers else ("WARN" if warnings else "PASS")
