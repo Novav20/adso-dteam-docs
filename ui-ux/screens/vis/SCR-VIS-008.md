@@ -137,7 +137,7 @@ status: Stable
 
 5. **SIMOPS Spatial Conflict Active**
    - **Activation Condition:** Automated Spatial Integrity Engine detects Euclidean distance $D_{AB} < R_A + R_B$ between incompatible permits per §5.1.
-   - **Visual Modification:** Overlapping hazard buffers render pulsing diagonal hatch pattern. Conflicting badges display an animated pulsing halo (`--dt-color-alarm-critical`). Viewport toolbar displays `[⚠️ SIMOPS CONFLICT: PTW-XXXX / PTW-YYYY]` pill. Top toast banner slides down non-modally.
+   - **Visual Modification:** Overlapping hazard buffers render pulsing diagonal hatch pattern. Conflicting badges display an animated pulsing halo (`--dt-color-alarm-critical`). Viewport toolbar displays `[#icon-warning SIMOPS CONFLICT]` pill. Non-modal toast banner slides down at top edge detailing conflicting permits.
 
 6. **Expiring Soon Warning**
    - **Activation Condition:** System detects permit time window has $< 60\text{ min}$ remaining until `ValidTo`.
@@ -145,11 +145,11 @@ status: Stable
 
 7. **Detected Orphanhood (SIMOPS Alert)**
    - **Activation Condition:** Approved permits detected lacking SVG `MeshMapping` (`FR-185`, `AF-001`).
-   - **Visual Modification:** Toolbar badge highlights in `--dt-color-alarm-critical` with unmapped count (e.g., `[⚠️ 3]`). Non-modal top toast banner (`--dt-layout-toast-max-height`) notifies operator. Explicit tap opens `CMP-07` without viewport hijacking.
+   - **Visual Modification:** Toolbar badge highlights in `--dt-color-alarm-critical` with unmapped count (e.g., `[#icon-warning 3]`). Non-modal top toast banner (`--dt-layout-toast-max-height`) notifies operator. Explicit tap opens `CMP-07` without viewport hijacking.
 
 8. **Loss of Synchronization**
    - **Activation Condition:** Interruption of real-time SignalR connection or heartbeat timeout (`FR-187`, `NFR-194`, `AF-002`).
-   - **Visual Modification:** Priority 4 Diagnostic banner deployed at screen top with neutral stale icon (`wifi-off`) and last sync timestamp. Badges remain visible in cached state. Process alarm colors (amber/red) prohibited.
+   - **Visual Modification:** Priority 4 Diagnostic banner deployed at screen top with neutral stale icon (`#icon-wifi-off`) and last sync timestamp: `[#icon-wifi-off] CACHE MODE: Telemetry link interrupted (Last sync: HH:mm:ss COT)`. Top navigation container offsets down by `--dt-layout-banner-diagnostic-height` to prevent control occlusion. Badges remain visible in cached state. Process alarm colors (amber/red) prohibited.
 
 ---
 
@@ -172,7 +172,7 @@ status: Stable
    * **Collision Trigger:** When $D_{AB} < R_A + R_B$, a SIMOPS conflict is automatically triggered:
       * Overlapping intersection zone renders a high-contrast pulsing diagonal hatch pattern.
       * Both affected `CMP-05` badges display an animated pulsing conflict halo in `--dt-color-alarm-critical`.
-      * `CMP-02` Toolbar activates a dedicated conflict pill: `[⚠️ SIMOPS CONFLICT]`. Tapping the pill centers the viewport over the conflict site and opens the conflict detail card.
+      * `CMP-02` Toolbar activates a dedicated conflict pill: `[#icon-warning SIMOPS CONFLICT]`. Tapping the pill centers the viewport over the conflict site and opens the conflict detail card.
       * An operational SIMOPS alert banner slides down non-modally at the top viewport edge: *"SIMOPS ALERT: Co-activity incompatibility between Hot Work (PTW-1042) and Confined Space (PTW-1043) in Tank Farm."*
 5. **Mandatory 4-Channel Redundant Coding Matrix (FR-183, TR-011, WCAG 2.1 AA):**
    * To prevent single-channel color dependency and ensure pre-attentive salience, every `CMP-05` badge encodes its permit classification across four sensory channels (Color + Geometric Shape + Vector Icon + Alphanumeric Label) governed strictly by [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) and canonical permit vocabulary in [DT-DM-DOC-001 §4.34](../../../domain-models/class/DT-DM-DOC-001.md#434-workpermitpermittype).
@@ -184,7 +184,7 @@ status: Stable
 2. **Safety Rule:** The permit is **never** drawn at an arbitrary coordinate on the map to prevent misleading spatial situational awareness.
 3. **Strict Non-Modal Escalation (ISO 9241-110 §5.5 Controllability & ISO 11064-5):**
    * Detecting unmapped permits shall **never** automatically deploy or expand `CMP-07`, preventing viewport hijacking.
-   * The alert counter on `CMP-02` Toolbar displays a borderless warning pill `[⚠️ 3 Unmapped]` with subtle warning fill and `--dt-shadow-hud` elevation.
+   * The alert counter on `CMP-02` Toolbar displays a borderless warning pill `[#icon-warning 3 Unmapped]` with subtle warning fill and `--dt-shadow-hud` elevation.
    * A single-line non-modal toast banner (height `--dt-layout-toast-max-height`, elevation `--dt-z-toast-alert`) slides down at the top viewport edge:
      `"SIMOPS Alert: 3 Permits lack spatial mapping. [View List] [Dismiss]"`
 4. **Explicit Operator Deployment & Tablet Physical Constraints:**
@@ -197,8 +197,8 @@ status: Stable
    * To prevent visual crowding and eliminate nested card borders ("Russian doll" effect) within the $340\text{px}$ panel, orphan items are rendered directly on the drawer background surface as flat rows separated by hairline dividers (`--dt-color-border-subtle`).
    * Each orphan record presents: `Permit Identifier` with a compact `VIS-033` capsule type badge, expiration timestamp, `Expected TagNumber`, Contractor, a decoupled warning issue description on its own line, and a compact top-right icon button (`#icon-location`, `FR-186`) to trigger spatial reassignment.
 6. **Adaptive Toolbar Badge Condensation (`CMP-02`):**
-   * In tablet landscape with `CMP-07` deployed, toolbar `CMP-02` condenses the unmapped orphan badge to an icon-only `[⚠️ 3]` format to prevent toolbar crowding.
-   * On desktop workstations, in tablet portrait, and whenever `CMP-07` is closed, the badge displays its full alphanumeric label `[⚠️ 3 Unmapped]`. Responsive breakpoint mapping is detailed in Section 8.
+   * In tablet landscape with `CMP-07` deployed, toolbar `CMP-02` condenses the unmapped orphan badge to an icon-only `[#icon-warning 3]` format to prevent toolbar crowding.
+   * On desktop workstations, in tablet portrait, and whenever `CMP-07` is closed, the badge displays its full alphanumeric label `[#icon-warning 3 Unmapped]`. Responsive breakpoint mapping is detailed in Section 8.
 
 ### 5.3. Real-Time Synchronization (`TR-010`)
 1. The client subscribes to the SignalR hub for work permit domain events:
@@ -209,7 +209,7 @@ status: Stable
 
 ### 5.4. Dual Navigation, Tactile Controllability, and Semantic Zoom Clustering
 1. **Semantic Zoom Clustering (ANSI/ISA-101.01 §6.3.1 / Hollifield Ch. 8):** The viewport supports continuous pan/zoom governed by the canonical Design System tokens ([DT-UI-DS-DOC-001 §2.5](../../DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports)):
-   * **Scale $Z < \text{--dt-zoom-scale-l1-max}$ (Level 1 Plant Overview / COP):** Discrete equipment badges are **completely suppressed**. Functional Locations render consolidated **Zone Cluster Pills** (`CMP-09`) at centroids (e.g., `Zone A: 5 PTWs [🔥1 \| 🧗2 \| 🛢️2]`), preserving the 90/10 grayscale rule and preventing visual clutter (`NFR-190`).
+   * **Scale $Z < \text{--dt-zoom-scale-l1-max}$ (Level 1 Plant Overview / COP):** Discrete equipment badges are **completely suppressed**. Functional Locations render consolidated **Zone Cluster Pills** (`CMP-09`) at centroids (e.g., `Zone A: 5 PTWs [#icon-hot-work 1 \| #icon-heights 2 \| #icon-chemical 2]`), preserving the 90/10 grayscale rule and preventing visual clutter (`NFR-190`).
    * **Scale $\text{--dt-zoom-scale-l1-max} \le Z < \text{--dt-zoom-scale-l2-max}$ (Level 2 Process Area Layout):** Cluster pills are suppressed and expand into individual **Discrete Equipment Badges** (`CMP-05`) positioned over ISO 14224 Level 6 Equipment Units with dynamic spatial hazard buffers.
    * **Scale $Z \ge \text{--dt-zoom-scale-l2-max}$ (Level 3 Equipment Detail Faceplate):** Micro tactical detail disclosing nozzles, valves, local instrument numbers, and active LOTO lock numbers.
 2. **Dual-Mode Canvas Pan Ergonomics:**
@@ -486,14 +486,14 @@ public record PlantZoneDto
 
 ### 8.1. Desktop Workstation ($\ge 1920\text{px}$, `--dt-breakpoint-xl`)
 * **Layout Organization:** Canvas `CMP-01` occupies full viewport.
-  Floating pill toolbar `CMP-02` displays level badge (`L2: Subsystem`) and full alphanumeric orphan badge (`[⚠️ 3 Unmapped]`).
+  Floating pill toolbar `CMP-02` displays level badge (`L2: Subsystem`) and full alphanumeric orphan badge (`[#icon-warning 3 Unmapped]`).
   Filter chips panel `CMP-08` displays uncompressed risk chips (`HOT_WORK`, `CONFINED_SPACE`, etc.) along the bottom viewport edge.
   Non-modal integrity drawer `CMP-07` docks as lateral right panel (sized by `--dt-layout-drawer-width-desktop`).
 * **Ergonomic Rules:** Mouse wheel focal zoom; middle-click canvas pan; cursor tooltips enabled on hover; popover cards `CMP-06` clamp within viewport bounds; tapping empty canvas dismisses `CMP-07`.
 
 ### 8.2. Industrial Tablet Landscape ($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$)
 * **Layout Organization:** Canvas `CMP-01` full screen.
-  Toolbar `CMP-02` applies adaptive badge condensation when `CMP-07` is deployed (`[⚠️ 3]`).
+  Toolbar `CMP-02` applies adaptive badge condensation when `CMP-07` is deployed (`[#icon-warning 3]`).
   Filter chips panel `CMP-08` enables horizontal touch swipe.
   Integrity drawer `CMP-07` slides over right flank (sized by `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 75\%$ canvas visibility).
 * **Ergonomic Rules:** Touch pan threshold ($4\text{px}$); touch targets comply with `--dt-touch-target-mobile`; hover tooltips disabled, direct tap opens popover card; tapping empty canvas dismisses `CMP-07`.

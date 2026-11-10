@@ -405,6 +405,7 @@ def audit_structure(content: str) -> list[Finding]:
     lines = content.splitlines()
 
     # Check language of headers and body prose (Language Policy: 100% Technical English)
+    # Also enforce zero emojis across specification documents (ISA-101 / HPHMI standard)
     in_code_block = False
     for idx, line in enumerate(lines, start=1):
         if line.strip().startswith("```"):
@@ -412,6 +413,16 @@ def audit_structure(content: str) -> list[Finding]:
             continue
         if in_code_block:
             continue
+
+        # Check for Unicode Emojis in specification prose
+        emoji_matches = EMOJI_REGEX.findall(line)
+        if emoji_matches:
+            findings.append(Finding(
+                severity="BLOCKER",
+                code="DOC-EMOJI-001",
+                message=f"Unicode emoji '{emoji_matches[0]}' detected in specification prose (line {idx}). Technical specifications must use canonical icon codes (e.g. `[#icon-warning]`) or semantic descriptions per HPHMI/ISA-101 standard.",
+                line=idx
+            ))
 
         if line.startswith("#"):
             for sp_word in SPANISH_HEADER_WORDS:
