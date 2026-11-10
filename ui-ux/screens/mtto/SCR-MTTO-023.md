@@ -263,6 +263,7 @@ public enum TelemetrySignalType
     Vibration,
     FlowRate,
     Voltage,
+    Current,
     Rpm,
     OperatingHours,
     Cycles

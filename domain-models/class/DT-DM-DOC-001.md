@@ -273,6 +273,7 @@ This segregation allows for:
 | VIBRATION | Mechanical oscillation threshold trigger. | Condition-Based Monitoring (ISO 13374) |
 | FLOW_RATE | Flow rate degradation trigger. | Condition-Based Monitoring (ISO 13374) |
 | VOLTAGE | Electrical voltage deviation trigger. | Condition-Based Monitoring (ISO 13374) |
+| CURRENT | Electrical current draw/overload threshold trigger. | Condition-Based Monitoring (ISO 13374) |
 | RPM | Angular velocity threshold trigger. | Condition-Based Monitoring (ISO 13374) |
 | OPERATING_HOURS | Monotonic cumulative operating hour counter (`MTTO-023`). | Usage-Based Cadence (ISO 14224) |
 | CYCLES | Monotonic cumulative start/actuation counter (`MTTO-023`). | Usage-Based Cadence (ISO 14224) |
@@ -424,6 +425,7 @@ This segregation allows for:
 | VIBRATION | Mechanical oscillation measurement. | Vibration Analysis |
 | FLOW_RATE | Flow rate measurement. | Flowmeter |
 | VOLTAGE | Electrical voltage measurement. | Voltage Sensor |
+| CURRENT | Electrical current measurement. | Ammeter / Current Transformer (CT) |
 | RPM | Angular velocity measurement. | Tachometer |
 | OPERATING_HOURS | Monotonic cumulative operating hour counter (`MTTO-023`). | Usage Hour Meter |
 | CYCLES | Monotonic cumulative start/actuation counter (`MTTO-023`). | Cycle Counter |

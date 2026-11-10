@@ -661,6 +661,7 @@ public enum TelemetrySignalType
     VIBRATION,
     FLOW_RATE,
     VOLTAGE,
+    CURRENT,
     RPM,
     OPERATING_HOURS,
     CYCLES

@@ -136,6 +136,7 @@ CANONICAL_ENUM_MAP: dict[str, str] = {
     "VisualLayerStatus": "VisualLayer.status",
     "IsolationStatus": "WorkOrderIsolation.isolationStatus",
     "PhysicalVerificationMethod": "WorkOrderIsolation.tryOutMethod",
+    "TryOutMethod": "WorkOrderIsolation.tryOutMethod",
     "PermitType": "WorkPermit.permitType",
     "WorkPermitStatus": "WorkPermit.status",
     "AuditActionType": "AuditLog.actionType",
@@ -156,6 +157,7 @@ SUBSET_ENUM_MAP: dict[str, str] = {
 PRESENTATION_PROJECTION_ENUMS: dict[str, set[str]] = {
     "DismountDestinationStatus": {"IN_REPAIR", "IN_STORAGE", "DAMAGED"},
     "TelemetryAlarmSeverity": {"NONE", "WARNING_P2", "CRITICAL_P1"},
+    "ZeroEnergyState": {"ENERGIZED", "UNCERTAIN", "ZERO_ENERGY_VERIFIED"},
 }
 
 # Prohibited CSS / styling / magic dimension patterns

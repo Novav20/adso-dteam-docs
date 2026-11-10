@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS mtto.maintenance_plans (
     CONSTRAINT ck_maintenance_plans_maintenance_method CHECK (maintenance_method IN ('PREVENTIVE', 'PREDICTIVE', 'CONDITION_BASED')),
     CONSTRAINT ck_maintenance_plans_frequency_type CHECK (frequency_type IN ('CALENDAR_TIME', 'OPERATING_HOURS', 'CYCLES')),
     CONSTRAINT ck_maintenance_plans_interval_unit CHECK (interval_unit IN ('DAYS', 'WEEKS', 'MONTHS', 'YEARS', 'OPERATING_HOURS', 'CYCLES', 'KILOMETERS', 'WEAR_DEPTH_MM')),
-    CONSTRAINT ck_maintenance_plans_monitored_signal_type CHECK (monitored_signal_type IN ('TEMPERATURE', 'PRESSURE', 'VIBRATION', 'FLOW_RATE', 'VOLTAGE', 'RPM', 'OPERATING_HOURS', 'CYCLES')),
+    CONSTRAINT ck_maintenance_plans_monitored_signal_type CHECK (monitored_signal_type IN ('TEMPERATURE', 'PRESSURE', 'VIBRATION', 'FLOW_RATE', 'VOLTAGE', 'CURRENT', 'RPM', 'OPERATING_HOURS', 'CYCLES')),
     CONSTRAINT ck_maintenance_plans_required_specialty CHECK (required_specialty IN ('MECHANICAL', 'ELECTRICAL', 'INSTRUMENTATION_AND_CONTROL', 'LUBRICATION', 'CONDITION_MONITORING', 'ELECTRONICS', 'WELDING_FABRICATION', 'FACILITIES')),
     CONSTRAINT ck_maintenance_plans_status CHECK (status IN ('DRAFT', 'ACTIVE', 'INACTIVE', 'ARCHIVED')),
     CONSTRAINT pk_maintenance_plans PRIMARY KEY (id)
@@ -372,7 +372,7 @@ CREATE TABLE IF NOT EXISTS vis.telemetry_signals (
     threshold                      DECIMAL(18,6),
     is_safety_critical             BOOLEAN NOT NULL,
 
-    CONSTRAINT ck_telemetry_signals_signal_type CHECK (signal_type IN ('TEMPERATURE', 'PRESSURE', 'VIBRATION', 'FLOW_RATE', 'VOLTAGE', 'RPM', 'OPERATING_HOURS', 'CYCLES')),
+    CONSTRAINT ck_telemetry_signals_signal_type CHECK (signal_type IN ('TEMPERATURE', 'PRESSURE', 'VIBRATION', 'FLOW_RATE', 'VOLTAGE', 'CURRENT', 'RPM', 'OPERATING_HOURS', 'CYCLES')),
     CONSTRAINT pk_telemetry_signals PRIMARY KEY (timestamp, id)
 );
 

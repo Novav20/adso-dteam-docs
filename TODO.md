@@ -21,7 +21,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 
 - [x] **SCR-VIS-011: LOTO Isolation Boundary Matrix**
   - [x] Cognitive Task Analysis (CTA): Physical Try-Out attestation primacy and negative interlock logic.
-  - [x] Canonical specification finalized: [`SCR-VIS-011.md`](ui-ux/screens/vis/SCR-VIS-011.md) (Stable).
+  - [x] Canonical specification finalized and locked as Gold Standard Baseline: [`SCR-VIS-011.md`](ui-ux/screens/vis/SCR-VIS-011.md) (v2.1 Stable — Spatial Suite Complete, `CURRENT` signal type back-propagation, Hollifield MAI Method 3 zero-energy indicators, `CartographicHud.razor` CMP-13, 100% C# 14 / .NET 10 contracts).
 
 ### Maintenance Management Screens (MTTO)
 - [x] **SCR-MTTO-002: Work Order Technical Closure**
