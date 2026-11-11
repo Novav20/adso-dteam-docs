@@ -30,7 +30,7 @@ Automatically calculates and assigns an objective, quantitative priority score t
       $$\text{Score} = C \times W \quad (\text{Range: } 1..100)$$
       guaranteeing that identical criticality and work-class inputs produce identical scores across the enterprise ([FR-074](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)).
 4. The System classifies and visually categorizes each backlog item into four standardized RIME priority bands featuring redundant shape and color coding per ANSI/ISA-101 ([NFR-061](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr), [TR-011](../../../requirements/common/TR-011.md)):
-   * **Do First** ($80..100$): Octagon symbol, emergency and immediate safety/production priority band.
+   * **Do First** ($80..100$): Diamond / Rhombus symbol ($\blacklozenge$), emergency and immediate safety/production priority band.
    * **Schedule** ($50..79$): Triangle symbol, high operational priority band.
    * **Plan** ($20..49$): Square symbol, standard preventive and corrective routine band.
    * **Wish** ($1..19$): Circle symbol, low-urgency deferrable cosmetic band.
@@ -103,7 +103,7 @@ When a Reliability Engineer updates the master criticality index of an equipment
   * [NFR-073](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr): Visibility of technical priority scores restricted to authorized roles.
 * **Transversal Requirements:**
   * [TR-001](../../../requirements/common/TR-001.md): Immutable audit trail with SHA-256 chained hashing for work class adjustments.
-  * [TR-005](../../../requirements/common/TR-005.md): Comprehensive system auditing and traceability.
+  * [TR-005](../../../requirements/common/TR-005.md): Encryption in Transit.
   * [TR-006](../../../requirements/common/TR-006.md): Role-Based Access Control (RBAC) enforcement.
-  * [TR-008](../../../requirements/common/TR-008.md): Centralized logging and operational monitoring.
+  * [TR-008](../../../requirements/common/TR-008.md): ISO 14224 Hierarchy Management and Validation.
   * [TR-011](../../../requirements/common/TR-011.md): ANSI/ISA-101 High Performance HMI grayscale discipline with redundant visual encoding.

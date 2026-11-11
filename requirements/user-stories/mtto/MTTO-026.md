@@ -11,6 +11,7 @@ applicable_trs:
   - "[[TR-005]]"
   - "[[TR-006]]"
   - "[[TR-008]]"
+  - "[[TR-011]]"
 ---
 
 # MTTO-026: Backlog Management via Objective Prioritization (RIME)
