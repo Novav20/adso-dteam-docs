@@ -14,6 +14,8 @@ applicable_trs:
   - "[[TR-006]]"
   - "[[TR-007]]"
   - "[[TR-008]]"
+  - "[[TR-010]]"
+  - "[[TR-011]]"
 ---
 
 # MTTO-002: Digital WO Closure with ISO 14224 Taxonomy
