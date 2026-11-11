@@ -86,9 +86,11 @@ In step 3, if the Engineer designates the equipment unit as a Safety Critical El
   - [NFR-124](../../../requirements/user-stories/inv/INV-005.md): Creation and registration response time < 2 seconds.
 * **Transversal Requirements:**
   - [TR-001](../../../requirements/common/TR-001.md): Immutable audit trail with cryptographic hash chaining (SHA-256).
-  - [TR-005](../../../requirements/common/TR-005.md): Relational integrity and foreign key constraints.
+  - [TR-005](../../../requirements/common/TR-005.md): Encryption in Transit (HTTPS, secure database connections).
   - [TR-006](../../../requirements/common/TR-006.md): Role-Based Access Control (RBAC) authorization.
-  - [TR-008](../../../requirements/common/TR-008.md): Audit logging and governance traceability.
+  - [TR-008](../../../requirements/common/TR-008.md): ISO 14224 Hierarchy Management and Validation.
   - [TR-011](../../../requirements/common/TR-011.md): High-Performance HMI (HPHMI) redundant coding.
 * **Architectural Decision Records:**
-  - [ADR-005](../../../architecture/adr/ADR-005.md): Cryptographic audit trail and hash chaining.
+  - [ADR-003](../../../architecture/adr/ADR-003.md): Tamper-evident cryptographic SHA-256 hash chaining.
+  - [ADR-005](../../../architecture/adr/ADR-005.md): Time-sequential UUIDv7 generation.
+  - [ADR-008](../../../architecture/adr/ADR-008.md): AssetInstallation timeline tracking decoupling physical unit from functional location slot.
