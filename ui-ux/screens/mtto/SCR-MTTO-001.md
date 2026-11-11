@@ -15,7 +15,7 @@ use_cases:
   - "[[UC-MTTO-001]]"
 version: 1
 date: 2026-10-15
-status: DRAFT
+status: Draft
 ---
 
 # SCR-MTTO-001: Preventive Maintenance Scheduling Form (Calendar Intervals)

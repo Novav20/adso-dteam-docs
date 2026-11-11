@@ -14,7 +14,7 @@ use_cases:
   - "[[UC-MTTO-023]]"
 version: 1
 date: 2026-10-15
-status: DRAFT
+status: Draft
 ---
 
 # SCR-MTTO-023: Condition-Based Predictive Maintenance Scheduling Form (Telemetry)
