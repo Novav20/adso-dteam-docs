@@ -48,7 +48,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 ### Inventory & Asset Master Data Screens (INV)
 - [x] **SCR-INV-025: Rotable Asset Swap**
   - [x] Field modal / drawer for atomic 1:1 rotable equipment exchange.
-  - [x] Canonical specification finalized: [`SCR-INV-025.md`](ui-ux/screens/inv/SCR-INV-025.md) (v1.4 Stable).
+  - [x] Canonical specification finalized: [`SCR-INV-025.md`](ui-ux/screens/inv/SCR-INV-025.md) (v1.5 Stable — Screen #7, Level 4 Transactional Modal Dialog Archetype, 100% C# 14 / .NET 10 contracts, `TaxonomicCompatibilityBadge.razor` `CMP-06` nested in `ModalActionFooter.razor` `CMP-09`, `TR-001`–`TR-011`, `ADR-003`/`005`/`007`/`008` traceability).
   - [x] Visual prototype modern continuous redesign & dual-theme captures updated (Dark/Light).
 
 - [x] **SCR-INV-005: Equipment Master Data Card (Technical Data Sheet)**

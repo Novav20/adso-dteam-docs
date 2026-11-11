@@ -14,8 +14,8 @@ user_stories:
   - "[[INV-025]]"
 use_cases:
   - "[[UC-INV-025]]"
-version: 1.4
-date: 2026-10-19
+version: 1.5
+date: 2026-11-11
 status: Stable
 ---
 
@@ -50,35 +50,131 @@ status: Stable
 
 ## 3. Functional Component Inventory
 
-> The base layout, typography, and design tokens are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This table defines the present components, semantic tokens, and architectural roles. Detailed interaction rules, layout constraints, and protocols are specified in Section 5.
+> The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This inventory defines the canonical components present on the screen, their design tokens, and their architectural scope. Interaction rules and geometric algorithms are specified in Section 5; responsive container adaptations are governed by Section 8.
 
-| ID | Control / Component | Visual Role / Content | Semantic Token | Architectural Role & Reference |
-| :--- | :--- | :--- | :--- | :--- |
-| `CMP-01` | Modal Container & Header | Modal shell & navigation header | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Elevation: `--dt-z-modal` | Hosts tag headline box container on the left, modal title ("Intercambio de Activo Rotable"), technical metadata subtitle ("Ubicación Técnica: TFA-CSS-P-0101A · Clase Requerida: B-PMP-CENT"), and dismissal control. Operates as a centered modal dialog with a unified single-column vertical stack across workstation and tablet viewports. Detailed in §5.2 and §8. |
-| `CMP-02` | Dismounted Asset Card | Currently installed machine card | Surface: `--dt-color-surface-card`<br>Border: None<br>Radius: `--dt-radius-none` | Displays mounted asset details including Serial Number (`Número de serie`), Equipment Class, Manufacturer/Model, Operating Hours, and Installation Date in a 2-column key-value grid. Hosts mandatory destination controls (`CMP-03`). Stacked vertically above `CMP-04`. Detailed in §5.1. |
-| `CMP-03` | Destination Status & Warehouse Controls | Status selector and warehouse picker | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Dropdown pair capturing post-dismount destination status (`Estado de Destino`: `A Taller (Reparación)`, `A Almacén (Operativo)`, `Para Baja Técnica`) and target storage warehouse (`Almacén o Taller Receptor`). Blocks submission if left unassigned. Detailed in §5.1, §5.3.2, and §7.2.3. |
-| `CMP-04` | Replacement Asset Card | Replacement rotable picker card | Surface: `--dt-color-surface-card`<br>Border: None<br>Radius: `--dt-radius-none` | Hosts full-width rotable selector (`CMP-04`) and optical scan trigger (`CMP-05`) directly below the card title. The metadata grid displays replacement equipment specs (Serial Number / `Número de serie`, Equipment Class, Manufacturer/Model, Accumulated Hours, Origin Warehouse / `Almacén de origen`). Positioned sequentially below `CMP-02`. Detailed in §5.1. |
-| `CMP-05` | Barcode / NFC Scan Trigger | Tactile camera/scanner button | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle`<br>Touch Target: `--dt-touch-target-mobile` | Activates camera-based barcode scanning or Web NFC reader to instantly select the replacement unit by physical asset barcode tag. Viewfinder overlay includes simulation action button `[Simular Lectura de Código]`. Docked with replacement dropdown in unified addon group. Detailed in §5.2.3 and §7.3. |
-| `CMP-06` | Taxonomic Compatibility Indicator | Real-time validation capsule pill | Dynamic Capsule Pill: Hidden / Empty (default), Surface: `rgba(13, 148, 136, 0.12)` / Border: `--dt-color-state-success` (compatible), `--dt-color-alarm-warning` (warning), or `--dt-color-alarm-critical` (incompatible)<br>Radius: `--dt-radius-full` | Validates that replacement unit matches the exact `EquipmentClassId` of the Functional Location and is currently in warehouse storage status (`Clase compatible (B-PMP-CENT)`). Rendered as an ANSI/ISA-101 compliant capsule pill (`--dt-radius-full`, 9999px) with checkmark icon. Hidden in default unselected state to eliminate visual noise. Grounded directly in the modal footer adjacent to `CMP-09` to serve as the immediate validation gate. Detailed in §5.3.1. |
-| `CMP-07` | Work Order Linkage Field | Optional justifying WO input | Surface: `--dt-color-surface-card`<br>Border: `--dt-color-border-subtle` | Searchable input linking the equipment swap transaction to a justifying work order (`Orden de Trabajo Asociada`), captioned `Opcional`. Arranged in single-column vertical stack above `CMP-08`. Detailed in §5.1. |
-| `CMP-08` | Cryptographic Audit Hash Readout | Subtle SHA-256 preview readout | Surface: Transparent (`--dt-color-surface-card`)<br>Font: `--dt-font-mono-data`<br>Border: None | Displays real-time generated SHA-256 hash chaining payload in a borderless single-line readout (`Sello Digital de Integridad`), visualizing the immutable cryptographic audit record dispatched with the transaction. Displays `—` (em-dash) when unselected. Detailed in §5.3.3. |
-| `CMP-09` | Atomic Commit Action Button | Primary transactional confirm button | Surface: `--dt-color-state-info`<br>Disabled Surface: `--dt-color-state-disabled` | Primary action `[Intercambiar Activo]`. Coupled with adjacent taxonomic validation badge (`CMP-06`). Enforces single-commit atomic execution; disabled until all taxonomic and destination constraints are satisfied. Detailed in §5.3.4. |
-| `CMP-10` | Modal Close & Dismiss Action | Header close icon button and Escape shortcut | Surface: Transparent (`--dt-color-surface-card`)<br>Border: None<br>Color: `--dt-color-text-muted` | Safely dismisses the modal without committing changes, unblocking the host screen without altering database configuration or location links. Detailed in §5.2. |
+1. **`CMP-01`: Modal Container & Header**
+   - **Visual Role:** Centered transactional modal shell and header hosting the monospace Functional Location tag badge (`P-0101A`), modal title (*"Rotable Asset Swap"*), technical subtitle (*"Functional Location: TFA-CSS-P-0101A · Required Class: B-PMP-CENT"*), and dismiss control (`CMP-10`).
+   - **Design Tokens:**
+     - Surface: `--dt-color-surface-card`
+     - Backdrop: `--dt-color-surface-overlay`
+     - Border: `--dt-color-border-subtle`
+     - Width & Max-Height: `--dt-layout-modal-width` (`--dt-layout-modal-width-desktop` / `--dt-layout-modal-width-tablet`), `--dt-layout-modal-max-height`
+     - Radius: `--dt-radius-xl`
+     - Elevation: `--dt-z-modal`
+   - **Architectural Scope:** Root transactional modal container enforcing keyboard focus trapping and single-column sequential layout across workstation and tablet viewports ([DT-UI-DS-DOC-001 §2.4](../../DT-UI-DS-DOC-001.md#24-structural-layout-and-dimensional-tokens)). Detailed in §5.2 and §8.
+
+2. **`CMP-02`: Dismounted Asset Card**
+   - **Visual Role:** Upper section displaying the currently mounted Equipment Unit metadata (`SerialNumber`, `EquipmentClassName`, `Manufacturer` / `Model`, `OperatingHours`, and `InstallationDate`) in a 2-column stacked key-value grid alongside mandatory destination selectors (`CMP-03`).
+   - **Design Tokens:**
+     - Surface: `--dt-color-surface-card`
+     - Divider: `--dt-color-border-subtle`
+     - Typography: `--dt-font-caption`, `--dt-font-body-md`, `--dt-font-mono-data`
+   - **Architectural Scope:** Presents the active equipment unit to be dismounted via `FunctionalLocation.UninstallEquipment()` ([DT-DM-DOC-002 §2.1](../../../domain-models/class/DT-DM-DOC-002.md#2-layer-1-asset-taxonomy-iso-14224)). Stacked sequentially above `CMP-04`. Detailed in §5.1.
+
+3. **`CMP-03`: Destination Status & Warehouse Controls**
+   - **Visual Role:** Two-column dropdown pair capturing the post-dismount destination status (`IN_REPAIR`, `IN_STORAGE`, `DAMAGED`) and receiving storage warehouse or workshop (`HoldingWarehouseId`).
+   - **Design Tokens:**
+     - Surface: `--dt-color-surface-card`
+     - Border: `--dt-color-border-subtle`, `--dt-color-alarm-warning` (Validation Error)
+     - Control Height: `--dt-control-height-lg`
+     - Radius: `--dt-radius-md`
+   - **Architectural Scope:** Prevents logical equipment orphanhood by mandating custody and 4-dimensional lifecycle transition targets prior to dismounting (`FR-592`, `AF-002`). Detailed in §5.3.2 and §7.2.3.
+
+4. **`CMP-04`: Replacement Asset Card**
+   - **Visual Role:** Middle section hosting the full-width rotable spare selector and optical scan trigger (`CMP-05`) above a 2-column stacked key-value grid displaying replacement unit specifications (`SerialNumber`, `EquipmentClassName`, `Manufacturer` / `Model`, `OperatingHours`, and `WarehouseName`).
+   - **Design Tokens:**
+     - Surface: `--dt-color-surface-card`
+     - Border: `--dt-color-border-subtle`, `--dt-color-alarm-critical` (Class Mismatch)
+     - Typography: `--dt-font-caption`, `--dt-font-body-md`, `--dt-font-mono-data`
+   - **Architectural Scope:** Governs candidate replacement unit selection and mounting via `FunctionalLocation.InstallEquipment()` (`FR-593`, `FR-594`). Detailed in §5.1 and §5.3.1.
+
+5. **`CMP-05`: Barcode / NFC Scan Trigger**
+   - **Visual Role:** Tactile scan button docked as a unified right addon to the replacement rotable selector dropdown, opening the camera/laser barcode reticle overlay with a simulation trigger (`[Simulate Barcode Scan]`).
+   - **Design Tokens:**
+     - Surface: `--dt-color-surface-btn-secondary`
+     - Border: `--dt-color-border-subtle`
+     - Touch Target: `--dt-touch-target-mobile`
+     - Radius: `--dt-radius-md`
+   - **Architectural Scope:** Invokes `IBarcodeScannerInterop` to resolve physical nameplate barcodes against warehouse rotable inventory in $< 300\text{ms}$. Detailed in §5.2 and §7.3.
+
+6. **`CMP-06`: Taxonomic Compatibility Indicator**
+   - **Visual Role:** Capsule validation pill grounded on the left side of the modal footer, displaying 4-channel redundant feedback (`#icon-check` + Teal `--dt-color-state-success` when compatible: *"Compatible Class (B-PMP-CENT) · Ready to Confirm"*; `#icon-warning` Amber or `#icon-ban` Red on validation conflicts).
+   - **Design Tokens:**
+     - Radius: `--dt-radius-full`
+     - Compatible State: `--dt-color-state-success`
+     - Incomplete State: `--dt-color-alarm-warning`
+     - Incompatible State: `--dt-color-alarm-critical`
+   - **Architectural Scope:** Immediate visual gatekeeper for taxonomic `EquipmentClassId` parity and destination completeness ([DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons)). Hidden in default unselected state (`CLS = 0`). Detailed in §5.3.1.
+
+7. **`CMP-07`: Work Order Linkage Field**
+   - **Visual Role:** Searchable reference input linking the rotable swap transaction to a justifying maintenance Work Order (e.g., `WO-2026-0842`), captioned `Optional`.
+   - **Design Tokens:**
+     - Surface: `--dt-color-surface-card`
+     - Border: `--dt-color-border-subtle`
+     - Control Height: `--dt-control-height-lg`
+     - Radius: `--dt-radius-md`
+   - **Architectural Scope:** Associates the inventory transaction (`InventoryTransaction.WorkOrderId`) with the originating maintenance intervention (`FR-595`). Detailed in §5.1.
+
+8. **`CMP-08`: Cryptographic Audit Hash Readout**
+   - **Visual Role:** Borderless single-line monospace readout displaying the real-time candidate SHA-256 integrity seal (`—` when incomplete).
+   - **Design Tokens:**
+     - Surface: transparent (on `--dt-color-surface-card`)
+     - Typography: `--dt-font-mono-data`
+     - Text: `--dt-color-text-muted`
+   - **Architectural Scope:** Previews the tamper-evident SHA-256 hash chain payload ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md)) prior to atomic commit. Detailed in §5.3.3.
+
+9. **`CMP-09`: Atomic Commit Action Button**
+   - **Visual Role:** Primary rectangular action button (`[Swap Rotable Asset]`) anchored on the right side of the modal footer.
+   - **Design Tokens:**
+     - Enabled Surface: `--dt-color-state-info` (Text: `--dt-primitive-gray-10`)
+     - Disabled Surface: `--dt-color-state-disabled`
+     - Touch Target: `--dt-touch-target-mobile`
+     - Radius: `--dt-radius-md`
+   - **Architectural Scope:** Dispatches `ExecuteAssetSwapCommand` within a single-commit ACID boundary (`NFR-596`); hard-disabled until all taxonomic and destination invariants are satisfied. Detailed in §5.3.4.
+
+10. **`CMP-10`: Modal Close & Dismiss Action**
+    - **Visual Role:** Top-right header close icon button (`×`) and `Escape` key handler.
+    - **Design Tokens:**
+      - Surface: transparent
+      - Text: `--dt-color-text-muted`
+      - Touch Target: `--dt-touch-target-mobile`
+    - **Architectural Scope:** Safely aborts the modal workflow without mutating functional location occupancy or warehouse custody. Detailed in §5.2.
 
 ---
 
-## 4. Screen State Matrix
+## 4. Screen State Catalog
 
-| State | Visual Modification in the Interface | Activation Condition |
-| :--- | :--- | :--- |
-| **Normal / Default** | Modal open over backdrop. Dismounted asset details populated with installation metadata. Destination dropdowns unselected. Replacement asset selector empty. Cryptographic hash readout `CMP-08` displays `—`. Footer validation slot `CMP-06` is clean and empty. `CMP-09` is disabled (`--dt-color-state-disabled`). | User triggers "Asset Swap" from Functional Location detail or Work Order panel. |
-| **Scanning Barcode / NFC** | Modal displays camera viewfinder overlay with scanning reticle and action button *"Simular Lectura de Código"*. Status text: *"Alinee la etiqueta del activo rotable dentro de la retícula..."* | Technician taps `CMP-05` on mobile tablet or workstation with barcode reader. |
-| **Taxonomic Incompatibility (AF-001)** | Replacement asset card highlights with red border (`--dt-color-alarm-critical`). Footer validation badge `CMP-06` displays critical alert: *"Incompatible: Clase B-PMP-REC (requiere B-PMP-CENT)"* or *"Incompatible: Unidad en mantenimiento"*. `CMP-09` is hard-disabled. | Selected replacement equipment does not share identical `EquipmentClassId` or is not available in warehouse (`AF-001`). |
-| **Incomplete Destination (AF-002)** | Destination fields in `CMP-03` highlight with amber focus outline (`--dt-color-alarm-warning`) and warning icon `#icon-warning`. Footer validation badge `CMP-06` indicates: *"Seleccione estado de destino y almacén receptor"*. | User attempts to confirm swap without selecting destination status or warehouse (`AF-002`). |
-| **Ready for Execution** | All fields valid. `CMP-06` displays Teal badge: *"Clase compatible (B-PMP-CENT) · Listo para confirmar"*. Hash box `CMP-08` displays valid SHA-256 preview. `CMP-09` becomes active. | Valid replacement asset selected + dismounted asset destination selected + WO linked. |
-| **Executing Atomic Commit** | `CMP-09` renders loading shimmer (`--dt-color-surface-raised`) with label *"Procesando intercambio de activo..."*. All form inputs disabled to prevent duplicate submissions. | User taps `[Intercambiar Activo]`. |
-| **Swap Completed (Success)** | Modal transitions to success checkmark animation (`--dt-color-state-success`), displays transaction summary titled *"Intercambio de Activo Completado Exitosamente"* with new installation ID, then automatically closes after $1.5\text{s}$. | Atomic database transaction commits successfully in $< 2\text{s}$ (`NFR-597`). |
-| **Offline Queued / Disconnected Execution** | Modal renders amber offline strip (`--dt-color-alarm-warning`) in header: *"MODO SIN CONEXIÓN — EL INTERCAMBIO SE ENCOLARÁ EN EL DISPOSITIVO"*. Success checkmark animates with Outbox sync icon (`#icon-sync-pending`) and title *"Modo Sin Conexión — Intercambio Guardado Localmente"*. Modal dismisses after $1.5\text{s}$; parent view displays incremented pending sync badge. | User confirms swap while industrial tablet is disconnected from network (`TR-007`). Operation is committed to local encrypted outbox storage. |
+1. **Normal / Default**
+   - **Activation Condition:** User triggers "Asset Swap" from the Equipment Master Data Card ([SCR-INV-005](SCR-INV-005.md)) or Mobile Work Order Execution ([SCR-MTTO-002](../mtto/SCR-MTTO-002.md)).
+   - **Visual Modification:** Modal opens centered over a dimmed backdrop (`--dt-color-surface-overlay`). Dismounted asset details populate with active installation metadata. Destination dropdowns start unselected and replacement asset selector starts empty. Cryptographic hash readout `CMP-08` displays `—`. Footer validation slot `CMP-06` remains hidden (`CLS = 0`), and `CMP-09` (`[Swap Rotable Asset]`) is disabled (`--dt-color-state-disabled`).
+
+2. **Scanning Barcode / NFC**
+   - **Activation Condition:** Technician taps `CMP-05` on a mobile tablet or workstation equipped with a camera or barcode reader.
+   - **Visual Modification:** Modal displays the camera viewfinder overlay with scanning reticle, status prompt (*"Align the rotable asset barcode label within the reticle..."*), and simulation trigger (`[Simulate Barcode Scan]`).
+
+3. **Taxonomic Incompatibility (`AF-001`)**
+   - **Activation Condition:** Selected replacement equipment does not share an identical `EquipmentClassId` or is not available in warehouse storage (`AF-001`).
+   - **Visual Modification:** Replacement asset card (`CMP-04`) highlights with a critical red border (`--dt-color-alarm-critical`). Footer validation badge `CMP-06` displays a critical alert (`#icon-ban`): *"Incompatible: Class B-PMP-REC (requires B-PMP-CENT)"* or *"Incompatible: Unit currently under maintenance"*. `CMP-09` remains hard-disabled.
+
+4. **Incomplete Destination (`AF-002`)**
+   - **Activation Condition:** User attempts to confirm the swap without selecting a destination status or receiving warehouse (`AF-002`).
+   - **Visual Modification:** Unselected destination controls in `CMP-03` highlight with an amber outline (`--dt-color-alarm-warning`) and `#icon-warning` glyph. Footer validation badge `CMP-06` displays: *"Select destination status and receiving warehouse"*.
+
+5. **Ready for Execution**
+   - **Activation Condition:** Valid compatible replacement asset selected + dismounted asset destination status and receiving warehouse selected + optional Work Order linked.
+   - **Visual Modification:** `CMP-06` renders a Teal confirmation pill (`--dt-color-state-success`, `#icon-check`): *"Compatible Class (B-PMP-CENT) · Ready to Confirm"*. Hash readout `CMP-08` displays the live 64-character SHA-256 preview. Primary CTA `CMP-09` (`[Swap Rotable Asset]`) unlocks in `--dt-color-state-info`.
+
+6. **Executing Atomic Commit**
+   - **Activation Condition:** User activates `[Swap Rotable Asset]` (`CMP-09`).
+   - **Visual Modification:** `CMP-09` renders a loading state (`--dt-color-surface-raised`) with label *"Processing asset swap..."*. All form inputs lock to prevent duplicate submissions.
+
+7. **Swap Completed (Success)**
+   - **Activation Condition:** Single-commit atomic database transaction succeeds in $< 2\text{s}$ (`NFR-597`).
+   - **Visual Modification:** Modal transitions to documentary confirmation state (`--dt-color-state-success`, `#icon-check`), displaying *"Rotable Asset Swap Completed Successfully"* with the new `InstallationId`, and automatically dismisses after $1.5\text{s}$.
+
+8. **Offline Queued / Disconnected Execution**
+   - **Activation Condition:** User confirms the swap while the industrial tablet is disconnected from the network ([TR-007](../../../requirements/common/TR-007.md)).
+   - **Visual Modification:** Modal renders an amber offline strip (`--dt-color-alarm-warning`, `#icon-wifi-off`) in the header: *"OFFLINE MODE — ASSET SWAP WILL BE QUEUED ON DEVICE"*. Confirmation state displays `#icon-sync-pending` with *"Offline Mode — Asset Swap Saved Locally"*, dismissing after $1.5\text{s}$ and incrementing the caller view's pending sync counter.
 
 ---
 
@@ -101,7 +197,7 @@ sequenceDiagram
     Tech->>UI: Selects replacement asset via picker or barcode scan (CMP-05)
     UI->>UI: Validates taxonomic parity (EquipmentClassId) in real time (CMP-06)
     UI->>UI: Previews SHA-256 cryptographic hash (CMP-08)
-    Tech->>UI: Clicks [Intercambiar Activo] (CMP-09)
+    Tech->>UI: Clicks [Swap Rotable Asset] (CMP-09)
     UI->>INV: POST /api/v1/inventory/rotable-swaps (ExecuteAssetSwapCommand + X-Idempotency-Key)
     INV-->>UI: HTTP 200 OK (AssetSwapCompletedEvent)
     UI-->>Tech: Displays success checkmark and dispatches OnSwapCompleted callback
@@ -136,13 +232,13 @@ When the replacement unit is selected:
 #### 5.3.2. Dismantling Destination Enforcement (AF-002)
 To eliminate logical asset orphanhood, dismounting an equipment unit requires explicit destination mapping onto the 4 orthogonal status dimensions defined in [DT-DM-DOC-001 §4.1–4.4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary):
 1. **Destination Status Mapping (`DismountDestinationStatus`, §7.2.3):**
-   * **`DismountDestinationStatus.InStorage` (Warehouse Ready Stock):** Sets dismounted unit to `LifecycleStatus = InStorage`, `OperationalStatus = Standby`, `MaintenanceStatus = Operational` (preserving existing `HealthStatus`), and links custody `WarehouseId = HoldingWarehouseId`.
-   * **`DismountDestinationStatus.InRepair` (Technical Workshop Overhaul):** Sets dismounted unit to `LifecycleStatus = InStorage`, `OperationalStatus = Down`, `MaintenanceStatus = UnderMaintenance`, `HealthStatus = Serious`, and links custody `WarehouseId = HoldingWarehouseId`.
-   * **`DismountDestinationStatus.Damaged` (Quarantine / Unserviceable):** Sets dismounted unit to `LifecycleStatus = InStorage`, `OperationalStatus = Down`, `MaintenanceStatus = UnderMaintenance`, `HealthStatus = Critical`, and links custody `WarehouseId = HoldingWarehouseId`.
+   * **`DismountDestinationStatus.IN_STORAGE` (Warehouse Ready Stock):** Sets dismounted unit to `LifecycleStatus = IN_STORAGE`, `OperationalStatus = STANDBY`, `MaintenanceStatus = OPERATIONAL` (preserving existing `HealthStatus`), and links custody `WarehouseId = HoldingWarehouseId`.
+   * **`DismountDestinationStatus.IN_REPAIR` (Technical Workshop Overhaul):** Sets dismounted unit to `LifecycleStatus = IN_STORAGE`, `OperationalStatus = DOWN`, `MaintenanceStatus = UNDER_MAINTENANCE`, `HealthStatus = SERIOUS`, and links custody `WarehouseId = HoldingWarehouseId`.
+   * **`DismountDestinationStatus.DAMAGED` (Quarantine / Unserviceable):** Sets dismounted unit to `LifecycleStatus = IN_STORAGE`, `OperationalStatus = DOWN`, `MaintenanceStatus = UNDER_MAINTENANCE`, `HealthStatus = CRITICAL`, and links custody `WarehouseId = HoldingWarehouseId`.
 2. **Replacement Unit Installation Invariant (`FR-594`):**
-   * The mounted replacement unit transitions from warehouse custody (`WarehouseId = null`) to `LifecycleStatus = Installed`, `OperationalStatus = Standby`, `MaintenanceStatus = Operational`, and opens a new active `AssetInstallation` record (`InstalledAtUtc = TimestampUtc`, `RemovedAtUtc = null`).
+   * The mounted replacement unit transitions from warehouse custody (`WarehouseId = null`) to `LifecycleStatus = INSTALLED`, `OperationalStatus = STANDBY`, `MaintenanceStatus = OPERATIONAL`, and opens a new active `AssetInstallation` record (`InstalledAtUtc = TimestampUtc`, `RemovedAtUtc = null`).
 3. **Holding Warehouse Selection:** Holding warehouse `CMP-03` requires an explicit selection from active storage warehouses.
-4. **Validation Guard:** If either destination status or holding warehouse is omitted, clicking `[Intercambiar Activo]` applies WCAG 2.1 AA redundant coding (amber focus ring + warning icon `#icon-warning` + inline text label), blocking submission.
+4. **Validation Guard:** If either destination status or holding warehouse is omitted, clicking `[Swap Rotable Asset]` applies WCAG 2.1 AA redundant coding (amber focus ring + warning icon `#icon-warning` + inline text label), blocking submission.
 
 #### 5.3.3. Cryptographic Audit Trail Chaining (TR-001)
 Upon confirmation, the client computes the candidate payload hash matching `ExecuteAssetSwapCommand` (§7.2.3):
@@ -150,7 +246,7 @@ $$\text{PayloadHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{Techni
 The resulting cryptographic hash is bound to the transaction command payload, chained to `PreviousHash` to guarantee unalterable lifecycle traceability ([TR-001](../../../requirements/common/TR-001.md)).
 
 #### 5.3.4. Atomic Asset Swap Command Dispatch (`CMP-09`, TR-001, TR-007, ADR-005, ADR-007)
-Upon pressing `[Intercambiar Activo]`, the client dispatches an atomic substitution command against the backend API endpoint:
+Upon pressing `[Swap Rotable Asset]`, the client dispatches an atomic substitution command against the backend API endpoint:
 `POST /api/v1/inventory/rotable-swaps`
 
 * **Client Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) guaranteeing exactly-once transaction processing during network reconnection retries.
@@ -163,12 +259,9 @@ Upon pressing `[Intercambiar Activo]`, the client dispatches an atomic substitut
 
 ## 6. Industrial and Safety Considerations
 
-* **ANSI/ISA-101 HPHMI Compliance ([TR-011](../../../requirements/common/TR-011.md)):** The modal maintains a subdued grayscale palette (`--dt-color-surface-card`, `--dt-color-surface-base`). Saturated colors are restricted to:
-  * Muted Teal (`--dt-color-state-success`) for verified taxonomic compatibility.
-  * Amber (`--dt-color-alarm-warning`) for missing mandatory fields (`AF-002`).
-  * Red (`--dt-color-alarm-critical`) for taxonomic class mismatches (`AF-001`).
-* **Taxonomic Safety Interlock:** Physical equipment rotation must never violate process engineering boundaries (e.g., mounting a low-pressure pump on a high-pressure crude export manifold). Hardware and taxonomic validation prevents operator error.
-* **Offline Operational Continuity ([TR-007](../../../requirements/common/TR-007.md)):** Rotable equipment swaps frequently take place in process battery units with radio-frequency shadows or absent plant Wi-Fi. The interface must never block field execution due to connectivity loss; swaps are confirmed locally and safely committed to encrypted storage to maintain operational continuity and prevent unrecorded physical equipment rotation.
+* **Taxonomic Safety Interlock (`FR-593` / ISO 14224 §6):** Physical equipment rotation must never violate process engineering battery limits (e.g., mounting a low-pressure utility pump on a high-pressure hydrocarbon manifold). `CMP-06` and the domain service enforce strict `EquipmentClassId` equality and `IN_STORAGE` / `OPERATIONAL` readiness before enabling `CMP-09` (§5.3.1).
+* **Cross-Bounded-Context ACID Atomicity (`NFR-596` / [DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)):** Executing an asset swap mutates equipment unit entities, installation records (`FunctionalLocation.UninstallEquipment` $\to$ `EquipmentUnit.TransitionToRepair`/`TransitionToStorage`/`TransitionToDamaged` $\to$ `FunctionalLocation.InstallEquipment` per [DT-DM-DOC-002 §2.1](../../../domain-models/class/DT-DM-DOC-002.md#2-layer-1-asset-taxonomy-iso-14224)), inventory ledger transactions, and audit logs within a single shared database transaction, preventing orphaned equipment or split custody states.
+* **Offline Field Continuity & HPHMI Governance ([TR-007](../../../requirements/common/TR-007.md), [TR-011](../../../requirements/common/TR-011.md)):** Swaps executed in RF-shadowed process units are encrypted and queued locally (`IOfflineStorage`) with UUIDv7 idempotency keys ([ADR-007](../../../architecture/adr/ADR-007.md)). Visual surfaces, morphological differentiation between the capsule validation pill (`CMP-06`, `--dt-radius-full`) and primary action button (`CMP-09`, `--dt-radius-md`), and gloved touch targets (`--dt-touch-target-mobile`) adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope) and [§6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons).
 
 ---
 
@@ -179,13 +272,13 @@ Upon pressing `[Intercambiar Activo]`, the client dispatches an atomic substitut
 ```text
 Components/Inventory/
 └── AssetSwapModal.razor                               # CMP-01 & CMP-10: Root Modal Container & Header Dismiss Action
-    ├── DismountedAssetCard.razor                      # CMP-02 & CMP-03: Dismounted asset details & destination picker
-    ├── ReplacementAssetCard.razor                     # CMP-04: Replacement asset selection & specs
-    │   ├── BarcodeScannerButton.razor                 # CMP-05: Tactile scan trigger
-    │   └── TaxonomicCompatibilityBadge.razor          # CMP-06: Parity validation badge
-    ├── WorkOrderReferenceInput.razor                  # CMP-07: WO justification linkage
-    ├── ChainedAuditPreviewStrip.razor                 # CMP-08: Cryptographic hash strip
-    └── ModalActionFooter.razor                        # CMP-09: Atomic commit action button
+    ├── DismountedAssetCard.razor                      # CMP-02 & CMP-03: Dismounted asset details & destination controls
+    ├── ReplacementAssetCard.razor                     # CMP-04: Replacement rotable selector & specs grid
+    │   └── BarcodeScannerButton.razor                 # CMP-05: Tactile optical/laser scan trigger
+    ├── WorkOrderReferenceInput.razor                  # CMP-07: Optional Work Order justification linkage
+    ├── ChainedAuditPreviewStrip.razor                 # CMP-08: Real-time SHA-256 integrity hash readout
+    └── ModalActionFooter.razor                        # CMP-09: Grounded footer with atomic commit CTA
+        └── TaxonomicCompatibilityBadge.razor          # CMP-06: Capsule taxonomic & form validation pill
 ```
 
 ---
@@ -195,14 +288,17 @@ Components/Inventory/
 #### 7.2.1. `AssetSwapModal.razor` (Root View)
 
 ```csharp
-[Parameter, EditorRequired]
+[Parameter]
 public required Guid FunctionalLocationId { get; set; }
 
-[Parameter, EditorRequired]
+[Parameter]
 public required string FunctionalLocationTag { get; set; }
 
 [Parameter]
 public Guid? PreselectedWorkOrderId { get; set; }
+
+[Parameter]
+public string? PreselectedWorkOrderNumber { get; set; }
 
 [Parameter]
 public bool IsVisible { get; set; }
@@ -214,23 +310,26 @@ public EventCallback<AssetSwapCompletedEvent> OnSwapCompleted { get; set; }
 public EventCallback OnCancelled { get; set; }
 ```
 
-#### 7.2.2. Subcomponent Parameters (`CMP-01` to `CMP-10`)
+#### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-10`)
 
 ```csharp
 // CMP-02 & CMP-03: DismountedAssetCard.razor
-[Parameter, EditorRequired]
+[Parameter]
 public required InstalledAssetDetailsDto InstalledAsset { get; set; }
 
-[Parameter, EditorRequired]
+[Parameter]
+public required IReadOnlyList<WarehouseLookupDto> AvailableWarehouses { get; set; }
+
+[Parameter]
 public DismountDestinationStatus? DestinationStatus { get; set; }
 
-[Parameter, EditorRequired]
+[Parameter]
 public EventCallback<DismountDestinationStatus?> DestinationStatusChanged { get; set; }
 
-[Parameter, EditorRequired]
+[Parameter]
 public Guid? HoldingWarehouseId { get; set; }
 
-[Parameter, EditorRequired]
+[Parameter]
 public EventCallback<Guid?> HoldingWarehouseIdChanged { get; set; }
 
 [Parameter]
@@ -238,13 +337,22 @@ public bool HasDestinationError { get; set; }
 
 // CMP-04: ReplacementAssetCard.razor
 [Parameter]
+public required IReadOnlyList<RotableSpareSummaryDto> AvailableSpares { get; set; }
+
+[Parameter]
 public RotableSpareSummaryDto? SelectedReplacement { get; set; }
 
 [Parameter]
 public EventCallback<RotableSpareSummaryDto?> SelectedReplacementChanged { get; set; }
 
 [Parameter]
+public bool IsScanning { get; set; }
+
+[Parameter]
 public bool HasTaxonomicError { get; set; }
+
+[Parameter]
+public EventCallback OnScanTriggered { get; set; }
 
 // CMP-05: BarcodeScannerButton.razor
 [Parameter]
@@ -253,25 +361,27 @@ public bool IsScanning { get; set; }
 [Parameter]
 public EventCallback OnScanTriggered { get; set; }
 
-// CMP-06: TaxonomicCompatibilityBadge.razor
-[Parameter]
-public bool? IsCompatible { get; set; }
-
-[Parameter]
-public string? CompatibilityMessage { get; set; }
-
 // CMP-07: WorkOrderReferenceInput.razor
 [Parameter]
 public Guid? WorkOrderId { get; set; }
 
 [Parameter]
+public string? WorkOrderNumber { get; set; }
+
+[Parameter]
 public EventCallback<Guid?> WorkOrderIdChanged { get; set; }
 
 // CMP-08: ChainedAuditPreviewStrip.razor
-[Parameter, EditorRequired]
+[Parameter]
 public required string CryptographicPreviewHash { get; set; }
 
 // CMP-09: ModalActionFooter.razor
+[Parameter]
+public bool? IsCompatible { get; set; }
+
+[Parameter]
+public string? ValidationMessage { get; set; }
+
 [Parameter]
 public bool CanCommit { get; set; }
 
@@ -280,85 +390,116 @@ public bool IsSubmitting { get; set; }
 
 [Parameter]
 public EventCallback OnCommitConfirmed { get; set; }
+
+// CMP-06: TaxonomicCompatibilityBadge.razor
+[Parameter]
+public bool? IsCompatible { get; set; }
+
+[Parameter]
+public string? CompatibilityMessage { get; set; }
 ```
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
 ```csharp
+/// <summary>
+/// Post-dismount custody and condition disposition mapping onto EquipmentUnit 4D statuses.
+/// </summary>
 public enum DismountDestinationStatus
 {
-    InRepair,
-    InStorage,
-    Damaged
+    IN_REPAIR,
+    IN_STORAGE,
+    DAMAGED
 }
 
+/// <summary>
+/// Controlled equipment lifecycle vocabulary per DT-DM-DOC-001 §4.2.
+/// </summary>
 public enum EquipmentLifecycleStatus
 {
-    InStorage,
-    Installed,
-    Commissioning,
-    Decommissioned
+    IN_STORAGE,
+    INSTALLED,
+    COMMISSIONING,
+    DECOMMISSIONED
 }
 
+/// <summary>
+/// Controlled equipment operational status vocabulary per DT-DM-DOC-001 §4.4.
+/// </summary>
 public enum EquipmentOperationalStatus
 {
-    Up,
-    Down,
-    Standby
+    UP,
+    DOWN,
+    STANDBY
 }
 
+/// <summary>
+/// Controlled equipment maintenance status vocabulary per DT-DM-DOC-001 §4.3.
+/// </summary>
 public enum EquipmentMaintenanceStatus
 {
-    Operational,
-    UnderMaintenance,
-    UnderTest
+    OPERATIONAL,
+    UNDER_MAINTENANCE,
+    UNDER_TEST
 }
 
-public record InstalledAssetDetailsDto(
-    Guid EquipmentUnitId,
-    string SerialNumber,
-    string Manufacturer,
-    string Model,
-    Guid EquipmentClassId,
-    string EquipmentClassName,
-    long OperatingHours,
-    DateTimeOffset InstallationDate
-);
+public record WarehouseLookupDto
+{
+    public required Guid WarehouseId { get; init; }
+    public required string WarehouseCode { get; init; }
+    public required string WarehouseName { get; init; }
+}
 
-public record RotableSpareSummaryDto(
-    Guid EquipmentUnitId,
-    string SerialNumber,
-    string Manufacturer,
-    string Model,
-    Guid EquipmentClassId,
-    string EquipmentClassName,
-    EquipmentLifecycleStatus LifecycleStatus,
-    EquipmentMaintenanceStatus MaintenanceStatus,
-    EquipmentOperationalStatus OperationalStatus,
-    Guid WarehouseId,
-    string WarehouseName,
-    bool IsCompatible
-);
+public record InstalledAssetDetailsDto
+{
+    public required Guid EquipmentUnitId { get; init; }
+    public required string SerialNumber { get; init; }
+    public required string Manufacturer { get; init; }
+    public required string Model { get; init; }
+    public required Guid EquipmentClassId { get; init; }
+    public required string EquipmentClassName { get; init; }
+    public required long OperatingHours { get; init; }
+    public required DateOnly InstallationDate { get; init; }
+}
 
-public record ExecuteAssetSwapCommand(
-    Guid FunctionalLocationId,
-    Guid DismountedAssetId,
-    DismountDestinationStatus DestinationStatus,
-    Guid HoldingWarehouseId,
-    Guid ReplacementAssetId,
-    Guid? JustifyingWorkOrderId,
-    Guid TechnicianUserId,
-    string PreviousHash
-);
+public record RotableSpareSummaryDto
+{
+    public required Guid EquipmentUnitId { get; init; }
+    public required string SerialNumber { get; init; }
+    public required string Manufacturer { get; init; }
+    public required string Model { get; init; }
+    public required Guid EquipmentClassId { get; init; }
+    public required string EquipmentClassName { get; init; }
+    public required long OperatingHours { get; init; }
+    public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
+    public required EquipmentMaintenanceStatus MaintenanceStatus { get; init; }
+    public required EquipmentOperationalStatus OperationalStatus { get; init; }
+    public required Guid WarehouseId { get; init; }
+    public required string WarehouseName { get; init; }
+    public bool IsCompatible { get; init; }
+}
 
-public record AssetSwapCompletedEvent(
-    Guid InstallationId,
-    string FunctionalLocationTag,
-    string DismountedSerialNumber,
-    string InstalledSerialNumber,
-    string CryptographicHash,
-    DateTimeOffset Timestamp
-);
+public record ExecuteAssetSwapCommand
+{
+    public required Guid FunctionalLocationId { get; init; }
+    public required Guid DismountedAssetId { get; init; }
+    public required DismountDestinationStatus DestinationStatus { get; init; }
+    public required Guid HoldingWarehouseId { get; init; }
+    public required Guid ReplacementAssetId { get; init; }
+    public Guid? JustifyingWorkOrderId { get; init; }
+    public required Guid TechnicianUserId { get; init; }
+    public required string PreviousHash { get; init; }
+}
+
+public record AssetSwapCompletedEvent
+{
+    public required Guid InstallationId { get; init; }
+    public required string FunctionalLocationTag { get; init; }
+    public required string DismountedSerialNumber { get; init; }
+    public required string InstalledSerialNumber { get; init; }
+    public required string CryptographicHash { get; init; }
+    public required DateTimeOffset Timestamp { get; init; }
+}
 ```
 
 ---
@@ -378,11 +519,17 @@ public record AssetSwapCompletedEvent(
 
 ## 8. Layout and Responsive Adaptability
 
-| Viewport / Breakpoint | Layout Organization | Ergonomic Rules |
-| :--- | :--- | :--- |
-| **Desktop Workstation**<br>($\ge 1920\text{px}$, `--dt-breakpoint-xl`) | Centered modal dialog (sized by `--dt-layout-modal-width-desktop`, max-height `min(90vh, 740px)`); unified single-column vertical stack (`CMP-02` Dismounted Asset stacked above `CMP-04` Replacement Asset, separated by a horizontal hairline divider `--dt-color-border-subtle`). Card A hosts 2-column key-value grid and 2-column destination controls (`CMP-03`). Card B hosts top-docked full-width rotable selector (`CMP-04`/`CMP-05`) and 5-field metadata grid (including Origin Warehouse). Followed by single-column auxiliary stack container for Work Order linkage (`CMP-07` `Orden de Trabajo Asociada`) and subtle SHA-256 integrity seal (`CMP-08`), and grounded modal footer (`CMP-09` `[Intercambiar Activo]` paired with capsule validation pill `CMP-06`). | Mouse click interaction; `Tab` key focus cycling; `Enter` to commit; `Escape` or header close icon (`CMP-10`) to dismiss. Fixed control heights eliminate content layout shifts (CLS). Smooth vertical scrolling with reserved scrollbar gutter track when content exceeds viewport ceiling. |
-| **Industrial Tablet Landscape**<br>($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg`) | Centered modal container (sized by `--dt-layout-modal-width-desktop` / `--dt-layout-modal-width-tablet`, max-height `min(90vh, 740px)`); preserves the unified single-column vertical stack with generous vertical measure. Sequential workflow: Step 1 (Dismounted Asset & Destination) $\to$ Step 2 (Select Replacement & View Specs) $\to$ Step 3 (WO Linkage & Hash) $\to$ Footer Validation Gate. | Gloved touch targets governed by `--dt-touch-target-mobile` with `--dt-space-2` separation; prominent barcode scan trigger (`CMP-05`); header close icon (`CMP-10`) dismisses. |
-| **Industrial Tablet Portrait**<br>($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md`) | Centered modal container (sized by `--dt-layout-modal-width-tablet`, max-height `min(90vh, 780px)`); single-column vertical stack with full-width touch targets. Sticky modal footer (`CMP-09` `[Intercambiar Activo]` paired with `CMP-06`) permanently visible; header close icon (`CMP-10`) cancels. | Gloved touch targets governed by `--dt-touch-target-mobile` with `--dt-space-2` separation; sticky modal footer (`CMP-09` `[Intercambiar Activo]` paired with `CMP-06`) permanently visible; header close icon (`CMP-10`) cancels. |
+### 8.1. Desktop Workstation (`--dt-breakpoint-xl`)
+* **Layout Organization:** Centered modal dialog sized by `--dt-layout-modal-width-desktop` and bounded vertically by `--dt-layout-modal-max-height` ([DT-UI-DS-DOC-001 §2.4](../../DT-UI-DS-DOC-001.md#24-structural-layout-and-dimensional-tokens)) over a `--dt-color-surface-overlay` backdrop; unified single-column vertical stack (`CMP-02` Dismounted Asset stacked above `CMP-04` Replacement Asset, separated by a horizontal hairline divider `--dt-color-border-subtle`). Card A hosts a 2-column key-value grid and 2-column destination controls (`CMP-03`). Card B hosts the top-docked full-width rotable selector (`CMP-04`/`CMP-05`) and 5-field metadata grid (including Origin Warehouse and Accumulated Hours). Followed by the single-column auxiliary stack for Work Order linkage (`CMP-07`) and SHA-256 integrity seal (`CMP-08`), and the grounded modal footer (`CMP-09` `[Swap Rotable Asset]` paired with capsule validation pill `CMP-06`).
+* **Ergonomic Rules:** Mouse and keyboard navigation; `Tab` key focus cycling trapped inside container; `Enter` commits when form is valid; `Escape` or header close icon (`CMP-10`) dismisses without changes. Fixed control heights (`--dt-control-height-lg`) eliminate content layout shifts (`CLS = 0`). Smooth vertical scrolling with reserved scrollbar gutter track when content exceeds `--dt-layout-modal-max-height`.
+
+### 8.2. Industrial Tablet Landscape (`--dt-breakpoint-lg`)
+* **Layout Organization:** Centered modal container sized by `--dt-layout-modal-width-tablet` and bounded vertically by `--dt-layout-modal-max-height`; preserves the unified single-column vertical stack with generous vertical measure. Sequential workflow: Step 1 (Dismounted Asset & Destination) $\to$ Step 2 (Select Replacement & View Specs) $\to$ Step 3 (Work Order Linkage & Hash) $\to$ Footer Validation Gate.
+* **Ergonomic Rules:** Touch targets governed by `--dt-touch-target-mobile` with `--dt-space-2` separation for gloved operation; prominent barcode scan trigger (`CMP-05`); header close icon (`CMP-10`) dismisses.
+
+### 8.3. Industrial Tablet Portrait (`--dt-breakpoint-md`)
+* **Layout Organization:** Centered modal container sized by `--dt-layout-modal-width-tablet` and bounded vertically by `--dt-layout-modal-max-height`; single-column vertical stack with full-width touch targets. Sticky modal footer (`CMP-09` paired with `CMP-06`) remains permanently reachable at the bottom of the dialog container; header close icon (`CMP-10`) cancels.
+* **Ergonomic Rules:** Gloved operation ergonomics with touch targets governed by `--dt-touch-target-mobile`; thumb-reachable action footer (`CMP-09`); smooth vertical scrolling with overscroll containment.
 
 ---
 
@@ -391,16 +538,21 @@ public record AssetSwapCompletedEvent(
 | Requirement | Addressed in Component | Verification & Implementation Mechanism |
 | :--- | :--- | :--- |
 | [FR-591](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-01`, `CMP-02`, `CMP-04` | Interface executes functional replacement of physical Level 6 equipment at Level 5 location. |
-| [FR-592](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-03`, `CMP-09` | Atomically updates uninstalled asset status to "In Repair", "In Storage", or "Damaged". |
-| [FR-593](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-06` | Validates replacement unit is "Available" / "In Storage" and matches `EquipmentClassId` (`AF-001`). |
-| [FR-594](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-09` | Associates new unit to location, atomically transitioning lifecycle status to Installed (`EquipmentLifecycleStatus.Installed`, `EquipmentMaintenanceStatus.Operational`, `EquipmentOperationalStatus.Standby`) with current date. |
+| [FR-592](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-03`, `CMP-09` | Atomically updates uninstalled asset status to `IN_REPAIR`, `IN_STORAGE`, or `DAMAGED`. |
+| [FR-593](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-06` | Validates replacement unit is `IN_STORAGE` / `OPERATIONAL` and matches `EquipmentClassId` (`AF-001`). |
+| [FR-594](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-09` | Associates new unit to location, atomically transitioning lifecycle status to `INSTALLED`, `OPERATIONAL`, `STANDBY` with current timestamp. |
 | [FR-595](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-08`, `CMP-09` | Records rotation details in audit log: location tag, uninstalled serial, installed serial, user, WO reference. |
 | [NFR-596](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | `CMP-09` | Single-commit database transaction ensuring atomic execution or complete rollback. |
 | [NFR-597](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | `CMP-09` | Hierarchical update and status changes complete in $< 2\text{s}$ on server. |
-| [TR-001](../../../requirements/common/TR-001.md) | `CMP-08`, `CMP-09` | Immutable append-only audit trail logging with SHA-256 hash chaining. |
-| [TR-005](../../../requirements/common/TR-005.md) | `CMP-01` | Adheres to DDD Bounded Contexts (Taxonomy, Inventory, Governance) without cross-boundary bleeding. |
-| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01` | Enforces RBAC permissions (`Reliability Engineer`, `Technician`, `Supervisor`). |
-| [TR-007](../../../requirements/common/TR-007.md) | `CMP-01`, `CMP-09` | Offline fault resilience: queues atomic swap operations into encrypted local outbox storage during field disconnects. |
-| [TR-008](../../../requirements/common/TR-008.md) | `CMP-06` | Enforces ISO 14224 taxonomic constraints and class parity in domain rules. |
+| [TR-001](../../../requirements/common/TR-001.md) | `CMP-08`, `CMP-09` | Immutable append-only audit trail logging with SHA-256 hash chaining ([ADR-003](../../../architecture/adr/ADR-003.md)). |
+| [TR-002](../../../requirements/common/TR-002.md) | `CMP-01`, `CMP-09` | Offline Command Outbox and Conflict Management: Encrypted SQLite storage with lease tokens for disconnected operation. |
+| [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-09` | Encryption in Transit: Transport layer security (TLS/HTTPS) for all RESTful DTO transmissions and API calls. |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-09` | Role-Based Access Control (RBAC): Enforces permissions (`Reliability Engineer`, `Technician`, `Supervisor`). |
+| [TR-007](../../../requirements/common/TR-007.md) | `CMP-01`, `CMP-09` | Offline Operation and Synchronization: Queues atomic swap operations into local outbox storage during field disconnects. |
+| [TR-008](../../../requirements/common/TR-008.md) | `CMP-04`, `CMP-06` | ISO 14224 Hierarchy Management and Validation: Enforces taxonomic constraints and class parity in domain rules. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-09` | Real-time synchronization: broadcasts completed rotable swap events to connected clients via WebSockets (< 1s). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`..`CMP-10` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, saturated color reserved for status and alerts. |
+| [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-08`, `CMP-09` | Tamper-evident cryptographic SHA-256 hash chaining on all asset swap mutations. |
+| [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-01`, `CMP-09` | Time-sequential UUIDv7 generation for new Installation record and command idempotency. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-09` | Idempotent API message processing via `X-Idempotency-Key` header. |
+| [ADR-008](../../../architecture/adr/ADR-008.md) | `CMP-01`, `CMP-09` | AssetInstallation timeline tracking decoupling physical unit from functional location slot. |
