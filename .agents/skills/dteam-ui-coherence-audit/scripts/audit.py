@@ -253,6 +253,10 @@ PROHIBITED_SPEC_CODES: list[tuple[str, str, str]] = [
      "Requirement / Architecture specification code '{match}' leaked into HTML prototype text or visible DOM. Prototypes must use authentic domain operational terminology exclusively."),
     (r"\b(?:Paso|Step)\s+\d+\b", "HTML-SPEC-001",
      "Workflow step reference '{match}' leaked into HTML prototype text. Replace with action-oriented domain label."),
+    (r"\bSCR-(?:VIS|MTTO|INV|ADM)-\d{3}\b", "HTML-SPEC-001",
+     "Screen specification code '{match}' leaked into HTML prototype text or visible DOM. Replace with authentic operational label."),
+    (r"\b(?:VIS|MTTO|INV|ADM)-\d{3}\b", "HTML-SPEC-001",
+     "Screen/Module ID '{match}' leaked into HTML prototype text or visible DOM. Replace with authentic operational label."),
 ]
 
 # Unicode Emoji regex pattern (Standard Unicode ranges for pictorial emojis)
@@ -1468,16 +1472,36 @@ def audit_companion_html_prototype(screen_id: str, repo_root: Path, prototype_di
 
     hex_pattern = re.compile(r"(?<![a-zA-Z0-9_\(\[/\$-])#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b(?![-a-zA-Z0-9_])")
 
+    # Look for full content to strip multiline HTML/JS comments before line-by-line checks
+    html_comment_pattern = re.compile(r"<!--[\s\S]*?-->")
+    c_comment_pattern = re.compile(r"/\*[\s\S]*?\*/")
+
     for fpath in files_to_check:
         try:
             content = fpath.read_text(encoding="utf-8")
         except Exception:
             continue
-        lines = content.splitlines()
         is_css = fpath.suffix.lower() == ".css"
         is_html = fpath.suffix.lower() == ".html"
+        is_js = fpath.suffix.lower() == ".js"
+
+        # Pre-strip comments while preserving line count (replace with whitespace/newlines)
+        def replace_with_whitespace(m):
+            return re.sub(r"[^\n]", " ", m.group(0))
+
+        content_for_check = content
+        if is_html:
+            content_for_check = html_comment_pattern.sub(replace_with_whitespace, content_for_check)
+        elif is_css or is_js:
+            content_for_check = c_comment_pattern.sub(replace_with_whitespace, content_for_check)
+
+        lines = content_for_check.splitlines()
 
         for idx, line in enumerate(lines, start=1):
+            if is_js:
+                # Strip single-line JS comments
+                line = re.sub(r"//.*$", "", line)
+
             # 1. Check for Unicode Emojis
             emoji_matches = EMOJI_REGEX.findall(line)
             if emoji_matches:
@@ -1488,9 +1512,21 @@ def audit_companion_html_prototype(screen_id: str, repo_root: Path, prototype_di
                     line=idx
                 ))
 
-            # 2. Check for Leaked Specification Codes
+            # 2. Check for Leaked Specification Codes in visible text
+            line_to_check = line
+            if is_html:
+                # Strip HTML comments, <title> tag, and attribute assignments (href=..., src=..., class=..., id=...)
+                clean_html = re.sub(r"<!--.*?-->", "", line_to_check)
+                clean_html = re.sub(r"<title>.*?</title>", "", clean_html, flags=re.IGNORECASE)
+                clean_html = re.sub(r'\b(?:href|src|active|id|class|data-[a-z0-9_-]+)="[^"]*"', '', clean_html)
+                clean_html = re.sub(r"\b(?:href|src|active|id|class|data-[a-z0-9_-]+)='[^']*'", '', clean_html)
+                line_to_check = clean_html
+            elif is_css:
+                # Strip CSS comments
+                line_to_check = re.sub(r"/\*.*?\*/", "", line_to_check)
+
             for pat, code, msg_template in PROHIBITED_SPEC_CODES:
-                m = re.search(pat, line)
+                m = re.search(pat, line_to_check)
                 if m:
                     findings.append(Finding(
                         severity="BLOCKER",

@@ -62,6 +62,13 @@ In step 4, if the Planner decides to adjust the interval to a recommended range 
 * The first Work Order is instantiated in planning status with its inherited RIME Score.
 
 ## 6. Associated Requirements
-* **Functional Requirements:** FR-001, FR-002, FR-003, FR-004, FR-005, FR-006
-* **Non-Functional Requirements:** NFR-007, NFR-008, NFR-009
-* **Transversal Requirements:** [TR-008](../../../requirements/common/TR-008.md)
+* **Functional Requirements:** [FR-001](../../../requirements/user-stories/mtto/MTTO-001.md#functional-requirements-fr), [FR-002](../../../requirements/user-stories/mtto/MTTO-001.md#functional-requirements-fr), [FR-003](../../../requirements/user-stories/mtto/MTTO-001.md#functional-requirements-fr), [FR-004](../../../requirements/user-stories/mtto/MTTO-001.md#functional-requirements-fr), [FR-005](../../../requirements/user-stories/mtto/MTTO-001.md#functional-requirements-fr), [FR-006](../../../requirements/user-stories/mtto/MTTO-001.md#functional-requirements-fr)
+* **Non-Functional Requirements:** [NFR-007](../../../requirements/user-stories/mtto/MTTO-001.md#non-functional-requirements-nfr), [NFR-008](../../../requirements/user-stories/mtto/MTTO-001.md#non-functional-requirements-nfr), [NFR-009](../../../requirements/user-stories/mtto/MTTO-001.md#non-functional-requirements-nfr)
+* **Transversal Requirements:**
+  - [TR-005](../../../requirements/common/TR-005.md): Encryption in Transit (HTTPS, secure database connections).
+  - [TR-006](../../../requirements/common/TR-006.md): Role-Based Access Control (RBAC) authorization (`Maintenance Planner`, `Maintenance Supervisor`).
+  - [TR-008](../../../requirements/common/TR-008.md): ISO 14224 Hierarchy Management and Validation (L6 $\to$ L7 $\to$ L8 cascading selection).
+  - [TR-010](../../../requirements/common/TR-010.md): Real-Time Synchronization of plan updates and generated work orders.
+  - [TR-011](../../../requirements/common/TR-011.md): High-Performance HMI (HPHMI) redundant coding.
+* **Architectural Decision Records:**
+  - [ADR-005](../../../architecture/adr/ADR-005.md): Time-sequential UUIDv7 generation for plan and work order entities.

@@ -10,6 +10,8 @@ applicable_trs:
   - "[[TR-005]]"
   - "[[TR-006]]"
   - "[[TR-008]]"
+  - "[[TR-010]]"
+  - "[[TR-011]]"
 ---
 
 # MTTO-001: Preventive Maintenance Scheduling
