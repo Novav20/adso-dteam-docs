@@ -170,8 +170,12 @@ def parse_deployment_structurizr(md_path, out_dsl_path):
     with open(out_dsl_path, "w", encoding="utf-8") as f:
         f.write("\n".join(dsl))
         
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
 if __name__ == '__main__':
-    md = 'architecture/views/DT-ARQ-DEP-DOC-001.md'
-    dsl = 'architecture/views/DT-ARQ-DEP-001-deployment-model.dsl'
+    md = ROOT / 'architecture' / 'views' / 'DT-ARQ-DEP-DOC-001.md'
+    dsl = ROOT / 'architecture' / 'views' / 'DT-ARQ-DEP-001-deployment-model.dsl'
     parse_deployment_structurizr(md, dsl)
     print(f"Generated {dsl}")

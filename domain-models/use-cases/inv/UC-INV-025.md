@@ -1,16 +1,83 @@
+---
+id: UC-INV-025
+name: Register Rotable Asset Swap (Asset Swap)
+module: inv
+user_story: INV-025
+primary_actor: Maintenance Technician
+secondary_actors:
+  - Maintenance Supervisor
+  - Warehouse Manager
+  - Reliability Engineer
+---
+
 # UC-INV-025: Register Rotable Asset Swap (Asset Swap)
 
-## Use Case Template
+## 1. Description
+Executes the physical and functional replacement of a serialized equipment unit (Equipment Unit, Level 6) mounted at an active operational position (Functional Location, Level 5) without altering the master Functional Location tag or reliability history. Designed for rotable spares (e.g., centrifugal pumps, electric motors), it unlinks the dismounted equipment unit, links an identical replacement unit from warehouse inventory, updates warehouse ledger movements, and records an immutable cryptographic audit record, preserving historical MTBF calculations on both the functional location and physical machine.
 
-| **Element** | **Detail** |
-| :--- | :--- |
-| **ID** | UC-INV-025 |
-| **Name** | Register Rotable Asset Swap (Asset Swap) |
-| **Primary Actor** | Reliability Engineer |
-| **Secondary Actors** | N/A |
-| **Description** | Executes the functional replacement of a physical asset (Equipment Unit, Level 6) without altering the master Functional Location. Specifically designed for rotable spares (e.g., Motors, Pumps), it allows removing a failed asset by its Serial Number and immediately placing an identical replacement from inventory, ensuring that the historical reliability data (MTBF) tracks the specific machine while the Functional Location remains active. |
-| **Preconditions** | <ul><li>The Engineer is authenticated in the system [[TR-006]].</li><li>The Functional Location is active and currently has a physically linked asset.</li><li>The replacement asset (Rotable Spare) exists in the master inventory and is in "Available" status.</li></ul> |
-| **Main Flow** | 1. The Engineer accesses the detail view of a Functional Location and selects the operation "Asset Swap".<br>2. The System displays the swap form showing the currently installed equipment unit (Asset A) with its Tag and Serial Number.<br>3. The Engineer selects the destination status for Asset A (e.g. "In Repair" or "In Warehouse") and specifies the physical holding warehouse.<br>4. The Engineer selects the replacement equipment (Asset B) from the inventory catalog and optionally enters the identifier of the associated Work Order.<br>5. The Engineer confirms the swap operation.<br>6. The System executes the following taxonomic validations in real time [[TR-008]]:<br>   - Verifies that Asset B belongs to the same Equipment Class required by the Functional Location.<br>   - Validates that Asset B is in "Stock/Available" status and has no active links with other functional locations.<br>7. The System invokes the domain rules to:<br>   - Unlink Asset A from the functional location and update its status to the selected destination.<br>   - Link Asset B to the functional location, update its status to "Operational" and stamp the current date as the start of its operational service.<br>8. The System records the timeline in the Asset Installation registry, closing the active service period for Asset A with the current timestamp and generating a new installation record for Asset B, then persists all changes via an atomic single-commit database transaction.<br>9. The System records the transaction in the immutable audit trail [[TR-001]] via an append-only log with its chained cryptographic hash (SHA-256), capturing: Functional location tag, Serial Number of the removed asset (Asset A), Serial Number of the installed asset (Asset B), user, date and justifying Work Order.<br>10. The System displays a success confirmation and updates the hierarchical view reflecting the new configuration. |
-| **Alternate Flows** | **AF-001: Replacement Asset Unavailable or Incompatible**<br>In step 6, if the system detects that Asset B does not belong to the same Equipment Class or its status changed to "Damaged":<br>   1. The System blocks the atomic transaction to protect the integrity of the physical catalog.<br>   2. The System alerts the user: "Taxonomic incompatibility: The selected replacement equipment does not belong to the required Equipment Class or is not available in the warehouse."<br>   3. The flow returns to step 4.<br><br>**AF-002: Incomplete Dismantling Destination (Redundant Coding)**<br>In step 5, if the Engineer omits specifying the destination status or the holding warehouse for the removed asset:<br>   1. The System interrupts the operation indicating that the asset cannot remain in a state of logical orphanhood.<br>   2. The System highlights the missing mandatory fields via redundant Shape + Color coding (warning symbol and contrast indicator) according to WCAG 2.1 AA.<br>   3. The flow returns to step 3. |
-| **Postconditions** | <ul><li>The original asset (Asset A) is unlinked from the functional location and passes to the control of the warehouse or workshop under its individual Serial Number.</li><li>The new asset (Asset B) assumes the operational position, recording the current start of service date.</li><li>The swap transaction is consolidated in both the immutable audit trail and the dedicated Asset Installation tracking registry for fast MTBF calculations.</li></ul> |
-| **Associated Requirements** | FR-591, FR-592, FR-593, FR-594, FR-595, NFR-596, NFR-597, [[TR-001]], [[TR-008]] |
+## 2. Preconditions
+* The Actor is authenticated in the system with role `Maintenance Technician`, `Maintenance Supervisor`, or `Warehouse Manager` ([TR-006](../../../requirements/common/TR-006.md)).
+* The Actor accesses the contextual modal dialog ([SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md)) from an active Work Order ([SCR-MTTO-002](../../../ui-ux/screens/mtto/SCR-MTTO-002.md) via "Rotate Dismounted Equipment") or from the Functional Location Detail view ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md) via "Physical Replacement").
+* The target Functional Location is active, governed by an approved Work Permit, and currently has a physically mounted equipment unit.
+* When executed within a field Work Order context, mechanical and electrical isolation is verified (active LOTO locks confirmed and telemetry signals indicate zero residual energy per [ASR-002](../../../architecture/asr/DT-ARQ-ASR-001.md)).
+* A compatible replacement equipment unit exists in warehouse inventory in `IN_STORAGE` lifecycle status and `OPERATIONAL` maintenance status ([FR-593](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr)).
+
+## 3. Main Flow
+1. The Technician invokes the "Asset Swap" operation from the caller screen.
+2. The System displays the asset swap form populated with the target Functional Location tag and the details of the currently mounted equipment unit (Serial Number, Manufacturer, Model, Operating Hours, Installation Date).
+3. The Technician selects the post-dismount destination status (`IN_REPAIR` for technical workshop overhaul, `IN_STORAGE` for serviceable warehouse spare pool, or `DAMAGED` for reliability triage/quarantine prior to decommissioning) and specifies the receiving warehouse or workshop identifier.
+4. The Technician selects the replacement equipment unit from the rotable catalog or scans its physical barcode/NFC tag using the mobile device reader.
+5. The System executes taxonomic compatibility verification in real time ([TR-008](../../../requirements/common/TR-008.md)):
+   1. Verifies that the replacement equipment unit shares the identical Equipment Class required by the Functional Location.
+   2. Verifies that the replacement equipment unit is in warehouse storage (`IN_STORAGE`), operational maintenance status (`OPERATIONAL`), and is not currently mounted at another operational position.
+6. The Technician enters or verifies the associated Work Order identifier justifying the operational intervention.
+7. The System previews the cryptographic integrity hash chaining payload (SHA-256) binding the functional location, dismounted serial, replacement serial, destination warehouse, user, and timestamp ([TR-001](../../../requirements/common/TR-001.md)).
+8. The Technician confirms the asset swap operation.
+9. The System executes the equipment rotation: unlinks the currently mounted equipment unit from the operational location, transitions its lifecycle status to warehouse storage (`IN_STORAGE`, setting its maintenance condition to `UNDER_MAINTENANCE` or `OPERATIONAL`, operational state to `DOWN` or `STANDBY`, and health status to `SERIOUS` or `CRITICAL` when dismounted for repair or damage), and links the replacement equipment unit to the functional location in `INSTALLED` lifecycle status, `OPERATIONAL` maintenance status, and `STANDBY` operational status.
+10. The System records the operational changes within a single atomic transactional boundary ([NFR-596](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr)):
+    1. Closes the active installation timeline record for the dismounted equipment unit and opens a new installation record for the replacement unit to preserve continuous MTBF reliability tracking.
+    2. Posts the warehouse inventory ledger movements: records a stock receipt movement for the dismounted unit entering the destination warehouse/workshop, and a stock issue movement for the replacement unit exiting warehouse stock.
+    3. Records the structural audit transaction capturing the immutable cryptographic hash, previous state, new state, user ID, and justifying Work Order ([FR-595](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr)).
+11. The System displays a success confirmation, closes the contextual modal dialog, and returns the Technician to the caller screen ([SCR-MTTO-002](../../../ui-ux/screens/mtto/SCR-MTTO-002.md) or [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)) with the updated mounted equipment serial number reflected in the active session.
+
+## 4. Alternate Flows
+
+### AF-001: Replacement Equipment Incompatible or Unavailable
+In step 5, if the System detects that the selected replacement equipment unit belongs to a different Equipment Class, is flagged as decommissioned or under repair, or is already linked to another operational position:
+1. The System blocks the substitution transaction to protect taxonomic and structural catalog integrity.
+2. The System alerts the user: *"Taxonomic incompatibility: The selected replacement unit does not match the required Equipment Class or is unavailable in warehouse inventory."*
+3. The flow returns to step 4.
+
+### AF-002: Incomplete Dismantling Destination (Redundant Coding)
+In step 8, if the Technician attempts to confirm the swap without selecting the destination status or the receiving warehouse for the dismounted equipment unit:
+1. The System interrupts the operation, enforcing the anti-orphanhood invariant.
+2. The System highlights the missing mandatory fields via redundant Shape + Color coding (warning symbol and amber contrast indicator) per WCAG 2.1 AA.
+3. The flow returns to step 3.
+
+### AF-003: Safety Interlock Violation / Unverified Energy Isolation
+In step 1 or step 8, if the swap is triggered within a Work Order context and plant telemetry indicates active electrical current/fluid pressure, or if required LOTO isolation points are not formally attested and locked:
+1. The System activates the safety interlock, hard-disabling the execution action.
+2. The System displays an emergency safety banner: *"Operational Safety Interlock: Equipment cannot be mechanically uncoupled while energy isolation remains unverified. Confirm zero energy state before proceeding."*
+3. The flow is aborted.
+
+### AF-004: Offline Network Partition & Command Outbox Enqueuing
+In step 1, if the mobile device is operating in a disconnected plant zone without network connectivity ([TR-007](../../../requirements/common/TR-007.md)):
+1. The System displays the offline indicator ("OFFLINE · LOCALLY QUEUED").
+2. The Technician executes steps 1 through 8 normally using local encrypted storage ([TR-002](../../../requirements/common/TR-002.md)).
+3. In step 10, the System generates client-side unique identifiers ([ADR-005](../../../architecture/adr/ADR-005.md)), persists the transaction locally, and enqueues the command payload into the local offline synchronization queue ([ADR-006](../../../architecture/adr/ADR-006.md)).
+4. The modal presents a local confirmation notice and returns to the caller screen with an incremented pending synchronization counter.
+5. Upon network recovery, the background synchronization service automatically dispatches the enqueued transaction to the central application service using the idempotency key to guarantee single-commit execution.
+
+## 5. Postconditions
+* The dismounted equipment unit is unlinked from the functional location, assigned to the receiving warehouse/workshop, and transitions its lifecycle status to `IN_STORAGE`.
+* The replacement equipment unit assumes the operational position, clears warehouse stock assignment, and transitions its lifecycle status to `INSTALLED`, maintenance status to `OPERATIONAL`, and operational status to `STANDBY`.
+* The equipment installation timeline is updated atomically, closing the prior service interval and opening the new active period for accurate MTBF calculations.
+* The warehouse inventory ledger records the corresponding issue and receipt movements with exact serial numbers and movement reasons.
+* An immutable audit log entry is recorded with the chained SHA-256 cryptographic hash.
+* The contextual modal dialog closes and returns control to the parent caller screen with refreshed serial references.
+
+## 6. Associated Requirements
+* **Functional Requirements:** [FR-591](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr), [FR-592](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr), [FR-593](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr), [FR-594](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr), [FR-595](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr)
+* **Non-Functional Requirements:** [NFR-596](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr), [NFR-597](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr)
+* **Transversal Requirements:** [TR-001](../../../requirements/common/TR-001.md), [TR-002](../../../requirements/common/TR-002.md), [TR-006](../../../requirements/common/TR-006.md), [TR-007](../../../requirements/common/TR-007.md), [TR-008](../../../requirements/common/TR-008.md)
+* **Architectural Decisions:** [ADR-005](../../../architecture/adr/ADR-005.md), [ADR-006](../../../architecture/adr/ADR-006.md)

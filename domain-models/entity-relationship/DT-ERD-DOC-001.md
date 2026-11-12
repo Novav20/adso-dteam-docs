@@ -1,7 +1,7 @@
 ---
 code: DT-ERD-DOC-001
-version: 1.2
-date: 2026-09-25
+version: 1.5
+date: 2026-11-06
 status: Active
 author: Juan David Julio Serrano
 standard:
@@ -79,7 +79,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | tag_number | VARCHAR(50) | NOT NULL | UNIQUE | - | ISO 14224 tag identity and location traceability. |
 | name | VARCHAR(150) | NOT NULL | | - | Human-readable location name. |
 | description | VARCHAR(255) | NULL | | NULL | Optional explanatory text. |
-| criticality | VARCHAR(30) | NOT NULL | | - | Controlled priority vocabulary. |
+| criticality | SMALLINT | NULL | CHECK | NULL | Numeric asset criticality index (1..10) for RIME; NULL triggers AF-002 fail-safe floor (75). |
 | geographic_location | VARCHAR(150) | NULL | | NULL | Physical context of the location. |
 | environmental_exposure | VARCHAR(150) | NULL | CHECK | NULL | Environmental conditions for reliability calculations (ISO 14224). |
 | hierarchy_level | SMALLINT | NOT NULL | | - | Levels 1 to 5 of the ISO 14224 taxonomy (Functional Locations govern the plant's spatial structure down to the process, while L6 to L8 correspond to physical equipment and components). |
@@ -113,8 +113,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the installation record. |
 | functional_location_id | UUID | NOT NULL | FK | - | The physical position (slot) where the asset is installed. |
 | equipment_unit_id | UUID | NOT NULL | FK | - | The specific serialized asset installed. |
-| installed_at | TIMESTAMP | NOT NULL | | now() | Timestamp of physical installation. |
-| removed_at | TIMESTAMP | NULL | UNIQUE | NULL | Timestamp of physical removal. Unique constraint pairs with location to ensure 1 active asset. |
+| installed_at | TIMESTAMPTZ | NOT NULL | | now() | UTC timestamp of physical installation. |
+| removed_at | TIMESTAMPTZ | NULL | | NULL | UTC timestamp of physical removal. Partial unique indexes WHERE removed_at IS NULL enforce 1:1 active occupancy. |
 
 ### 3.2 Schema `mtto`
 
@@ -145,23 +145,28 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | operational_impact | VARCHAR(120) | NOT NULL | CHECK | - | Operational impact of the failure (ISO 14224). |
 | technician_notes | TEXT | NULL | | NULL | Qualitative field diagnosis and observations from the technician. |
 | downtime | DECIMAL(10,2) | NOT NULL | | - | Reliability analysis metric (Calculated). |
-| status | VARCHAR(20) | NOT NULL | | - | Status of the failure record. |
+| status | VARCHAR(20) | NOT NULL | CHECK | 'REPORTED' | Controlled lifecycle status of the failure record. |
 
 #### 3.2.3 maintenance_plans
 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the target Level 6 Equipment Unit. |
+| subunit_id | UUID | NULL | FK | NULL | Optional ISO 14224 Level 7 Subunit target (MTTO-001, MTTO-023). |
+| maintainable_item_id | UUID | NULL | FK | NULL | Optional ISO 14224 Level 8 Maintainable Item target (MTTO-001, MTTO-023). |
 | maintenance_method | VARCHAR(80) | NOT NULL | CHECK | - | Maintenance strategy (PM, PdM, CBM). |
 | frequency | VARCHAR(50) | NOT NULL | | - | Human-readable frequency description. |
-| frequency_type | VARCHAR(20) | NOT NULL | CHECK | - | Controlled cadence of the plan. |
+| frequency_type | VARCHAR(20) | NOT NULL | CHECK | - | Controlled cadence driver of the plan. |
+| interval_value | DECIMAL(12,2) | NULL | | NULL | Numeric value of the calendar or telemetry interval (e.g., 4 weeks, 500 hours). |
+| interval_unit | VARCHAR(30) | NULL | CHECK | NULL | Controlled unit of the interval (WEEKS, MONTHS, OPERATING_HOURS, CYCLES, etc.). |
+| monitored_signal_type | VARCHAR(80) | NULL | CHECK | NULL | Monitored telemetry signal type on the Equipment Unit for CBM plans (MTTO-023). |
 | next_work_order_date | DATE | NULL | | NULL | Scheduled execution date (Calculated). |
-| interval_value | DECIMAL(12,2) | NULL | | NULL | Numeric value of the interval for telemetry (e.g., 500 hours). |
 | next_trigger_limit | DECIMAL(12,2) | NULL | | NULL | Accumulated limit calculated for the next trigger. |
 | estimated_labor_hours | DECIMAL(10,2) | NOT NULL | | - | Estimated Man-Hours (Wrench Time) for planning. |
 | required_specialty | VARCHAR(80) | NOT NULL | CHECK | - | Required technical specialty (e.g., Mechanical, Electrical). |
 | technical_description | VARCHAR(255) | NOT NULL | | - | Technical description of the task scope. |
+| cadence_override_justification | VARCHAR(255) | NULL | | NULL | Mandatory audit justification when overriding recommended cadence on critical assets (MTTO-001). |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Plan (document) lifecycle status. |
 
 #### 3.2.4 media_attachments
@@ -173,7 +178,9 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | failure_record_id | UUID | NULL | FK | NULL | Foreign key to the specific failure occurrence. |
 | file_url | VARCHAR(255) | NOT NULL | | - | Evidence location. |
 | file_type | VARCHAR(20) | NOT NULL | CHECK | - | Controlled attachment file format. |
-| uploaded_at | TIMESTAMP | NOT NULL | | - | Upload/ingestion time of the evidence. |
+| integrity_hash_sha256 | VARCHAR(64) | NOT NULL | | - | SHA-256 cryptographic digest calculated at capture for tamper detection (TR-003). |
+| captured_offline | BOOLEAN | NOT NULL | | FALSE | Flag indicating whether evidence was acquired during disconnected field execution (MTTO-002). |
+| uploaded_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC upload/ingestion time of the evidence. |
 
 #### 3.2.5 work_order_histories
 
@@ -183,7 +190,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | work_order_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | old_status | VARCHAR(20) | NULL | | NULL | Previous lifecycle status (NULL if first status). |
 | new_status | VARCHAR(20) | NOT NULL | | - | New lifecycle status. |
-| timestamp | TIMESTAMP | NOT NULL | | clock_timestamp() | Transition time. |
+| timestamp | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC transition time. |
 | duration_seconds | BIGINT | NULL | | NULL | Time spent in the state (Calculated upon transition). |
 
 #### 3.2.6 work_orders
@@ -197,11 +204,12 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | work_permit_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 | current_status | VARCHAR(20) | NOT NULL | CHECK | - | Execution lifecycle status (FSM). |
 | maintenance_method | VARCHAR(80) | NOT NULL | CHECK | - | Maintenance method (Corrective, Preventive, etc.). |
-| creation_date | TIMESTAMP | NOT NULL | | - | Timestamp of order creation. |
-| scheduled_date | TIMESTAMP | NULL | | NULL | Planned start. |
-| actual_start | TIMESTAMP | NULL | | NULL | Actual execution start. |
-| actual_finish | TIMESTAMP | NULL | | NULL | Actual execution finish. |
+| creation_date | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC timestamp of order creation. |
+| scheduled_date | TIMESTAMPTZ | NULL | | NULL | Planned start (UTC). |
+| actual_start | TIMESTAMPTZ | NULL | | NULL | Actual execution start (UTC). |
+| actual_finish | TIMESTAMPTZ | NULL | | NULL | Actual execution finish (UTC). |
 | actual_labor_hours | DECIMAL(10,2) | NULL | | NULL | Actual labor duration (Calculated). |
+| scope_checklist | JSONB | NULL | | NULL | Structured task checklist items (`ScopeTaskItemDto[]`) for field execution (MTTO-002). |
 | criticality | VARCHAR(20) | NOT NULL | CHECK | - | WO criticality / priority label. |
 
 #### 3.2.7 work_requests
@@ -212,10 +220,10 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | description | VARCHAR(255) | NOT NULL | | - | Request narrative. |
 | priority | VARCHAR(20) | NOT NULL | | - | Request priority label. |
-| request_date | TIMESTAMP | NOT NULL | | - | Timeline for audit. |
+| request_date | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC timeline for audit. |
 | request_source | VARCHAR(80) | NOT NULL | | - | Origin of the request. |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Request lifecycle status. |
-| work_class | SMALLINT | NOT NULL | CHECK | - | Numeric weight of the selected work class for RIME. |
+| work_class | SMALLINT | NOT NULL | CHECK | - | Numeric weight (1..10) of the selected work class for RIME. |
 
 ### 3.3 Schema `inv`
 
@@ -229,7 +237,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | work_order_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
 | quantity | DECIMAL(12,4) | NOT NULL | | 1 | Transacted quantity (positive for receipts, negative for issues). |
 | transaction_type | VARCHAR(20) | NOT NULL | CHECK | - | Movement type (RECEIPT, ISSUE, ADJUSTMENT). |
-| timestamp | TIMESTAMP | NOT NULL | | clock_timestamp() | Precise temporal record of the movement. |
+| timestamp | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | Precise UTC temporal record of the movement. |
 | reason | VARCHAR(255) | NOT NULL | | - | Reason for movement or reference to external documents. |
 | total_cost | DECIMAL(12,2) | NOT NULL | | - | Total cost of the transaction (Quantity \* Cost). |
 | locator_id | UUID | NULL | FK | NULL | Specific physical storage bin of the transaction. |
@@ -323,7 +331,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | equipment_unit_id | UUID | NOT NULL | FK, UNIQUE | - | Foreign key to the related table. |
 | mesh_uuid | VARCHAR(80) | NOT NULL | UNIQUE | - | Identity or path of the asset's 3D model. |
 | mapping_status | VARCHAR(20) | NOT NULL | CHECK | - | Digital twin mapping status. |
-| last_sync_time | TIMESTAMP | NULL | | NULL | Last synchronization time. |
+| last_sync_time | TIMESTAMPTZ | NULL | | NULL | Last synchronization time (UTC). |
 
 #### 3.4.3 spatial_metadata
 
@@ -338,13 +346,13 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| timestamp | TIMESTAMPTZ | NOT NULL | PK | clock_timestamp() | UTC measurement time and TimescaleDB hypertable partitioning column. |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique reading identifier paired with `timestamp` in composite hypertable PK. |
 | equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | signal_type | VARCHAR(80) | NOT NULL | CHECK | - | Sensor signal label. |
 | value | DECIMAL(18,6) | NOT NULL | | - | Raw measurement value. |
 | unit | VARCHAR(20) | NOT NULL | | - | Measurement unit. |
 | threshold | DECIMAL(18,6) | NULL | | NULL | Alert threshold. |
-| timestamp | TIMESTAMP | NOT NULL | | clock_timestamp() | Measurement time. |
 | is_safety_critical | BOOLEAN | NOT NULL | | - | Safety classification flag. |
 
 #### 3.4.5 visual_layers
@@ -363,20 +371,32 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | --- | --- | --- | --- | --- | --- |
 | work_order_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
 | isolation_point_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
+| isolation_status | VARCHAR(30) | NOT NULL | CHECK | 'PENDING_ISOLATION' | LOTO isolation lifecycle state including `LEASED_OFFLINE` (`ADR-006`). |
 | is_isolated | BOOLEAN | NOT NULL | | FALSE | Verified lockout state for the specific work. |
-| isolated_at | TIMESTAMP | NULL | | NULL | Timestamp when the lockout was executed. |
+| isolated_at | TIMESTAMPTZ | NULL | | NULL | UTC timestamp when the lockout was executed. |
 | padlock_tag_id | VARCHAR(80) | NULL | | NULL | Identifier of the physical padlock or tag (Try-Out). |
+| try_out_confirmed | BOOLEAN | NOT NULL | | FALSE | Verified zero-energy Try-Out confirmation. |
+| try_out_at | TIMESTAMPTZ | NULL | | NULL | UTC timestamp when physical Try-Out was performed. |
+| try_out_method | VARCHAR(40) | NULL | CHECK | NULL | Controlled Try-Out verification method (DT-DM-DOC-001 §4.33). |
+| try_out_reading | VARCHAR(80) | NULL | | NULL | Physical observed metric or confirmation text (e.g. 0.00 V, 0.0 psig). |
+| telemetry_snapshot | JSONB | NULL | | NULL | Sensor readings snapshot at lockout verification. |
+| signature_hash | VARCHAR(64) | NULL | | NULL | SHA-256 technician digital signature hash. |
+| lease_holder_user_id | UUID | NULL | FK | NULL | Foreign key to `adm.users(id)` holding an active offline safety lease (`ADR-006`). |
+| leased_until | TIMESTAMPTZ | NULL | | NULL | UTC expiration timestamp of the bounded offline LOTO safety lease (`ADR-006`). |
 
 #### 3.4.7 work_permits
 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
-| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
-| permit_identifier | VARCHAR(80) | NOT NULL | UNIQUE | - | Permit traceability. |
-| valid_from | TIMESTAMP | NOT NULL | | clock_timestamp() | Timeline start. |
-| valid_to | TIMESTAMP | NOT NULL | | - | Timeline end. |
-| status | VARCHAR(20) | NOT NULL | CHECK | - | Permit status (Active, Revoked, Expired). |
+| equipment_unit_id | UUID | NOT NULL | FK | - | Foreign key to the related table (`equipment_units`). |
+| permit_identifier | VARCHAR(80) | NOT NULL | UNIQUE | - | Permit traceability natural code (e.g. PTW-1042). |
+| permit_type | VARCHAR(50) | NOT NULL | CHECK | - | Controlled permit risk classification vocabulary (DT-DM-DOC-001 §4.34). |
+| contractor | VARCHAR(120) | NOT NULL | | - | Executing contractor or internal company team name. |
+| issuer_user_id | UUID | NOT NULL | FK | - | Foreign key to `adm.users(id)` for authorizing authority. |
+| valid_from | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | Permit validity start (UTC). |
+| valid_to | TIMESTAMPTZ | NOT NULL | | - | Permit validity end (UTC). |
+| status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled permit lifecycle status vocabulary (DT-DM-DOC-001 §4.35). |
 
 ### 3.5 Schema `adm`
 
@@ -386,15 +406,16 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
 | user_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
-| event_type | VARCHAR(80) | NOT NULL | | - | Action executed (e.g., CREATE, UPDATE, DELETE). |
+| event_type | VARCHAR(80) | NOT NULL | CHECK | - | Controlled audit operation type (CREATE, UPDATE, DELETE, QUERY, ADJUST, SECURITY_ALERT). |
 | entity_type | VARCHAR(80) | NOT NULL | | - | Affected table or domain entity. |
 | entity_id | UUID | NOT NULL | | - | Identifier of the affected record. |
-| timestamp | TIMESTAMP | NOT NULL | | clock_timestamp() | Exact moment of the mutation. |
+| timestamp | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | Exact UTC moment of the mutation. |
 | previous_state | JSONB | NULL | | NULL | Snapshot of the data before the change. |
 | new_state | JSONB | NULL | | NULL | Snapshot of the data after the change. |
 | ip_address | VARCHAR(45) | NULL | | NULL | Network traceability (IPv4 or IPv6). |
 | user_agent | VARCHAR(255) | NULL | | NULL | Client traceability. |
-| integrity_hash | VARCHAR(255) | NOT NULL | | - | Cryptographic hash for immutability verification. |
+| previous_hash | VARCHAR(64) | NOT NULL | | - | SHA-256 integrity hash of the preceding audit record (`GENESIS` sentinel on first entry, ADR-003). |
+| integrity_hash | VARCHAR(64) | NOT NULL | UNIQUE | - | SHA-256 cryptographic hash chaining `previous_hash` and current payload (ADR-003). |
 
 #### 3.5.2 auth_tokens
 
@@ -403,9 +424,9 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
 | user_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | token_hash | VARCHAR(255) | NOT NULL | UNIQUE | - | Cryptographic representation of the token. |
-| expires_at | TIMESTAMP | NOT NULL | | - | Temporal validity limit. |
+| expires_at | TIMESTAMPTZ | NOT NULL | | - | UTC temporal validity limit. |
 | is_revoked | BOOLEAN | NOT NULL | | FALSE | Pre-expiration manual revocation flag. |
-| purpose | VARCHAR(20) | NOT NULL | CHECK | - | Context of use (e.g., ACCESS, REFRESH, RESET). |
+| purpose | VARCHAR(30) | NOT NULL | CHECK | - | Controlled token purpose (ACCESS, SESSION_REFRESH, REGISTRATION, PASSWORD_RESET, OFFLINE_LOTO_LEASE). |
 
 #### 3.5.3 role_permissions
 
@@ -441,8 +462,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | full_name | VARCHAR(150) | NOT NULL | | - | Real identity. |
 | is_active | BOOLEAN | NOT NULL | | TRUE | Access control flag. |
 | failed_login_attempts | INT | NOT NULL | | 0 | Brute force defense counter. |
-| lockout_until | TIMESTAMP | NULL | | NULL | Temporary block time window. |
-| last_login_at | TIMESTAMP | NULL | | NULL | Activity traceability. |
+| lockout_until | TIMESTAMPTZ | NULL | | NULL | UTC temporary block time window. |
+| last_login_at | TIMESTAMPTZ | NULL | | NULL | UTC activity traceability. |
 
 #### 3.5.7 work_order_assignments
 
@@ -451,7 +472,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | work_order_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
 | user_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
 | assigned_role | VARCHAR(80) | NOT NULL | CHECK | - | Operational role of the technician in the specific WO. |
-| assigned_at | TIMESTAMP | NOT NULL | | clock_timestamp() | Moment of assignment. |
+| assigned_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC moment of assignment. |
 
 #### 3.5.8 idempotency_logs
 
@@ -461,8 +482,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | idempotency_key | VARCHAR(128) | NOT NULL | UNIQUE | - | Client-provided uniqueness token (ADR-007). |
 | tenant_id | UUID | NOT NULL | | - | Multi-tenant isolation boundary. |
 | request_hash | VARCHAR(64) | NOT NULL | | - | SHA-256 fingerprint to prevent payload mutation. |
-| status | VARCHAR(20) | NOT NULL | | - | State of the transaction (e.g., COMPLETED). |
-| created_at | TIMESTAMP | NOT NULL | | clock_timestamp() | Partitioning key for MVCC cleanup. |
+| status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled state of the transaction (PROCESSING, COMPLETED, FAILED). |
+| created_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC partitioning key for MVCC cleanup. |
 
 ## 4. Referential Relationships and Cascading (FKs)
 
@@ -476,6 +497,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | equipment_units | 1 : 0..N | subunits | broken down into | CASCADE | CASCADE |
 | subunits | 1 : 0..N | maintainable_items | built by | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | maintenance_plans | governed by | CASCADE | CASCADE |
+| subunits | 1 : 0..N | maintenance_plans | targeted by | SET NULL | CASCADE |
+| maintainable_items | 1 : 0..N | maintenance_plans | maintained via | SET NULL | CASCADE |
 | equipment_units | 1 : 0..N | work_orders | generates | RESTRICT | CASCADE |
 | maintenance_plans | 1 : 0..N | work_orders | instantiates | SET NULL | CASCADE |
 | work_requests | 1 : 0..N | work_orders | originates | SET NULL | CASCADE |
@@ -501,10 +524,13 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | mesh_mappings | 1 : 0..N | spatial_metadata | located via | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | telemetry_signals | monitored by | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | isolation_points | contains | RESTRICT | CASCADE |
+| equipment_units | 1 : 0..N | work_permits | targets | RESTRICT | CASCADE |
+| users | 1 : 0..N | work_permits | authorizes / issues | RESTRICT | CASCADE |
 | work_permits | 1 : 0..N | work_orders | validates execution of | RESTRICT | CASCADE |
 | work_orders | 1 : 0..N | visual_layers | visualized in | CASCADE | CASCADE |
 | work_orders | 1 : 1..N | work_order_isolations | requires | CASCADE | CASCADE |
 | isolation_points | 1 : 1..N | work_order_isolations | locked by | RESTRICT | CASCADE |
+| users | 1 : 0..N | work_order_isolations | leases offline | SET NULL | CASCADE |
 | users | 1 : 1..N | user_roles | associated to | CASCADE | CASCADE |
 | roles | 1 : 1..N | user_roles | granted to | CASCADE | CASCADE |
 | roles | 1 : 0..N | role_permissions | contains | CASCADE | CASCADE |
@@ -524,7 +550,7 @@ To guarantee the physical viability of the logical model and its correct impleme
 | INT | INTEGER or INT4 | None | 4-byte signed integer (range -2,147,483,648 to 2,147,483,647). Standard for simple counters (like failedLoginAttempts). |
 | BIGINT | BIGINT or INT8 | None | 8-byte signed integer. Used for large accumulated metrics like operational hours (operatingHours) and transition durations. |
 | DATE | DATE | None | 4-byte data type for storing calendar dates without time zone (year, month, day). |
-| TIMESTAMP | TIMESTAMP | TIMESTAMPTZ | TIMESTAMP stores date and time without time zone. TIMESTAMPTZ (Timestamp with time zone) is recommended for audit logs, creation marks, and work order starts to avoid discrepancies due to time zones. |
+| TIMESTAMP WITH TIME ZONE | TIMESTAMPTZ | TIMESTAMP | Enforced across all event, audit, and operational timestamps so Npgsql 10 (`DateTimeOffset` / UTC) persists strictly in UTC without `InvalidCastException` or time-zone skew. |
 | DECIMAL(P,S) | DECIMAL(P,S) or NUMERIC(P,S) | None | Exact precision type with user scale. Essential for monetary values (unitCost), sensor dimensions (value, threshold), and exact percentages (opacityLevel). |
 | UUID | UUID | None | Native 128-bit data type. In PostgreSQL 18, the native function uuidv7() will be used as the default value for primary keys. Unlike UUIDv4 (random), UUIDv7 includes a 48-bit chronologically ordered time prefix, which prevents page fragmentation in B-Tree indexes and maximizes insertion performance in time series and audit logs. |
 | BOOLEAN | BOOLEAN or BOOL | None | Logical type that stores TRUE or FALSE. |

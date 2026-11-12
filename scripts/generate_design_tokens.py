@@ -108,7 +108,7 @@ def emit_table_tokens(rows: list[list[str]], value_index: int = 1) -> list[str]:
     output = []
     for row in rows:
         if len(row) > value_index and row[0].startswith("--"):
-            output.append(f"  {row[0]}: {css_value(row[value_index])};")
+            output.append(f"  {row[0]}: {semantic_value(row[value_index])};")
     return output
 
 
@@ -150,10 +150,13 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     spacing = table_for(tables, "Spacing Scale", "CSS Token")
     controls = table_for(tables, "Dimensions of Controls", "Control Token")
     breakpoints = table_for(tables, "Responsive Breakpoints", "Breakpoint Token")
+    layout = table_for(tables, "Structural Layout", "Layout Token")
+    zoom = table_for(tables, "Spatial Navigation and Semantic Zoom", "Zoom Token")
     primitives = table_for(tables, "Primitive Palette", "Primitive Token")
     semantic = table_for(tables, "Semantic Tokens", "Semantic Token")
     alarms = table_for(tables, "Alarm and Safety Semantics", "State / Severity")
     mai_tokens = table_for(tables, "Dual-Theme Semantic Token Table for MAI", "Semantic CSS")
+    spatial_tokens = table_for(tables, "Spatial and Physical Material", "Spatial Material Token")
     typography = table_for(tables, "Typographic Scale", "Typographic Token")
     radii = table_for(tables, "Border Radii", "Token")
     zindex = table_for(tables, "Layers and Stacking", "Z-Index Token")
@@ -183,7 +186,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         if token == "--dt-touch-target-mobile":
             continue
         lines.append(f"  {token}: {css_value(height)};")
-        if width != "auto":
+        if width != "auto" and "--dt-control-height-" in token:
             lines.append(
                 f"  {token.replace('--dt-control-height-', '--dt-control-width-')}: {css_value(width)};"
             )
@@ -192,6 +195,12 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         [
             "",
             *emit_table_tokens(breakpoints),
+            "",
+            "  /* Structural layout and drawer dimensions */",
+            *emit_table_tokens(layout),
+            "",
+            "  /* Spatial navigation and semantic zoom thresholds */",
+            *emit_table_tokens(zoom),
             "",
             "  /* Typography */",
             f"  --dt-font-family-base: {css_value(font_base_css)};",
@@ -224,6 +233,10 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, light, dark = row[:4]  # MAI table has Light in col 2 and Dark in col 3
             lines.append(f"  {token}: {semantic_value(light)};")
+    for row in spatial_tokens:
+        if row and row[0].startswith("--"):
+            token, dark, light = row[:3]
+            lines.append(f"  {token}: {semantic_value(light)};")
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, dark, light = row[:4]
@@ -238,11 +251,27 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, _, dark = row[:4]
             lines.append(f"  {token}: {semantic_value(dark)};")
+    for row in spatial_tokens:
+        if row and row[0].startswith("--"):
+            token, dark, _ = row[:3]
+            lines.append(f"  {token}: {semantic_value(dark)};")
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, dark, _ = row[:4]
             lines.append(f"  {token}: {semantic_value(dark)};")
     lines.extend(["}", ""])
+    lines.extend(
+        [
+            "/* Responsive layout overrides */",
+            "@media (min-width: 1920px) {",
+            "  :root {",
+            "    --dt-layout-drawer-width: var(--dt-layout-drawer-width-desktop);",
+            "    --dt-layout-modal-width: var(--dt-layout-modal-width-desktop);",
+            "  }",
+            "}",
+            "",
+        ]
+    )
 
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines), encoding="utf-8")
@@ -303,6 +332,33 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
                 css_value(row[1]), "dimension"
             )
+            if len(row) > 2 and row[2] != "auto" and "--dt-control-height-" in row[0]:
+                width_tok = row[0].replace("--dt-control-height-", "--dt-control-width-")
+                penpot["Global"][width_tok.removeprefix("--dt-")] = penpot_token(
+                    css_value(row[2]), "dimension"
+                )
+    for row in layout:
+        if row and row[0].startswith("--dt-"):
+            val = css_value(row[1])
+            if val.startswith("var(--dt-"):
+                ref = "{" + val.removeprefix("var(--dt-").removesuffix(")") + "}"
+                penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
+                    ref, "dimension"
+                )
+            elif val.startswith("--dt-"):
+                ref = "{" + val.removeprefix("--dt-") + "}"
+                penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
+                    ref, "dimension"
+                )
+            else:
+                penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
+                    val, "dimension"
+                )
+    for row in zoom:
+        if row and row[0].startswith("--dt-zoom-"):
+            penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
+                css_value(row[1]), "number"
+            )
     for row in radii:
         if row and row[0].startswith("--dt-radius-"):
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
@@ -356,6 +412,13 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     for row in mai_tokens:
         if row and len(row) > 3 and row[1].startswith("--dt-"):
             _, token, light, dark = row[:4]
+            name = penpot_semantic_name(token)
+            penpot["Semantic-Dark"][name] = penpot_token(
+                penpot_reference(dark), "color"
+            )
+    for row in spatial_tokens:
+        if row and row[0].startswith("--dt-"):
+            token, dark, light = row[:3]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
                 penpot_reference(dark), "color"

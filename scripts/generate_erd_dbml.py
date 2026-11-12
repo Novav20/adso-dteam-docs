@@ -1,8 +1,9 @@
 import re
-import os
+from pathlib import Path
 
-md_file = 'domain-models/entity-relationship/DT-ERD-DOC-001.md'
-dbml_file = 'domain-models/entity-relationship/DT-ERD-DOC-001.dbml'
+ROOT = Path(__file__).resolve().parents[1]
+md_file = ROOT / 'domain-models' / 'entity-relationship' / 'DT-ERD-DOC-001.md'
+dbml_file = ROOT / 'domain-models' / 'entity-relationship' / 'DT-ERD-001.dbml'
 
 with open(md_file, 'r', encoding='utf-8') as f:
     md_content = f.read()
@@ -79,7 +80,7 @@ if sec4_start != -1 and sec4_end != -1:
 
 dbml_output = "Project DT_ERD {\n"
 dbml_output += "  database_type: 'PostgreSQL'\n"
-dbml_output += "  Note: 'Physical Relational and Data Dictionary (Auto-generado desde Markdown)'\n"
+dbml_output += "  Note: 'Physical Relational and Data Dictionary (Auto-generated from Markdown)'\n"
 dbml_output += "}\n\n"
 
 for schema, tables in schemas.items():
@@ -116,6 +117,10 @@ for schema, tables in schemas.items():
 def get_child_fk_col(parent, child, schema_data):
     if parent == child:
         return 'parent_id'
+    if parent == 'users' and child == 'work_permits':
+        return 'issuer_user_id'
+    if parent == 'users' and child == 'work_order_isolations':
+        return 'lease_holder_user_id'
         
     expected_fk = parent
     if expected_fk.endswith('ies'): expected_fk = expected_fk[:-3] + 'y_id'
@@ -137,7 +142,7 @@ def get_child_fk_col(parent, child, schema_data):
                 
     return expected_fk
 
-dbml_output += "// --- RELACIONES ---\n"
+dbml_output += "// --- RELATIONSHIPS ---\n"
 for r in relationships:
     parent = r['parent']
     child = r['child']
@@ -164,7 +169,7 @@ for r in relationships:
     child_schema = table_to_schema.get(child, 'public')
     dbml_output += f"Ref: \"{parent_schema}\".\"{parent}\".\"{parent_pk}\" {symbol} \"{child_schema}\".\"{child}\".\"{child_fk}\"{settings}\n"
 
-with open(dbml_file, 'w', encoding='utf-8') as f:
+with open(dbml_file, 'w', encoding='utf-8', newline='\n') as f:
     f.write(dbml_output)
 
 print("DBML Diagram generated successfully.")

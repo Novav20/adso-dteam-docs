@@ -46,8 +46,7 @@ uv run .agents/skills/dteam-coherence-audit/scripts/audit.py audit-all
 
 ### Step 4 — Report Generation
 Generate a detailed report with the findings.
-- The report **MUST NOT** be saved in the documentation code repository, but in the evidence repository (`sena-evidence`), specifically at the path:
-  `/home/novillus/Documents/vscode/SENA-Career/sena-evidence/00-Overview/Audits/AUD-SDLC-DOCS-IN-DEPTH-ANALYSIS.md`
+- The report **MUST** be saved in `reports/audits/AUD-SDLC-DOCS-IN-DEPTH-ANALYSIS.md`.
 - Update the existing report version if one already exists.
 - Structure the report with:
   - Findings (with status: `[RESOLVED]`, `[PENDING: ADR]`, `[PENDING: DECISION]`, etc.)

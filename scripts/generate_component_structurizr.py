@@ -86,7 +86,7 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
         dsl.append(f"        {c_id} = softwareSystem \"{c['Component or Functional Port']}\" \"{c['Technical Responsibility']}\" \"{tag}\"")
         
     dsl.append("")
-    dsl.append("        monolith = softwareSystem \"Modular Monolith\" \"Sistema Central de Mantenimiento y LOTO (.NET 10)\" {")
+    dsl.append("        monolith = softwareSystem \"Modular Monolith\" \"Central Maintenance and LOTO System (.NET 10)\" {")
     
     # We map C4 Components to Components within a default Container
     dsl.append("            appContainer = container \"Backend Web API\" \"Modular Monolith Runtime\" \".NET 10\" {")
@@ -161,8 +161,12 @@ def generate_structurizr_dsl(md_path, out_dsl_path):
     with open(out_dsl_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(dsl))
 
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
 if __name__ == '__main__':
-    md = 'architecture/views/DT-ARQ-CMP-DOC-001.md'
-    dsl = 'architecture/views/DT-ARQ-CMP-001-component-model.dsl'
+    md = ROOT / 'architecture' / 'views' / 'DT-ARQ-CMP-DOC-001.md'
+    dsl = ROOT / 'architecture' / 'views' / 'DT-ARQ-CMP-001-component-model.dsl'
     generate_structurizr_dsl(md, dsl)
     print(f"Generated {dsl}")

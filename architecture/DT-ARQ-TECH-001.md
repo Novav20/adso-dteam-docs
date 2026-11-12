@@ -19,7 +19,7 @@ This document is the consolidated source for identifying the target technology s
 | Mobile Client | .NET MAUI Blazor Hybrid | Field Android/iOS operation and offline-first experience | ADR-004, `TR-002`, `TR-007`, DT-ARQ-DEP-001 |
 | Administrative Client | Blazor Web App | HSEQ supervision, planning, administration, and dashboards | ADR-004, DT-ARQ-CMP-001, DT-ARQ-DEP-001 |
 | UI Components | Razor Components / Blazor (RCL) | HPHMI, forms, tables, shared states, and navigation | ADR-004, `TR-011` |
-| Application Language | C# (.NET 10) | Client, shared services, domain, and backend | ADR-004 |
+| Application Language | C# 14 | Client, shared services, domain, and backend | ADR-004 |
 | Backend | .NET 10 / ASP.NET Core | API, DDD business rules, authentication, and processing | DT-ARQ-DEP-001 |
 | Real-Time | SignalR over WSS | LOTO Heartbeat (2s), KPIs, and authorized notifications | `TR-010`, DT-ARQ-DEP-001 |
 | API | HTTPS/JSON | Synchronization and client-server operations | `TR-005`, `TR-007`, DT-ARQ-DEP-001 |
@@ -41,8 +41,8 @@ This document is the consolidated source for identifying the target technology s
 
 ## Related Artifacts
 
-- [[ADR-004|ADR-004: Frontend Client with .NET MAUI Blazor Hybrid]]
+- [ADR-004: Frontend Client with .NET MAUI Blazor Hybrid](adr/ADR-004.md)
 - [Component Model](views/DT-ARQ-CMP-001-component-model.drawio)
-- [[DT-ARQ-CMP-DOC-001|Component Specification]]
+- [Component Specification](views/DT-ARQ-CMP-DOC-001.md)
 - [Deployment Model](views/DT-ARQ-DEP-001-deployment-model.drawio)
-- [[DT-ARQ-DEP-DOC-001|Deployment Specification]]
+- [Deployment Specification](views/DT-ARQ-DEP-DOC-001.md)

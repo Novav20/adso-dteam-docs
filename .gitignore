@@ -15,16 +15,17 @@
 *.fdb_latexmk
 *.pdf
 
-# Archivos generados de manera automatica
-requirements/common/
-requirements/user-stories/
-ui-ux/assets/tokens.css
-ui-ux/assets/tokens_penpot.json
-ui-ux/assets/icons.svg
-*.dsl
+# Python bytecode and temporary caches
+__pycache__/
+*.pyc
 scripts/temp/
-domain-models/class/DT-DM-001.puml
-domain-models/entity-relationship/DT-ERD-DOC-001.dbml
 
-temp/
-domain-models/entity-relationship/DT-ERD-DOC-001.sql
+# Ephemeral audit reports and test outputs
+reports/
+
+# Local prototype mirror (iterated in external workspace)
+ui-ux/prototype/
+
+# OS specific files
+.DS_Store
+Thumbs.db

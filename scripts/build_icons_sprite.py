@@ -19,7 +19,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE_DIR = ROOT / "ui-ux" / "assets" / "icons-src"
 DEFAULT_TARGET = ROOT / "ui-ux" / "assets" / "icons.svg"
-DEFAULT_PROTOTYPE_TARGET = ROOT / "temp" / "ui-prototype" / "assets" / "icons.svg"
+DEFAULT_PROTOTYPE_DIR = ROOT / "ui-ux" / "prototype" / "assets"
+DEFAULT_PROTOTYPE_TARGET = DEFAULT_PROTOTYPE_DIR / "icons.svg"
+DEFAULT_PROTOTYPE_DATA_JS = DEFAULT_PROTOTYPE_DIR / "icons-data.js"
 
 # Built-in fallback UI & Navigation symbols if not overridden in icons-src
 DEFAULT_UI_SYMBOLS = {
@@ -52,6 +54,21 @@ DEFAULT_UI_SYMBOLS = {
       <path d="M4.93 12.93a10 10 0 0 1 3.57-2.36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       <path d="M12 20h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     """,
+    "icon-close": """
+      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/>
+    """,
+    "icon-chevron-left": """
+      <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"/>
+    """,
+    "icon-chevron-right": """
+      <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/>
+    """,
+    "icon-chevron-down": """
+      <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" fill="currentColor"/>
+    """,
+    "icon-chevron-up": """
+      <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" fill="currentColor"/>
+    """,
 }
 
 
@@ -67,20 +84,33 @@ def clean_xml_element(elem: ET.Element) -> None:
     if "style" in elem.attrib:
         style = elem.attrib["style"]
         style = re.sub(r"display\s*:\s*[^;]+;?", "", style).strip()
-        style = re.sub(r"fill\s*:\s*#000000;?", "fill: currentColor;", style)
+        style = re.sub(r"fill\s*:\s*(?:#000000|#000|black);?", "fill: currentColor;", style)
+        style = re.sub(r"stroke\s*:\s*(?:#000000|#000|black);?", "stroke: currentColor;", style)
         if style:
             elem.attrib["style"] = style
         else:
             elem.attrib.pop("style", None)
 
-    if elem.attrib.get("fill") == "#000000":
+    if elem.attrib.get("fill") in ("#000000", "#000", "black"):
         elem.attrib["fill"] = "currentColor"
+
+    if elem.attrib.get("stroke") in ("#000000", "#000", "black"):
+        elem.attrib["stroke"] = "currentColor"
+
+    # Default SVG shapes without explicit fill or stroke to currentColor (inherits parent CSS)
+    tag_clean = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
+    if tag_clean in ("path", "polygon", "rect", "circle", "ellipse"):
+        style_str = elem.attrib.get("style", "")
+        has_fill = ("fill" in elem.attrib) or bool(re.search(r"(?<!-)\bfill\s*:", style_str))
+        has_stroke = ("stroke" in elem.attrib) or bool(re.search(r"(?<!-)\bstroke\s*:", style_str))
+        if not has_fill and not has_stroke:
+            elem.attrib["fill"] = "currentColor"
 
     for child in elem:
         clean_xml_element(child)
 
 
-def build(source_dir: Path, target: Path, prototype_target: Path | None = None) -> None:
+def build(source_dir: Path, target: Path, prototype_target: Path | None = None, prototype_data_js: Path | None = None) -> None:
     if not source_dir.exists():
         raise FileNotFoundError(f"Source directory not found: {source_dir}")
 
@@ -167,14 +197,72 @@ def build(source_dir: Path, target: Path, prototype_target: Path | None = None) 
         prototype_target.write_text(sprite_content, encoding="utf-8")
         print(f"Synced to prototype: {prototype_target}")
 
+    if prototype_data_js:
+        import json
+        js_content = (
+            "/**\n"
+            " * ICONS-DATA.JS\n"
+            " * Inlines SVG icons sprite into document body.\n"
+            " * Enables zero-CORS SVG icon rendering on local file:// URLs.\n"
+            " * GENERATED FILE - Do not edit manually.\n"
+            f" * Source: ui-ux/assets/icons-src/\n"
+            " * Regenerate with: python3 scripts/build_icons_sprite.py\n"
+            " */\n"
+            "(function(global) {\n"
+            '    "use strict";\n'
+            f"    const spriteContent = {json.dumps(sprite_content)};\n\n"
+            "    function injectSprite() {\n"
+            "        if (document.getElementById('__dteam_inlined_sprite')) return;\n"
+            "        const div = document.createElement('div');\n"
+            "        div.id = '__dteam_inlined_sprite';\n"
+            "        div.style.display = 'none';\n"
+            "        div.innerHTML = spriteContent;\n"
+            "        if (document.body) {\n"
+            "            document.body.insertBefore(div, document.body.firstChild);\n"
+            "        }\n"
+            "    }\n\n"
+            "    function remapUses() {\n"
+            "        document.querySelectorAll('use').forEach(useEl => {\n"
+            "            const href = useEl.getAttribute('href') || useEl.getAttribute('xlink:href');\n"
+            "            if (href && href.startsWith('assets/icons.svg#')) {\n"
+            "                useEl.setAttribute('href', href.replace('assets/icons.svg', ''));\n"
+            "            }\n"
+            "        });\n"
+            "    }\n\n"
+            "    if (document.readyState === 'loading') {\n"
+            "        document.addEventListener('DOMContentLoaded', () => {\n"
+            "            injectSprite();\n"
+            "            remapUses();\n"
+            "        });\n"
+            "    }\n"
+            "    injectSprite();\n"
+            "})(typeof window !== 'undefined' ? window : this);\n"
+        )
+        prototype_data_js.parent.mkdir(parents=True, exist_ok=True)
+        prototype_data_js.write_text(js_content, encoding="utf-8")
+        print(f"Synced to prototype data JS: {prototype_data_js}")
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-dir", type=Path, default=DEFAULT_SOURCE_DIR)
     parser.add_argument("--target", type=Path, default=DEFAULT_TARGET)
     parser.add_argument("--prototype-target", type=Path, default=DEFAULT_PROTOTYPE_TARGET)
+    parser.add_argument("--prototype-data-js", type=Path, default=DEFAULT_PROTOTYPE_DATA_JS)
+    parser.add_argument(
+        "--target-prototype-dir",
+        type=Path,
+        default=None,
+        help="Directory receiving the prototype icons.svg and icons-data.js outputs.",
+    )
     args = parser.parse_args()
-    build(args.source_dir.resolve(), args.target.resolve(), args.prototype_target.resolve())
+    prototype_target = args.prototype_target
+    prototype_data_js = args.prototype_data_js
+    if args.target_prototype_dir is not None:
+        prototype_dir = args.target_prototype_dir.resolve()
+        prototype_target = prototype_dir / "icons.svg"
+        prototype_data_js = prototype_dir / "icons-data.js"
+    build(args.source_dir.resolve(), args.target.resolve(), prototype_target.resolve(), prototype_data_js.resolve())
 
 
 if __name__ == "__main__":
