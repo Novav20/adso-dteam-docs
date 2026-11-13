@@ -155,7 +155,6 @@ CREATE TABLE IF NOT EXISTS mtto.maintenance_plans (
     next_work_order_date           DATE,
     next_trigger_limit             DECIMAL(12,2),
     estimated_labor_hours          DECIMAL(10,2) NOT NULL,
-    required_specialty             VARCHAR(80) NOT NULL,
     technical_description          VARCHAR(255) NOT NULL,
     cadence_override_justification VARCHAR(255),
     status                         VARCHAR(20) NOT NULL,
@@ -164,7 +163,6 @@ CREATE TABLE IF NOT EXISTS mtto.maintenance_plans (
     CONSTRAINT ck_maintenance_plans_frequency_type CHECK (frequency_type IN ('CALENDAR_TIME', 'OPERATING_HOURS', 'CYCLES')),
     CONSTRAINT ck_maintenance_plans_interval_unit CHECK (interval_unit IN ('DAYS', 'WEEKS', 'MONTHS', 'YEARS', 'OPERATING_HOURS', 'CYCLES', 'KILOMETERS', 'WEAR_DEPTH_MM')),
     CONSTRAINT ck_maintenance_plans_monitored_signal_type CHECK (monitored_signal_type IN ('TEMPERATURE', 'PRESSURE', 'VIBRATION', 'FLOW_RATE', 'VOLTAGE', 'CURRENT', 'RPM', 'OPERATING_HOURS', 'CYCLES')),
-    CONSTRAINT ck_maintenance_plans_required_specialty CHECK (required_specialty IN ('MECHANICAL', 'ELECTRICAL', 'INSTRUMENTATION_AND_CONTROL', 'LUBRICATION', 'CONDITION_MONITORING', 'ELECTRONICS', 'WELDING_FABRICATION', 'FACILITIES')),
     CONSTRAINT ck_maintenance_plans_status CHECK (status IN ('DRAFT', 'ACTIVE', 'INACTIVE', 'ARCHIVED')),
     CONSTRAINT pk_maintenance_plans PRIMARY KEY (id)
 );
@@ -229,6 +227,14 @@ CREATE TABLE IF NOT EXISTS mtto.work_requests (
     CONSTRAINT ck_work_requests_status CHECK (status IN ('NEW', 'APPROVED', 'REJECTED')),
     CONSTRAINT ck_work_requests_work_class CHECK (work_class BETWEEN 1 AND 10),
     CONSTRAINT pk_work_requests PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS mtto.maintenance_plan_crafts (
+    maintenance_plan_id            UUID NOT NULL,
+    craft                          VARCHAR(80) NOT NULL,
+
+    CONSTRAINT ck_maintenance_plan_crafts_craft CHECK (craft IN ('MECHANICAL', 'ELECTRICAL', 'INSTRUMENTATION_AND_CONTROL', 'LUBRICATION', 'CONDITION_MONITORING', 'ELECTRONICS', 'WELDING_FABRICATION', 'FACILITIES')),
+    CONSTRAINT pk_maintenance_plan_crafts PRIMARY KEY (maintenance_plan_id, craft)
 );
 
 -- ==========================================
@@ -553,6 +559,7 @@ CREATE INDEX IF NOT EXISTS idx_work_orders_work_request_id ON mtto.work_orders (
 CREATE INDEX IF NOT EXISTS idx_work_orders_work_permit_id ON mtto.work_orders (work_permit_id);
 CREATE INDEX IF NOT EXISTS idx_work_orders_scope_checklist ON mtto.work_orders USING GIN (scope_checklist jsonb_path_ops);
 CREATE INDEX IF NOT EXISTS idx_work_requests_equipment_unit_id ON mtto.work_requests (equipment_unit_id);
+CREATE INDEX IF NOT EXISTS idx_maintenance_plan_crafts_maintenance_plan_id ON mtto.maintenance_plan_crafts (maintenance_plan_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_transactions_spare_part_id ON inv.inventory_transactions (spare_part_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_transactions_warehouse_id ON inv.inventory_transactions (warehouse_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_transactions_work_order_id ON inv.inventory_transactions (work_order_id);
@@ -682,6 +689,10 @@ ALTER TABLE mtto.work_orders
 
 ALTER TABLE mtto.work_requests
     ADD CONSTRAINT fk_work_requests_equipment_unit FOREIGN KEY (equipment_unit_id) REFERENCES tax.equipment_units (id)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE mtto.maintenance_plan_crafts
+    ADD CONSTRAINT fk_maintenance_plan_crafts_maintenance_plan FOREIGN KEY (maintenance_plan_id) REFERENCES mtto.maintenance_plans (id)
     ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE inv.inventory_transactions

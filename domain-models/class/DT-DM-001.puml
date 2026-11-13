@@ -131,7 +131,6 @@ package "Maintenance Management (MTTO)" <<Folder>> #F0F0F0 {
         - NextWorkOrderDate: DateTime?
         - NextTriggerLimit: Decimal?
         - EstimatedLaborHours: Decimal
-        - RequiredSpecialty: String
         - TechnicalDescription: String
         - CadenceOverrideJustification: String
         - Status: String
@@ -140,6 +139,10 @@ package "Maintenance Management (MTTO)" <<Folder>> #F0F0F0 {
         + Suspend(reason: String): void
         + Archive(): void
         + CalculateNextTriggerLimit(currentUsage: Decimal): void
+    }
+    class MaintenancePlanCraft <<Entity>> {
+        - MaintenancePlanId: UUID
+        - Craft: String
     }
     class WorkOrder <<Aggregate Root>> {
         - Id: UUID
@@ -256,9 +259,8 @@ package "Resource Control (INV)" <<Folder>> #F0F0F0 {
         - Location: String
         - Capacity: Decimal
         --
-        + UpdateCapacity(newMaxWeight: Decimal, newMaxVolume: Decimal): void
+        + UpdateCapacity(newCapacity: Decimal): void
         + AddLocator(aisle: String, rack: String, shelf: String, barcode: String): UUID
-        + SetStatus(newStatus: Enum): void
     }
     class Locator <<Entity>> {
         - Id: UUID
@@ -278,8 +280,7 @@ package "Resource Control (INV)" <<Folder>> #F0F0F0 {
         - ContactInfo: String
         - WarrantyTerms: String
         --
-        + UpdateContactInfo(phone: String, email: String, address: String): void
-        + Deactivate(): void
+        + UpdateContactInfo(contactInfo: String, warrantyTerms: String): void
     }
     class MaterialRequirement <<Entity>> {
         - WorkOrderId: UUID
@@ -468,6 +469,7 @@ Subunit "1" *-- "0..*" MaintainableItem : built by
 EquipmentUnit "1" *-- "0..*" MaintenancePlan : governed by
 Subunit "1" o-- "0..*" MaintenancePlan : targeted by
 MaintainableItem "1" o-- "0..*" MaintenancePlan : maintained via
+MaintenancePlan "1" *-- "1..*" MaintenancePlanCraft : requires
 EquipmentUnit "1" --> "0..*" WorkOrder : generates
 MaintenancePlan "1" o-- "0..*" WorkOrder : instantiates
 WorkRequest "1" o-- "0..*" WorkOrder : originates

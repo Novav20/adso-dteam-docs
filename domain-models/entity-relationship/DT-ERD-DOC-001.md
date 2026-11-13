@@ -1,7 +1,7 @@
 ---
 code: DT-ERD-DOC-001
-version: 1.5
-date: 2026-11-06
+version: 1.6
+date: 2026-11-13
 status: Active
 author: Juan David Julio Serrano
 standard:
@@ -164,7 +164,6 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | next_work_order_date | DATE | NULL | | NULL | Scheduled execution date (Calculated). |
 | next_trigger_limit | DECIMAL(12,2) | NULL | | NULL | Accumulated limit calculated for the next trigger. |
 | estimated_labor_hours | DECIMAL(10,2) | NOT NULL | | - | Estimated Man-Hours (Wrench Time) for planning. |
-| required_specialty | VARCHAR(80) | NOT NULL | CHECK | - | Required technical specialty (e.g., Mechanical, Electrical). |
 | technical_description | VARCHAR(255) | NOT NULL | | - | Technical description of the task scope. |
 | cadence_override_justification | VARCHAR(255) | NULL | | NULL | Mandatory audit justification when overriding recommended cadence on critical assets (MTTO-001). |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Plan (document) lifecycle status. |
@@ -224,6 +223,13 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | request_source | VARCHAR(80) | NOT NULL | | - | Origin of the request. |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Request lifecycle status. |
 | work_class | SMALLINT | NOT NULL | CHECK | - | Numeric weight (1..10) of the selected work class for RIME. |
+
+#### 3.2.8 maintenance_plan_crafts
+
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
+| --- | --- | --- | --- | --- | --- |
+| maintenance_plan_id | UUID | NOT NULL | PK, FK | - | Foreign key to the parent maintenance plan. |
+| craft | VARCHAR(80) | NOT NULL | PK, CHECK | - | Controlled technical specialty vocabulary (DT-DM-DOC-001 §4.17). |
 
 ### 3.3 Schema `inv`
 
@@ -499,6 +505,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | equipment_units | 1 : 0..N | maintenance_plans | governed by | CASCADE | CASCADE |
 | subunits | 1 : 0..N | maintenance_plans | targeted by | SET NULL | CASCADE |
 | maintainable_items | 1 : 0..N | maintenance_plans | maintained via | SET NULL | CASCADE |
+| maintenance_plans | 1 : 1..N | maintenance_plan_crafts | requires | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | work_orders | generates | RESTRICT | CASCADE |
 | maintenance_plans | 1 : 0..N | work_orders | instantiates | SET NULL | CASCADE |
 | work_requests | 1 : 0..N | work_orders | originates | SET NULL | CASCADE |

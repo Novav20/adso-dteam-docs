@@ -20,6 +20,7 @@ TableGroup mtto {
   "mtto"."work_order_histories"
   "mtto"."work_orders"
   "mtto"."work_requests"
+  "mtto"."maintenance_plan_crafts"
 }
 
 TableGroup inv {
@@ -160,7 +161,6 @@ Table "mtto"."maintenance_plans" {
   "next_work_order_date" "DATE" [note: 'Scheduled execution date (Calculated).']
   "next_trigger_limit" "DECIMAL(12,2)" [note: 'Accumulated limit calculated for the next trigger.']
   "estimated_labor_hours" "DECIMAL(10,2)" [not null, note: 'Estimated Man-Hours (Wrench Time) for planning.']
-  "required_specialty" "VARCHAR(80)" [not null, note: 'Required technical specialty (e.g., Mechanical, Electrical).']
   "technical_description" "VARCHAR(255)" [not null, note: 'Technical description of the task scope.']
   "cadence_override_justification" "VARCHAR(255)" [note: 'Mandatory audit justification when overriding recommended cadence on critical assets (MTTO-001).']
   "status" "VARCHAR(20)" [not null, note: 'Plan (document) lifecycle status.']
@@ -212,6 +212,11 @@ Table "mtto"."work_requests" {
   "request_source" "VARCHAR(80)" [not null, note: 'Origin of the request.']
   "status" "VARCHAR(20)" [not null, note: 'Request lifecycle status.']
   "work_class" "SMALLINT" [not null, note: 'Numeric weight (1..10) of the selected work class for RIME.']
+}
+
+Table "mtto"."maintenance_plan_crafts" {
+  "maintenance_plan_id" "UUID" [pk, not null, note: 'Foreign key to the parent maintenance plan.']
+  "craft" "VARCHAR(80)" [pk, not null, note: 'Controlled technical specialty vocabulary (DT-DM-DOC-001 §4.17).']
 }
 
 Table "inv"."inventory_transactions" {
@@ -435,6 +440,7 @@ Ref: "tax"."subunits"."id" < "tax"."maintainable_items"."subunit_id" [delete: ca
 Ref: "tax"."equipment_units"."id" < "mtto"."maintenance_plans"."equipment_unit_id" [delete: cascade, update: cascade]
 Ref: "tax"."subunits"."id" < "mtto"."maintenance_plans"."subunit_id" [delete: set null, update: cascade]
 Ref: "tax"."maintainable_items"."id" < "mtto"."maintenance_plans"."maintainable_item_id" [delete: set null, update: cascade]
+Ref: "mtto"."maintenance_plans"."id" < "mtto"."maintenance_plan_crafts"."maintenance_plan_id" [delete: cascade, update: cascade]
 Ref: "tax"."equipment_units"."id" < "mtto"."work_orders"."equipment_unit_id" [delete: restrict, update: cascade]
 Ref: "mtto"."maintenance_plans"."id" < "mtto"."work_orders"."maintenance_plan_id" [delete: set null, update: cascade]
 Ref: "mtto"."work_requests"."id" < "mtto"."work_orders"."work_request_id" [delete: set null, update: cascade]

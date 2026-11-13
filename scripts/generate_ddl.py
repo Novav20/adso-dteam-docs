@@ -9,6 +9,7 @@ ENUM_ALIASES = {
     "work_requests.work_class": "work_requests.work_class_code",
     "work_order_assignments.assigned_role": "work_order_assignments.role_in_work",
     "audit_logs.event_type": "audit_logs.action_type",
+    "maintenance_plan_crafts.craft": "maintenance_plans.required_specialty",
 }
 
 EXPLICIT_FK_TARGETS = {

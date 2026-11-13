@@ -1,7 +1,7 @@
 ---
 code: DT-DM-DOC-001
-version: 1.7
-date: 2026-11-06
+version: 1.8
+date: 2026-11-13
 status: Approved — Domain Conceptual Specification
 author: Juan David Julio Serrano
 standard:
@@ -56,7 +56,7 @@ The approved capsules set provides strong guidance for LOTO, competencies, and s
 To reflect the Modular Monolith architecture in the persistence layer and avoid saturating the default schema (`public`), the system tables are distributed into dedicated schemas corresponding to the DDD Bounded Contexts:
 
 - `tax`: Taxonomy and assets according to ISO 14224 (`functional_locations`, `equipment_units`, `asset_installations`, `subunits`, `maintainable_items`, `equipment_classes`).
-- `mtto`: Maintenance and reliability management (`work_requests`, `work_orders`, `work_order_histories`, `maintenance_plans`, `failure_records`, `media_attachments`, `backlog_items`).
+- `mtto`: Maintenance and reliability management (`work_requests`, `work_orders`, `work_order_histories`, `maintenance_plans`, `maintenance_plan_crafts`, `failure_records`, `media_attachments`, `backlog_items`).
 - `inv`: Resource and supply control (`spare_parts`, `inventory_transactions`, `material_requirements`, `warehouses`, `locators`, `suppliers`).
 - `vis`: Digital twin and operational safety layers (`mesh_mappings`, `spatial_metadata`, `visual_layers`, `telemetry_signals`, `work_permits`, `isolation_points`, `work_order_isolations`).
 - `adm`: Perimeter security, IAM, and immutable audit (`users`, `roles`, `user_roles`, `role_permissions`, `auth_tokens`, `work_order_assignments`, `audit_logs`, `idempotency_logs`).
@@ -78,6 +78,7 @@ This segregation allows for:
 | MaintainableItem | Entity | Represents the lowest repairable level used for maintenance and failure analysis. | ISO 14224 Taxonomy Levels 8–9 |
 | WorkRequest | Aggregate Root | Initiates the maintenance intake flow and owns the RIME prioritization factors. | ISO 55000 risk and decision guidance; ADR 002 |
 | MaintenancePlan | Aggregate Root | Owns a planned maintenance schedule and its cadence. | ISO 14224 maintenance data guidance |
+| MaintenancePlanCraft | Entity | Associative 1..N technical craft requirement owned by a `MaintenancePlan` (`RequiredCrafts`). | ISO 55000 competency & resource planning |
 | WorkOrder | Aggregate Root | Owns execution, history, attachments, and downstream work records. | ISO 14224 event data; ISO 9000 record control |
 | MediaAttachment | Value Object | Pure evidence payload with no independent business identity. | ISO 9000 documented information and records |
 | WorkOrderHistory | Entity | Append-only lifecycle transition record for a work order. | ISO 9000 record immutability |
@@ -290,6 +291,8 @@ This segregation allows for:
 | ELECTRONICS | Electronic boards, variable frequency drives, and digital components. | Internal Vocabulary (SMRP Practices) |
 | WELDING_FABRICATION | Welding, boilermaking, pipefitting, and structural repairs. | Internal Vocabulary (SMRP Practices) |
 | FACILITIES | Civil infrastructure, structures, lighting, and general services. | Internal Vocabulary (EAM Practices) |
+
+> **Persistence Mapping Note:** In the physical relational schema, multi-craft plans persist 1..N selections of this controlled vocabulary (`RequiredCrafts`) via the associative entity `MaintenancePlanCraft` (`mtto.maintenance_plan_crafts`).
 
 #### 4.18 MaintenancePlan.status
 
