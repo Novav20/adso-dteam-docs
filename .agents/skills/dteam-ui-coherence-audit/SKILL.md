@@ -44,7 +44,7 @@ uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py audit-all
 2. If exit code is `2` (BLOCKER), stop immediately and report the specific syntactic/boundary violations to the user. Do NOT proceed to heuristic evaluation while deterministic blockers exist.
 
 ### Step 1: Context Gathering & Archetype Classification
-1. Read the target screen specification (`SCR-*.md`) and its associated use case (`UC-*.md`).
+1. Read the target screen specification (`SCR-*.md`), its associated use case (`UC-*.md`), and—whenever a companion interactive prototype exists (`scr-[mod]-[num].html` and `scr-[mod]-[num].js`)—inspect the user-facing HTML/JS copy alongside visual artifacts.
 2. Identify the screen archetype:
    * **Archetype A: Transactional / Command Screen (APM):** Forms, workflows, state mutations, permits, failure reporting, or inventory transactions (e.g., `SCR-MTTO-023`, `SCR-VIS-011`, `SCR-INV-025`).
    * **Archetype B: Supervisory / Inspection Screen (Digital Twin HMI):** Vector schematics, spatial navigation, real-time telemetry monitoring, faceplates, or alarm oversight (e.g., `SCR-VIS-033`, `SCR-VIS-008`).
@@ -184,6 +184,13 @@ All screen specifications must strictly align with the canonical standard define
 12. **LaTeX Math & Code-Span Formatting Guardrails (`LTX-001` & `TOK-004`):**
     * **LaTeX Math Delimiter & Syntax Integrity (`LTX-001`):** Mathematical expressions, dimensions, and percentages must preserve balanced unescaped `$` delimiters. LaTeX math macros (`\text{`, `\times`, `\ge`, `\le`, `\pm`, `\approx`, `\frac{`, `\cdot`) and mathematical percentage tokens (`\%$`) are strictly forbidden outside `$...$` math blocks.
     * **Token and Component Code-Span Hygiene (`TOK-004`):** Design System tokens (`--dt-*`) and Component identifiers (`CMP-*`) in prose must always be enclosed in code backticks (e.g., `` `--dt-shadow-panel` ``, `` `CMP-05` ``) to prevent visual formatting erosion and shell corruption.
+
+13. **Companion Prototype Persona Voice & Domain Naturalness (`HTML-ENUM-001` & `HTML-META-001`):**
+    * Deterministic Tier 0 enforces `HTML-ENUM-001` (zero raw `SCREAMING_SNAKE_CASE` or `snake_case` enum/column strings in visible DOM text or user-facing JS messages; uppercase keys belong strictly inside `value="..."` or internal maps) and `HTML-META-001` (zero software/SRS jargon such as `instanciar`, `ingesta`, `monotonía`, `anti-drift`, `payload`, `outbox`, `single-commit`, or `DTO` in visible UI).
+    * During Tier 1 evaluation, the LLM auditor **MUST** read the companion `.html` + `.js` strings through the eyes of the **Primary Target Persona** (§1) and flag any copy that:
+      1. **Explains Algorithm Internals Instead of Plant Operations:** Flag labels describing how code enforces an invariant (e.g., *"control de deriva sin desplazamiento"*, *"validación estricta de monotonía"*) instead of authentic plant/maintenance outcomes (*"el contador no puede retroceder"*, *"posible reinicio o fallo de sensor"*).
+      2. **Exposes Academic / Developer Pedantry:** Flag mathematical proofs (`Target_{n+1}`), internal SRS rationales, or redundant taxonomic level tags (`Nivel 6/7/8`) in input labels where operators expect concise equipment/component names.
+      3. **Drifts from Sibling Gold Standard Vocabulary:** Verify consistency with locked prototypes (`Equipo Principal`, `Subunidad Operativa`, `Componente Mantenible`, `"Se generará / programará automáticamente"`).
 
 ---
 

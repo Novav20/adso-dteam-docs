@@ -259,6 +259,20 @@ PROHIBITED_SPEC_CODES: list[tuple[str, str, str]] = [
      "Screen/Module ID '{match}' leaked into HTML prototype text or visible DOM. Replace with authentic operational label."),
 ]
 
+# Prohibited software-engineering / SRS meta-text leaked into user-facing prototype copy
+PROHIBITED_PROTOTYPE_META_TERMS: list[tuple[str, str, str]] = [
+    (r"\b(?:instanciar\w*|instanciación)\b", "HTML-META-001",
+     "OOP jargon '{match}' leaked into user-facing prototype copy. Use domain phrasing such as 'generará' or 'programará'."),
+    (r"\bingesta\w*\b", "HTML-META-001",
+     "Data-pipeline jargon '{match}' leaked into user-facing prototype copy. Use domain phrasing such as 'lectura' or 'recepción de señal'."),
+    (r"\bmonoton[ií]a\w*\b", "HTML-META-001",
+     "Mathematical/SRS jargon '{match}' leaked into user-facing prototype copy. Use operational phrasing such as 'control de contador' or 'lectura consistente'."),
+    (r"\banti-?drift\b", "HTML-META-001",
+     "Engineering meta-term '{match}' leaked into user-facing prototype copy. Explain calculation behavior in plain domain language."),
+    (r"\b(?:outbox|single-?commit|command\s+payload|payload\w*|soft-?delete|dtos?)\b", "HTML-META-001",
+     "Software-architecture jargon '{match}' leaked into user-facing prototype copy. Replace with authentic operational terminology."),
+]
+
 # Unicode Emoji regex pattern (Standard Unicode ranges for pictorial emojis)
 EMOJI_REGEX = re.compile(
     r"[\U0001F300-\U0001FAFF"  # Miscellaneous Symbols and Pictographs, Emoticons, Supplemental Symbols
@@ -1512,14 +1526,14 @@ def audit_companion_html_prototype(screen_id: str, repo_root: Path, prototype_di
                     line=idx
                 ))
 
-            # 2. Check for Leaked Specification Codes in visible text
+            # 2. Check for Leaked Specification Codes, Raw Enum Keys, and CS Meta-Text in visible text
             line_to_check = line
             if is_html:
-                # Strip HTML comments, <title> tag, and attribute assignments (href=..., src=..., class=..., id=...)
+                # Strip HTML comments, <title> tag, and non-user-visible attributes (preserving placeholder)
                 clean_html = re.sub(r"<!--.*?-->", "", line_to_check)
                 clean_html = re.sub(r"<title>.*?</title>", "", clean_html, flags=re.IGNORECASE)
-                clean_html = re.sub(r'\b(?:href|src|active|id|class|data-[a-z0-9_-]+)="[^"]*"', '', clean_html)
-                clean_html = re.sub(r"\b(?:href|src|active|id|class|data-[a-z0-9_-]+)='[^']*'", '', clean_html)
+                clean_html = re.sub(r'\b(?:href|src|active|id|class|value|for|name|type|style|title|onclick|onchange|oninput|aria-[a-z-]+|data-[a-z0-9_-]+)="[^"]*"', '', clean_html)
+                clean_html = re.sub(r"\b(?:href|src|active|id|class|value|for|name|type|style|title|onclick|onchange|oninput|aria-[a-z-]+|data-[a-z0-9_-]+)='[^']*'", '', clean_html)
                 line_to_check = clean_html
             elif is_css:
                 # Strip CSS comments
@@ -1534,6 +1548,59 @@ def audit_companion_html_prototype(screen_id: str, repo_root: Path, prototype_di
                         message=msg_template.format(match=m.group(0)) + f" (Found in '{fpath.name}' line {idx})",
                         line=idx
                     ))
+
+            # 2b. Check visible HTML text and multi-word JS UI strings for raw enums & CS meta-text
+            visible_ui_segments: list[str] = []
+            if is_html:
+                # Extract visible text between tags + placeholder values (skip inline <script>/<style> lines)
+                if not re.match(r"^\s*(?:var|let|const|function|if|for|return|\{|\}|document\.|window\.)", line_to_check):
+                    ph_matches = re.findall(r'\bplaceholder=(?:"([^"]*)"|\'([^\']*)\')', line_to_check)
+                    for pa, pb in ph_matches:
+                        visible_ui_segments.append(pa or pb)
+                    text_only = re.sub(r"<[^>]+>", " ", line_to_check).strip()
+                    if text_only:
+                        visible_ui_segments.append(text_only)
+            elif is_js:
+                # Extract single-line quoted UI strings containing spaces (ignores single-key identifiers/IDs)
+                for qa, qb in re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"|\'([^\'\\]*(?:\\.[^\'\\]*)*)\'', line_to_check):
+                    s_val = qa or qb
+                    if " " not in s_val:
+                        continue
+                    # Strip embedded HTML markup/attributes while preserving inner visible text
+                    s_clean = re.sub(r'<[a-zA-Z0-9_-]+(?:\s+[^>]*)?>|</[a-zA-Z0-9_-]+>', ' ', s_val).strip()
+                    if s_clean and ".map(" not in s_clean and ".filter(" not in s_clean:
+                        visible_ui_segments.append(s_clean)
+
+            for seg in visible_ui_segments:
+                # Raw SCREAMING_SNAKE_CASE enums (ignore equipment/sensor tags whose first token includes digits, e.g. C201_RUN_HOURS)
+                for enum_hit in re.findall(r"\b[A-Z]{2,}(?:_[A-Z0-9]+)+\b", seg):
+                    if re.search(r"\d", enum_hit.split("_")[0]):
+                        continue
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="HTML-ENUM-001",
+                        message=f"Raw uppercase enum identifier '{enum_hit}' leaked into user-facing prototype copy in '{fpath.name}' line {idx}. Translate to localized industrial Spanish (keep uppercase keys strictly in value=\"...\").",
+                        line=idx
+                    ))
+                # Raw lowercase snake_case DB/enum strings (e.g. operating_hours), ignoring URL/file paths
+                seg_no_urls = re.sub(r"https?://[^\s\"'<>]+", " ", seg)
+                for snake_hit in re.findall(r"\b[a-z]{3,}(?:_[a-z0-9]+)+\b", seg_no_urls):
+                    findings.append(Finding(
+                        severity="BLOCKER",
+                        code="HTML-ENUM-001",
+                        message=f"Raw snake_case identifier '{snake_hit}' leaked into user-facing prototype copy in '{fpath.name}' line {idx}. Replace with human-readable domain text.",
+                        line=idx
+                    ))
+                # Software/SRS meta-text banlist
+                for m_pat, m_code, m_msg in PROHIBITED_PROTOTYPE_META_TERMS:
+                    mm = re.search(m_pat, seg, re.IGNORECASE)
+                    if mm:
+                        findings.append(Finding(
+                            severity="BLOCKER",
+                            code=m_code,
+                            message=m_msg.format(match=mm.group(0)) + f" (Found in '{fpath.name}' line {idx})",
+                            line=idx
+                        ))
 
             # 3. Check for Raw Hex Colors in CSS or inline HTML styles
             if is_css:
