@@ -1,7 +1,7 @@
 ---
 code: DT-UI-DS-DOC-001
-version: 2.1
-date: 2026-10-28
+version: 2.2
+date: 2026-11-13
 status: APPROVED
 author: Juan David Julio Serrano
 standard:
@@ -404,6 +404,40 @@ In compliance with ISO 9241-110 (Controllability) and ANSI/ISA-101.01 ergonomics
   3. **Segmented Quick Access Presets:** Rapid budget selection pills (`2.0h`, `2.5h`, `3.0h`, `3.5h (Planned)`).
   4. **Primary Execution CTAs:** Full-width bottom action bars (`[Log Time to Record]`).
 * **Active Selection Discipline:** Active quick-access presets MUST use monochromatic high-contrast tokens (`--dt-primitive-gray-980` in Light Theme; `--dt-primitive-gray-10` in Dark Theme) with inverted text, strictly reserving `--dt-color-state-info` for primary execution actions (`[Log Time to Record]`, `[Finalize Work Order]`).
+
+---
+
+### 6.7. Relational Entity Lookup Modal Pattern (LOV / List of Values)
+
+In enterprise CMMS/EAM systems, high-cardinality relational foreign keys (master assets, functional locations, spare parts catalogs, personnel directories, or transactional records) exceed the cognitive and performance limits of native HTML `<select>` controls when catalogs scale beyond $15$–$20$ items. To maintain rapid operator selection without full-catalog DOM bloat, DTEAM classifies relational pickers into **Tier A (Searchable L4 Lookup Modal)** and **Tier B (Parent-Scoped Cascading Selector)**.
+
+#### 6.7.1. Trigger Control & L4 Modal Anatomy
+1. **Read-Only Reference Picker Trigger:** Hosts a single-line recessed display field (`--dt-control-height-lg` desktop / `--dt-touch-target-mobile` tablet) showing the bound natural identifier in `--dt-font-mono-data` paired with the entity description in `--dt-font-body-md`, plus an explicit lookup trigger button (`#icon-search`) and optional clear button (`#icon-close`) when the foreign key is nullable.
+2. **Level 4 Lookup Modal Container:** Uses centered L4 transactional modal chrome (`--dt-color-surface-card` body, `--dt-color-surface-overlay` / `--dt-color-surface-base` scrim at `--dt-z-modal`, `--dt-radius-xl`, `--dt-layout-modal-max-height` vertical ceiling) with a fixed search/filter header, internally scrolling tabular viewport, and fixed footer.
+3. **Debounced Multi-Criteria Search & Filter Bar:** Auto-focuses the search input inside the modal header ($300\text{ ms}$ debounce on server queries), querying by natural code (`TagNumber`, `Sku`, `PermitIdentifier`, `Username`) and human-readable attributes alongside contextual entity filters (location, class, criticality, stock availability, or governance readiness).
+4. **Dense Enterprise Result Grid & Zero-CLS Feedback:** Renders rows sized by `--dt-layout-table-row-height` with monospaced natural codes (`--dt-font-mono-data`), single-click/tap selection (`Enter` confirms highlighted row; `Esc` dismisses without mutation), and inline empty-state messaging with a one-click *"Clear Filters"* reset.
+5. **Governance & Safety Tag Visibility:** Blocking or hazardous master-data preconditions (e.g., missing physical battery limits on `EquipmentUnit`, zero stock on `SparePart`, `LOCKED`/`INACTIVE` state on `User`, `EXPIRED`/`REVOKED` state on `WorkPermit`) must remain explicitly tagged inside the lookup table using compliant semantic pills (`§6.5`) so planners can inspect or intentionally select an incomplete record to invoke remediation workflows.
+
+#### 6.7.2. Tier A Relational Lookup Catalog & Filter Criteria Matrix
+All Tier A entity pickers must bind server-side paginated search queries (`PageSize`, `SearchTerm`, plus the mandatory filter criteria below) instead of eagerly loading unconstrained entity lists:
+
+| Tier A Entity | Canonical Persistence Table | Mandatory Filter Criteria & Search Attributes | Target Screens |
+| :--- | :--- | :--- | :--- |
+| **`EquipmentUnit`** (Principal Equipment, ISO L6) | `tax.equipment_units` | Text search (`TagNumber`, `SerialNumber`, `Model`, name); Filters: `FunctionalLocation` (Plant Area / L1–L5), `EquipmentClass`, `Criticality` tier ($1..10$), Operational/Lifecycle Status, Physical Battery Limits Readiness (`HasBoundaries`) | [SCR-MTTO-023](screens/mtto/SCR-MTTO-023.md) (Reference Spec), [SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md), [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md), [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md), [SCR-VIS-008](screens/vis/SCR-VIS-008.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-VIS-033](screens/vis/SCR-VIS-033.md), [SCR-INV-025](screens/inv/SCR-INV-025.md) |
+| **`FunctionalLocation`** (ISO L1–L5 Slot) | `tax.functional_locations` | Text search (`TagNumber`, `Name`); Filters: `HierarchyLevel` (L1–L5), Parent Branch, `Criticality` band ($1..10$), Slot Occupancy Status (Vacant vs. Occupied) | [SCR-INV-005](screens/inv/SCR-INV-005.md), [SCR-INV-025](screens/inv/SCR-INV-025.md), [SCR-VIS-008](screens/vis/SCR-VIS-008.md), [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md) |
+| **`SparePart`** (Stock & MRO Item) | `inv.spare_parts` | Text search (`Sku`, `Description`, `Manufacturer`, `CommodityCode`); Filters: Compatible `EquipmentClass`, `Warehouse`, Stock Availability (`OnHand - Reserved > 0`), `StockPolicy`, `Status = ACTIVE` | [SCR-INV-006](screens/inv/SCR-INV-006.md), [SCR-INV-031](screens/inv/SCR-INV-031.md), [SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md), [SCR-MTTO-023](screens/mtto/SCR-MTTO-023.md), [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md) |
+| **`Locator`** (Warehouse Storage Bin) | `inv.locators` | Text search (`Aisle`, `Rack`, `Shelf`, `Barcode`); Filters: Parent `Warehouse`, `IsActive = true`, Current Part Stock Allocation | [SCR-INV-006](screens/inv/SCR-INV-006.md), [SCR-INV-031](screens/inv/SCR-INV-031.md) |
+| **`WorkOrder` / `WorkRequest` / `WorkPermit`** | `mtto.work_orders`, `mtto.work_requests`, `vis.work_permits` | Text search (`PermitIdentifier`, Folio / Description); Filters: Target `EquipmentUnit`, Lifecycle Status, `MaintenanceMethod` / `PermitType`, Validity Window, `Criticality` | [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md), [SCR-INV-006](screens/inv/SCR-INV-006.md) |
+| **`User`** (Personnel / Assignee / Issuer) | `adm.users` | Text search (`FullName`, `Username`, `Email`); Filters: Assigned RBAC `Role` (`TECHNICIAN`, `PLANNER`, `SUPERVISOR`, `SAFETY_AUTHORITY`), Account Status (`ACTIVE` only) | [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-ADM-013](screens/adm/SCR-ADM-013.md), [SCR-ADM-014](screens/adm/SCR-ADM-014.md) |
+| **`IsolationPoint`** (LOTO Lockout Point) | `vis.isolation_points` | Text search (`IsolationTag`); Filters: Parent `EquipmentUnit`, `IsolationType` (Electrical, Mechanical, Chemical, Thermal, etc.), `IsVerified` attestation state | [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md) |
+| **`Supplier` & `EquipmentClass`** | `inv.suppliers`, `tax.equipment_classes` | Text search (`Name`, `ClassName`, `ManufacturerStandard`); Filters: Manufacturing Standard (`API 610`, `API 617`, `IEC 60034`) | [SCR-INV-005](screens/inv/SCR-INV-005.md), [SCR-INV-031](screens/inv/SCR-INV-031.md), [MTTO-030](../requirements/user-stories/mtto/MTTO-030.md) |
+
+#### 6.7.3. Tier B Exemption Rule (Parent-Scoped & Bounded Cascading Selectors)
+Entities with naturally low cardinality scoped under a resolved Tier A parent aggregate ($\le 15$ candidate items in context) are explicitly exempted from L4 Lookup Modals and MUST remain fast inline cascading selectors or capsule toggles to avoid unnecessary modal fatigue:
+1. **`Subunit` (ISO L7) & `MaintainableItem` (ISO L8):** Scoped directly to the selected parent `EquipmentUnit` and `Subunit`.
+2. **`TelemetrySignal`:** Sensor variables mapped exclusively to the selected parent `EquipmentUnit`.
+3. **`Warehouse`:** Bounded organizational warehouse sites within the facility.
+4. **`Role` & Controlled Domain Vocabularies:** Fixed enumerators (`MaintenanceCraft`, `MaintenanceMethod`, `PermitType`, `IsolationType`, `OperationalStatus`, etc.) governed by [DT-DM-DOC-001](../domain-models/class/DT-DM-DOC-001.md).
 
 ---
 
