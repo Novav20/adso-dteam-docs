@@ -33,17 +33,17 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Audit data pertinence, finalize desktop prototype review, capture high-res screenshot, and promote to Stable.
   - [x] Canonical specification finalized and locked as Gold Standard Baseline: [`SCR-MTTO-026.md`](ui-ux/screens/mtto/SCR-MTTO-026.md) (v1.5 Stable — Screen #5, Supervisory Desktop Web Portal Archetype, `BacklogItemStatus`, `EstimatedCost`, 100% C# 14 / .NET 10 contracts, `TR-001`–`TR-011`, `ADR-002`, `ADR-003` traceability).
 
-- [ ] **SCR-MTTO-001: Calendar-Based Maintenance Scheduling**
-  - [ ] Cascading taxonomy selector (L6 $\to$ L7 $\to$ L8) and battery limit validation.
-  - [ ] Complete canonical specification review, run deterministic audit, and promote to Stable: [`SCR-MTTO-001.md`](ui-ux/screens/mtto/SCR-MTTO-001.md) (DRAFT).
+- [x] **SCR-MTTO-001: Calendar-Based Maintenance Scheduling**
+  - [x] Cascading taxonomy selector (L6 $\to$ L7 $\to$ L8) and battery limit validation.
+  - [x] Canonical specification finalized and promoted to Stable: [`SCR-MTTO-001.md`](ui-ux/screens/mtto/SCR-MTTO-001.md) (v1.2 Stable).
 
-- [ ] **SCR-MTTO-023: Condition / Telemetry-Based Maintenance**
-  - [ ] Telemetry variable binding, threshold calculations, and monotonic counter rules.
-  - [ ] Complete canonical specification review, run deterministic audit, and promote to Stable: [`SCR-MTTO-023.md`](ui-ux/screens/mtto/SCR-MTTO-023.md) (DRAFT).
+- [x] **SCR-MTTO-023: Condition / Telemetry-Based Maintenance**
+  - [x] Telemetry variable binding, threshold calculations, and monotonic counter rules.
+  - [x] Canonical specification finalized and promoted to Stable: [`SCR-MTTO-023.md`](ui-ux/screens/mtto/SCR-MTTO-023.md) (v1.2 Stable).
 
-- [ ] **SCR-MTTO-029: Asset Boundary Limits Card (Battery Limits)**
-  - [ ] Draft canonical specification with engineering limits, cost boundaries, and spatial anchoring per ISO 14224: [`SCR-MTTO-029.md`](ui-ux/screens/mtto/SCR-MTTO-029.md).
-  - [ ] Execute Tier 0/1 UI audit and persist report.
+- [x] **SCR-MTTO-029: Asset Boundary Limits Card (Battery Limits)**
+  - [x] Canonical specification finalized with engineering limits, cost boundaries, and ISO 14224 sub-tree decomposition: [`SCR-MTTO-029.md`](ui-ux/screens/mtto/SCR-MTTO-029.md) (v1.2 Stable).
+  - [x] Execute Tier 0/1 UI audit and promote to Stable.
 
 ### Inventory & Asset Master Data Screens (INV)
 - [x] **SCR-INV-025: Rotable Asset Swap**
@@ -57,17 +57,17 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Execute Tier 0/1/2 UI audit, capture 1080p screenshot, and persist report (`PASSED`).
   - [x] Modernize visual ergonomics & tablet landscape responsiveness, extract shared [`portal-shell.css`](ui-ux/assets/portal-shell.css), and update high-res visual artifact.
 
-- [ ] **SCR-INV-027: Functional Locations Hierarchy Tree**
-  - [ ] Draft canonical specification for ISO 14224 Level 1 to Level 5 navigation tree: [`SCR-INV-027.md`](ui-ux/screens/inv/SCR-INV-027.md).
-  - [ ] Execute Tier 0/1 UI audit and persist report.
+- [x] **SCR-INV-027: Functional Locations Hierarchy Tree**
+  - [x] Canonical specification finalized for ISO 14224 Level 1 to Level 5 navigation tree: [`SCR-INV-027.md`](ui-ux/screens/inv/SCR-INV-027.md) (v1.1 Stable).
+  - [x] Execute Tier 0/1 UI audit and promote to Stable.
 
-- [ ] **SCR-INV-031: Spare Parts Master Catalog**
-  - [ ] Draft canonical specification for spare parts inventory, stock policies, and interchangeability: [`SCR-INV-031.md`](ui-ux/screens/inv/SCR-INV-031.md).
-  - [ ] Execute Tier 0/1 UI audit and persist report.
+- [x] **SCR-INV-031: Spare Parts Master Catalog**
+  - [x] Canonical specification finalized for spare parts inventory, stock policies, and interchangeability: [`SCR-INV-031.md`](ui-ux/screens/inv/SCR-INV-031.md) (v1.2 Stable).
+  - [x] Execute Tier 0/1 UI audit and promote to Stable.
 
-- [ ] **SCR-INV-006: Movements and Kardex History**
-  - [ ] Draft canonical specification for transactional spare parts ledger and equipment movement history: [`SCR-INV-006.md`](ui-ux/screens/inv/SCR-INV-006.md).
-  - [ ] Execute Tier 0/1 UI audit and persist report.
+- [x] **SCR-INV-006: Movements and Kardex History**
+  - [x] Canonical specification finalized for transactional spare parts ledger and equipment movement history: [`SCR-INV-006.md`](ui-ux/screens/inv/SCR-INV-006.md) (v1.1 Stable).
+  - [x] Execute Tier 0/1 UI audit and promote to Stable.
 
 ### Administration & Security Screens (ADM)
 - [ ] **SCR-ADM-013: Roles and Permissions Matrix (RBAC)**
