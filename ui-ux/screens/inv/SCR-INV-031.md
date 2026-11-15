@@ -29,7 +29,7 @@ status: Stable
   * **Maintenance Planner:** Navigates from Preventive Maintenance Scheduling ([SCR-MTTO-001](../mtto/SCR-MTTO-001.md)) via `"Verify Spare Parts"` (`L3` $\to$ `L3`) to locate compatible parts (`FR-175`), verify available vs. reserved stock balances, and check whether an item is stocked in warehouse bins or procured on demand (`JUST_IN_TIME`).
   * **Reliability Engineer:** Associates Maintainable Items ([SCR-MTTO-029](../mtto/SCR-MTTO-029.md)) with standardized Part Master SKUs and flags rebuildable rotable assemblies (`IsRebuildable`).
   * **Auditor:** Reviews versioned stock policy changes, duplicate override justifications, and SHA-256 hash-chained catalog records (`FR-174`, `FR-176`, `TR-001`).
-* **Operational Context:** Deployed exclusively on high-resolution Desktop Workstations inside warehouse management, purchasing, and maintenance planning offices ([DT-UI-NAV-DOC-001 §4.2](../../DT-UI-NAV-DOC-001.md#42-navigation-structure--web-portal-client)). Compact desktop adaptations (`--dt-breakpoint-lg`) are governed in Section 8.
+* **Operational Context:** Deployed exclusively on high-resolution Desktop Workstations inside warehouse management, purchasing, and maintenance planning offices ([DT-UI-NAV-DOC-001 §4.2](../../DT-UI-NAV-DOC-001.md#42-navigation-structure--web-portal-client)). Compact desktop adaptations are governed in Section 8.
 * **Mode of Operation:** Master Catalog Governance and Technical Search mode. Direct DCS/SCADA process control manipulation is strictly excluded. Physical deletion of spare parts with historical transactions is prohibited (`ON DELETE RESTRICT` per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)); discontinued items transition to `SparePartStatus.OBSOLETE` (`DT-DM-DOC-001 §4.26`).
 * **Web Portal Workspace Invariant:** Operates within the unified desktop Blazor Web Portal shell paired with an on-demand, closed-by-default right workspace dock (`CMP-12` hosting `CMP-07`, `CMP-08`, and `CMP-11` across three dedicated vertical spine tabs: `Spec | Policy | Audit`) matching the Blender N-panel pattern established in [SCR-MTTO-026](../mtto/SCR-MTTO-026.md) and [SCR-MTTO-029](../mtto/SCR-MTTO-029.md). Clicking outside catalog table rows (outside interactive dock, modal, filter, or header controls) automatically clears the active SKU selection and closes `CMP-12`, preserving `CLS = 0`.
 
@@ -85,7 +85,7 @@ status: Stable
      - Radius: `--dt-radius-md`
      - Active Filter Ring: `--dt-color-text-primary`
      - Reorder Alert Accent: `--dt-color-alarm-warning`
-   - **Architectural Scope:** Acts as a one-click in-memory filter across the Part Master grid without duplicate filter chip rows ([DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle)). Detailed in §5.1.
+   - **Architectural Scope:** Acts as a one-click in-memory filter across the Part Master grid without duplicate filter chip rows ([DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge--counter-discipline-anti-badge-inflation-principle)). Detailed in §5.1.
 
 4. **`CMP-04`: Cascading Commodity & Technical Filter Toolbar**
    - **Visual Role:** Flat toolbar hosting cascading Commodity Family $\to$ Sub-Category selectors (`FR-172`, `NFR-179`), compatible ISO 14224 `EquipmentClass` selector, `StockPolicy` filter, authorized `Supplier` filter, `SparePartStatus` filter, debounced multi-criteria search input with keyboard shortcut hint (`FR-175`, `NFR-180`), and `[Reset]` action.
@@ -168,7 +168,6 @@ status: Stable
       - Track Surface (Open): `--dt-color-surface-base`
       - Panel Surface: `--dt-color-surface-card`
       - Active Tab: `--dt-color-surface-raised`
-      - Width: `--dt-layout-drawer-width`
       - Active Indicator: `--dt-color-state-info`
     - **Architectural Scope:** Maximizes catalog horizontal real estate on initial load (`SelectedSparePartId == null`), opens cleanly on row selection or spine-tab click (`CLS = 0`), displays an empty selection prompt if `Spec`/`Policy` is opened without an active row, and automatically clears selection and closes when clicking outside catalog table rows. Detailed in §5.2 and Section 8.
 
@@ -268,7 +267,7 @@ sequenceDiagram
 1. **Virtualized Grid & Multi-Criteria Technical Search (`CMP-04`, `CMP-05`, `FR-175`, `NFR-180`):**
    * Employs `Virtualize<SparePartMasterItemDto>` with fixed row height (`--dt-layout-table-row-height`) to maintain fluid scrolling across catalogs exceeding $50,000$ SKUs (`NFR-180`).
    * Debounced ($250\text{ms}$) multi-criteria search (`Ctrl+K` shortcut focus) filters across `Sku`, `Description`, `Manufacturer`, and `SupplierName` alongside dropdown filters for Commodity, Equipment Class, Stock Policy, Authorized Supplier, and Status (`FR-175`).
-   * Clicking outside table rows (and outside `CMP-12`, modals, or interactive filter/header triggers) clears `SelectedSparePartId` and closes the right dock.
+   * Clicking outside table rows (and outside `CMP-12`, modals, or interactive filter/header triggers) clears `SelectedSparePartId` and closes the right dock (`--dt-layout-drawer-width-desktop` / `--dt-layout-drawer-width-tablet`, detailed in Section 8).
 2. **Preventive Scheduling & Kardex Handoffs ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)):**
    * When navigated from [SCR-MTTO-001](../mtto/SCR-MTTO-001.md) (`Verify Spare Parts`), `CMP-04` pre-filters the catalog by target `EquipmentClassId`, and `CMP-13` exposes `[< Preventive Scheduling]`.
    * Clicking `[Kardex]` in `CMP-07` (`SparePartSpecificationPane`) or `[Kardex History]` in `CMP-13` routes directly to [SCR-INV-006](SCR-INV-006.md) pre-filtered by `SparePartId` / `Sku`.
@@ -298,7 +297,7 @@ sequenceDiagram
 
 * **Rotable vs. Consumable Traceability (`IsRebuildable` / ISO 14224):** Explicitly flagging repairable assemblies (`IsRebuildable == true`) ensures that when a technician replaces a component in [SCR-MTTO-002](../mtto/SCR-MTTO-002.md), the dismounted item is routed to workshop overhaul rather than scrapped, preserving serialized reliability history.
 * **Catalog Purity & MRO Stockout Prevention (`FR-171`, `FR-173`):** Duplicate SKUs fragment warehouse safety stock across multiple part numbers, causing false stockout alarms or excess working capital. Sub-2-second similarity detection (`CMP-10`) and deterministic `UpdateStockPolicy` validation eliminate catalog fragmentation, while redundant `STOCKOUT` (`AvailableQuantity <= 0`) alerts surface immediate availability hazards.
-* **HPHMI Grayscale & Anti-Badge-Inflation Governance ([TR-011](../../../requirements/common/TR-011.md)):** In accordance with [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope) and [§6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle), static attributes (`CommodityCode`, `EquipmentClassName`, `UnitOfMeasure`, `SupplierName`) and healthy `ACTIVE` / `JUST_IN_TIME` items render as subdued neutral text without capsule borders, reserving `--dt-color-alarm-warning` (`BELOW_REORDER_POINT`, `SUSPENDED`, `AF-001` duplicate warning) and `--dt-color-alarm-critical` (`STOCKOUT`, exact SKU collision) strictly for actionable exceptions.
+* **HPHMI Grayscale & Anti-Badge-Inflation Governance ([TR-011](../../../requirements/common/TR-011.md)):** In accordance with [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope) and [§6.5](../../DT-UI-DS-DOC-001.md#65-status-badge--counter-discipline-anti-badge-inflation-principle), static attributes (`CommodityCode`, `EquipmentClassName`, `UnitOfMeasure`, `SupplierName`) and healthy `ACTIVE` / `JUST_IN_TIME` items render as subdued neutral text without capsule borders, reserving `--dt-color-alarm-warning` (`BELOW_REORDER_POINT`, `SUSPENDED`, `AF-001` duplicate warning) and `--dt-color-alarm-critical` (`STOCKOUT`, exact SKU collision) strictly for actionable exceptions.
 
 ---
 
@@ -824,7 +823,7 @@ public record PartMasterAuditEntryDto
 * **Ergonomic Rules:** Enforces strict `--dt-font-caption` minimum font size across all labels, sub-metadata lines, and hashes; optimized for mouse and keyboard navigation (`Ctrl + K` search focus, `Escape` modal/dock dismissal); dense row height governed by `--dt-layout-table-row-height`; single primary registration CTA outside modals; zero horizontal scroll.
 
 ### 8.2. Compact Desktop Workstation (`--dt-breakpoint-lg`)
-* **Layout Organization:** On compact desktop and laptop monitors (`--dt-breakpoint-lg`), navigation sidebar `CMP-01` collapses to `--dt-layout-sidebar-width-collapsed`, filter selectors in `CMP-04` wrap cleanly into two hairline-aligned rows (with search input and `[Reset]` paired on Row 2 when dock `CMP-12` is open), and proportional table column widths preserve legibility across all 8 catalog columns alongside `CMP-12` (`--dt-layout-drawer-width-tablet`). Per [DT-UI-NAV-DOC-001 §4.1–§4.2](../../DT-UI-NAV-DOC-001.md#42-navigation-structure--web-portal-client), mobile/portrait field client breakpoints are outside the operational scope of centralized Warehouse Manager Part Master administration.
+* **Layout Organization:** On compact desktop and laptop monitors (`--dt-breakpoint-lg`), navigation sidebar `CMP-01` collapses to `--dt-layout-sidebar-width-collapsed`, filter selectors in `CMP-04` wrap cleanly into two hairline-aligned rows (with search input and `[Reset]` paired on Row 2 when dock `CMP-12` is open), and proportional table column widths preserve legibility across all 8 catalog columns alongside `CMP-12` (`--dt-layout-drawer-width-tablet`). Per [DT-UI-NAV-DOC-001 §4.1–§4.2](../../DT-UI-NAV-DOC-001.md#42-navigation-structure--web-portal-client), Tablet Landscape and Tablet Portrait field client breakpoints are outside the operational scope of centralized Warehouse Manager Part Master administration.
 * **Ergonomic Rules:** Filter controls adhere to `--dt-control-height-sm`; table rows maintain `--dt-layout-table-row-height` with virtualized scrolling (`CLS = 0`).
 
 ---
