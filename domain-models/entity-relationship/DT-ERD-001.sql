@@ -472,6 +472,8 @@ CREATE TABLE IF NOT EXISTS adm.role_permissions (
     module                         VARCHAR(80) NOT NULL,
     action                         VARCHAR(80) NOT NULL,
 
+    CONSTRAINT ck_role_permissions_module CHECK (module IN ('ASSETS', 'MAINTENANCE', 'INVENTORY', 'SAFETY', 'SYSTEM')),
+    CONSTRAINT ck_role_permissions_action CHECK (action IN ('CREATE', 'READ', 'EDIT', 'DELETE', 'APPROVE', 'AUDIT', 'EXECUTE')),
     CONSTRAINT pk_role_permissions PRIMARY KEY (role_id, module, action)
 );
 
@@ -479,6 +481,8 @@ CREATE TABLE IF NOT EXISTS adm.roles (
     id                             UUID NOT NULL DEFAULT uuidv7(),
     name                           VARCHAR(80) NOT NULL,
     description                    VARCHAR(255),
+    is_active                      BOOLEAN NOT NULL DEFAULT TRUE,
+    is_system_root                 BOOLEAN NOT NULL DEFAULT FALSE,
 
     CONSTRAINT uq_roles_name UNIQUE (name),
     CONSTRAINT pk_roles PRIMARY KEY (id)
