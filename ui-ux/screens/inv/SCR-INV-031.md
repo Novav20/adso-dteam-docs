@@ -288,7 +288,7 @@ sequenceDiagram
 2. **Standardized Units of Measure (`FR-181`):** `UnitOfMeasure` is constrained to standardized ISO 80000 / UNECE Rec 20 codes (`EA` Each, `SET` Set/Kit, `L` Liter, `KG` Kilogram, `M` Meter), preventing free-text unit synonyms from corrupting inventory conversions.
 
 #### 5.3.3. Versioned Policy Updates, Supplier Governance & Lifecycle Transitions (`FR-174`, `AF-003`, `TR-001`)
-1. **Versioned Policy & Attribute Mutation (`FR-174`, `AF-003`):** Invoking `SparePart.UpdateStockPolicy(policy, reorderPoint, maxCapacity)` ([DT-DM-DOC-002 §4.1](../../../domain-models/class/DT-DM-DOC-002.md#41-sparepart-aggregate-root)) or `Supplier.UpdateContactInfo(contactInfo, warrantyTerms)` ([DT-DM-DOC-002 §4.3](../../../domain-models/class/DT-DM-DOC-002.md#43-supplier-aggregate-root)) inside `CMP-08` increments the technical catalog revision and appends a SHA-256 hash-chained record in `CMP-11` (`TR-001`, `ADR-003`).
+1. **Versioned Policy & Attribute Mutation (`FR-174`, `AF-003`):** Invoking `SparePart.UpdateStockPolicy(policy, reorderPoint, maxCapacity)` ([DT-DM-DOC-002 §4.1](../../../domain-models/class/DT-DM-DOC-002.md#41-sparepart-aggregate-root)) or `Supplier.UpdateContactInfo(contactInfo, warrantyTerms)` ([DT-DM-DOC-002 §4.3](../../../domain-models/class/DT-DM-DOC-002.md#43-supplier-aggregate-root)) inside `CMP-08` increments the technical catalog revision and seals the mandatory `AuditJustification` inside a SHA-256 hash-chained `AuditLog` JSONB envelope ([DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), `CMP-11`, `TR-001`, `ADR-003`).
 2. **Controlled Lifecycle Archival ([DT-DM-DOC-001 §4.26](../../../domain-models/class/DT-DM-DOC-001.md#426-sparepartstatus)):** Transitioning a part to `SparePartStatus.OBSOLETE` blocks new purchase orders while retaining full historical Kardex and failure traceability; `SparePartStatus.SUSPENDED` temporarily quarantines the SKU during quality or supplier investigations.
 
 ---
@@ -770,6 +770,9 @@ public record RegisterSparePartCommand
     public required string PreviousHash { get; init; }
 }
 
+/// <summary>
+/// Versioned replenishment policy update payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// </summary>
 public record UpdateSparePartPolicyCommand
 {
     public required Guid SparePartId { get; init; }

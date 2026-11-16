@@ -332,7 +332,7 @@ sequenceDiagram
      * **Technician Attestation Signature:** Mandatory field technician cryptographic sign-off.
    * Upon attestation submission, the client captures:
      * Cryptographic attestation token: Digital signature generated via the device's hardware-bound security module (`TR-006`, `ADR-006`), binding technician identity, timestamp, and verification payload without exposing raw private keys in client memory.
-     * Telemetry verification snapshot: Structured payload capturing instantaneous sensor values across all cutoff points at attestation time.
+     * Telemetry verification snapshot: Structured payload capturing instantaneous sensor values across all cutoff points at attestation time per [DT-ERD-DOC-001 §6.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#66-viswork_order_isolationstelemetry_snapshot).
    * Encapsulated into `AttestTryOutCommand` containing `TryOutMethod`, `ObservedValue`, `TechnicianSignatureHash`, and `TelemetrySnapshot`. The application service processes the command, updating isolation state and appending an immutable audit record with SHA-256 hash chaining (`TR-001`).
 
 4. **Active Safety Interlock Logic (`NFR-229`, `FR-230`):**
@@ -650,6 +650,9 @@ public record SimopsPermitSummaryDto
     public required decimal DistanceMeters { get; init; }
 }
 
+/// <summary>
+/// Physical Try-Out attestation DTO; TelemetrySnapshot maps to the WorkOrderIsolation JSONB contract per DT-ERD-DOC-001 §6.6.
+/// </summary>
 public record TryOutAttestationDto
 {
     public required TryOutMethod Method { get; init; }

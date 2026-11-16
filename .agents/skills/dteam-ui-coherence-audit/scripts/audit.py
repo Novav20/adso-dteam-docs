@@ -1443,27 +1443,38 @@ def audit_companion_html_prototype(screen_id: str, repo_root: Path, prototype_di
         candidates.append(Path(env_dir).resolve())
     candidates.append(repo_root / "ui-ux" / "prototype")
 
+    parts = screen_id.split("-")
+    mod_slug = parts[1].lower() if len(parts) >= 2 else ""
+
     target_dir: Path | None = None
+    html_file: Path | None = None
     for cand in candidates:
-        if (cand / f"{screen_id.lower()}.html").exists():
+        nested = cand / mod_slug / f"{screen_id.lower()}.html" if mod_slug else None
+        flat = cand / f"{screen_id.lower()}.html"
+        if nested and nested.exists():
             target_dir = cand
+            html_file = nested
+            break
+        if flat.exists():
+            target_dir = cand
+            html_file = flat
             break
 
-    if target_dir is None:
+    if target_dir is None or html_file is None:
         if prototype_dir:
             findings.append(Finding(
                 severity="WARNING",
                 code="HTML-001",
-                message=f"Prototype file '{screen_id.lower()}.html' not found in specified directory '{prototype_dir}'.",
+                message=f"Prototype file '{mod_slug}/{screen_id.lower()}.html' or '{screen_id.lower()}.html' not found in specified directory '{prototype_dir}'.",
                 line=None
             ))
         return findings
 
-    html_file = target_dir / f"{screen_id.lower()}.html"
     files_to_check: list[Path] = [html_file]
 
-    # Look for associated CSS files
+    # Look for associated CSS files (module dir alongside HTML first, then legacy assets/css)
     css_candidates = [
+        html_file.parent / f"{screen_id.lower()}.css",
         target_dir / "assets" / "css" / f"{screen_id.lower()}.css",
         target_dir / "css" / f"{screen_id.lower()}.css",
         target_dir / f"{screen_id.lower()}.css",
@@ -1472,15 +1483,16 @@ def audit_companion_html_prototype(screen_id: str, repo_root: Path, prototype_di
         if c.exists() and c not in files_to_check:
             files_to_check.append(c)
 
-    # Look for associated JS files
+    # Look for associated JS files (module dir alongside HTML first, then legacy assets/js)
     js_search_dirs = [
+        html_file.parent,
         target_dir / "assets" / "js",
         target_dir / "js",
         target_dir,
     ]
     for j_dir in js_search_dirs:
         if j_dir.exists():
-            for j_file in j_dir.glob(f"{screen_id.lower()}*.js"):
+            for j_file in sorted(j_dir.glob(f"{screen_id.lower()}*.js")):
                 if j_file not in files_to_check:
                     files_to_check.append(j_file)
 

@@ -294,7 +294,7 @@ sequenceDiagram
 
 #### 5.3.1. Physical Battery Limits & P&ID Metadata Alignment (`FR-092`, `FR-096`, `FR-102`)
 1. **Mandatory Boundary Pair (`FR-092`, `FR-096`):** Formalizing boundaries invokes `EquipmentUnit.DefineBoundaries(boundaryStart, boundaryEnd)` ([DT-DM-DOC-002 §2.2](../../../domain-models/class/DT-DM-DOC-002.md#22-equipmentunit-aggregate-root)), requiring non-empty technical specifications for both `BoundaryStart` (up to $150$ characters, e.g., *"DN200 ANSI 300# suction flange downstream of isolation valve MOV-0101A"*) and `BoundaryEnd` (up to $150$ characters, e.g., *"DN150 ANSI 600# discharge flange and MCC-02 feeder breaker M-0101A load terminals"*).
-2. **Governing P&ID Engineering Metadata (`FR-102`):** The governing P&ID drawing identifier (`PidReferenceCode`, e.g., *"PID-TFA-1045-REV3"*) is captured alongside the boundary limits as structured engineering boundary metadata persisted within the asset's boundary revision payload and technical `DesignAttributes` without altering the core relational schema.
+2. **Governing P&ID Engineering Metadata (`FR-102`):** The governing P&ID drawing identifier (`PidReferenceCode`, e.g., *"PID-TFA-1045-REV3"*) is captured alongside the boundary limits as structured engineering boundary metadata persisted within the asset's boundary revision payload and technical `DesignAttributes` ([DT-ERD-DOC-001 §6.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#61-taxmaintainable_itemsdesign_attributes)) without altering the core relational schema.
 
 #### 5.3.2. Tier A Equipment Lookup, Sub-Tree Structuring & Exclusivity (`NFR-093`, `NFR-094`, `NFR-099`, `AF-001`, `TR-008`)
 1. **Enterprise Equipment Lookup ([DT-UI-DS-DOC-001 §6.7](../../DT-UI-DS-DOC-001.md#67-relational-entity-lookup-modal-pattern-lov-list-of-values)):** Opening `EquipmentLookupModal` dispatches paged queries (`EquipmentUnitLookupQueryDto`) supporting multi-criteria filtering (`SearchTerm`, `FunctionalLocationId`, `EquipmentClassId`, `MinCriticality`, `MaxCriticality`, `HasBoundariesFilter`) and rendering `--dt-layout-table-row-height` rows with explicit boundary readiness status (`HasBoundaries`).
@@ -307,7 +307,7 @@ sequenceDiagram
    When a candidate item is linked or validated, the system executes asynchronous uniqueness verification in $< 1\text{s}$ (`NFR-099`). Any conflict triggers State 7 (`AF-001`), highlighting the row with `--dt-color-alarm-critical` and `#icon-ban`, displaying the owning unit tag, and hard-disabling `[Save Boundary Definition]`.
 
 #### 5.3.3. Client Command Dispatch & Cryptographic Audit Chain (`FR-098`, `NFR-095`, `TR-001`, `ADR-003`)
-1. **Atomic Command Dispatch (`NFR-095`):** Clicking `[Save Boundary Definition]` in `CMP-12` requires a mandatory `AuditJustification` ($\ge 15$ characters) and dispatches `SaveEquipmentBoundariesCommand` (§7.2.3) to `PUT /api/v1/taxonomy/equipment-units/{id}/boundaries` with header `X-Idempotency-Key: {uuidv7}`. On `HTTP 200 OK`, the client clears local draft storage, updates `CMP-03` Commissioning Gate state, prepends the committed revision to `CMP-10`, and returns cleanly to Read-Only Consultation Mode; on conflict or validation failure (`HTTP 409` / `422`), `CMP-11` surfaces the server diagnostic without data loss.
+1. **Atomic Command Dispatch (`NFR-095`):** Clicking `[Save Boundary Definition]` in `CMP-12` requires a mandatory `AuditJustification` ($\ge 15$ characters) persisted inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), and dispatches `SaveEquipmentBoundariesCommand` (§7.2.3) to `PUT /api/v1/taxonomy/equipment-units/{id}/boundaries` with header `X-Idempotency-Key: {uuidv7}`. On `HTTP 200 OK`, the client clears local draft storage, updates `CMP-03` Commissioning Gate state, prepends the committed revision to `CMP-10`, and returns cleanly to Read-Only Consultation Mode; on conflict or validation failure (`HTTP 409` / `422`), `CMP-11` surfaces the server diagnostic without data loss.
 2. **Chained Cryptographic Digest Preview (`FR-098`, `TR-001`, `ADR-003`):** `ICryptoInterop` computes the candidate SHA-256 integrity preview displayed in `CMP-10`:
    $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{EngineerUserId} \parallel \text{EquipmentUnitId} \parallel \text{BoundaryStart} \parallel \text{BoundaryEnd} \parallel \text{SubunitItemTreeHash} \parallel \text{AuditJustification} \parallel \text{TimestampUtc})$$
 
@@ -908,6 +908,9 @@ public record SubunitNodeDto
     public IReadOnlyList<MaintainableItemNodeDto> MaintainableItems { get; init; } = [];
 }
 
+/// <summary>
+/// Level 8 Maintainable Item node projection; DesignAttributes maps to the MaintainableItem JSONB contract per DT-ERD-DOC-001 §6.1.
+/// </summary>
 public record MaintainableItemNodeDto
 {
     public required Guid MaintainableItemId { get; init; }
@@ -979,6 +982,9 @@ public record BoundaryAuditEntryDto
     public required string IntegrityHash { get; init; }
 }
 
+/// <summary>
+/// Boundary & sub-tree configuration commit payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// </summary>
 public record SaveEquipmentBoundariesCommand
 {
     public required Guid EquipmentUnitId { get; init; }

@@ -239,8 +239,8 @@ sequenceDiagram
 
 1. **Controlled Audit Event Vocabulary (`FR-345`, [DT-DM-DOC-001 §4.36](../../../domain-models/class/DT-DM-DOC-001.md#436-auditlogactiontype)):**
    * Every row in `adm.audit_logs` is classified under one of the 6 canonical `AuditActionType` enum literals: `CREATE`, `UPDATE`, `DELETE`, `QUERY`, `ADJUST`, and `SECURITY_ALERT`.
-2. **PostgreSQL GIN `jsonb_path_ops` Containment Queries (`FR-348`, `NFR-355`, `NFR-356`, [DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032)):**
-   * Searches over `previous_state` and `new_state` (`JSONB`) execute using the native PostgreSQL containment operator (`@>`) against `jsonb_path_ops` GIN indexes, combined with chronologically ordered `UUIDv7` primary keys ([ADR-005](../../../architecture/adr/ADR-005.md)) to guarantee sub-second query performance across multi-year, multi-million-row ledgers.
+2. **PostgreSQL GIN `jsonb_path_ops` Containment Queries (`FR-348`, `NFR-355`, `NFR-356`, [DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032), [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):**
+   * Searches over `PreviousState` and `NewState` (`JSONB`) execute using the native PostgreSQL containment operator (`@>`) against `jsonb_path_ops` GIN indexes, combined with chronologically ordered `UUIDv7` primary keys ([ADR-005](../../../architecture/adr/ADR-005.md)) and the canonical polymorphic JSONB envelope contracts defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) to guarantee sub-second query performance across multi-year, multi-million-row ledgers.
 
 ---
 
@@ -250,7 +250,7 @@ sequenceDiagram
    * Uses `Virtualize<AuditLogEntryDto>` with fixed row height (`--dt-layout-table-row-height`).
    * In `CMP-09`, clicking `[< Inspect Predecessor]` or `[Inspect Successor >]` walks backward or forward along the `PreviousHash` $\leftrightarrow$ `IntegrityHash` chain, allowing the Auditor to trace an incident chronologically step-by-step.
 2. **Automatic Secret Redaction in JSONB Diffs (`CMP-08`, `FR-349`, `NFR-357`):**
-   * Before rendering `PreviousState` and `NewState` payloads, the presentation parser redacts any sensitive key matching `(password_hash|token_hash|secret|private_key|signature_key)` to `[REDACTED SECRET]`, preventing credential hash exposure during screen sharing or audit exports.
+   * Before rendering `PreviousState` and `NewState` payloads, the presentation parser masks any sensitive credential keys designated for mandatory redaction in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) to `[REDACTED SECRET]`, preventing credential exposure during screen sharing or audit exports.
 
 ---
 
@@ -267,7 +267,7 @@ sequenceDiagram
 2. **Tamper Breach Quarantine (`AF-001`):** If $H_k^{\text{recalculated}} \ne H_k^{\text{stored}}$ or $H_{k-1}^{\text{linked}} \ne H_{k-1}^{\text{stored}}$, `CMP-10` immediately blocks export of the affected range, highlights the exact broken link, and dispatches a `SECURITY_ALERT` notification (`TR-003-NFR-380`).
 
 #### 5.3.3. Self-Referential Meta-Auditing & 7-Year Regulatory Retention (`FR-350`, `FR-353`, `FR-358`, `NFR-359`, `NFR-360`)
-1. **Meta-Audit Logging (`NFR-360`, `TR-001-FR-361`):** Every query executed in `CMP-04` and every forensic export triggered in `CMP-02`/`CMP-13` automatically appends an `AuditActionType.QUERY` record to `adm.audit_logs` capturing the querying Auditor's `UserId`, `IpAddress`, `UserAgent`, and filter parameters in `new_state`.
+1. **Meta-Audit Logging (`NFR-360`, `TR-001-FR-361`):** Every query executed in `CMP-04` and every forensic export triggered in `CMP-02`/`CMP-13` automatically appends an `AuditActionType.QUERY` record to the immutable `AuditLog` ledger capturing Auditor identity, network metadata, and query parameters under the Meta-Audit JSONB profile defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
 2. **7-Year Retention & Cold-Archive Lifecycle (`FR-350`, `FR-358`, `TR-001-FR-367`):** `CMP-11` displays the status of time-partitioned audit tables retained for a minimum of **7 years** (ISO 55000 requirement for critical industrial assets), verifying the anchor hashes of cold-archived partitions so chain continuity remains unbroken across archived boundaries.
 3. **Portable Forensic Extraction (`FR-353`, `NFR-359`):** Clicking `[Export Signed Audit Trail]` generates a self-contained `JSON` or `CSV` bundle accompanied by a detached SHA-256 manifest so external auditors can independently verify chain continuity offline (`NFR-359`).
 
@@ -577,6 +577,9 @@ public record AuditStatePropertyDiffDto
     public required bool IsRedactedSecret { get; init; }
 }
 
+/// <summary>
+/// Full forensic inspection DTO projecting masked JSONB diffs per DT-ERD-DOC-001 §6.7.
+/// </summary>
 public record AuditLogDetailDto
 {
     public required Guid Id { get; init; }

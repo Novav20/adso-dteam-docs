@@ -321,7 +321,7 @@ sequenceDiagram
    * **Headers:** `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)).
    * **Payload:** Serializes `RegisterEquipmentUnitCommand` (§7.2.3).
    * **Atomic Persistence Guarantee (`NFR-122`, `NFR-124`):** The backend executes a single-commit atomic transaction completing in $< 2\text{s}$: creating the Equipment Unit in commissioning baseline states, instantiating the active installation timeline record at the target Functional Location, and appending the SHA-256 chained audit log entry. Upon HTTP 201 confirmation, `CMP-10` renders a documentary confirmation banner (`--dt-color-state-success`, `#icon-check`) in the footer and transitions the view to Inspection Mode.
-3. **Audited Non-Critical Attribute Update (`FR-120`):** In Audited Edit Mode, clicking `[Commit Audited Update]` dispatches `PUT /api/v1/taxonomy/equipment-units/{id}` with `UpdateEquipmentMasterRecordCommand` (§7.2.3), requiring a mandatory `TechnicalJustification` ($\ge 15$ characters) sealed into the cryptographic audit trail.
+3. **Audited Non-Critical Attribute Update (`FR-120`):** In Audited Edit Mode, clicking `[Commit Audited Update]` dispatches `PUT /api/v1/taxonomy/equipment-units/{id}` with `UpdateEquipmentMasterRecordCommand` (§7.2.3), requiring a mandatory `TechnicalJustification` ($\ge 15$ characters) persisted inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
 
 ---
 
@@ -840,6 +840,9 @@ public record RegisterEquipmentUnitCommand
     public required string PreviousHash { get; init; }
 }
 
+/// <summary>
+/// Audited master record update payload; TechnicalJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// </summary>
 public record UpdateEquipmentMasterRecordCommand
 {
     public required Guid EquipmentUnitId { get; init; }

@@ -260,7 +260,7 @@ sequenceDiagram
 #### 5.3.2. Brute-Force Lockout, Soft-Delete & Immediate Token Revocation (`FR-260`, `FR-262`–`FR-264`, `NFR-268`, `NFR-271`)
 1. **Brute-Force Defense (`FR-260`, `NFR-268`, `NFR-271`):** Each failed login invokes `User.RecordFailedLogin()`. When `failed_login_attempts` reaches the configured threshold (`5`), `lockout_until` is set to $\text{now}() + 15\text{ min}$, a `SECURITY_ALERT` entry is appended to `adm.audit_logs`, and an immediate security alert email is dispatched asynchronously (`NFR-270`, `NFR-271`).
 2. **Suspension & Soft-Delete (`FR-262`, `FR-264`, `AF-001`):** Invoking `User.Deactivate(reason)` sets `is_active = false` and calls `AuthToken.Revoke()` across all non-expired tokens for that `user_id` (including `ACCESS`, `SESSION_REFRESH`, and `OFFLINE_LOTO_LEASE` tokens), terminating active sessions within $< 2\text{s}$ (`TR-006-NFR-402`, `TR-010`) while preserving historical FKs in `vis.work_permits`, `adm.work_order_assignments`, and `adm.audit_logs`.
-3. **Audited Account Restoration (`FR-263`, `AF-004`):** Invoking `User.Activate()` with a mandatory `AuditJustification` sets `is_active = true`, resets `failed_login_attempts = 0`, clears `lockout_until = null` (`User.RegisterSuccessfulLogin` / `Activate` per `DT-DM-DOC-002 §6.1`), and seals the rehabilitation in `adm.audit_logs`.
+3. **Audited Account Restoration (`FR-263`, `AF-004`):** Invoking `User.Activate()` with a mandatory `AuditJustification` sets `is_active = true`, resets `failed_login_attempts = 0`, clears `lockout_until = null` (`User.RegisterSuccessfulLogin` / `Activate` per `DT-DM-DOC-002 §6.1`), and seals the justification inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
 
 #### 5.3.3. Single-Use Password Reset & Credential Rotation Policy (`FR-261`, `FR-266`, `NFR-267`, `NFR-272`)
 1. **Single-Use Recovery (`FR-261`):** Issuing a password reset generates an `AuthToken` with `AuthTokenPurpose.PASSWORD_RESET` and strict temporal expiration (`NFR-269`). Once consumed via `AuthToken.MarkAsUsed()`, replay attempts are rejected (`DT-DM-DOC-002 §6.4`).
@@ -663,6 +663,9 @@ public record PasswordSecurityPolicyDto
     public required int AccessTokenExpirationHours { get; init; } = 8;
 }
 
+/// <summary>
+/// User onboarding mutation payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// </summary>
 public record ProvisionUserAccountCommand
 {
     public required string Username { get; init; }
@@ -674,6 +677,9 @@ public record ProvisionUserAccountCommand
     public required string PreviousHash { get; init; }
 }
 
+/// <summary>
+/// User lifecycle transition payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// </summary>
 public record ExecuteUserLifecycleTransitionCommand
 {
     public required Guid TargetUserId { get; init; }

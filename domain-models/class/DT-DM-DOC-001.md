@@ -94,7 +94,7 @@ This segregation allows for:
 | WorkPermit | Aggregate Root | Safety authorization boundary that validates the execution of specific work orders in the field. | ISO 55000 competence and LOTO guidance |
 | IsolationPoint | Entity | Permanent lockout point belonging to an EquipmentUnit, required to be isolated during work orders. | ISO 55000 LOTO guidance; ISO 14224 governance |
 | VisualLayer | Entity | Presentation record associated with a work order and visual state. | ISO 9000 record behavior |
-| SpatialMetadata | Value Object | Immutable descriptor of location and geometry for a visual artifact. | ISO 9000 data vs. information separation |
+| SpatialMetadata | Value Object | Immutable descriptor of location and geometry for a visual artifact ([DT-ERD-DOC-001 §6.3–§6.5](../entity-relationship/DT-ERD-DOC-001.md#63-visspatial_metadataposition)). | ISO 9000 data vs. information separation |
 | User | Aggregate Root | Root of the account, password, lockout, and token lifecycle. | ISO 55000 audit governance; ISO 9000 audit control |
 | WorkOrderIsolation | Entity | Represents the state and temporal record of a safety lockout on an isolation point for a Work Order. | ISO 55000 LOTO guidance; ISO 14224 |
 | Role | Aggregate Root | Root of authorization semantics and permission grouping. | ISO 55000 competence and role guidance |
@@ -540,9 +540,21 @@ This segregation allows for:
 | PLANNER | Planner who designs the order, assigns spare parts, and times. | Maintenance Engineering |
 | SAFETY_AUTHORITY | Authorized HSE / Isolation officer verifying high-risk permits and LOTO. | ISO 45001 Safety Governance |
 
+#### 4.42 RolePermission.action
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| CREATE | Grants permission to create new domain records or drafts within the module. | RBAC Granular Authorization (`FR-248`) |
+| READ | Grants read-only view and query access to module records. | RBAC Granular Authorization (`FR-248`) |
+| EDIT | Grants permission to modify existing mutable records within the module. | RBAC Granular Authorization (`FR-248`) |
+| DELETE | Grants permission to soft-delete or logically deactivate eligible records. | RBAC Granular Authorization (`FR-248`) |
+| APPROVE | Grants supervisory authority to authorize permits, closures, or high-risk actions. | RBAC Granular Authorization (`FR-248`) |
+| AUDIT | Grants compliance and forensic inspection rights over module trails. | RBAC Granular Authorization (`FR-248`) |
+| EXECUTE | Grants field execution authority (e.g., LOTO isolations, work order completion). | RBAC Granular Authorization (`FR-248`) |
+
 ## 5. Physical Mapping and Data Dictionary
 
-For details on the physical mapping and the relational schema, see [DT-ERD-DOC-001](../entity-relationship/DT-ERD-DOC-001.md).
+For details on the physical mapping, relational schema, and `JSONB` payload contracts, see [DT-ERD-DOC-001](../entity-relationship/DT-ERD-DOC-001.md) and its Single Source of Truth in [DT-ERD-DOC-001 §6](../entity-relationship/DT-ERD-DOC-001.md#6-jsonb-payload-contracts).
 
 ## 6. Final Notes
 

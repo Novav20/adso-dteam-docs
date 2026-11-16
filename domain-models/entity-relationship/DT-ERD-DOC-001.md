@@ -94,7 +94,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | component_name | VARCHAR(120) | NOT NULL | | - | Identity of the maintainable item. |
 | subunit_type | VARCHAR(80) | NOT NULL | | - | Taxonomic classification. |
 | spare_part_type | VARCHAR(80) | NULL | | NULL | Optional spare parts correspondence. |
-| design_attributes | JSONB | NULL | | NULL | Structured static design properties (ISO 14224 Annex A). |
+| design_attributes | JSONB | NULL | | NULL | Structured static design properties per ISO 14224 Annex A ([§6.1](#61-taxmaintainable_itemsdesign_attributes)). |
 | status | VARCHAR(30) | NOT NULL | CHECK | - | Item's lifecycle status. |
 
 #### 3.1.5 subunits
@@ -208,7 +208,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | actual_start | TIMESTAMPTZ | NULL | | NULL | Actual execution start (UTC). |
 | actual_finish | TIMESTAMPTZ | NULL | | NULL | Actual execution finish (UTC). |
 | actual_labor_hours | DECIMAL(10,2) | NULL | | NULL | Actual labor duration (Calculated). |
-| scope_checklist | JSONB | NULL | | NULL | Structured task checklist items (`ScopeTaskItemDto[]`) for field execution (MTTO-002). |
+| scope_checklist | JSONB | NULL | | NULL | Structured task checklist item array for field execution ([§6.2](#62-mttowork_ordersscope_checklist), MTTO-002). |
 | criticality | VARCHAR(20) | NOT NULL | CHECK | - | WO criticality / priority label. |
 
 #### 3.2.7 work_requests
@@ -344,9 +344,9 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
 | mesh_mapping_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
-| position | JSONB | NOT NULL | | - | Spatial vector coordinate (e.g., x,y,z). |
-| rotation | JSONB | NULL | | NULL | Orientation descriptor (e.g., quaternion). |
-| scale | JSONB | NULL | | NULL | Scale descriptor. |
+| position | JSONB | NOT NULL | | - | 3D Cartesian translation vector `{x, y, z}` in meters ([§6.3](#63-visspatial_metadataposition)). |
+| rotation | JSONB | NULL | | NULL | Normalized 3D orientation quaternion `{x, y, z, w}` ([§6.4](#64-visspatial_metadatarotation)). |
+| scale | JSONB | NULL | | NULL | 3D scale multiplier vector `{x, y, z}` ([§6.5](#65-visspatial_metadatascale)). |
 
 #### 3.4.4 telemetry_signals
 
@@ -385,7 +385,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | try_out_at | TIMESTAMPTZ | NULL | | NULL | UTC timestamp when physical Try-Out was performed. |
 | try_out_method | VARCHAR(40) | NULL | CHECK | NULL | Controlled Try-Out verification method (DT-DM-DOC-001 §4.33). |
 | try_out_reading | VARCHAR(80) | NULL | | NULL | Physical observed metric or confirmation text (e.g. 0.00 V, 0.0 psig). |
-| telemetry_snapshot | JSONB | NULL | | NULL | Sensor readings snapshot at lockout verification. |
+| telemetry_snapshot | JSONB | NULL | | NULL | Instantaneous sensor readings snapshot captured at zero-energy Try-Out verification ([§6.6](#66-viswork_order_isolationstelemetry_snapshot)). |
 | signature_hash | VARCHAR(64) | NULL | | NULL | SHA-256 technician digital signature hash. |
 | lease_holder_user_id | UUID | NULL | FK | NULL | Foreign key to `adm.users(id)` holding an active offline safety lease (`ADR-006`). |
 | leased_until | TIMESTAMPTZ | NULL | | NULL | UTC expiration timestamp of the bounded offline LOTO safety lease (`ADR-006`). |
@@ -416,8 +416,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | entity_type | VARCHAR(80) | NOT NULL | | - | Affected table or domain entity. |
 | entity_id | UUID | NOT NULL | | - | Identifier of the affected record. |
 | timestamp | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | Exact UTC moment of the mutation. |
-| previous_state | JSONB | NULL | | NULL | Snapshot of the data before the change. |
-| new_state | JSONB | NULL | | NULL | Snapshot of the data after the change. |
+| previous_state | JSONB | NULL | | NULL | Pre-mutation entity state snapshot captured via `RETURNING old.*` ([§6.7](#67-admaudit_logsprevious_state-and-new_state), ADR-003). |
+| new_state | JSONB | NULL | | NULL | Post-mutation state snapshot, `QUERY` meta-audit payload, or `SECURITY_ALERT` context including transversal `justification` ([§6.7](#67-admaudit_logsprevious_state-and-new_state), ADR-003). |
 | ip_address | VARCHAR(45) | NULL | | NULL | Network traceability (IPv4 or IPv6). |
 | user_agent | VARCHAR(255) | NULL | | NULL | Client traceability. |
 | previous_hash | VARCHAR(64) | NOT NULL | | - | SHA-256 integrity hash of the preceding audit record (`GENESIS` sentinel on first entry, ADR-003). |
@@ -439,8 +439,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
 | role_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
-| module | VARCHAR(80) | NOT NULL | PK | - | Application subdomain or module. |
-| action | VARCHAR(80) | NOT NULL | PK | - | Granted behavior (e.g., READ, WRITE, APPROVE). |
+| module | VARCHAR(80) | NOT NULL | PK, CHECK | - | Controlled application subdomain or module vocabulary (DT-DM-DOC-001 §4.39). |
+| action | VARCHAR(80) | NOT NULL | PK, CHECK | - | Controlled granular RBAC action vocabulary (CREATE, READ, EDIT, DELETE, APPROVE, AUDIT, EXECUTE per FR-248 & DT-DM-DOC-001 §4.42). |
 
 #### 3.5.4 roles
 
@@ -449,6 +449,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
 | name | VARCHAR(80) | NOT NULL | UNIQUE | - | Human-readable role identity. |
 | description | VARCHAR(255) | NULL | | NULL | Description of the RBAC role. |
+| is_active | BOOLEAN | NOT NULL | | TRUE | Logical lifecycle status flag allowing role deactivation while preserving historical audit traceability (FR-254). |
+| is_system_root | BOOLEAN | NOT NULL | | FALSE | Immutable protection flag identifying built-in System Root roles guarded against privilege reduction or lockout (FR-250). |
 
 #### 3.5.5 user_roles
 
@@ -562,3 +564,200 @@ To guarantee the physical viability of the logical model and its correct impleme
 | UUID | UUID | None | Native 128-bit data type. In PostgreSQL 18, the native function uuidv7() will be used as the default value for primary keys. Unlike UUIDv4 (random), UUIDv7 includes a 48-bit chronologically ordered time prefix, which prevents page fragmentation in B-Tree indexes and maximizes insertion performance in time series and audit logs. |
 | BOOLEAN | BOOLEAN or BOOL | None | Logical type that stores TRUE or FALSE. |
 | JSON | JSON | JSONB | JSON stores the literal text, which requires parsing on each query. It is recommended to use JSONB (Binary Decomposed JSON) because it stores the content in binary format, supports fast indexing (GIN indexes), and is much more efficient for audit queries (previousState and newState). |
+
+## 6. JSONB Payload Contracts
+
+This section serves as the **Single Source of Truth (SSoT)** for the internal JSON structure of all 8 `JSONB` columns defined in §3. Every column follows one of three architectural contract patterns:
+
+- **Strict Schema:** Fixed property keys, deterministic types, and required validation boundaries (e.g., `scope_checklist`, `spatial_metadata` vectors).
+- **Extensible Typed Dictionary:** Open domain-specific keys constrained to a homogeneous value type and canonical key naming style (e.g., `design_attributes`, `telemetry_snapshot`).
+- **Polymorphic Envelope:** Shared structural conventions and transversal governance keys paired with entity- or event-specific payloads (e.g., `audit_logs.previous_state` and `audit_logs.new_state`).
+
+All `JSONB` columns are indexed in PostgreSQL using `GIN (... jsonb_path_ops)` to support sub-second containment queries (`@>`) per [DT-ARQ-DB-DOC-001 §3.8](../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032). Upstream domain projections and application services bind strictly to the physical payload contracts below.
+
+### 6.1 `tax.maintainable_items.design_attributes`
+
+- **Contract Pattern:** Extensible Typed Dictionary (*String Key-Value Map*).
+- **Domain Entity & Traceability:** `MaintainableItem` (`tax.maintainable_items`, [DT-DM-DOC-001 §3](../class/DT-DM-DOC-001.md#3-stereotype-mapping-table)) — ISO 14224 Level 8 component boundary decomposition ([MTTO-029](../../requirements/user-stories/mtto/MTTO-029.md), `FR-102`).
+- **Storage & Query Rules:** Keys use lower `snake_case` engineering names aligned with ISO 14224 Annex A equipment-class attributes and extended P&ID boundary metadata (`FR-102`). Stored as flat string key-value pairs with engineering units included or suffixed (`_mm`, `_bar`, `_rpm`) to allow deterministic `@>` filtering without nested object traversal.
+
+| Property / Key | JSON Type | Required | Validation / Format | Description & Traceability |
+| --- | --- | --- | --- | --- |
+| `pid_reference_code` | `string` | Optional | Uppercase drawing code (`^[A-Z0-9-]{4,40}$`) | Governing P&ID revision reference linked to the component's boundary envelope (`FR-102`). |
+| `api_plan` | `string` | Optional | Controlled engineering tag (e.g., `Plan 53A`, `API 682`) | Mechanical seal flush or lubrication arrangement standard per ISO 14224 Annex A. |
+| `shaft_diameter_mm` | `string` | Optional | Decimal string with unit clarity | Nominal shaft or journal size for seal and bearing compatibility. |
+| `design_pressure_bar` | `string` | Optional | Decimal string (e.g., `"40.0"`) | Maximum allowable working pressure rating (`MAWP`). |
+| `design_temperature_c` | `string` | Optional | Signed numeric string (e.g., `"-10 to 185"`) | Operating thermal envelope declared by manufacturer specification. |
+| `elastomer_material` | `string` | Optional | Material family code (e.g., `FKM / Viton`, `PTFE`) | Wetted seal elastomer compatibility for corrosive hydrocarbon service. |
+| `<custom_annex_a_key>` | `string` | Optional | Lower `snake_case` key (`max 64` chars), non-empty string value (`max 255` chars) | Class-specific ISO 14224 Annex A engineering attributes added during Level 8 registration. |
+
+```json
+{
+  "pid_reference_code": "PID-TFA-1045-REV3",
+  "api_plan": "Plan 53A",
+  "shaft_diameter_mm": "65.0",
+  "design_pressure_bar": "40.0",
+  "design_temperature_c": "185",
+  "elastomer_material": "FKM / Viton"
+}
+```
+
+### 6.2 `mtto.work_orders.scope_checklist`
+
+- **Contract Pattern:** Strict Schema (*Ordered JSON Array of Task Objects*).
+- **Domain Entity & Traceability:** `WorkOrder` (`mtto.work_orders`, [DT-DM-DOC-001 §3](../class/DT-DM-DOC-001.md#3-stereotype-mapping-table)) — technical execution scope checklist ([MTTO-002](../../requirements/user-stories/mtto/MTTO-002.md), `FR-010`, `FR-012`).
+- **Storage & Query Rules:** Serialized as a JSON array (`[]` when empty or `NULL` prior to task planning). Every element must contain `taskId`, `description`, and `isCompleted`. Technical closure (`WorkOrder.CompleteExecution()`, [DT-DM-DOC-002 §3](../class/DT-DM-DOC-002.md#3-layer-2-maintenance-management-mtto)) validates that all checklist items carry `"isCompleted": true` (`FR-010`, `FR-012`).
+
+| Property / Key | JSON Type | Required | Validation / Format | Description & Traceability |
+| --- | --- | --- | --- | --- |
+| `[].taskId` | `string` | Required | UUIDv7 canonical hyphenated format | Stable task item identifier correlating field execution toggles with persisted checklist state. |
+| `[].description` | `string` | Required | Non-empty string (`1..255` chars) | Actionable field step inherited from the `MaintenancePlan` or added during Work Order planning. |
+| `[].isCompleted` | `boolean` | Required | JSON boolean (`true` / `false`) | Field completion flag confirming task step execution prior to technical closure. |
+
+```json
+[
+  {
+    "taskId": "0194f1c2-8a30-7b12-9e14-3a91c0d41001",
+    "description": "Verify barrier fluid pressure in Plan 53A pot (target 12.5 bar) before seal housing inspection.",
+    "isCompleted": true
+  },
+  {
+    "taskId": "0194f1c2-8a30-7b12-9e14-3a91c0d41002",
+    "description": "Torque gland plate bolts in cross-pattern to 48 Nm and record radial runout (< 0.05 mm).",
+    "isCompleted": true
+  }
+]
+```
+
+### 6.3 `vis.spatial_metadata.position`
+
+- **Contract Pattern:** Strict Schema (*3D Vector Object*).
+- **Domain Entity & Traceability:** `SpatialMetadata` Value Object supporting 3D Digital Twin asset localization (`vis.mesh_mappings` -> `vis.spatial_metadata`, [DT-DM-DOC-001 §3](../class/DT-DM-DOC-001.md#3-stereotype-mapping-table)).
+- **Storage & Query Rules:** Mandatory `NOT NULL` JSON object representing Cartesian translation coordinates in plant world meters relative to the facility origin `(0, 0, 0)` in a standard right-handed Y-up 3D Digital Twin scene coordinate frame.
+
+| Property / Key | JSON Type | Required | Validation / Format | Description & Traceability |
+| --- | --- | --- | --- | --- |
+| `x` | `number` | Required | Finite IEEE-754 decimal number (meters) | East-West plant axis offset from facility datum. |
+| `y` | `number` | Required | Finite IEEE-754 decimal number (meters) | Vertical elevation above grade datum. |
+| `z` | `number` | Required | Finite IEEE-754 decimal number (meters) | North-South plant axis offset from facility datum. |
+
+```json
+{
+  "x": 142.5,
+  "y": 1.25,
+  "z": -38.4
+}
+```
+
+### 6.4 `vis.spatial_metadata.rotation`
+
+- **Contract Pattern:** Strict Schema (*Unit Quaternion Object*).
+- **Domain Entity & Traceability:** `SpatialMetadata` Value Object (`vis.spatial_metadata`, [DT-DM-DOC-001 §3](../class/DT-DM-DOC-001.md#3-stereotype-mapping-table)).
+- **Storage & Query Rules:** Nullable (`NULL` implies identity orientation `{ "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 }`). When non-null, represents a normalized Hamiltonian unit quaternion ($\sqrt{x^2 + y^2 + z^2 + w^2} = 1 \pm 10^{-4}$) to eliminate gimbal lock during 3D mesh placement.
+
+| Property / Key | JSON Type | Required | Validation / Format | Description & Traceability |
+| --- | --- | --- | --- | --- |
+| `x` | `number` | Required | Finite number in `[-1.0, 1.0]` | Imaginary `i` vector component of the unit quaternion. |
+| `y` | `number` | Required | Finite number in `[-1.0, 1.0]` | Imaginary `j` vector component of the unit quaternion. |
+| `z` | `number` | Required | Finite number in `[-1.0, 1.0]` | Imaginary `k` vector component of the unit quaternion. |
+| `w` | `number` | Required | Finite number in `[-1.0, 1.0]` | Scalar real component of the unit quaternion. |
+
+```json
+{
+  "x": 0.0,
+  "y": 0.707107,
+  "z": 0.0,
+  "w": 0.707107
+}
+```
+
+### 6.5 `vis.spatial_metadata.scale`
+
+- **Contract Pattern:** Strict Schema (*3D Scale Multiplier Vector Object*).
+- **Domain Entity & Traceability:** `SpatialMetadata` Value Object (`vis.spatial_metadata`, [DT-DM-DOC-001 §3](../class/DT-DM-DOC-001.md#3-stereotype-mapping-table)).
+- **Storage & Query Rules:** Nullable (`NULL` implies uniform unit scale `{ "x": 1.0, "y": 1.0, "z": 1.0 }`). All axes must be strictly positive (`> 0.0`) to prevent inverted face normals in 3D geometry rendering.
+
+| Property / Key | JSON Type | Required | Validation / Format | Description & Traceability |
+| --- | --- | --- | --- | --- |
+| `x` | `number` | Required | Finite positive number (`> 0.0`) | Scale factor along local mesh X axis. |
+| `y` | `number` | Required | Finite positive number (`> 0.0`) | Scale factor along local mesh Y axis. |
+| `z` | `number` | Required | Finite positive number (`> 0.0`) | Scale factor along local mesh Z axis. |
+
+```json
+{
+  "x": 1.0,
+  "y": 1.0,
+  "z": 1.0
+}
+```
+
+### 6.6 `vis.work_order_isolations.telemetry_snapshot`
+
+- **Contract Pattern:** Extensible Typed Dictionary (*Numeric Telemetry Key-Value Map*).
+- **Domain Entity & Traceability:** `WorkOrderIsolation` (`vis.work_order_isolations`, [DT-DM-DOC-001 §3](../class/DT-DM-DOC-001.md#3-stereotype-mapping-table) & [DT-DM-DOC-002 §5](../class/DT-DM-DOC-002.md#5-layer-4-digital-twin-convergence-vis)) — Zero-Energy physical Try-Out attestation ([VIS-011](../../requirements/user-stories/vis/VIS-011.md), `FR-230`, `NFR-229`, `TR-001`).
+- **Storage & Query Rules:** Captures an immutable snapshot of instantaneous telemetry channel values at the exact timestamp of physical Try-Out attestation (`FR-230`, `TR-001`). Keys identify the cutoff sensor signal tag or canonical metric (`<tag_or_signal_unit>`) and values must be exact numeric decimals matching `DECIMAL(18,6)` telemetry precision.
+
+| Property / Key | JSON Type | Required | Validation / Format | Description & Traceability |
+| --- | --- | --- | --- | --- |
+| `<sensor_channel_key>` | `number` | Required (at least 1 channel on online attestation) | Exact finite decimal number (`0.0` .. sensor max) | Instantaneous reading mapped by cutoff tag/signal identifier (e.g., `MCC_04B_VOLTAGE_V`, `LINE_PRESSURE_PSIG`, `FLOW_RATE_GPM`) proving zero-energy state at attestation (`NFR-229`). |
+
+```json
+{
+  "MCC_04B_VOLTAGE_V": 0.00,
+  "MCC_04B_CURRENT_A": 0.00,
+  "SUCTION_HDR_PSIG": 0.12,
+  "DISCHARGE_FLOW_GPM": 0.00
+}
+```
+
+### 6.7 `adm.audit_logs.previous_state` and `new_state`
+
+- **Contract Pattern:** Polymorphic Audit Envelope (`JSONB` paired snapshots sealed inside `integrity_hash` per [ADR-003](../../architecture/adr/ADR-003.md)).
+- **Domain Entity & Traceability:** `AuditLog` (`adm.audit_logs`, [DT-DM-DOC-001 §3](../class/DT-DM-DOC-001.md#3-stereotype-mapping-table) & [DT-DM-DOC-002 §6](../class/DT-DM-DOC-002.md#6-layer-5-safety-and-governance-adm)) — Forensic ledger inspection and cross-cutting governed domain mutations ([ADM-032](../../requirements/user-stories/adm/ADM-032.md), [ADM-013](../../requirements/user-stories/adm/ADM-013.md), [ADM-014](../../requirements/user-stories/adm/ADM-014.md), [INV-005](../../requirements/user-stories/inv/INV-005.md), [INV-006](../../requirements/user-stories/inv/INV-006.md), [INV-027](../../requirements/user-stories/inv/INV-027.md), [INV-031](../../requirements/user-stories/inv/INV-031.md), [MTTO-026](../../requirements/user-stories/mtto/MTTO-026.md), [MTTO-029](../../requirements/user-stories/mtto/MTTO-029.md)).
+- **Storage & Query Rules:**
+  - `previous_state` holds the pre-mutation entity snapshot (`NULL` on `CREATE`, `QUERY`, and `SECURITY_ALERT` events).
+  - `new_state` holds the post-mutation state (`RETURNING new.*` per `ADR-003`) or operational event payload, enriched with transversal governance keys listed below so every entry remains searchable via GIN `@>` and cryptographically sealed inside `integrity_hash` (`SHA-256`).
+  - **Mandatory Secret Redaction Rule (`FR-349`, `NFR-357`):** Keys matching `(password_hash|token_hash|secret|private_key|signature_key)` must never store plaintext credentials and must be masked to `"[REDACTED SECRET]"` before forensic presentation or signed audit export ([ADM-032](../../requirements/user-stories/adm/ADM-032.md)).
+
+| Property / Key | JSON Type | Applies To | Required | Validation / Format | Description & Traceability |
+| --- | --- | --- | --- | --- | --- |
+| `<entity_column_snake_case>` | `any` (`string \| number \| boolean \| array \| null`) | `CREATE`, `UPDATE`, `DELETE`, `ADJUST` | Conditional | Mirrors physical column values of `entity_type` | Atomic before/after field snapshot used to compute deterministic property-level diffs during forensic inspection (`ADM-032`, `FR-348`). |
+| `justification` | `string` | `new_state` on governed `CREATE`, `UPDATE`, `DELETE`, `ADJUST` | Conditional (Mandatory on governed security/master mutations) | Trimmed string (`>= 15` chars on governed security/master mutations) | Unified transversal key storing operator audit/technical justification across governed domain mutations (`FR-120`, `FR-162`, `FR-174`, `FR-248`, `FR-263`, `FR-098`) or inventory reconciliation rationale (`INV-006`). |
+| `queryFilters` | `object` | `new_state` on `QUERY` (Meta-Audit) | Required on `QUERY` | Structured filter object (`dateFromUtc`, `dateToUtc`, `eventType`, `entityType`, `jsonbContainment`) | Captures self-referential audit search or compliance export criteria (`NFR-360`, `TR-001-FR-361`). |
+| `resultCount` | `number` | `new_state` on `QUERY` | Required on `QUERY` | Non-negative integer (`>= 0`) | Total audit entries returned or exported by the audited query execution. |
+| `exportFormat` | `string` | `new_state` on `QUERY` export | Optional | `"CSV"` or `"JSON"` | Present when the `QUERY` entry records a signed forensic export (`FR-353`). |
+| `violatedRule` | `string` | `new_state` on `SECURITY_ALERT` | Conditional | Rule code (e.g., `"SOD-SAF-01"`, `"HASH_CHAIN_BREACH"`, `"BRUTE_FORCE_LOCKOUT"`) | Identifies the violated security invariant (`FR-249`, `FR-346`, `TR-003-NFR-377`). |
+| `diagnosticSummary` | `string` | `new_state` on `SECURITY_ALERT` | Optional | Non-empty summary (`1..500` chars) | Contextual forensic detail explaining the rejected bypass or integrity breach. |
+
+**Example A — Governed RBAC Mutation (`UPDATE` on `Role`, `new_state`):**
+
+```json
+{
+  "role_id": "0194e8a1-42c0-7d10-b120-9a18f004c210",
+  "role_name": "Maintenance Planner",
+  "is_active": true,
+  "granted_permissions": [
+    "MAINTENANCE:CREATE",
+    "MAINTENANCE:READ",
+    "MAINTENANCE:EDIT",
+    "ASSETS:READ"
+  ],
+  "justification": "Granted MAINTENANCE:EDIT to allow backlog scheduling calibration per change ticket CHG-2026-041."
+}
+```
+
+**Example B — Meta-Audit Query Execution (`QUERY` on `AuditLog`, `new_state`):**
+
+```json
+{
+  "queryFilters": {
+    "dateFromUtc": "2026-11-15T00:00:00Z",
+    "dateToUtc": "2026-11-16T12:00:00Z",
+    "entityType": "Role",
+    "jsonbContainment": { "role_name": "Maintenance Planner" }
+  },
+  "resultCount": 4,
+  "exportFormat": "JSON"
+}
+```
+

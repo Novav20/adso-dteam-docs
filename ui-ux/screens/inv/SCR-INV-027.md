@@ -294,7 +294,7 @@ sequenceDiagram
 
 #### 5.3.2. Tree Reorganization & Recursive Cycle Prevention (`FR-162`, `NFR-167`, `NFR-168`, `AF-002`)
 1. **Cycle Detection Invariant (`NFR-167`, `TR-008-NFR-417`):** When moving node $u$ to candidate parent $v$ in modal `CMP-08` (`FunctionalLocation.ReorganizeTree(newParentId)`), the system validates in $< 1\text{s}$ using a recursive ancestor check that $v$ is not $u$ and $v \notin \text{Descendants}(u)$, and that moving $u$'s subtree preserves valid level depth ($\text{MaxDepth}(u) + \text{Level}(v) \le 5$).
-2. **Atomic Subtree Re-Parenting (`NFR-168`):** Upon confirmation with mandatory `AuditJustification` ($\ge 15$ characters), the backend updates hierarchy links, recalculates materialized/recursive paths, and logs the SHA-256 audit entry within a single ACID transaction.
+2. **Atomic Subtree Re-Parenting (`NFR-168`):** Upon confirmation with mandatory `AuditJustification` ($\ge 15$ characters), the backend updates hierarchy links, recalculates materialized/recursive paths, and seals the justification and state diff inside the SHA-256 `AuditLog` JSONB envelope per [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) within a single ACID transaction.
 
 #### 5.3.3. Dependency-Gated Node Deletion (`FR-163`, `AF-003`)
 1. Invoking `FunctionalLocation.RemoveChild(childId)` ([DT-DM-DOC-002 §2](../../../domain-models/class/DT-DM-DOC-002.md#2-layer-1-asset-taxonomy-iso-14224)) evaluates the deletion guard:

@@ -238,7 +238,7 @@ sequenceDiagram
 1. **Gloved Touch Target Invariant (ISO 9241-110 Clause 5.3 / `--dt-touch-target-mobile`):**
    * All interactive controls (checkboxes, dropdown triggers, camera buttons, tab headers, spare parts quantity steppers) enforce a minimal bounding box governed by `--dt-touch-target-mobile` with `--dt-space-2` separation, ensuring error-free operation with nitrile and leather field gloves.
    * Step navigation directional arrow buttons enforce an enlarged footprint governed by `--dt-control-width-nav-step` $\times$ `--dt-control-height-nav-step` (and `--dt-control-width-nav-step-mobile` $\times$ `--dt-control-height-nav-step-mobile` on mobile) with subtle neutral secondary surface fill (`--dt-color-surface-btn-secondary`), subtle perimeter ring (`--dt-color-border-subtle`), standard curvature (`--dt-radius-md`), and explicit SVG chevrons (`#icon-chevron-left`, `#icon-chevron-right`).
-   * Custom scope checklist implements a frameless list layout with tactile circular check indicators (`--dt-control-size-checkbox`, `--dt-radius-full`): unselected items render a neutral hairline perimeter ring, while verified items fill with high-contrast monochromatic fill (`--dt-color-text-primary`) and an embedded checkmark in surface color. Individual item bounding boxes are purged in favor of subtle baseline dividers (`--dt-color-border-subtle`) and full-width touch hit rows.
+   * Custom scope checklist implements a frameless list layout bound to the JSONB contract in [DT-ERD-DOC-001 §6.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#62-mttowork_ordersscope_checklist) with tactile circular check indicators (`--dt-control-size-checkbox`, `--dt-radius-full`): unselected items render a neutral hairline perimeter ring, while verified items fill with high-contrast monochromatic fill (`--dt-color-text-primary`) and an embedded checkmark in surface color. Individual item bounding boxes are purged in favor of subtle baseline dividers (`--dt-color-border-subtle`) and full-width touch hit rows.
 2. **Asymmetric Layout Grids & Continuous Workspace Dividers (`CMP-03` & `CMP-04`):**
    * **Continuous Data Architecture (Zero Card Plague):** Adheres to the frameless HPHMI surface discipline ([DT-UI-DS-DOC-001 §3.2](../../DT-UI-DS-DOC-001.md#32-semantic-tokens-for-light-and-dark-themes) and [§6.6](../../DT-UI-DS-DOC-001.md#66-tactile-field-controls-high-velocity-touch-primitives)). Primary content sections render directly on the workspace surface (`--dt-color-surface-card`) without redundant outer card wrappers. Initial sections within a tab have no top border, while subsequent stacked sections are separated by a subtle top divider (`--dt-color-border-subtle`).
    * **Scope & Timing Grid (`CMP-03`):** Enforces an asymmetric two-column desktop/landscape grid expanding across the full vertical workspace height: The primary left column provides expansive breadth for frameless procedural task checklist items, while the secondary right column (`--dt-color-border-subtle`) hosts the enclosed timing cockpit master card. In portrait mode, the vertical divider transitions into an edge-to-edge full-width horizontal divider (`--dt-color-border-subtle` with zero side gaps).
@@ -689,6 +689,9 @@ public record FailureRecordInputDto
     public string? TechnicianNotes { get; set; }
 }
 
+/// <summary>
+/// Task checklist item DTO mapped to the WorkOrder scope checklist JSONB contract per DT-ERD-DOC-001 §6.2.
+/// </summary>
 public record ScopeTaskItemDto
 {
     public required Guid TaskId { get; init; }
