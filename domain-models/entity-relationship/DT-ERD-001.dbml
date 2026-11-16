@@ -105,7 +105,7 @@ Table "tax"."maintainable_items" {
   "component_name" "VARCHAR(120)" [not null, note: 'Identity of the maintainable item.']
   "subunit_type" "VARCHAR(80)" [not null, note: 'Taxonomic classification.']
   "spare_part_type" "VARCHAR(80)" [note: 'Optional spare parts correspondence.']
-  "design_attributes" "JSONB" [note: 'Structured static design properties (ISO 14224 Annex A).']
+  "design_attributes" "JSONB" [note: 'Structured static design properties per ISO 14224 Annex A ([§6.1](#61-taxmaintainable_itemsdesign_attributes)).']
   "status" "VARCHAR(30)" [not null, note: 'Item\'s lifecycle status.']
 }
 
@@ -199,7 +199,7 @@ Table "mtto"."work_orders" {
   "actual_start" "TIMESTAMPTZ" [note: 'Actual execution start (UTC).']
   "actual_finish" "TIMESTAMPTZ" [note: 'Actual execution finish (UTC).']
   "actual_labor_hours" "DECIMAL(10,2)" [note: 'Actual labor duration (Calculated).']
-  "scope_checklist" "JSONB" [note: 'Structured task checklist items (`ScopeTaskItemDto[]`) for field execution (MTTO-002).']
+  "scope_checklist" "JSONB" [note: 'Structured task checklist item array for field execution ([§6.2](#62-mttowork_ordersscope_checklist), MTTO-002).']
   "criticality" "VARCHAR(20)" [not null, note: 'WO criticality / priority label.']
 }
 
@@ -307,9 +307,9 @@ Table "vis"."mesh_mappings" {
 
 Table "vis"."spatial_metadata" {
   "mesh_mapping_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
-  "position" "JSONB" [not null, note: 'Spatial vector coordinate (e.g., x,y,z).']
-  "rotation" "JSONB" [note: 'Orientation descriptor (e.g., quaternion).']
-  "scale" "JSONB" [note: 'Scale descriptor.']
+  "position" "JSONB" [not null, note: '3D Cartesian translation vector `{x, y, z}` in meters ([§6.3](#63-visspatial_metadataposition)).']
+  "rotation" "JSONB" [note: 'Normalized 3D orientation quaternion `{x, y, z, w}` ([§6.4](#64-visspatial_metadatarotation)).']
+  "scale" "JSONB" [note: '3D scale multiplier vector `{x, y, z}` ([§6.5](#65-visspatial_metadatascale)).']
 }
 
 Table "vis"."telemetry_signals" {
@@ -342,7 +342,7 @@ Table "vis"."work_order_isolations" {
   "try_out_at" "TIMESTAMPTZ" [note: 'UTC timestamp when physical Try-Out was performed.']
   "try_out_method" "VARCHAR(40)" [note: 'Controlled Try-Out verification method (DT-DM-DOC-001 §4.33).']
   "try_out_reading" "VARCHAR(80)" [note: 'Physical observed metric or confirmation text (e.g. 0.00 V, 0.0 psig).']
-  "telemetry_snapshot" "JSONB" [note: 'Sensor readings snapshot at lockout verification.']
+  "telemetry_snapshot" "JSONB" [note: 'Instantaneous sensor readings snapshot captured at zero-energy Try-Out verification ([§6.6](#66-viswork_order_isolationstelemetry_snapshot)).']
   "signature_hash" "VARCHAR(64)" [note: 'SHA-256 technician digital signature hash.']
   "lease_holder_user_id" "UUID" [note: 'Foreign key to `adm.users(id)` holding an active offline safety lease (`ADR-006`).']
   "leased_until" "TIMESTAMPTZ" [note: 'UTC expiration timestamp of the bounded offline LOTO safety lease (`ADR-006`).']
@@ -367,8 +367,8 @@ Table "adm"."audit_logs" {
   "entity_type" "VARCHAR(80)" [not null, note: 'Affected table or domain entity.']
   "entity_id" "UUID" [not null, note: 'Identifier of the affected record.']
   "timestamp" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'Exact UTC moment of the mutation.']
-  "previous_state" "JSONB" [note: 'Snapshot of the data before the change.']
-  "new_state" "JSONB" [note: 'Snapshot of the data after the change.']
+  "previous_state" "JSONB" [note: 'Pre-mutation entity state snapshot captured via `RETURNING old.*` ([§6.7](#67-admaudit_logsprevious_state-and-new_state), ADR-003).']
+  "new_state" "JSONB" [note: 'Post-mutation state snapshot, `QUERY` meta-audit payload, or `SECURITY_ALERT` context including transversal `justification` ([§6.7](#67-admaudit_logsprevious_state-and-new_state), ADR-003).']
   "ip_address" "VARCHAR(45)" [note: 'Network traceability (IPv4 or IPv6).']
   "user_agent" "VARCHAR(255)" [note: 'Client traceability.']
   "previous_hash" "VARCHAR(64)" [not null, note: 'SHA-256 integrity hash of the preceding audit record (`GENESIS` sentinel on first entry, ADR-003).']
@@ -386,14 +386,16 @@ Table "adm"."auth_tokens" {
 
 Table "adm"."role_permissions" {
   "role_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
-  "module" "VARCHAR(80)" [pk, not null, note: 'Application subdomain or module.']
-  "action" "VARCHAR(80)" [pk, not null, note: 'Granted behavior (e.g., READ, WRITE, APPROVE).']
+  "module" "VARCHAR(80)" [pk, not null, note: 'Controlled application subdomain or module vocabulary (DT-DM-DOC-001 §4.39).']
+  "action" "VARCHAR(80)" [pk, not null, note: 'Controlled granular RBAC action vocabulary (CREATE, READ, EDIT, DELETE, APPROVE, AUDIT, EXECUTE per FR-248 & DT-DM-DOC-001 §4.42).']
 }
 
 Table "adm"."roles" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "name" "VARCHAR(80)" [unique, not null, note: 'Human-readable role identity.']
   "description" "VARCHAR(255)" [note: 'Description of the RBAC role.']
+  "is_active" "BOOLEAN" [not null, default: true, note: 'Logical lifecycle status flag allowing role deactivation while preserving historical audit traceability (FR-254).']
+  "is_system_root" "BOOLEAN" [not null, default: false, note: 'Immutable protection flag identifying built-in System Root roles guarded against privilege reduction or lockout (FR-250).']
 }
 
 Table "adm"."user_roles" {

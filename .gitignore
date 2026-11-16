@@ -29,3 +29,5 @@ ui-ux/prototype/
 # OS specific files
 .DS_Store
 Thumbs.db
+
+*.dbdiagram
