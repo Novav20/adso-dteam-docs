@@ -84,7 +84,7 @@ status: Stable
      - Active Filter Ring: `--dt-color-state-info`
      - Critical Lockout Escalation: `--dt-color-alarm-critical`
      - Pending Warning Escalation: `--dt-color-alarm-warning`
-   - **Architectural Scope:** Acts as a one-click status filter for the user directory grid without duplicate filter chips ([DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle)). Detailed in §5.1.
+   - **Architectural Scope:** Acts as a one-click status filter for the user directory grid without duplicate filter chips ([DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle)). Distinguishes suspended/deactivated accounts (`SuspendedInactiveCount`: `IsActive == false` with `!HasPendingRegistrationToken`) from awaiting-activation accounts (`PendingOnboardingCount`: `IsActive == false` with `HasPendingRegistrationToken == true`). Detailed in §5.1.
 
 4. **`CMP-04`: Multi-Criteria User Directory Filter Toolbar**
    - **Visual Role:** Flat toolbar hosting `UserStatus` selector (`ACTIVE`, `LOCKED`, `INACTIVE`), assigned `Role` filter, active `OFFLINE_LOTO_LEASE` holder filter, debounced search input across `Username`, `FullName`, and `Email` (`Ctrl+K`, `FR-265`), `[User Sheet]` dock toggle, and `[Reset]` action.
@@ -111,34 +111,33 @@ status: Stable
    - **Visual Role:** Morphological capsule pills (`--dt-radius-full`) encoding account anomalies (`LOCKED`, `PENDING ACTIVATION`, `INACTIVE`).
    - **Design Tokens:**
      - Normal (`ACTIVE` with `0` pending activation tokens): plain neutral text (`--dt-color-text-body`)
-     - Critical (`LOCKED` brute-force block): `--dt-color-alarm-critical` (`#icon-loto-locked`)
+     - Critical (`LOCKED` brute-force block): `--dt-color-alarm-critical` (text-only `Blocked` capsule; attempt count displayed in the `Attempts` column)
      - Warning (`PENDING ACTIVATION` or `3..4` failed attempts counter): `--dt-color-alarm-warning` (`#icon-warning`)
      - Deactivated (`INACTIVE` soft-deleted): `--dt-color-surface-base`, `--dt-color-text-muted`
      - Radius: `--dt-radius-full`
    - **Architectural Scope:** Enforces 90/10 HPHMI and Anti-Badge-Inflation rules ([DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons)): healthy `ACTIVE` accounts render without green status pills, ensuring brute-force `LOCKED` accounts command pre-attentive salience. Detailed in §5.1.
 
 7. **`CMP-07`: User Account Inspector, Role Union Evaluator & Lifecycle Rail**
-   - **Visual Role:** Master-detail inspector hosted inside dock `CMP-12` displaying user identity metadata, circular multi-role assignment checkboxes (`User.AssignRole` / `User.RemoveRole`) with live `FR-251` Least-Privilege Union & cross-role SoD summary box, `[Edit in Matrix]` handoff link to [SCR-ADM-013](SCR-ADM-013.md), `[Issue Password Reset Link]` (`FR-261`), contextual `[Suspend Account]` (amber caution styling, `FR-262`, `FR-264`) or `[Restore Account]` (`--dt-color-state-info`, `FR-263`), and candidate SHA-256 seal preview.
+   - **Visual Role:** Master-detail inspector hosted inside dock `CMP-12` displaying user identity metadata, transparent circular multi-role assignment checkboxes (`User.AssignRole` / `User.RemoveRole`) with a flat hairline-divided `FR-251` Least-Privilege Union summary row (escalating to bordered exception framing only on cross-role SoD violation or destructive PoLP advisory), `[Edit in Matrix]` handoff link to [SCR-ADM-013](SCR-ADM-013.md), `[Issue Password Reset Link]` (`FR-261`), contextual `[Suspend Account]` (`FR-262`, `FR-264`) or `[Restore Account]` (`FR-263`) using standard secondary button styling, and candidate SHA-256 seal preview. When inspecting the protected built-in Root Administrator (`SEC-ROOT-01`, `IsProtectedRootAccount == true`), the root-role checkbox displays `#icon-loto-locked` (disabled) and `[Suspend Account]` is hard-disabled (`FR-250`); when `HasPendingRegistrationToken == true`, `[Restore Account]` is disabled until onboarding password setup completes (`FR-259`).
    - **Design Tokens:**
      - Surface: `--dt-color-surface-card`
      - Border: `--dt-color-border-subtle`
      - Typography: `--dt-font-caption`, `--dt-font-body-md`, `--dt-font-mono-data`
-     - Suspend Trigger: `--dt-color-alarm-warning`
-     - Restore Trigger: `--dt-color-state-info` (strictly non-green pre-commit)
-   - **Architectural Scope:** Centralizes all single-user lifecycle triggers and `FR-251` multi-role privilege union inspection ([DT-DM-DOC-002 §6.1](../../../domain-models/class/DT-DM-DOC-002.md#61-user-aggregate-root)). Role commit controls reside exclusively in sticky footer `CMP-13`. Detailed in §5.3.
+     - Action Buttons: `--dt-color-surface-btn-secondary`, `--dt-color-border-subtle`, `--dt-color-text-primary`
+   - **Architectural Scope:** Centralizes all single-user lifecycle triggers, root-account protection (`FR-250`), pre-activation guard (`FR-259`), and `FR-251` multi-role privilege union inspection ([DT-DM-DOC-002 §6.1](../../../domain-models/class/DT-DM-DOC-002.md#61-user-aggregate-root)). Renders checkboxes and compliant summaries directly on the dock surface without nested card boxes (`SCR-ADM-013` parity); role commit controls reside exclusively in sticky footer `CMP-13`. Detailed in §5.3.
 
 8. **`CMP-08`: Forensic Authentication & Active Token Telemetry Card**
-   - **Visual Role:** Nested card inside `CMP-07` displaying `FailedLoginAttempts`, `LockoutUntilUtc`, `LastLoginAtUtc`, and active `AuthToken` leases (`ACCESS`, `SESSION_REFRESH`, `REGISTRATION`, `PASSWORD_RESET`, `OFFLINE_LOTO_LEASE` per [DT-DM-DOC-001 §4.37](../../../domain-models/class/DT-DM-DOC-001.md#437-authtokenpurpose)) with individual `[Revoke]` and bulk `[Revoke All]` triggers (`AuthToken.Revoke()`).
+   - **Visual Role:** Nested section inside `CMP-07` displaying `FailedLoginAttempts`, `LockoutUntilUtc`, `LastLoginAtUtc`, and active `AuthToken` leases (`ACCESS`, `SESSION_REFRESH`, `REGISTRATION`, `PASSWORD_RESET`, `OFFLINE_LOTO_LEASE` per [DT-DM-DOC-001 §4.37](../../../domain-models/class/DT-DM-DOC-001.md#437-authtokenpurpose)) as flat transparent rows with subtle hairline dividers (zero nested card boxes) and standard secondary `[Revoke]` and bulk `[Revoke All]` triggers (`AuthToken.Revoke()`).
    - **Design Tokens:**
-     - Surface: `--dt-color-surface-base`
-     - Border: `--dt-color-border-subtle`
+     - Surface: transparent over `--dt-color-surface-card`
+     - Divider Border: `--dt-color-border-subtle`
      - LOTO Lease Accent: `--dt-color-alarm-warning`
-     - Radius: `--dt-radius-md`
+     - Action Buttons: `--dt-color-surface-btn-secondary`, `--dt-color-border-subtle`
      - Typography: `--dt-font-mono-data`
-   - **Architectural Scope:** Enables immediate session termination and visibility into active field `OFFLINE_LOTO_LEASE` holders (`NFR-268`, `NFR-269`). Detailed in §5.3.2.
+   - **Architectural Scope:** Enables immediate session termination and visibility into active field `OFFLINE_LOTO_LEASE` holders (`NFR-268`, `NFR-269`) via uniform secondary buttons consistent with header and footer actions. Detailed in §5.3.2.
 
 9. **`CMP-09`: Provision New User Account Modal (`FR-258`)**
-   - **Visual Role:** Centered transactional modal dialog (`--dt-layout-modal-width`, `--dt-layout-modal-max-height`) capturing `Username`, `FullName`, institutional `Email`, initial `RoleIds` checkboxes with live `FR-251` cross-role Least-Privilege Union & SoD validation box, mandatory onboarding `AuditJustification` ($\ge 15$ characters), and single-use `REGISTRATION` token email dispatch (`NFR-270`).
+   - **Visual Role:** Centered transactional modal dialog (`--dt-layout-modal-width`, `--dt-layout-modal-max-height`) capturing `Username`, `FullName`, institutional `Email`, transparent 2-column initial `RoleIds` checkboxes with live `FR-251` cross-role Least-Privilege Union & SoD validation summary, mandatory onboarding `AuditJustification` ($\ge 15$ characters), and single-use `REGISTRATION` token email dispatch (`NFR-270`).
    - **Design Tokens:**
      - Surface: `--dt-color-surface-card`
      - Backdrop: `--dt-color-surface-overlay`
@@ -149,7 +148,7 @@ status: Stable
    - **Architectural Scope:** Validates `Username` and `Email` global uniqueness (`IdentityUniquenessResultDto`), enforces cross-role SoD compliance (`SodEvaluationResultDto.IsCompliant`), and dispatches the single-use onboarding link. Detailed in §5.3.1.
 
 10. **`CMP-10`: Account Suspension, Soft-Delete & Restoration Modal (`FR-262`, `FR-263`, `FR-264`)**
-    - **Visual Role:** Safety confirmation modal for executing `User.Deactivate(reason)` (`AF-001`) or `User.Activate()` (`AF-004`), displaying active session revocation count, surfacing an explicit field `OFFLINE_LOTO_LEASE` handover alert when applicable, and requiring a mandatory `AuditJustification` ($\ge 15$ characters).
+    - **Visual Role:** Safety confirmation modal for executing `User.Deactivate(reason)` (`AF-001`) or `User.Activate()` (`AF-004`), displaying active session revocation count, rendering any active field `OFFLINE_LOTO_LEASE` handover alert as a sibling warning block (never nested box-on-box), and requiring a mandatory `AuditJustification` ($\ge 15$ characters).
     - **Design Tokens:**
       - Surface: `--dt-color-surface-card`
       - Width: `--dt-layout-modal-width`
@@ -160,23 +159,23 @@ status: Stable
     - **Architectural Scope:** Guarantees zero physical deletion (`FR-264`) while immediately revoking all `AuthTokens` upon suspension (`FR-262`). Detailed in §5.3.2.
 
 11. **`CMP-11`: Password Complexity & Lockout Policy Modal (`FR-259`, `FR-266`, `NFR-272`, `NFR-273`)**
-    - **Visual Role:** Centered configuration modal allowing the System Administrator to calibrate NIST SP 800-63B password parameters (`MinimumLength >= 12`, character class rules, `PasswordHistoryNonReuseCount` `FR-266`, brute-force failure threshold `5`, and lockout duration `15 min`).
+    - **Visual Role:** Centered configuration modal allowing the System Administrator to calibrate NIST SP 800-63B password parameters (`MinimumLength >= 12`, character class rules, `PasswordHistoryNonReuseCount` `FR-266`, brute-force failure threshold `5`, and lockout duration `15 min`), paired with a mandatory `AuditJustification` ($\ge 15$ characters).
     - **Design Tokens:**
       - Surface: `--dt-color-surface-card`
       - Width: `--dt-layout-modal-width`
       - Radius: `--dt-radius-xl`
       - Elevation: `--dt-z-modal`
-    - **Architectural Scope:** Satisfies [FR-259](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr), [FR-266](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr), and [NFR-272](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr). Detailed in §5.3.3.
+    - **Architectural Scope:** Satisfies [FR-259](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr), [FR-266](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr), and [NFR-272](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr), emitting `UpdatePasswordSecurityPolicyCommand` sealed under `TR-001` / `ADR-003`. Detailed in §5.3.3.
 
 12. **`CMP-12`: On-Demand Workspace Dock & Vertical Tab Strip (`CLS = 0`)**
-    - **Visual Role:** Closed-by-default right-hand desktop workspace dock with vertical spine tabs (`User Sheet` | `SHA-256 Audit`) hosting `CMP-07`/`CMP-08` and `UserAuditLogPane.razor`.
+    - **Visual Role:** Closed-by-default right-hand desktop workspace dock with vertical spine tabs (`User Sheet` | `SHA-256 Audit`) hosting `CMP-07`/`CMP-08` inside the profile tab and `UserAuditLogPane.razor` inside the `SHA-256 Audit` tab pane.
     - **Design Tokens:**
       - Track Surface: `--dt-color-surface-base`
       - Panel Surface: `--dt-color-surface-card`
       - Active Tab: `--dt-color-surface-raised`
       - Elevation: `--dt-shadow-panel`
       - Active Indicator: `--dt-color-state-info`
-    - **Architectural Scope:** Initializes closed on initial load (`IsOpen = false`) to maximize user directory visibility (`CLS = 0`), opens via row click, `[User Sheet]` (`CMP-04`), or vertical spine tabs, and dismisses cleanly on outside click, close trigger, or `Escape`. Detailed in §5.2 and Section 8.
+    - **Architectural Scope:** Initializes closed on initial load (`IsOpen = false`) to maximize user directory visibility (`CLS = 0`), opens via row click, `[User Sheet]` (`CMP-04`), or vertical spine tabs, embeds `UserAuditLogPane.razor` to render immutable SHA-256 `UserAuditEntryDto` events without leaving the workspace, and dismisses cleanly on outside click, close trigger, or `Escape`. Detailed in §5.2 and Section 8.
 
 13. **`CMP-13`: Sticky Identity Governance, Justification & Handoff Footer**
     - **Visual Role:** Permanent consolidated sticky bottom bar hosting the `CLS = 0` validation/security alert slot (strictly neutral grayscale or amber/critical pre-commit; `--dt-color-state-success` teal reserved strictly for post-commit documentary confirmations), L2 navigation handoffs (`[Roles Matrix]`, `[Forensic Audit]`), mandatory `AuditJustification` input ($\ge 15$ characters), `[Discard]`, and `[Save Assignment]`.
@@ -204,7 +203,7 @@ status: Stable
 
 3. **Brute-Force Account Lockout Alert (`AF-002` / `FR-260`)**
    - **Activation Condition:** One or more accounts reach `FailedLoginAttempts >= 5`, setting `LockoutUntilUtc` (`UserStatus.LOCKED`).
-   - **Visual Modification:** KPI card 3 in `CMP-03` escalates to `--dt-color-alarm-critical` and the affected user row (`ING-CONF-02`) in `CMP-05` renders a critical red capsule badge (`[Blocked (5/5)]`, `--dt-color-alarm-critical`, `#icon-loto-locked`). Opening `CMP-07` displays the lockout expiration window and `[Restore Account]` (`--dt-color-state-info`, `FR-263`).
+   - **Visual Modification:** KPI card 3 in `CMP-03` escalates to `--dt-color-alarm-critical` and the affected user row (`ING-CONF-02`) in `CMP-05` renders a critical red capsule badge (`[Blocked]`, `--dt-color-alarm-critical`) paired with `5 / 5` in the attempts column. Opening `CMP-07` displays the lockout expiration window and standard secondary `[Restore Account]` (`FR-263`).
 
 4. **Cross-Role Least-Privilege Union SoD Conflict Blocked (`FR-251`)**
    - **Activation Condition:** Administrator selects a multi-role combination for a user (inside `CMP-07` or `CMP-09`) whose effective permission union $P_{\text{effective}}(u) = \bigcup P_r$ creates a prohibited toxic pair (`SOD-SAF-01`, `SOD-INV-01`, `SOD-MTTO-01`, or `SOD-SYS-01`).
@@ -224,11 +223,15 @@ status: Stable
 
 8. **Documentary Confirmation & Password Reset / Session Revocation (`AF-003` / `FR-261` / `TR-010`)**
    - **Activation Condition:** Single-use password reset token dispatch, multi-role assignment commit, user suspension/restoration, session revocation, or NIST policy update commits cleanly.
-   - **Visual Modification:** Sticky footer slot in `CMP-13` renders a Teal documentary confirmation (`--dt-color-state-success`, `#icon-check`), while token-invalidating actions reveal the transient header chip in `CMP-02` (`SESIONES REVOCADAS (< 2s)`, `NFR-257`).
+   - **Visual Modification:** Sticky footer slot in `CMP-13` renders a Teal documentary confirmation (`--dt-color-state-success`, `#icon-check`), while token-invalidating actions reveal the transient header chip in `CMP-02` (`SESIONES REVOCADAS`, fulfilling `< 2s` SignalR propagation under `NFR-257`).
 
 9. **Unauthorized Route Blocked (`403 Forbidden` / `TR-006`)**
    - **Activation Condition:** An authenticated user lacking identity governance authorization (e.g., `Technician`) attempts direct URL navigation to `SCR-ADM-014`.
    - **Visual Modification:** Portal route guard rejects rendering prior to loading directory records, displays `403 Forbidden`, and logs `AuditActionType.SECURITY_ALERT`.
+
+10. **Root Administrator Account Protection (`FR-250`)**
+    - **Activation Condition:** Administrator inspects the built-in system root account (`SEC-ROOT-01`, `IsProtectedRootAccount == true`) in `CMP-07`.
+    - **Visual Modification:** `[Suspend Account]` renders disabled (`--dt-color-state-disabled`) and the Root Administrator role assignment checkbox locks with `#icon-loto-locked`, preventing administrative suspension or root privilege stripping.
 
 ---
 
@@ -264,14 +267,14 @@ sequenceDiagram
 ```
 
 1. **Computed 3-State User Lifecycle ([DT-DM-DOC-001 §4.40](../../../domain-models/class/DT-DM-DOC-001.md#440-userstatus) & [DT-ERD-DOC-001 §3.5.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#356-users)):**
-   * The domain model derives `UserStatus` deterministically from persisted `User` lifecycle attributes (`IsActive`, `FailedLoginAttempts`, `LockoutUntilUtc`):
-     * **`UserStatus.INACTIVE`:** `IsActive == false` (suspended or logically soft-deleted via `User.Deactivate(reason)`).
+   * The domain model derives `UserStatus` deterministically from persisted `User` lifecycle attributes (`IsActive`, `FailedLoginAttempts`, `LockoutUntilUtc`) and onboarding token presence (`HasPendingRegistrationToken`):
+     * **`UserStatus.INACTIVE`:** `IsActive == false` — partitioned in `CMP-03` between **`PendingOnboardingCount`** (`IsActive == false && HasPendingRegistrationToken == true`, awaiting initial `REGISTRATION` activation) and **`SuspendedInactiveCount`** (`IsActive == false && !HasPendingRegistrationToken`, suspended or soft-deleted via `User.Deactivate(reason)`).
      * **`UserStatus.LOCKED`:** `IsActive == true` $\land$ `LockoutUntilUtc > DateTimeOffset.UtcNow` (brute-force lockout via `User.RecordFailedLogin()`).
      * **`UserStatus.ACTIVE`:** `IsActive == true` $\land$ (`LockoutUntilUtc == null` $\lor$ `LockoutUntilUtc <= DateTimeOffset.UtcNow`).
 
 ---
 
-### 5.2. Directory Ergonomics, Closed Dock Lifecycle & Handoffs
+### 5.2. Directory Ergonomics, Closed Dock Lifecycle, Handoffs & Route Guard
 
 1. **Virtualized Directory & Closed-by-Default Dock (`CMP-05`, `CMP-12`):**
    * Uses `Virtualize<UserDirectoryRowDto>` with fixed row height (`--dt-layout-table-row-height`). On initial render, `UserWorkspaceDock.IsOpen == false` (`CLS = 0`). Clicking any user row, `[User Sheet]` (`CMP-04`), or either vertical spine tab (`User Sheet` | `SHA-256 Audit`) opens the right dock at `--dt-layout-drawer-width-desktop` (`--dt-layout-drawer-width-tablet` on compact desktops); pressing `Escape` or clicking outside interactive directory/toolbar regions closes the dock cleanly.
@@ -279,23 +282,26 @@ sequenceDiagram
 2. **Cross-Screen Governance Handoffs ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)):**
    * Clicking `[Edit in Matrix]` (`CMP-07`) or `[Roles Matrix]` (`CMP-13`) routes directly to [SCR-ADM-013](SCR-ADM-013.md) (`L2` $\to$ `L2`) pre-selecting the user's primary `RoleId`.
    * Clicking `[Forensic Audit]` (`CMP-13`) routes to [SCR-ADM-032](SCR-ADM-032.md) pre-filtered by `EntityType = "User"`.
+3. **Route Guard Enforcement (`TR-006`, State 9):**
+   * Upon navigation to `SCR-ADM-014`, the portal route guard validates identity governance claims prior to requesting `UserDirectoryWorkspaceDto`. Unauthorized callers are blocked with `403 Forbidden` and trigger an immutable `AuditActionType.SECURITY_ALERT` entry (`TR-001`).
 
 ---
 
 ### 5.3. Domain Workflows & Identity Security Invariants
 
 #### 5.3.1. Account Onboarding & Single-Use Registration Token (`FR-258`, `FR-259`, `NFR-267`, `NFR-270`, `NFR-273`)
-1. **Provisioning & Token Issuance (`FR-258`, `NFR-269`, `NFR-270`):** `ProvisionUserAccountCommand` creates the `User` aggregate, enforces unique `Username` and `Email` constraints, validates the assigned roles under `FR-251`, generates a cryptographically random single-use token with `AuthTokenPurpose.REGISTRATION` ([DT-DM-DOC-001 §4.37](../../../domain-models/class/DT-DM-DOC-001.md#437-authtokenpurpose)), persists only its salted cryptographic `TokenHash` (`NFR-267`), and dispatches the activation email via an asynchronous background queue (`NFR-270`).
+1. **Provisioning & Token Issuance (`FR-258`, `NFR-269`, `NFR-270`):** `ProvisionUserAccountCommand` creates the `User` aggregate in `INACTIVE` pre-activation state, enforces unique `Username` and `Email` constraints, validates the assigned roles under `FR-251`, generates a cryptographically random single-use token with `AuthTokenPurpose.REGISTRATION` ([DT-DM-DOC-001 §4.37](../../../domain-models/class/DT-DM-DOC-001.md#437-authtokenpurpose)), persists only its salted cryptographic `TokenHash` (`NFR-267`), and dispatches the activation email via an asynchronous background queue (`NFR-270`).
 2. **First-Access Password Establishment (`FR-259`, `NFR-273`):** Consuming the link invokes `User.UpdatePassword(newPasswordHash)` and `AuthToken.MarkAsUsed()` ([DT-DM-DOC-002 §6.1–§6.4](../../../domain-models/class/DT-DM-DOC-002.md#6-layer-5-safety-and-governance-adm)), enforcing WCAG 2.1 AA live announcements (`aria-live="polite"`) on every password complexity rule (`NFR-273`).
 
-#### 5.3.2. Brute-Force Lockout, Soft-Delete & Immediate Token Revocation (`FR-260`, `FR-262`–`FR-264`, `NFR-268`, `NFR-271`)
-1. **Brute-Force Defense (`FR-260`, `NFR-268`, `NFR-271`):** Each failed login invokes `User.RecordFailedLogin()`. When `FailedLoginAttempts` reaches the configured threshold (`5`), `LockoutUntilUtc` advances by `15 min`, an `AuditActionType.SECURITY_ALERT` entry appends to the immutable audit trail, and an immediate alert email is dispatched asynchronously (`NFR-270`, `NFR-271`).
-2. **Suspension & Soft-Delete (`FR-262`, `FR-264`, `AF-001`):** Invoking `User.Deactivate(reason)` sets `IsActive = false` and calls `AuthToken.Revoke()` across all active tokens belonging to that user (`ACCESS`, `SESSION_REFRESH`, `OFFLINE_LOTO_LEASE`), terminating active client sessions within $< 2\text{s}$ (`TR-006-NFR-402`, `TR-010`) while preserving historical operational foreign keys across Work Permits, Work Order Assignments, and Audit Logs.
-3. **Audited Account Restoration (`FR-263`, `AF-004`):** Invoking `User.Activate()` with a mandatory `AuditJustification` sets `IsActive = true`, resets `FailedLoginAttempts = 0`, clears `LockoutUntilUtc = null`, and seals the justification inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
+#### 5.3.2. Brute-Force Lockout, Soft-Delete & Immediate Token Revocation (`FR-250`, `FR-260`, `FR-262`–`FR-264`, `NFR-268`, `NFR-271`)
+1. **Brute-Force Defense & Login Telemetry (`FR-260`, `AC-ADM-014-77`, `NFR-268`, `NFR-271`):** Each failed login invokes `User.RecordFailedLogin()`. When `FailedLoginAttempts` reaches the configured threshold (`5`), `LockoutUntilUtc` advances by `15 min`, an `AuditActionType.SECURITY_ALERT` entry appends to the immutable audit trail, and an immediate alert email is dispatched asynchronously (`NFR-270`, `NFR-271`). Conversely, successful authentication invokes `User.RegisterSuccessfulLogin()`, updating `LastLoginAtUtc` and resetting `FailedLoginAttempts = 0` (`AC-ADM-014-77`) reflected in `CMP-05` and `CMP-08`.
+2. **Suspension, Soft-Delete & Token Revocation (`FR-262`, `FR-264`, `AF-001`):** Invoking `User.Deactivate(reason)` sets `IsActive = false` and calls `AuthToken.Revoke()` across all active tokens belonging to that user (`ACCESS`, `SESSION_REFRESH`, `OFFLINE_LOTO_LEASE`), terminating active client sessions within $< 2\text{s}$ (`TR-006-NFR-402`, `TR-010`) while preserving historical operational foreign keys across Work Permits, Work Order Assignments, and Audit Logs. Selective or bulk revocations from `CMP-08` execute via `RevokeUserTokensCommand` carrying deterministic `AuditJustification` and `PreviousHash` sealing (`TR-001`, `ADR-003`).
+3. **Audited Account Restoration & Pre-Activation Onboarding Guard (`FR-259`, `FR-263`, `AF-004`):** `[Restore Account]` (`User.Activate()`) is hard-disabled whenever `HasPendingRegistrationToken == true` so newly provisioned accounts cannot bypass first-access password setup via administrative activation (`FR-259`). For previously active suspended or locked accounts (`!HasPendingRegistrationToken`), invoking `User.Activate()` with a mandatory `AuditJustification` sets `IsActive = true`, resets `FailedLoginAttempts = 0`, clears `LockoutUntilUtc = null`, and seals the justification inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
+4. **Root Administrator Account Guard (`FR-250`):** When inspecting or mutating the built-in `SEC-ROOT-01` account (`IsProtectedRootAccount == true`), administrative suspension (`User.Deactivate()`) and root-role unassignment (`User.RemoveRole()`) are strictly blocked in both `CMP-07` controls and server-side command validation.
 
 #### 5.3.3. Single-Use Password Reset & Credential Rotation Policy (`FR-261`, `FR-266`, `NFR-267`, `NFR-272`)
-1. **Single-Use Recovery (`FR-261`):** Issuing a password reset generates an `AuthToken` with `AuthTokenPurpose.PASSWORD_RESET` and strict temporal expiration (`NFR-269`). Replay attempts after `AuthToken.MarkAsUsed()` are rejected (`DT-DM-DOC-002 §6.4`).
-2. **Non-Reuse & Complexity Governance (`FR-266`, `NFR-272`):** `User.UpdatePassword(newPasswordHash)` verifies complexity rules (`CMP-11`) and prevents reuse of prior `PasswordHistoryNonReuseCount` credential hashes (`FR-266`).
+1. **Single-Use Recovery (`FR-261`):** Triggering `[Issue Password Reset Link]` in `CMP-07` dispatches `IssuePasswordResetCommand` (sealed with deterministic `AuditJustification` and `PreviousHash`), generating an `AuthToken` with `AuthTokenPurpose.PASSWORD_RESET` and strict temporal expiration (`NFR-269`). Replay attempts after `AuthToken.MarkAsUsed()` are rejected (`DT-DM-DOC-002 §6.4`).
+2. **Non-Reuse & Complexity Governance (`FR-266`, `NFR-272`):** `CMP-11` submits `UpdatePasswordSecurityPolicyCommand` (requiring `AuditJustification` $\ge 15$ characters and SHA-256 `PreviousHash` sealing under `TR-001` / `ADR-003`) to govern `User.UpdatePassword(newPasswordHash)` complexity thresholds and `PasswordHistoryNonReuseCount` non-reuse verification (`FR-266`).
 
 #### 5.3.4. Multi-Role Least-Privilege Union Consolidation & Cross-Role SoD (`FR-251`)
 1. **Effective Permission Union Formula:** When a non-root user $u$ is assigned a set of roles $R_u \neq \emptyset$, `ISodValidationEngine` computes the effective permission set deterministically in $< 50\text{ms}$:
@@ -310,7 +316,7 @@ sequenceDiagram
 * **Active LOTO Lease & Work Permit Safety Check on Suspension (`FR-262`, [ADR-006](../../../architecture/adr/ADR-006.md)):** If an administrator suspends a technician holding an active `OFFLINE_LOTO_LEASE` token (`HasActiveOfflineLotoLease == true` linked to an active `WorkOrderIsolation`), `CMP-10` surfaces an explicit field LOTO handover warning so the Maintenance Supervisor coordinates physical padlock custody transfer before access revocation takes effect.
 * **Cross-Role Toxic Combination Prevention (`FR-251` / ISO 45001 / ISO 27001 A.5.3):** Evaluating $P_{\text{effective}}(u) = \bigcup_{r \in R_u} P_r$ inside `SCR-ADM-014` closes the privilege-escalation loophole where an employee accumulates incompatible operational roles (`Execute` + `Approve` LOTO or `Execute` + `Audit` Inventory) across distinct appointments.
 * **Prohibition of Physical User Deletion (`FR-264` / ISO 55001 / ISO 9001):** Deleting a user entity would orphan historical Work Permit authorization references (`WorkPermit` issuer foreign key `ON DELETE RESTRICT` per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)) and break 7-year audit retention (`TR-001-FR-367`). Logical soft-deletion (`User.Deactivate`) is strictly enforced.
-* **HPHMI Grayscale & Anti-Badge-Inflation Governance ([TR-011](../../../requirements/common/TR-011.md)):** Per [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope) and [§6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle), normal `ACTIVE` accounts render as plain neutral text (`Enabled`), `[Restore Account]` uses informational blue (`--dt-color-state-info`, never green pre-commit), `--dt-color-state-success` teal is reserved strictly for post-commit documentary confirmations in `CMP-13` and `CMP-02`, and `--dt-color-alarm-critical` / `--dt-color-alarm-warning` are reserved strictly for brute-force lockouts, SoD blocks, and safety custody advisories.
+* **HPHMI Grayscale & Anti-Badge-Inflation Governance ([TR-011](../../../requirements/common/TR-011.md)):** Per [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope) and [§6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle), normal `ACTIVE` accounts render as plain neutral text (`Enabled`), rail and token triggers (`[Suspend Account]`, `[Restore Account]`, `[Revoke]`, `[Revoke All]`) use uniform standard secondary button styling (`--dt-color-surface-btn-secondary`, zero custom colored button outlines and never green pre-commit), `--dt-color-state-success` teal is reserved strictly for post-commit documentary confirmations in `CMP-13` and `CMP-02`, and `--dt-color-alarm-critical` / `--dt-color-alarm-warning` are reserved strictly for brute-force lockouts, SoD blocks, and safety custody advisories.
 
 ---
 
@@ -445,7 +451,7 @@ public required UserStatus Status { get; set; }
 public int FailedLoginAttempts { get; set; }
 
 [Parameter]
-public bool HasPendingOnboardingToken { get; set; }
+public bool HasPendingRegistrationToken { get; set; }
 
 [Parameter]
 public DateTimeOffset? LockoutUntilUtc { get; set; }
@@ -525,6 +531,15 @@ public bool IsUsernameUnique { get; set; } = true;
 public bool IsEmailUnique { get; set; } = true;
 
 [Parameter]
+public EventCallback<string> OnUsernameChanged { get; set; }
+
+[Parameter]
+public EventCallback<string> OnEmailChanged { get; set; }
+
+[Parameter]
+public EventCallback<IReadOnlySet<Guid>> OnInitialRolesChanged { get; set; }
+
+[Parameter]
 public EventCallback<ProvisionUserAccountCommand> OnUserProvisioned { get; set; }
 
 [Parameter]
@@ -554,7 +569,7 @@ public bool IsVisible { get; set; }
 public required PasswordSecurityPolicyDto Policy { get; set; }
 
 [Parameter]
-public EventCallback<PasswordSecurityPolicyDto> OnPolicySaved { get; set; }
+public EventCallback<UpdatePasswordSecurityPolicyCommand> OnPolicySaved { get; set; }
 
 [Parameter]
 public EventCallback OnCloseRequested { get; set; }
@@ -734,6 +749,7 @@ public record UserDirectoryRowDto
     public required string Email { get; init; }
     public required UserStatus Status { get; init; }
     public required bool IsActive { get; init; }
+    public required bool IsProtectedRootAccount { get; init; }
     public required int FailedLoginAttempts { get; init; }
     public DateTimeOffset? LockoutUntilUtc { get; init; }
     public DateTimeOffset? LastLoginAtUtc { get; init; }
@@ -751,9 +767,11 @@ public record UserDetailProfileDto
     public required string Email { get; init; }
     public required UserStatus Status { get; init; }
     public required bool IsActive { get; init; }
+    public required bool IsProtectedRootAccount { get; init; }
     public required int FailedLoginAttempts { get; init; }
     public DateTimeOffset? LockoutUntilUtc { get; init; }
     public DateTimeOffset? LastLoginAtUtc { get; init; }
+    public required bool HasPendingRegistrationToken { get; init; }
     public required bool HasActiveOfflineLotoLease { get; init; }
     public required IReadOnlySet<Guid> AssignedRoleIds { get; init; }
     public IReadOnlyList<ActiveAuthTokenSummaryDto> ActiveTokens { get; init; } = [];
@@ -820,6 +838,40 @@ public record ExecuteUserLifecycleTransitionCommand
 }
 
 /// <summary>
+/// Token revocation payload sealed into the immutable audit chain; deterministic AuditJustification is composed cleanly when invoked from CMP-08 single/bulk actions.
+/// </summary>
+public record RevokeUserTokensCommand
+{
+    public required Guid TargetUserId { get; init; }
+    public Guid? TokenId { get; init; }
+    public required string AuditJustification { get; init; }
+    public required Guid AdminUserId { get; init; }
+    public required string PreviousHash { get; init; }
+}
+
+/// <summary>
+/// Single-use PASSWORD_RESET dispatch payload sealed into the immutable audit chain; deterministic AuditJustification is composed cleanly when invoked from CMP-07.
+/// </summary>
+public record IssuePasswordResetCommand
+{
+    public required Guid TargetUserId { get; init; }
+    public required string AuditJustification { get; init; }
+    public required Guid AdminUserId { get; init; }
+    public required string PreviousHash { get; init; }
+}
+
+/// <summary>
+/// NIST SP 800-63B password and brute-force lockout policy mutation payload; AuditJustification persists inside AuditLog NewState JSONB per DT-ERD-DOC-001 §6.7.
+/// </summary>
+public record UpdatePasswordSecurityPolicyCommand
+{
+    public required PasswordSecurityPolicyDto Policy { get; init; }
+    public required string AuditJustification { get; init; }
+    public required Guid AdminUserId { get; init; }
+    public required string PreviousHash { get; init; }
+}
+
+/// <summary>
 /// Audited user identity timeline row hydrated from the immutable AuditLog ledger per DT-ERD-DOC-001 §3.5.1 and §6.7.
 /// </summary>
 public record UserAuditEntryDto
@@ -865,28 +917,29 @@ public record UserAuditEntryDto
 
 | Requirement                                                                                  | Addressed in Component                 | Verification & Implementation Mechanism                                                                                                                               |
 | :------------------------------------------------------------------------------------------- | :------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [FR-251](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)       | `CMP-07`, `CMP-09`, `CMP-13`           | Evaluates multi-role Least-Privilege Union ($P_{\text{effective}}(u) = \bigcup P_r$) and blocks cross-role SoD toxic pairs upon user provisioning and role assignment. |
-| [FR-258](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-02`, `CMP-09`                     | Provisions new user accounts and automatically dispatches a single-use `REGISTRATION` activation link to institutional email.                                         |
-| [FR-259](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-09`, `CMP-11`                     | Enforces NIST SP 800-63B password complexity policies prior to first account activation.                                                                              |
-| [FR-260](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-03`, `CMP-05`, `CMP-06`, `CMP-08` | Brute-force protection (`User.RecordFailedLogin()`) transitions accounts to `LOCKED` status (`LockoutUntilUtc`) upon reaching 5 failed attempts (`AF-002`).           |
-| [FR-261](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-07`, `CMP-08`                     | Issues single-use `PASSWORD_RESET` tokens (`AuthToken.MarkAsUsed()`) with strict temporal validity (`AF-003`).                                                        |
-| [FR-262](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-07`, `CMP-08`, `CMP-10`           | Temporarily suspends users (`User.Deactivate()`), immediately revoking all active `AuthTokens` while preserving historical records (`AF-001`).                        |
-| [FR-263](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-07`, `CMP-10`                     | Restores suspended or locked accounts (`User.Activate()`) with mandatory reactivation justification (`AF-004`).                                                       |
-| [FR-264](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-05`, `CMP-07`, `CMP-10`           | Enforces logical soft-deletion (`IsActive = false` $\to$ `INACTIVE`), strictly prohibiting physical row deletion to preserve audit history.                           |
-| [FR-265](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-03`, `CMP-04`, `CMP-05`, `CMP-08` | Administrative control dashboard visualizing user status, assigned roles, failed login counters, and recent authentication activity.                                  |
-| [FR-266](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-11`                               | Supports periodic credential rotation while enforcing non-reuse of previous password hashes (`PasswordHistoryNonReuseCount`).                                         |
-| [NFR-267](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-09`, `CMP-11`           | Stores `PasswordHash` and `TokenHash` digests exclusively using high-resistance salted cryptographic standards (`Argon2id` / `SHA-256`).                               |
-| [NFR-268](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-05`, `CMP-08`, `CMP-12`           | Maintains forensic logs of all login attempts (`LastLoginAtUtc`, `FailedLoginAttempts`) and `SECURITY_ALERT` audit records.                                           |
-| [NFR-269](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-11`                     | Enforces strict `ExpiresAtUtc` temporal expiration across all `AuthTokenPurpose` categories (`TR-006-NFR-399`).                                                      |
-| [NFR-270](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-07`, `CMP-09`                     | Dispatches onboarding activation, password reset, and lockout security emails asynchronously without blocking UI transactions.                                        |
-| [NFR-271](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-03`, `CMP-08`                     | Immediately notifies the affected user and administrator upon brute-force lockout or credential change events.                                                        |
-| [NFR-272](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-02`, `CMP-11`                     | Exposes administrator-configurable password complexity, history non-reuse, and lockout threshold parameters (`PasswordSecurityPolicyDto`).                            |
-| [NFR-273](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-09`, `CMP-11`                     | Enforces WCAG 2.1 AA ARIA live regions, semantic labels, and keyboard navigation across activation and recovery flows.                                                |
-| [TR-001](../../../requirements/common/TR-001.md)                                             | `CMP-09`, `CMP-10`, `CMP-12`, `CMP-13` | Immutable append-only audit trail logging with SHA-256 hash chaining for all user lifecycle mutations and lockouts.                                                   |
-| [TR-002](../../../requirements/common/TR-002.md)                                             | `CMP-08`, `CMP-09`                     | Encrypts sensitive identity attributes, password hashes, and token digests at rest.                                                                                   |
-| [TR-005](../../../requirements/common/TR-005.md)                                             | `CMP-05`, `CMP-09`, `CMP-10`           | Enforces TLS/HTTPS encryption in transit across all identity provisioning, authentication, and token revocation requests.                                             |
-| [TR-006](../../../requirements/common/TR-006.md)                                             | `CMP-01` to `CMP-13`                   | Enforces RBAC role authorization, 8-hour token expiration (`TR-006-NFR-399`), and active user state verification (`TR-006-NFR-402`).                                  |
-| [TR-010](../../../requirements/common/TR-010.md)                                             | `CMP-02`, `CMP-07`, `CMP-08`, `CMP-10` | Real-time SignalR session termination and permission synchronization upon user suspension or multi-role assignment update (`< 2s`).                                   |
-| [TR-011](../../../requirements/common/TR-011.md)                                             | `CMP-01` to `CMP-13`                   | ANSI/ISA-101 HPHMI 90/10 neutral grayscale directory, zero badge inflation on active users, and WCAG 2.1 AA redundant coding on `LOCKED` and SoD conflict states.       |
-| [ADR-003](../../../architecture/adr/ADR-003.md)                                              | `CMP-12`, `CMP-13`                     | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on user lifecycle audit records.                                            |
-| [ADR-005](../../../architecture/adr/ADR-005.md)                                              | `CMP-08`, `CMP-09`                     | Time-sequential UUIDv7 identifier generation for `User` and `AuthToken` primary keys.                                                                                 |
+| [FR-250](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)       | `CMP-07`, `CMP-10`, `CMP-13`                     | Protects the built-in Root Administrator (`SEC-ROOT-01`, `IsProtectedRootAccount == true`) against suspension or root privilege stripping.                            |
+| [FR-251](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)       | `CMP-07`, `CMP-09`, `CMP-13`                     | Evaluates multi-role Least-Privilege Union ($P_{\text{effective}}(u) = \bigcup P_r$) and blocks cross-role SoD toxic pairs upon user provisioning and role assignment. |
+| [FR-258](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-02`, `CMP-09`                               | Provisions new user accounts and automatically dispatches a single-use `REGISTRATION` activation link to institutional email.                                         |
+| [FR-259](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-07`, `CMP-09`, `CMP-11`                     | Enforces NIST SP 800-63B password complexity policies prior to first account activation and blocks skipping `REGISTRATION` activation via restore.                    |
+| [FR-260](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-03`, `CMP-05`, `CMP-06`, `CMP-08`           | Brute-force protection (`User.RecordFailedLogin()`) transitions accounts to `LOCKED` status (`LockoutUntilUtc`) upon reaching 5 failed attempts (`AF-002`).           |
+| [FR-261](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-07`, `CMP-08`                               | Issues single-use `PASSWORD_RESET` tokens (`IssuePasswordResetCommand`, `AuthToken.MarkAsUsed()`) with strict temporal validity (`AF-003`).                           |
+| [FR-262](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-07`, `CMP-08`, `CMP-10`                     | Temporarily suspends users (`User.Deactivate()`), immediately revoking all active `AuthTokens` while preserving historical records (`AF-001`).                        |
+| [FR-263](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-07`, `CMP-10`                               | Restores suspended or locked accounts (`User.Activate()`) with mandatory reactivation justification (`AF-004`).                                                       |
+| [FR-264](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-05`, `CMP-07`, `CMP-10`                     | Enforces logical soft-deletion (`IsActive = false` $\to$ `INACTIVE`), strictly prohibiting physical row deletion to preserve audit history.                           |
+| [FR-265](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-03`, `CMP-04`, `CMP-05`, `CMP-08`           | Administrative control dashboard visualizing user status, assigned roles, failed login counters, and recent authentication activity.                                  |
+| [FR-266](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)       | `CMP-11`                                         | Supports periodic credential rotation while enforcing non-reuse of previous password hashes (`PasswordHistoryNonReuseCount`).                                         |
+| [NFR-267](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-09`, `CMP-11`                     | Stores `PasswordHash` and `TokenHash` digests exclusively using high-resistance salted cryptographic standards (`Argon2id` / `SHA-256`).                               |
+| [NFR-268](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-05`, `CMP-08`, `CMP-12`                     | Maintains forensic logs of all login attempts (`LastLoginAtUtc`, `FailedLoginAttempts`) and `SECURITY_ALERT` audit records.                                           |
+| [NFR-269](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-11`                               | Enforces strict `ExpiresAtUtc` temporal expiration across all `AuthTokenPurpose` categories (`TR-006-NFR-399`).                                                      |
+| [NFR-270](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-07`, `CMP-09`                               | Dispatches onboarding activation, password reset, and lockout security emails asynchronously without blocking UI transactions.                                        |
+| [NFR-271](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-03`, `CMP-08`                               | Immediately notifies the affected user and administrator upon brute-force lockout or credential change events.                                                        |
+| [NFR-272](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-02`, `CMP-11`                               | Exposes administrator-configurable password complexity, history non-reuse, and lockout threshold parameters (`UpdatePasswordSecurityPolicyCommand`).                  |
+| [NFR-273](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr) | `CMP-09`, `CMP-11`                               | Enforces WCAG 2.1 AA ARIA live regions, semantic labels, and keyboard navigation across activation and recovery flows.                                                |
+| [TR-001](../../../requirements/common/TR-001.md)                                             | `CMP-09`, `CMP-10`, `CMP-11`, `CMP-12`, `CMP-13` | Immutable append-only audit trail logging with SHA-256 hash chaining for all user lifecycle, policy, reset, and revocation mutations.                                 |
+| [TR-002](../../../requirements/common/TR-002.md)                                             | `CMP-08`, `CMP-09`                               | Encrypts sensitive identity attributes, password hashes, and token digests at rest.                                                                                   |
+| [TR-005](../../../requirements/common/TR-005.md)                                             | `CMP-05`, `CMP-09`, `CMP-10`                     | Enforces TLS/HTTPS encryption in transit across all identity provisioning, authentication, and token revocation requests.                                             |
+| [TR-006](../../../requirements/common/TR-006.md)                                             | `CMP-01` to `CMP-13`                             | Enforces RBAC role authorization, 8-hour token expiration (`TR-006-NFR-399`), and active user state verification (`TR-006-NFR-402`).                                  |
+| [TR-010](../../../requirements/common/TR-010.md)                                             | `CMP-02`, `CMP-07`, `CMP-08`, `CMP-10`           | Real-time SignalR session termination and permission synchronization upon user suspension or multi-role assignment update (`< 2s`).                                   |
+| [TR-011](../../../requirements/common/TR-011.md)                                             | `CMP-01` to `CMP-13`                             | ANSI/ISA-101 HPHMI 90/10 neutral grayscale directory, zero badge inflation on active users, and WCAG 2.1 AA redundant coding on `LOCKED` and SoD conflict states.       |
+| [ADR-003](../../../architecture/adr/ADR-003.md)                                              | `CMP-11`, `CMP-12`, `CMP-13`                     | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on user lifecycle and policy audit records.                                 |
+| [ADR-005](../../../architecture/adr/ADR-005.md)                                              | `CMP-08`, `CMP-09`                               | Time-sequential UUIDv7 identifier generation for `User` and `AuthToken` primary keys.                                                                                 |

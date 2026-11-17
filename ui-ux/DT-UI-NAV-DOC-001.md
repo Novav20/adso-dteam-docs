@@ -195,7 +195,9 @@ The following table defines the transition rules between screens, triggering eve
 | [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Define Boundaries"                              | [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md)           |  L3 $\to$ L3  | Reliability Eng., Planner                     |
 | [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Physical Replacement"                               | [SCR-INV-025](screens/inv/SCR-INV-025.md)            |  L3 $\to$ L4  | Technician, Supervisor, Warehouse Manager             |
 | [SCR-ADM-014](screens/adm/SCR-ADM-014.md)       | Click on "Edit Privileges"                             | [SCR-ADM-013](screens/adm/SCR-ADM-013.md)            |  L2 $\to$ L2  | Administrator                                 |
-| [SCR-ADM-013](screens/adm/SCR-ADM-013.md)       | Click on "Audit Modification"                           | [SCR-ADM-032](screens/adm/SCR-ADM-032.md)            |  L2 $\to$ L2  | Administrator, Auditor                        |
+| [SCR-ADM-013](screens/adm/SCR-ADM-013.md)       | Click on "Manage Users"                                | [SCR-ADM-014](screens/adm/SCR-ADM-014.md)            |  L2 $\to$ L2  | Administrator                                 |
+| [SCR-ADM-013](screens/adm/SCR-ADM-013.md)       | Click on "Audit Modification"                          | [SCR-ADM-032](screens/adm/SCR-ADM-032.md)            |  L2 $\to$ L2  | Administrator, Auditor                        |
+| [SCR-ADM-014](screens/adm/SCR-ADM-014.md)       | Click on "Forensic Audit"                              | [SCR-ADM-032](screens/adm/SCR-ADM-032.md)            |  L2 $\to$ L2  | Administrator, Auditor                        |
 
 ---
 
