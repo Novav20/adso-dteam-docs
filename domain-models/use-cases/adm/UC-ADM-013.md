@@ -31,7 +31,7 @@ Provides the governance interface to create, configure, audit, and logically dea
    * Persists the role definition and its granted domain-action permission set in the security catalog ([TR-002](../../../requirements/common/TR-002.md), [TR-005](../../../requirements/common/TR-005.md)).
    * Appends an immutable record to the audit trail ([TR-001](../../../requirements/common/TR-001.md)) with a chained SHA-256 cryptographic hash ([ADR-003](../../../architecture/adr/ADR-003.md)).
    * Broadcasts a real-time authorization cache invalidation event, propagating the updated permissions to all active user sessions in under 2 seconds ([NFR-257](../../../requirements/user-stories/adm/ADM-013.md#non-functional-requirements-nfr), [TR-010](../../../requirements/common/TR-010.md)) so subsequent request evaluations execute in under 10 milliseconds ([NFR-256](../../../requirements/user-stories/adm/ADM-013.md#non-functional-requirements-nfr)).
-10. The System displays a documentary confirmation notice and enables exporting the global permissions matrix for external compliance audits ([FR-252](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)) or transitioning to the Immutable Audit Log Viewer ([SCR-ADM-032](../../../ui-ux/screens/adm/SCR-ADM-032.md)).
+10. The System displays a documentary confirmation notice and enables exporting the global permissions matrix for external compliance audits ([FR-252](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)), transitioning to User Management ([SCR-ADM-014](../../../ui-ux/screens/adm/SCR-ADM-014.md) / [UC-ADM-014](UC-ADM-014.md)) to assign roles to user accounts, or transitioning to the Immutable Audit Log Viewer ([SCR-ADM-032](../../../ui-ux/screens/adm/SCR-ADM-032.md)).
 
 ## 4. Alternate Flows
 
@@ -49,13 +49,23 @@ In step 2, if the Administrator attempts to delete the Root Administrator role o
 
 ### AF-003: Principle of Least Privilege (PoLP) Advisory Warning
 In step 6, if the Administrator grants broad destructive or cross-domain privileges (such as `DELETE` across operational modules on a non-supervisory role) that do not trigger a hard SoD block but exceed standard least-privilege baselines ([FR-253](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)):
-1. The System displays a non-blocking advisory warning with redundant coding (`#icon-warning`), identifying the elevated privilege cells.
+1. The System displays a non-blocking advisory warning with redundant visual shape and color coding per WCAG 2.1 AA ([TR-011](../../../requirements/common/TR-011.md)), identifying the elevated privilege cells.
 2. The System requires the Administrator to document a specific business justification before proceeding to step 8.
 
 ### AF-004: Logical Deactivation of a Custom Role and Immediate Session Revocation
 When the Administrator deactivates an obsolete or compromised custom role ([FR-254](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)):
 1. The Administrator selects the custom role, initiates logical deactivation, reviews the count of affected users, and enters a mandatory security justification.
-2. Within a single atomic transaction, the System marks the role as logically inactive while preserving its historical audit references, records the SHA-256 audit entry ([TR-001](../../../requirements/common/TR-001.md)), and immediately revokes the role's privileges across all active user sessions in under 2 seconds ([NFR-257](../../../requirements/user-stories/adm/ADM-013.md#non-functional-requirements-nfr)).
+2. Within a single atomic transaction, the System marks the role as logically inactive while preserving its historical audit references as read-only records (with reactivation reserved for out-of-band administrative recovery), records the SHA-256 audit entry ([TR-001](../../../requirements/common/TR-001.md)), and immediately revokes the role's privileges across all active user sessions in under 2 seconds ([NFR-257](../../../requirements/user-stories/adm/ADM-013.md#non-functional-requirements-nfr)).
+
+### AF-005: Unauthorized Module or Route Access Rejection
+At any point, if an authenticated user lacking governance permissions attempts to access restricted configuration routes via direct URL navigation or unauthorized action invocation ([TR-006](../../../requirements/common/TR-006.md)):
+1. The System immediately rejects the request prior to exposing protected governance data and presents a `403 Forbidden` access-denied response.
+2. The System records an immutable security alert entry in the SHA-256 audit trail identifying the actor, timestamp, and attempted restricted target ([TR-001](../../../requirements/common/TR-001.md)).
+
+### AF-006: Duplicate Custom Role Name Rejection
+In step 3, if the Administrator enters a custom role name that matches an existing role already registered in the authorization catalog ([FR-247](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)):
+1. The System immediately blocks confirmation of the creation dialog and displays an inline uniqueness validation error indicating that a role with that name already exists.
+2. The Administrator modifies the role name to a unique identifier, and creation resumes cleanly.
 
 ## 5. Postconditions
 * Custom and operational roles are persisted with a verified, Segregation-of-Duties-compliant permission matrix across all five platform domains.

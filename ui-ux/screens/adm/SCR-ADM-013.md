@@ -26,7 +26,7 @@ status: Stable
 * **Secondary Personas:**
   * **Auditor:** Inspects the global RBAC matrix in read-only mode, verifies Segregation of Duties enforcement under ISO/IEC 27001:2022 Annex A.5.3 and ISO 55001 Clause 5.3, exports compliance reports (`FR-252`), and drills down to the Immutable Audit Log Viewer ([SCR-ADM-032](SCR-ADM-032.md)).
 * **Operational Context:** Deployed exclusively on high-resolution Desktop Workstations inside IT/OT security governance and compliance offices ([DT-UI-NAV-DOC-001 §4.2](../../DT-UI-NAV-DOC-001.md#42-navigation-structure-web-portal-client)). Per [DT-UI-NAV-DOC-001 §4.1](../../DT-UI-NAV-DOC-001.md#41-navigation-structure-mobile-client) and [§6.1](../../DT-UI-NAV-DOC-001.md#61-offline-operation-guard), mobile/tablet field clients and offline execution are strictly outside scope. Compact desktop workstation adaptations are governed in Section 8.
-* **Mode of Operation:** Security Governance & Compliance Audit mode. Direct DCS/SCADA process control manipulation is strictly excluded. The Root Administrator role (`ROOT_ADMINISTRATOR`) is hardware/software-locked against deletion or privilege reduction (`FR-250`, `AF-002`). Multi-role user assignment and Least-Privilege Union conflict validation (`FR-251`) reside exclusively in User Management ([SCR-ADM-014](SCR-ADM-014.md)).
+* **Mode of Operation:** Security Governance & Compliance Audit mode. Direct DCS/SCADA process control manipulation is strictly excluded. The Root Administrator role (`ROOT_ADMINISTRATOR`) is hardware/software-locked against deletion or privilege reduction (`FR-250`, `AF-002`). Deactivated custom roles remain archived as read-only historical governance records in the MVP UI (`Role.Activate()` in [DT-DM-DOC-002 §6.2](../../../domain-models/class/DT-DM-DOC-002.md#62-role-aggregate-root) is reserved for backend administrative recovery outside the MVP interface). Multi-role user assignment and Least-Privilege Union conflict validation (`FR-251`) reside exclusively in User Management ([SCR-ADM-014](SCR-ADM-014.md)).
 * **Web Portal Workspace Invariant:** Operates within the unified Blazor Web Portal shell alongside an **on-demand, closed-by-default** right-hand workspace dock (`CMP-12` hosting `CMP-07`/`CMP-08` and `CMP-11`) using the vertical tab spine pattern (`CLS = 0`). The dock opens on vertical spine tab selection or via the `[Role Detail]` toolbar trigger, and closes cleanly on outside click, close trigger, or `Escape`.
 * **Upstream & Downstream Navigation Invariants ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)):**
   * **Upstream Continuity:** Launched from the Web Portal Governance sidebar or via `"Edit Privileges"` (`L2` $\to$ `L2`) in User Management ([SCR-ADM-014](SCR-ADM-014.md)).
@@ -71,7 +71,7 @@ status: Stable
    - **Architectural Scope:** Hosts global module navigation per [DT-UI-NAV-DOC-001 §4](../../DT-UI-NAV-DOC-001.md#4-information-architecture-tree), highlighting "Roles & Permissions (RBAC)" under Governance & Security. Layout rules governed in Section 8.
 
 2. **`CMP-02`: RBAC Governance Header & Action Bar**
-   - **Visual Role:** Sticky top header hosting breadcrumbs, live session propagation status chip (`NFR-257`), `[Export]` compliance dropdown (`CSV` / `JSON`, `FR-252`), sole primary CTA `[+ Create Custom Role]` (`FR-247`), and operator session badge.
+   - **Visual Role:** Sticky top header hosting breadcrumbs, a transient live session propagation status chip (hidden at rest; renders only post-commit when `LastSessionBroadcastAtUtc != null` inside a reserved fixed-width slot so `CLS = 0`, `NFR-257`), `[Export]` compliance dropdown (`CSV` / `JSON`, `FR-252`), sole primary CTA `[+ Create Custom Role]` (`FR-247`), and operator session badge.
    - **Design Tokens:**
      - Surface: `--dt-color-surface-card`
      - Border: `--dt-color-border-subtle`
@@ -148,7 +148,7 @@ status: Stable
      - Radius: `--dt-radius-xl`
      - Elevation: `--dt-z-modal`
      - Primary CTA: `--dt-color-state-info`
-   - **Architectural Scope:** Validates role name uniqueness, scopes cloned permissions strictly to checked `AuthorizedModules`, and initializes the custom role in the matrix editor. Detailed in §5.1.
+   - **Architectural Scope:** Validates role name uniqueness (`OnRoleNameChanged` / `IsRoleNameUnique`), scopes cloned permissions strictly to checked `AuthorizedModules`, derives the `AuditJustification` envelope deterministically from `Description` plus authorized module scope without a redundant second justification field, and initializes the custom role in the matrix editor. Detailed in §5.1.
 
 10. **`CMP-10`: Logical Role Deactivation & Session Revocation Modal (`FR-254`)**
     - **Visual Role:** Centered confirmation modal displaying the count of active assigned users who will immediately lose privileges (`< 2s`, `NFR-257`) upon deactivating the custom role, requiring a mandatory security justification ($\ge 15$ characters).
@@ -216,11 +216,15 @@ status: Stable
 
 6. **Creating Custom Role (`FR-247`) or Deactivating Role (`AF-004` / `FR-254`)**
    - **Activation Condition:** Administrator clicks `[+ Create Custom Role]` (`CMP-09`) or `[Deactivate]` inside `CMP-07` (`CMP-10`).
-   - **Visual Modification:** Centered modal deploys over `--dt-color-surface-overlay` backdrop with keyboard focus trapping and `Escape` dismissal. Deactivated roles remain inspectable in read-only mode when filtered via `INACTIVE` or `ALL`.
+   - **Visual Modification:** Centered modal deploys over `--dt-color-surface-overlay` backdrop with keyboard focus trapping and `Escape` dismissal. In `CMP-09`, entering a duplicate role name (`IsRoleNameUnique == false`) escalates the `Name` field border and validation box to `--dt-color-alarm-critical` with `#icon-ban` inline feedback and keeps `[Create Role]` disabled until a unique name is entered. Deactivated roles remain inspectable in read-only mode when filtered via `INACTIVE` or `ALL`.
 
 7. **Documentary Confirmation & Live Session Broadcast (`NFR-257`)**
    - **Activation Condition:** Atomic permission matrix save, custom role creation/deactivation, or global compliance matrix export (`FR-252`) commits cleanly.
-   - **Visual Modification:** Footer slot in `CMP-13` renders a Teal documentary confirmation (`--dt-color-state-success`, `#icon-check`) displaying the truncated SHA-256 digest or export summary, while header chip in `CMP-02` confirms: *"SESSIONS INVALIDATED (< 2s)"*.
+   - **Visual Modification:** Footer slot in `CMP-13` renders a Teal documentary confirmation (`--dt-color-state-success`, `#icon-check`) displaying the truncated SHA-256 digest or export summary, while the transient header chip in `CMP-02` (`LastSessionBroadcastAtUtc != null`) confirms: *"SESSIONS INVALIDATED (< 2s)"*.
+
+8. **Unauthorized Route or Governance Action Blocked (`403 Forbidden` / `TR-006`)**
+   - **Activation Condition:** An authenticated user lacking RBAC governance authorization (e.g., `Technician`) attempts direct URL navigation to `SCR-ADM-013` or attempts an unauthorized mutation (`AC-ADM-013-74`).
+   - **Visual Modification:** The portal route guard intercepts rendering prior to loading role matrices, displays a `403 Forbidden` access-denied surface with a safe return action, and logs an immutable `AuditActionType.SECURITY_ALERT` entry (`TR-001`, `TR-006`).
 
 ---
 
@@ -262,7 +266,8 @@ sequenceDiagram
 2. **Imperceptible Authorization Cache Architecture (`NFR-256`, `NFR-257`, `TR-010`):**
    * Committed matrix changes invalidate distributed memory/JWT permission claims and push a real-time SignalR `PermissionsUpdatedEvent` to connected clients in $< 2\text{s}$ (`NFR-257`, `TR-010-NFR-432`), enabling runtime endpoint authorization checks to execute in $< 5\text{ms}$–$10\text{ms}$ (`NFR-256`, `TR-006-NFR-401`).
 3. **Audit Justification Payload Mapping ([DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):**
-   * Mandatory `AuditJustification` text captured in `CMP-13`, `CMP-09`, and `CMP-10` ($\ge 15$ characters) persists inside the `AuditLog` post-mutation `JSONB` envelope (`NewState`) under the transversal justification contract defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) and is sealed within the chained SHA-256 `IntegrityHash` (`ADR-003`).
+   * Mandatory interactive `AuditJustification` text captured in `CMP-13` (matrix commits) and `CMP-10` (role deactivation) ($\ge 15$ characters) persists inside the `AuditLog` post-mutation `JSONB` envelope (`NewState`) under the transversal justification contract defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
+   * For custom role creation in `CMP-09` (which captures `Name`, `Description`, `CloneFromRoleId`, and `AuthorizedModules` without a redundant second justification input), the Application layer deterministically composes `CreateCustomRoleCommand.AuditJustification` from the role's business `Description` and authorized module scope (guaranteed $\ge 15$ characters) before sealing the `IntegrityHash` (`ADR-003`).
 
 ---
 
@@ -273,9 +278,10 @@ sequenceDiagram
    * Each matrix checkbox renders inside a high-clarity desktop hit region sized by `--dt-control-size-checkbox`.
 2. **Closed-by-Default Dock Lifecycle (`CMP-12`):**
    * On initial render, `RbacWorkspaceDock.IsOpen == false` (`CLS = 0`). Clicking `[Role Detail]` (`CMP-04`) or either vertical spine tab (`ROLE DETAIL` | `SHA-256 AUDIT`) expands the panel at `--dt-layout-drawer-width-desktop` (`--dt-layout-drawer-width-tablet` in compact desktop viewports) without resizing surrounding controls; pressing `Escape` or clicking outside interactive matrix/toolbar regions dismisses the dock.
-3. **Cross-Screen Governance Handoffs ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)):**
+3. **Cross-Screen Governance Handoffs ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)) & Route Guard (`TR-006`):**
    * Clicking `[Manage Users]` in `CMP-13` routes to User Management ([SCR-ADM-014](SCR-ADM-014.md)).
    * Clicking `[Forensic Audit]` in `CMP-13` routes to the Immutable SHA-256 Audit Log Viewer ([SCR-ADM-032](SCR-ADM-032.md)) pre-filtered by `EntityType = "Role"`.
+   * Unauthorized direct URL navigation (`AC-ADM-013-74`) is rejected before rendering with `403 Forbidden` and audited as `AuditActionType.SECURITY_ALERT`.
 
 ---
 
@@ -299,7 +305,7 @@ sequenceDiagram
 3. **Discard Baseline Reversion (`CMP-13`):** Clicking `[Discard Changes]` restores the active role's working matrix cleanly to its persisted server baseline and clears pending justification text.
 
 #### 5.3.4. Logical Role Deactivation, Export & Immediate Session Revocation (`FR-252`, `FR-254`, `NFR-257`, `AF-004`)
-1. Confirming logical deactivation in `CMP-10` invokes `Role.Deactivate(reason)` ([DT-DM-DOC-002 §6.2](../../../domain-models/class/DT-DM-DOC-002.md#62-role-aggregate-root)), sets `IsActive = false` on the custom role, revokes active bearer/refresh tokens (`AuthToken.Revoke()` per `DT-DM-DOC-002 §6.4`) or pushes a SignalR permission refresh to affected sessions within $< 2\text{s}$ (`NFR-257`), and retains all historical user-role assignments and cryptographic audit entries.
+1. Confirming logical deactivation in `CMP-10` invokes `Role.Deactivate(reason)` ([DT-DM-DOC-002 §6.2](../../../domain-models/class/DT-DM-DOC-002.md#62-role-aggregate-root)), sets `IsActive = false` on the custom role, revokes active bearer/refresh tokens (`AuthToken.Revoke()` per `DT-DM-DOC-002 §6.4`) or pushes a SignalR permission refresh to affected sessions within $< 2\text{s}$ (`NFR-257`), and retains all historical user-role assignments and cryptographic audit entries. In MVP scope, deactivated custom roles remain archived as read-only historical records; `Role.Activate()` is reserved for backend administrative recovery outside the MVP UI.
 2. Selecting `CSV` or `JSON` in `[Export]` (`CMP-02`) exports the complete multi-role authorization matrix and SoD evaluation ledger for ISO/IEC 27001 external audits (`FR-252`).
 
 ---
@@ -429,6 +435,9 @@ public required RoleMatrixDetailDto ActiveRoleMatrix { get; set; }
 public required SodEvaluationResultDto SodEvaluation { get; set; }
 
 [Parameter]
+public IReadOnlyList<RbacModule>? VisibleModules { get; set; }
+
+[Parameter]
 public bool IsReadOnly { get; set; }
 
 [Parameter]
@@ -458,7 +467,7 @@ public EventCallback<PermissionToggleRequestDto> OnCellToggled { get; set; }
 
 // CMP-12: RbacWorkspaceDock.razor (Closed by default: IsOpen = false)
 [Parameter]
-public bool IsOpen { get; set; }
+public bool IsOpen { get; set; } = false;
 
 [Parameter]
 public RbacDockTab ActiveTab { get; set; } = RbacDockTab.ROLE_INSPECTOR;
@@ -500,6 +509,9 @@ public required IReadOnlyList<RoleSummaryDto> TemplateRoles { get; set; }
 public bool IsRoleNameUnique { get; set; } = true;
 
 [Parameter]
+public EventCallback<string> OnRoleNameChanged { get; set; }
+
+[Parameter]
 public EventCallback<CreateCustomRoleCommand> OnRoleCreated { get; set; }
 
 [Parameter]
@@ -537,6 +549,12 @@ public bool CanCommit { get; set; }
 
 [Parameter]
 public bool IsSubmitting { get; set; }
+
+[Parameter]
+public string? DocumentaryConfirmationMessage { get; set; }
+
+[Parameter]
+public string? CommittedIntegrityDigest { get; set; }
 
 [Parameter]
 public string AuditJustification { get; set; } = string.Empty;
@@ -648,6 +666,9 @@ public record RbacSummaryMetricsDto
     public required int PolpAdvisoryWarningsCount { get; init; }
 }
 
+/// <summary>
+/// Summary projection for role directory selector tabs; IsCustomRole maps to !is_system_root (displayed in operational copy as Operational Role).
+/// </summary>
 public record RoleSummaryDto
 {
     public required Guid RoleId { get; init; }
@@ -693,6 +714,9 @@ public record SodRuleEvaluationItemDto
     public required bool IsViolated { get; init; }
 }
 
+/// <summary>
+/// Custom role creation payload; AuditJustification is deterministically composed in the Application layer from Description and AuthorizedModules per DT-ERD-DOC-001 §6.7.
+/// </summary>
 public record CreateCustomRoleCommand
 {
     public required string Name { get; init; }
@@ -774,6 +798,7 @@ public record RbacAuditEntryDto
 | [FR-248](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)       | `CMP-05`, `CMP-06`                     | Displays 2D permissions matrix configuring `CREATE`, `READ`, `EDIT`, `DELETE`, `APPROVE`, `AUDIT`, and `EXECUTE` across the 5 platform modules. |
 | [FR-249](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)       | `CMP-05`, `CMP-06`, `CMP-08`, `CMP-13` | Enforces Segregation of Duties (`Role.ValidateSoD()`) blocking conflicting safety, inventory, and maintenance privilege pairs (`AF-001`).       |
 | [FR-250](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)       | `CMP-05`, `CMP-06`, `CMP-07`           | Hard-locks the `Root Administrator` role (`IsSystemRootRole`) against deletion or privilege reduction (`AF-002`).                               |
+| [FR-251](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)       | `CMP-13` (Handoff to `SCR-ADM-014`)    | Delegated by design: routes via `[Manage Users]` to [SCR-ADM-014](SCR-ADM-014.md) where multi-role assignment and Least-Privilege Union ($P_{\text{effective}}(u) = \bigcup P_r$) are enforced. |
 | [FR-252](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)       | `CMP-02`                               | Exports the global permissions matrix and SoD compliance posture in structured formats (`CSV` and `JSON`) for ISO 27001 audits.                 |
 | [FR-253](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)       | `CMP-03`, `CMP-06`, `CMP-13`           | Issues Principle of Least Privilege (PoLP) advisory warnings (`AF-003`) when destructive privileges are granted to non-supervisory roles.       |
 | [FR-254](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)       | `CMP-07`, `CMP-10`                     | Logically deactivates custom roles (`AF-004`), revoking active user access immediately while preserving historical audit records.               |
