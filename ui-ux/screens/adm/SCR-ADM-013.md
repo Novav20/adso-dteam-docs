@@ -36,25 +36,21 @@ status: Stable
 
 ## 2. Visual Artifact
 
-### 2.1. Desktop Workstation — Baseline Matrix (Dark Theme, Closed Dock by Default)
 ![SCR-ADM-013 Desktop Baseline Closed Dock](assets/SCR-ADM-013-screenshot.png)
 
-> *Note: Baseline desktop workstation (Dark Theme) illustrating the collapsible sidebar (`CMP-01`), consolidated header with `[Export]` dropdown and single primary `[+ Create Custom Role]` CTA (`CMP-02`), 5-card neutral security posture KPI strip (`CMP-03`), rounded role selector tabs paired with module/lifecycle filters and `[Role Detail]` trigger (`CMP-04`), monochromatic 2D permissions matrix grid with circular checkboxes (`CMP-05`, `CMP-06`), closed-by-default right dock spine (`CMP-12`), and consolidated sticky governance footer with neutral pre-commit status slot, justification input, and L2 handoffs (`CMP-13`).*
+> *Figure 2.1 — Desktop Workstation (Dark Theme, Closed Dock by Default): Illustrates the collapsible sidebar (`CMP-01`), consolidated header with `[Export]` dropdown and single primary `[+ Create Custom Role]` CTA (`CMP-02`), 5-card neutral security posture KPI strip (`CMP-03`), rounded role selector tabs paired with module/lifecycle filters and `[Role Detail]` trigger (`CMP-04`), monochromatic 2D permissions matrix grid with circular checkboxes (`CMP-05`, `CMP-06`), closed-by-default right dock spine (`CMP-12`), and consolidated sticky governance footer with neutral pre-commit status slot, justification input, and L2 handoffs (`CMP-13`).*
 
-### 2.2. Desktop Workstation — On-Demand Role Detail & Segregation Rules Dock
 ![SCR-ADM-013 Role Detail and Segregation Rules Dock](assets/SCR-ADM-013-dock-detail.png)
 
-> *Note: Activating `[Role Detail]` or vertical spine tabs opens `CMP-12` to `CMP-07` (`Role Detail`) and `CMP-08` (`Segregation Rules`), inspecting role authority metadata, per-rule segregation compliance (`#icon-check` / `#icon-ban`), and the candidate SHA-256 integrity seal preview without duplicating commit controls.*
+> *Figure 2.2 — Desktop Workstation (Dark Theme, Role Detail & Segregation Rules Dock Open): Illustrates activating `[Role Detail]` or vertical spine tabs to open `CMP-12` to `CMP-07` (`Role Detail`) and `CMP-08` (`Segregation Rules`), inspecting role authority metadata, per-rule segregation compliance (`#icon-check` / `#icon-ban`), and the candidate SHA-256 integrity seal preview without duplicating commit controls.*
 
-### 2.3. Desktop Light Theme — `AF-001` Segregation of Duties Conflict Interlock
 ![SCR-ADM-013 Light Theme AF-001 SoD Conflict](assets/SCR-ADM-013-light.png)
 
-> *Note: Light Theme rendering during `AF-001`, escalating KPI #4 (`Evaluated SoD Rules`), conflicting matrix cells (`SAFETY.EXECUTE` and `SAFETY.APPROVE`), the violated `SOD-SAF-01` rule card, and the sticky footer block slot to redundant critical visual channels (`#icon-ban` and critical red accent) while hard-locking `[Save Permission Matrix]`.*
+> *Figure 2.3 — Desktop Workstation (Light Theme, `AF-001` Segregation of Duties Conflict Interlock): Illustrates KPI #4 (`Evaluated SoD Rules`), conflicting matrix cells (`SAFETY.EXECUTE` and `SAFETY.APPROVE`), the violated `SOD-SAF-01` rule card, and the sticky footer block slot escalating to redundant critical visual channels (`#icon-ban` and critical red accent) while hard-locking `[Save Permission Matrix]`.*
 
-### 2.4. Desktop Workstation — Create Custom Role Modal (`CMP-09`, Dark Theme)
 ![SCR-ADM-013 Create Custom Role Modal](assets/SCR-ADM-013-create-modal.png)
 
-> *Note: Centered Level 4 custom role creation dialog (`CMP-09`) capturing role name uniqueness, operational authority scope, optional template cloning, authorized domain modules, and strictly neutral Principle of Least Privilege (PoLP) readiness notice.*
+> *Figure 2.4 — Desktop Workstation (Dark Theme, Create Custom Role Modal `CMP-09`): Illustrates the centered Level 4 custom role creation dialog capturing role name uniqueness, operational authority scope, optional template cloning, authorized domain modules, and strictly neutral Principle of Least Privilege (PoLP) readiness notice.*
 
 ---
 
