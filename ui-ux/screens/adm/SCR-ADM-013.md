@@ -614,6 +614,19 @@ public enum RbacMatrixExportFormat
     GLOBAL_MATRIX_JSON
 }
 
+/// <summary>
+/// Controlled audit operation vocabulary per DT-DM-DOC-001 §4.36.
+/// </summary>
+public enum AuditActionType
+{
+    CREATE,
+    UPDATE,
+    DELETE,
+    QUERY,
+    ADJUST,
+    SECURITY_ALERT
+}
+
 public readonly record struct PermissionGrantKeyDto(
     RbacModule Module,
     RbacAction Action
@@ -719,7 +732,7 @@ public record RbacAuditEntryDto
     public required Guid AuditLogId { get; init; }
     public required DateTimeOffset TimestampUtc { get; init; }
     public required string OperatorBadgeCode { get; init; }
-    public required string EventType { get; init; }
+    public required AuditActionType EventType { get; init; }
     public required string RoleName { get; init; }
     public required string ChangeSummary { get; init; }
     public required string AuditJustification { get; init; }
