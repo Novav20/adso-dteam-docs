@@ -401,10 +401,14 @@ package "Safety and Governance (ADM)" <<Folder>> #F0F0F0 {
         - Id: UUID
         - Name: String
         - Description: String
+        - IsActive: Boolean
+        - IsSystemRoot: Boolean
         --
         + AddPermission(module: String, action: String): void
         + RemovePermission(module: String, action: String): void
         + ValidateSoD(): void
+        + Deactivate(reason: String): void
+        + Activate(): void
     }
     class RolePermission <<Value Object>> {
         - RoleId: UUID

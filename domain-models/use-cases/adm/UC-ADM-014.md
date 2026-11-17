@@ -13,7 +13,7 @@ secondary_actors:
 # UC-ADM-014: Manage User Lifecycle and Authentication Identity
 
 ## 1. Description
-Governs the end-to-end lifecycle of platform user accounts (onboarding provisioning, multi-role assignment, brute-force lockout protection, temporary suspension, audited restoration, logical soft-deletion, and single-use token password recovery) in compliance with ISO/IEC 27001:2022 Annex A.5.16–A.5.18, ISO 55001 Clause 7.2, and NIST SP 800-63B. It preserves historical referential integrity across Work Orders, LOTO attestations, and audit logs by enforcing logical deactivation (`INACTIVE`) and immediate session token revocation while strictly prohibiting physical account deletion.
+Governs the end-to-end lifecycle of platform user accounts (onboarding provisioning, multi-role assignment under Least-Privilege Union consolidation, brute-force lockout protection, temporary suspension, audited restoration, logical soft-deletion, and single-use token password recovery) in compliance with ISO/IEC 27001:2022 Annex A.5.16–A.5.18, ISO 55001 Clause 7.2, and NIST SP 800-63B. It preserves historical referential integrity across Work Orders, LOTO attestations, and audit logs by enforcing logical deactivation (`INACTIVE`) and immediate session token revocation while strictly prohibiting physical account deletion.
 
 ## 2. Preconditions
 * The Actor is authenticated in the web portal with the `System Administrator` role for identity lifecycle mutations, or `Auditor` role for user status and login activity inspection ([TR-006](../../../requirements/common/TR-006.md)).
@@ -25,7 +25,7 @@ Governs the end-to-end lifecycle of platform user accounts (onboarding provision
 2. The Administrator selects the action to provision a new user account ([FR-258](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)).
 3. The System presents the identity provisioning form requiring the unique Username (operator badge code), Full Name, institutional Email address, and one or more authorized RBAC Roles.
 4. The Administrator enters the corporate identity attributes, assigns the appropriate operational roles, and enters an onboarding justification.
-5. The System validates that both the Username and institutional Email address are globally unique across the identity directory and that the assigned role combination complies with Segregation of Duties rules.
+5. The System validates that both the Username and institutional Email address are globally unique across the identity directory and evaluates the assigned multi-role combination under Least-Privilege Union Consolidation and Segregation of Duties rules ([FR-251](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)).
 6. The Administrator confirms account provisioning.
 7. Within a single atomic transactional boundary, the System:
    8. Creates the user account initialized in `INACTIVE` pre-activation state and links the assigned RBAC roles.
@@ -67,6 +67,7 @@ When the System Administrator rehabilitates a suspended (`INACTIVE`) or brute-fo
 
 ## 6. Associated Requirements
 * **Functional Requirements:**
+  * [FR-251](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr): Multi-role assignment consolidation under the Principle of Least Privilege union.
   * [FR-258](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr): User creation interface with automated dispatch of a secure activation link to institutional email.
   * [FR-259](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr): Mandatory establishment of a robust personal password complying with complexity policies prior to first access.
   * [FR-260](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr): Brute-force attack protection temporarily locking accounts after reaching the failed login threshold.
