@@ -70,17 +70,17 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Execute Tier 0/1 UI audit and promote to Stable.
 
 ### Administration & Security Screens (ADM)
-- [ ] **SCR-ADM-013: Roles and Permissions Matrix (RBAC)**
-  - [ ] Draft canonical specification for role privileges, segregation of duties, and security matrix: [`SCR-ADM-013.md`](ui-ux/screens/adm/SCR-ADM-013.md).
-  - [ ] Execute Tier 0/1 UI audit and persist report.
+- [x] **SCR-ADM-013: Roles and Permissions Matrix (RBAC)**
+  - [x] Canonical specification finalized for role privileges, Segregation of Duties (`Role.ValidateSoD()`), and 2D security matrix: [`SCR-ADM-013.md`](ui-ux/screens/adm/SCR-ADM-013.md) (v1.1 Stable — 4 desktop captures, `AuditActionType`, `RolePermissionAction`).
+  - [x] Execute Tier 0/1 UI audit and promote to Stable.
 
-- [ ] **SCR-ADM-014: User Lifecycle Management & Security Lockout**
-  - [ ] Draft canonical specification for credential management, lockout states, and role assignments: [`SCR-ADM-014.md`](ui-ux/screens/adm/SCR-ADM-014.md).
-  - [ ] Execute Tier 0/1 UI audit and persist report.
+- [x] **SCR-ADM-014: User Lifecycle Management & Security Lockout**
+  - [x] Canonical specification finalized for credential lifecycle, brute-force lockout control, and `FR-251` multi-role union governance: [`SCR-ADM-014.md`](ui-ux/screens/adm/SCR-ADM-014.md) (v1.1 Stable — 4 desktop captures).
+  - [x] Execute Tier 0/1 UI audit and promote to Stable.
 
-- [ ] **SCR-ADM-032: Immutable Audit Log Viewer**
-  - [ ] Draft canonical specification for SHA-256 chained transaction logs and tamper verification: [`SCR-ADM-032.md`](ui-ux/screens/adm/SCR-ADM-032.md).
-  - [ ] Execute Tier 0/1 UI audit and persist report.
+- [x] **SCR-ADM-032: Immutable Audit Log Viewer**
+  - [x] Canonical specification finalized for WORM SHA-256 chained transaction logs, secret-masked JSONB diffs, Meta-Auditing, and 7-year dynamic quarterly retention partitions: [`SCR-ADM-032.md`](ui-ux/screens/adm/SCR-ADM-032.md) (v1.1 Stable — 4 desktop captures, Cross-Cutting 37-table/43-enum parity verified).
+  - [x] Execute Tier 0/1 UI audit and promote to Stable.
 
 ### Architectural Viewport Shell & Cross-Cutting Gates (Deferred until Screen Specs are Stable)
 - [x] **Prototype asset modularization and Design System alignment**
