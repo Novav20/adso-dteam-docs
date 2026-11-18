@@ -528,7 +528,7 @@
                         <mxRectangle width="210" height="32" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="131" value="Juan David Julio Serrano" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=default;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;align=left;" vertex="1" parent="129">
+                <mxCell id="131" value="Juan David Julio" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=default;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;align=left;" vertex="1" parent="129">
                     <mxGeometry x="210" width="350" height="32" as="geometry">
                         <mxRectangle width="350" height="32" as="alternateBounds"/>
                     </mxGeometry>

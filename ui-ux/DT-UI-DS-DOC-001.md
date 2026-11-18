@@ -2,8 +2,8 @@
 code: DT-UI-DS-DOC-001
 version: 2.2
 date: 2026-11-13
-status: APPROVED
-author: Juan David Julio Serrano
+status: In Review
+author: Juan David Julio
 standard:
   - ISA-101.01-2015 (Human Machine Interfaces for Process Automation Systems)
   - The High Performance HMI Handbook (Hollifield et al.)

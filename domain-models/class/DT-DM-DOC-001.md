@@ -2,8 +2,8 @@
 code: DT-DM-DOC-001
 version: 1.8
 date: 2026-11-13
-status: Approved — Domain Conceptual Specification
-author: Juan David Julio Serrano
+status: Approved
+author: Juan David Julio
 standard:
   - ISO 9001:2015
   - ISO 14224:2016

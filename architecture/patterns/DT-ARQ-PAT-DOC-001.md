@@ -2,8 +2,8 @@
 code: DT-ARQ-PAT-DOC-001
 version: 1
 date: 2026-08-05
-status: Architectural and Code Design Patterns Specification
-author: Juan David Julio Serrano
+status: In Review
+author: Juan David Julio
 standard:
   - GoF (Gang of Four Design Patterns)
   - Domain-Driven Design (DDD)

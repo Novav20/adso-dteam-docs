@@ -2,8 +2,8 @@
 code: DT-UI-SVG-DOC-001
 version: 2.2
 date: 2026-10-21
-status: APPROVED_SSOT
-author: Juan David Julio Serrano
+status: In Review
+author: Juan David Julio
 standards:
   - ISO 13567-1/2 (Organization and naming of layers for CAD)
   - AIA CAD Layer Guidelines v5

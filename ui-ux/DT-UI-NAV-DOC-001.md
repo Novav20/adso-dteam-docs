@@ -2,8 +2,8 @@
 code: DT-UI-NAV-DOC-001
 version: 1.1
 date: 2026-09-04
-status: DRAFT
-author: Juan David Julio Serrano
+status: In Review
+author: Juan David Julio
 standard:
   - ANSI/ISA-101.01-2015 (Human Machine Interfaces for Process Automation Systems)
   - ISO 9241-210:2019 (Ergonomics of human-system interaction — Human-centered design)

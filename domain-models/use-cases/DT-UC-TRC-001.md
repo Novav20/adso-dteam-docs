@@ -2,8 +2,8 @@
 code: DT-UC-TRC-001
 version: 1.4
 date: 2026-10-05
-status: Active — Segmented MVP Scope and Standardized Use Cases
-author: Juan David Julio Serrano
+status: In Review
+author: Juan David Julio
 standard:
   - ISO 9001:2015
   - ISO 14224:2016

@@ -2,8 +2,8 @@
 code: DT-ARQ-TECH-001
 version: 1.2
 date: 2026-09-25
-status: Active
-author: Juan David Julio Serrano
+status: Approved
+author: Juan David Julio
 ---
 
 # Technology Stack Traceability Matrix

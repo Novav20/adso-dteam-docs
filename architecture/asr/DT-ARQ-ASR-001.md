@@ -3,7 +3,7 @@ code: DT-ARQ-ASR-001
 version: 1.2
 date: 2026-09-10
 status: Approved
-author: Juan David Julio Serrano
+author: Juan David Julio
 ---
 
 # Architecturally Significant Requirements (ASRs)

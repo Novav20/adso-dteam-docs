@@ -14,7 +14,7 @@ use_cases:
   - "[[UC-ID]]"
 version: 1.0
 date: YYYY-MM-DD
-status: Draft | In Review | Approved
+status: Draft | In Review | Stable
 ---
 
 # SCR-MOD-000: Functional Screen Title

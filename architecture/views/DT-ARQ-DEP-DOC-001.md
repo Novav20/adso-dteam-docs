@@ -2,8 +2,8 @@
 code: DT-ARQ-DEP-DOC-001
 version: 1.3
 date: 2026-09-25
-status: Active
-author: Juan David Julio Serrano
+status: Approved
+author: Juan David Julio
 standard:
   - ISO/IEC 42010:2011 (Architecture — C4 Level 4 Views)
   - ISO 27001:2013 (Information Security)

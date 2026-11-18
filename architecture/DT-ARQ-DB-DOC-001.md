@@ -2,8 +2,8 @@
 code: DT-ARQ-DB-DOC-001
 version: 1.1
 date: 2026-11-07
-status: Active
-author: Juan David Julio Serrano
+status: Approved
+author: Juan David Julio
 standard:
   - ISO/IEC 42010:2011 (Software Architecture)
   - PostgreSQL 18.x Documentation

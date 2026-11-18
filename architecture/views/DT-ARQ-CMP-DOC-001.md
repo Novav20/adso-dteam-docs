@@ -2,8 +2,8 @@
 code: DT-ARQ-CMP-DOC-001
 version: 1.6
 date: 2026-11-07
-status: Active
-author: Juan David Julio Serrano
+status: Approved
+author: Juan David Julio
 standard:
   - ISO/IEC 42010:2011 (Architecture — C4 Level 3 Views)
   - ISO 9001:2015 (Document Control)
