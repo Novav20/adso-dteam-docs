@@ -37,7 +37,7 @@ status: Stable
 
 ![SCR-VIS-011 LOTO Isolation Matrix Screenshot](assets/SCR-VIS-011-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the 2D plot plan with LOTO vector overlay, isolation cutoff nodes, and the lateral contextual isolation drawer.*
+> *Figure 2.1 — Level 4 LOTO Isolation Boundary Matrix (Dark Theme): Illustrates the 2D plot plan with LOTO vector overlay (`CMP-01`), isolation cutoff nodes (`CMP-04`), and lateral contextual isolation drawer (`CMP-05`).*
 
 ---
 

@@ -40,30 +40,25 @@ status: Stable
 
 ## 2. Visual Artifact
 
-### 2.1. Desktop Workstation — Baseline Ledger (Dark Theme, Closed Dock by Default)
 ![SCR-INV-006 Desktop Baseline Closed Dock](assets/SCR-INV-006-screenshot.png)
 
-> *Note: Baseline desktop workstation (Dark Theme) illustrating the collapsible sidebar (`CMP-01`), single-primary-CTA header with `[Export]` menu (`CMP-02`), 5-card single-pass KPI strip (`CMP-03`), 4-selector plus date range and paired search/reset toolbar (`CMP-04`), virtualized 8-column Kardex ledger with zero badge inflation on healthy rows (`CMP-05`, `CMP-06`), closed-by-default right dock spine (`CMP-12`), and sticky valuation/handoff footer (`CMP-13`).*
+> *Figure 2.1 — Desktop Workstation (Dark Theme, Closed Dock by Default): Illustrates the collapsible sidebar (`CMP-01`), single-primary-CTA header with `[Export]` menu (`CMP-02`), 5-card single-pass KPI strip (`CMP-03`), 4-selector plus date range and paired search/reset toolbar (`CMP-04`), virtualized 8-column Kardex ledger with zero badge inflation on healthy rows (`CMP-05`, `CMP-06`), closed-by-default right dock spine (`CMP-12`), and sticky valuation/handoff footer (`CMP-13`).*
 
-### 2.2. Desktop Workstation — On-Demand Movement Detail Dock
 ![SCR-INV-006 Movement Inspection Dock](assets/SCR-INV-006-dock-detail.png)
 
-> *Note: Clicking any transaction row opens `CMP-12` to `CMP-07` (`Kardex Detail`), showing live 3-tier stock availability (`QuantityOnHand`, `ReservedQuantity`, `AvailableQuantity`), warehouse bin locator barcode, Work Order/Equipment Unit traceability, SHA-256 integrity digest, and `[Receipt]` voucher trigger without shifting filter controls.*
+> *Figure 2.2 — Desktop Workstation (Dark Theme, On-Demand Movement Detail Dock Open): Illustrates selecting a transaction row to open `CMP-12` to `CMP-07` (`Kardex Detail`), showing live 3-tier stock availability (`QuantityOnHand`, `ReservedQuantity`, `AvailableQuantity`), warehouse bin locator barcode, Work Order/Equipment Unit traceability, SHA-256 integrity digest, and `[Receipt]` voucher trigger without shifting filter controls.*
 
-### 2.3. Desktop Light Theme — Transactional Modal & `AF-001` Over-Issue Block
 ![SCR-INV-006 Light Theme AF-001 Modal](assets/SCR-INV-006-light.png)
 
-> *Note: Light Theme rendering of `CMP-08` (`RegisterInventoryMovementModal`) during `AF-001`, blocking submission when requested `ISSUE` quantity exceeds net available stock after deducting active Work Order reservations.*
+> *Figure 2.3 — Desktop Workstation (Light Theme, `AF-001` Over-Issue Block Modal `CMP-08`): Illustrates `RegisterInventoryMovementModal` during `AF-001`, blocking submission when requested `ISSUE` quantity exceeds net available stock after deducting active Work Order reservations.*
 
-### 2.4. Industrial Tablet Landscape
 ![SCR-INV-006 Tablet Landscape](assets/SCR-INV-006-tablet-landscape.png)
 
-> *Note: Industrial Tablet Landscape with collapsed icon sidebar, responsive 3-column KPI strip (`Total Movements` spanning 2 columns to eliminate orphan grid gaps), prioritized ledger columns, and slide-over inspection dock.*
+> *Figure 2.4 — Industrial Tablet Landscape (Collapsed Sidebar & Lateral Inspection Dock): Illustrates the collapsed icon sidebar (`CMP-01`), responsive 3-column KPI strip (`Total Movements` spanning 2 columns to eliminate orphan grid gaps), prioritized ledger columns, and slide-over inspection dock (`CMP-12`).*
 
-### 2.5. Industrial Tablet Portrait — Adaptive Bottom Sheet
 ![SCR-INV-006 Tablet Portrait Bottom Sheet](assets/SCR-INV-006-tablet-portrait.png)
 
-> *Note: Industrial Tablet Portrait with top-left drawer toggle for off-canvas navigation, 5-column prioritized ledger (`Folio`, `Movement`, `Spare Part`, `Quantity`, `Total Cost`), and adaptive Bottom Sheet dock (`--dt-radius-2xl` upper curvature, tactile grip handle, and single-tap `Kardex Detail | SHA-256 Audit` switches).*
+> *Figure 2.5 — Industrial Tablet Portrait (Adaptive Bottom Sheet Modality): Illustrates the top-left drawer toggle for off-canvas navigation (`CMP-01`), 5-column prioritized ledger (`Folio`, `Movement`, `Spare Part`, `Quantity`, `Total Cost`), and adaptive Bottom Sheet dock (`--dt-radius-2xl` upper curvature, tactile grip handle, and single-tap `Kardex Detail | SHA-256 Audit` switches).*
 
 ---
 

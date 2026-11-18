@@ -40,30 +40,25 @@ status: Stable
 
 ## 2. Visual Artifact
 
-### 2.1. Desktop Workstation — Baseline Hierarchy Tree (Dark Theme, Closed Dock by Default)
 ![SCR-INV-027 Desktop Baseline Closed Dock](assets/SCR-INV-027-screenshot.png)
 
-> *Note: Baseline desktop workstation (Dark Theme) illustrating the collapsible sidebar (`CMP-01`), single-primary-CTA header with `[Export]` menu (`CMP-02`), 5-card ISO 14224 level summary strip (`CMP-03`), 3-selector and paired search/expand/reset toolbar (`CMP-04`), 7-column hierarchical tree explorer with borderless level tags and zero badge inflation (`CMP-05`), closed-by-default right dock spine (`CMP-12`), and sticky taxonomic governance footer (`CMP-13`).*
+> *Figure 2.1 — Desktop Workstation (Dark Theme, Closed Dock by Default): Illustrates the collapsible sidebar (`CMP-01`), single-primary-CTA header with `[Export]` menu (`CMP-02`), 5-card ISO 14224 level summary strip (`CMP-03`), 3-selector and paired search/expand/reset toolbar (`CMP-04`), 7-column hierarchical tree explorer with borderless level tags and zero badge inflation (`CMP-05`), closed-by-default right dock spine (`CMP-12`), and sticky taxonomic governance footer (`CMP-13`).*
 
-### 2.2. Desktop Workstation — On-Demand Node & Level 5 Slot Inspector Dock
 ![SCR-INV-027 Node Inspector Dock](assets/SCR-INV-027-dock-detail.png)
 
-> *Note: Selecting a Level 5 Functional Location row (`TFA-CSS-P-0101A`) opens `CMP-12` to `CMP-06` (`Node Detail`) and `CMP-07` (`L5 Slot Occupancy`), exposing mounted serial `SN-SULZ-2024-8841`, quick handoffs to `SCR-INV-005` / `SCR-INV-025`, and editable ISO 14224 metadata without shifting the grid container.*
+> *Figure 2.2 — Desktop Workstation (Dark Theme, On-Demand Node & Level 5 Slot Inspector Dock Open): Illustrates selecting a Level 5 Functional Location row (`TFA-CSS-P-0101A`) to open `CMP-12` to `CMP-06` (`Node Detail`) and `CMP-07` (`L5 Slot Occupancy`), exposing mounted serial `SN-SULZ-2024-8841`, quick handoffs to `SCR-INV-005` / `SCR-INV-025`, and editable ISO 14224 metadata without shifting the grid container.*
 
-### 2.3. Desktop Light Theme — Tree Re-Parenting Modal & `AF-002` Cycle Detection Block
 ![SCR-INV-027 Light Theme AF-002 Cycle Modal](assets/SCR-INV-027-light.png)
 
-> *Note: Light Theme rendering of `CMP-08` (`ReorganizeLocationModal`) during `AF-002`, issuing a redundant `--dt-color-alarm-critical` alert and locking submission when a descendant node is selected as candidate parent.*
+> *Figure 2.3 — Desktop Workstation (Light Theme, `AF-002` Tree Re-Parenting Cycle Detection Block `CMP-08`): Illustrates `ReorganizeLocationModal` during `AF-002`, issuing a redundant `--dt-color-alarm-critical` alert and locking submission when a descendant node is selected as candidate parent.*
 
-### 2.4. Industrial Tablet Landscape
 ![SCR-INV-027 Tablet Landscape](assets/SCR-INV-027-tablet-landscape.png)
 
-> *Note: Industrial Tablet Landscape with collapsed icon sidebar, responsive 3-column KPI strip (`Total Taxonomy` spanning 2 columns for an orphan-free layout), prioritized 5-column hierarchy tree (`Tag`, `Level`, `Name`, `Criticality`, `Occupancy`), and slide-over inspection dock.*
+> *Figure 2.4 — Industrial Tablet Landscape (Collapsed Sidebar & Lateral Inspector Dock): Illustrates the collapsed icon sidebar (`CMP-01`), responsive 3-column KPI strip (`Total Taxonomy` spanning 2 columns for an orphan-free layout), prioritized 5-column hierarchy tree (`Tag`, `Level`, `Name`, `Criticality`, `Occupancy`), and slide-over inspection dock (`CMP-12`).*
 
-### 2.5. Industrial Tablet Portrait — Adaptive Bottom Sheet
 ![SCR-INV-027 Tablet Portrait Bottom Sheet](assets/SCR-INV-027-tablet-portrait.png)
 
-> *Note: Industrial Tablet Portrait with top-left drawer toggle for off-canvas navigation, prioritized 4-column tree grid (`Tag`, `Level`, `Name`, `Occupancy`), and adaptive Bottom Sheet dock (`--dt-radius-2xl` upper curvature, tactile grip handle, and single-tap `Node Detail | SHA-256 Audit` tab switching).*
+> *Figure 2.5 — Industrial Tablet Portrait (Adaptive Bottom Sheet Modality): Illustrates the top-left drawer toggle for off-canvas navigation (`CMP-01`), prioritized 4-column tree grid (`Tag`, `Level`, `Name`, `Occupancy`), and adaptive Bottom Sheet dock (`--dt-radius-2xl` upper curvature, tactile grip handle, and single-tap `Node Detail | SHA-256 Audit` tab switching).*
 
 ---
 

@@ -37,7 +37,7 @@ status: Stable
 
 ![SCR-MTTO-026 RIME Backlog Prioritization Screenshot](assets/SCR-MTTO-026-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the Archetype C desktop workstation layout, collapsible navigation sidebar, interactive KPI summary cards, flat multi-criteria filter toolbar with inline grouping trigger, dense prioritized data grid with locked column dimensions, persistent right dock with Blender N-panel-inspired vertical tabs, and sticky workload confirmation footer.*
+> *Figure 2.1 — Desktop Workstation (RIME Backlog Prioritization Dashboard): Illustrates the supervisory portal layout featuring the collapsible navigation sidebar (`CMP-01`), interactive KPI summary cards (`CMP-03`), flat multi-criteria filter toolbar with inline grouping trigger (`CMP-04`, `CMP-05`), dense prioritized data grid with locked column dimensions (`CMP-07`), persistent right dock with vertical tabs (`CMP-13` hosting `CMP-09` and `CMP-11`), and sticky workload confirmation footer (`CMP-12`).*
 
 ---
 

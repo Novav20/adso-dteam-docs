@@ -34,15 +34,21 @@ status: Stable
 
 ## 2. Visual Artifact
 
-### 2.1. Condition-Based Telemetry Scheduling Form (Dark Theme)
-![SCR-MTTO-023 Screenshot](assets/SCR-MTTO-023-screenshot.png)
+![SCR-MTTO-023 Desktop Baseline Dark Theme](assets/SCR-MTTO-023-screenshot.png)
 
-> *Note: Production UI prototype capture at 1280×800 in Dark Theme. Exhibits the portal navigation sidebar (CMP-01), sticky breadcrumb header and `PM-CBM` plan context sheet (CMP-02), cascading ISO 14224 selector with inline battery limits verification (CMP-03), telemetry signal and interval controller (CMP-04), labor estimation and craft toggles (CMP-05, CMP-06), SCADA stream & monotonicity guard panel (CMP-07), threshold preview (CMP-08), predictive RIME score card (CMP-09), projected CBM work order card (CMP-10), and grounded action footer (CMP-12).*
+> *Figure 2.1 — Desktop Workstation (Dark Theme, Baseline CBM Configuration Form): Illustrates the collapsible navigation sidebar (`CMP-01`), sticky breadcrumb header and `PM-CBM` context sheet (`CMP-02`), cascading ISO 14224 selector with Tier A equipment picker and verified physical battery limits strip (`CMP-03`), telemetry signal and trigger delta controller (`CMP-04`), wrench-time and craft toggles (`CMP-05`, `CMP-06`), live SCADA stream & monotonicity guard panel (`CMP-07`), activation threshold preview (`CMP-08`), predictive RIME score card (`CMP-09`), projected CBM work order card (`CMP-10`), and grounded action footer (`CMP-12`).*
 
-### 2.2. Condition-Based Telemetry Scheduling Form (Light Theme)
-![SCR-MTTO-023 Light](assets/SCR-MTTO-023-light.png)
+![SCR-MTTO-023 Light Theme AF-002 Monotonicity Interlock](assets/SCR-MTTO-023-light.png)
 
-> *Note: Production UI prototype capture at 1280×800 in Light Theme.*
+> *Figure 2.2 — Desktop Workstation (Light Theme, `AF-002` Counter Decrement Monotonicity Interlock): Illustrates the 500-Lux control room theme with the monotonicity guard in `CMP-07` detecting a decremented SCADA counter reading, elevating status feedback to critical red (`#icon-ban`) and hard-disabling plan activation in sticky footer `CMP-12` (`CLS = 0`).*
+
+![SCR-MTTO-023 Tier A Equipment Lookup Modal](assets/SCR-MTTO-023-lookup-modal.png)
+
+> *Figure 2.3 — Desktop Workstation (Dark Theme, Tier A Enterprise Equipment Lookup Modal `CMP-03`): Illustrates the reference Level 4 `EquipmentLookupModal` ([DT-UI-DS-DOC-001 §6.7](../../DT-UI-DS-DOC-001.md#67-relational-entity-lookup-modal-pattern-lov-list-of-values)) with multi-criteria search across Functional Location area, ISO Equipment Class, Criticality band, and Physical Boundary readiness.*
+
+![SCR-MTTO-023 Contingency Manual Counter Modal](assets/SCR-MTTO-023-manual-modal.png)
+
+> *Figure 2.4 — Desktop Workstation (Dark Theme, `AF-003` Contingency Manual Counter Reading Modal `CMP-11`): Illustrates the Level 4 manual counter entry dialog used during SCADA link loss, enforcing monotonic minimum validation, field reading timestamp, operator attribution, and optional physical gauge photo reference.*
 
 ---
 

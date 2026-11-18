@@ -35,15 +35,13 @@ status: Stable
 
 ## 2. Visual Artifact
 
-### 2.1. Preventive Maintenance Scheduling Form (Dark Theme)
 ![SCR-MTTO-001 Screenshot](assets/SCR-MTTO-001-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the Web Portal layout at 1280×800 in Dark Theme. Exhibits the portal navigation sidebar (CMP-01), sticky breadcrumb header and plan context summary sheet (CMP-02), cascading ISO 14224 selector (CMP-03), boundary limit verification badge (CMP-04), calendar cadence controller (CMP-05), labor estimation grid (CMP-07), RIME score decomposition (CMP-09), and grounded action footer (CMP-12).*
+> *Figure 2.1 — Desktop Workstation (Dark Theme, Preventive Maintenance Scheduling Form): Illustrates the portal navigation sidebar (`CMP-01`), sticky breadcrumb header and plan context summary sheet (`CMP-02`), cascading ISO 14224 selector (`CMP-03`), boundary limit verification badge (`CMP-04`), calendar cadence controller (`CMP-05`), labor estimation grid (`CMP-07`), RIME score decomposition (`CMP-09`), and grounded action footer (`CMP-12`).*
 
-### 2.2. Preventive Maintenance Scheduling Form (Light Theme)
 ![SCR-MTTO-001 Light](assets/SCR-MTTO-001-light.png)
 
-> *Note: Production UI prototype capture illustrating the Web Portal layout at 1280×800 in Light Theme.*
+> *Figure 2.2 — Desktop Workstation (Light Theme, Preventive Maintenance Scheduling Form): Illustrates the calendar-based preventive scheduling form rendered under high-ambient Light Theme design tokens.*
 
 ---
 

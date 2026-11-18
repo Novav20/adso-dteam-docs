@@ -43,7 +43,7 @@ status: Stable
 
 ![SCR-INV-005 Equipment Master Data Card Screenshot](assets/SCR-INV-005-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the Equipment Master Data Card layout, collapsible navigation sidebar, contextual Level 3 handoff toolbar, the five-stage lifecycle stepper and operational telemetry strip, inherited Functional Location linkage, nameplate and physical boundary cards, chronological milestone timeline validator, SCE safety governance card, and chained SHA-256 cryptographic audit strip.*
+> *Figure 2.1 — Desktop Workstation (Equipment Master Data Card): Illustrates the collapsible navigation sidebar (`CMP-01`), contextual Level 3 header & mode switcher (`CMP-02`), five-stage lifecycle stepper and operational telemetry strip (`CMP-04`), inherited Functional Location linkage (`CMP-05`), nameplate and physical boundary cards (`CMP-06`, `CMP-07`), SCE safety governance card (`CMP-08`), chronological milestone timeline validator (`CMP-09`), chained SHA-256 cryptographic audit strip (`CMP-11`), technical schematic card (`CMP-13`), and sticky action footer (`CMP-12`).*
 
 ---
 

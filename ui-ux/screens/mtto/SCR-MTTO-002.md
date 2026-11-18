@@ -38,25 +38,21 @@ status: Stable
 
 ## 2. Visual Artifact
 
-### 2.1. Tab 1: Scope & Timing (Light Theme)
 ![SCR-MTTO-002 Scope & Timing](assets/SCR-MTTO-002-tab1-light.png)
 
-> *Note: Production UI prototype capture illustrating the mobile execution header, frameless task checklist with monochromatic completion checks, decoupled timing master card with dual telemetry gauges, and sticky action bar.*
+> *Figure 2.1 — Tab 1: Scope & Timing (Light Theme): Illustrates the mobile execution header (`CMP-01`), operational tabs bar (`CMP-02`), frameless task checklist and timing card (`CMP-03`) with dual telemetry indicators (`CMP-08`), and sticky action bar (`CMP-09`).*
 
-### 2.2. Tab 2: Materials & Spares Allocation (Light Theme)
 ![SCR-MTTO-002 Materials & Spares](assets/SCR-MTTO-002-tab2-light.png)
 
-> *Note: Production UI prototype capture illustrating allocated warehouse spares with tactile quantity steppers and contextual rotable asset swap launch pane.*
+> *Figure 2.2 — Tab 2: Materials & Spares Allocation (Light Theme): Illustrates allocated warehouse spares with tactile quantity steppers and contextual rotable asset swap launch pane (`CMP-04`).*
 
-### 2.3. Tab 3: ISO 14224 Diagnosis (Dark Theme)
 ![SCR-MTTO-002 ISO 14224 Diagnosis](assets/SCR-MTTO-002-tab3-dark.png)
 
-> *Note: Production UI prototype capture illustrating the 7-node sequential quality gate stepper and cascading taxonomy classification matrix in Dark Theme.*
+> *Figure 2.3 — Tab 3: ISO 14224 Diagnosis (Dark Theme): Illustrates the 7-node sequential quality gate stepper (`CMP-06`) and cascading taxonomy classification matrix (`CMP-05`) rendered in field Dark Theme.*
 
-### 2.4. Tab 4: Photographic Evidence (Dark Theme)
 ![SCR-MTTO-002 Photographic Evidence](assets/SCR-MTTO-002-tab4-dark.png)
 
-> *Note: Production UI prototype capture illustrating cryptographic evidence acquisition, verified photo attachment cards with SHA-256 seal, and unlocked technical closure button.*
+> *Figure 2.4 — Tab 4: Photographic Evidence (Dark Theme): Illustrates cryptographic evidence acquisition, verified photo attachment cards with SHA-256 seal (`CMP-07`), and unlocked technical closure button (`CMP-09`).*
 
 ---
 

@@ -36,15 +36,13 @@ status: Stable
 
 ## 2. Visual Artifact
 
-### 2.1. Rotable Asset Swap Modal (Dark Theme)
 ![SCR-INV-025 Rotable Asset Swap](assets/SCR-INV-025-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the centered rotable asset swap modal at 1280×800 in Dark Theme. Exhibits the sequential single-column vertical stack (Dismounted Asset CMP-02 stacked above Replacement Asset CMP-04 with Key-Top / Value-Bottom metadata grids), auxiliary stack with Work Order linkage (CMP-07) and SHA-256 digital integrity seal (CMP-08), and grounded commit trigger (CMP-09) paired with capsule validation pill (CMP-06).*
+> *Figure 2.1 — Rotable Asset Swap Modal (Dark Theme): Illustrates the centered Level 4 rotable asset swap modal exhibiting the sequential single-column vertical stack (Dismounted Asset `CMP-02` stacked above Replacement Asset `CMP-04` with Key-Top / Value-Bottom metadata grids), auxiliary stack with Work Order linkage (`CMP-07`) and SHA-256 digital integrity seal (`CMP-08`), and grounded commit trigger (`CMP-09`) paired with capsule validation pill (`CMP-06`).*
 
-### 2.2. Rotable Asset Swap Modal (Light Theme)
 ![SCR-INV-025 Rotable Asset Swap Light](assets/SCR-INV-025-light.png)
 
-> *Note: Production UI prototype capture illustrating the centered rotable asset swap modal at 1280×800 in Light Theme.*
+> *Figure 2.2 — Rotable Asset Swap Modal (Light Theme): Illustrates the centered Level 4 rotable asset swap modal rendered under high-ambient Light Theme tokens (`--dt-color-surface-card` body over `--dt-color-surface-overlay` scrim).*
 
 ---
 

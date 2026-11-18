@@ -34,7 +34,7 @@ status: Stable
 
 ![SCR-VIS-008 General Plant Map Screenshot](assets/SCR-VIS-008-screenshot.png)
 
-> *Prototype capture illustrating the Level 1 General Plant Map with active SIMOPS work permit overlay and contextual navigation toolbar.*
+> *Figure 2.1 — Level 1 General Plant Map (Dark Theme, Active SIMOPS Layer): Illustrates the 2D flat grayscale plot plan canvas (`CMP-01`) with active SIMOPS work permit overlay (`CMP-04`, `CMP-05`), contextual floating HUD toolbar (`CMP-02`), and non-modal alert pills.*
 
 ---
 
