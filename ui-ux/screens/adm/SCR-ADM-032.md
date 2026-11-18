@@ -31,7 +31,7 @@ status: Stable
 * **Web Portal Workspace Invariant:** Operates within the unified Blazor Web Portal shell alongside an **on-demand, closed-by-default** right-hand workspace dock (`CMP-12` hosting `CMP-08`/`CMP-09` and `CMP-11`) using the vertical tab spine pattern (`CLS = 0`). The dock initializes closed (`IsOpen = false`), opens on ledger row selection, vertical spine tab selection, or via `[Forensic Inspection]` (`CMP-04`), and closes cleanly on outside click, close trigger, or `Escape`.
 * **Upstream & Downstream Navigation Invariants ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)):**
   * **Upstream Continuity:** Accessed from the Web Portal Governance sidebar, from the RBAC Matrix ([SCR-ADM-013](SCR-ADM-013.md)) via `"Audit Modification"` (`L2` $\to$ `L2`), or from User Management ([SCR-ADM-014](SCR-ADM-014.md)) via `"Forensic Audit"` (`L2` $\to$ `L2`).
-  * **Downstream Transitions:** Routes back to the RBAC Matrix ([SCR-ADM-013](SCR-ADM-013.md)) and User Management ([SCR-ADM-014](SCR-ADM-014.md)) via sticky footer handoffs (`CMP-13`), supports URL query pre-filtering (`EntityType`, `EntityId`, `EventType`) for deep-linked entity investigations (such as `EquipmentUnit` records from [SCR-INV-005](../inv/SCR-INV-005.md) or RIME `ADJUST` calibrations from [SCR-MTTO-026](../mtto/SCR-MTTO-026.md)), and exports standalone signed `CSV` / `JSON` audit packages (`FR-353`).
+  * **Downstream Transitions:** Routes back to the RBAC Matrix ([SCR-ADM-013](SCR-ADM-013.md)) and User Management ([SCR-ADM-014](SCR-ADM-014.md)) via sticky footer handoffs (`CMP-13`), supports URL query pre-filtering (`EntityType`, `EntityId`, `ActionType`) for deep-linked entity investigations (such as `EquipmentUnit` records from [SCR-INV-005](../inv/SCR-INV-005.md) or RIME `ADJUST` calibrations from [SCR-MTTO-026](../mtto/SCR-MTTO-026.md)), and exports standalone signed `CSV` / `JSON` audit packages (`FR-353`).
 
 ---
 
@@ -282,7 +282,7 @@ sequenceDiagram
 #### 5.3.2. Chained SHA-256 Verification & Tamper-Evident Breach Protocol (`FR-346`, `FR-351`, `AF-001`, `ADR-003`)
 1. **Hash-Chain Mathematical Contract (`AuditLog.VerifyIntegrity()`, [DT-DM-DOC-002 §6.3](../../../domain-models/class/DT-DM-DOC-002.md#63-auditlog-entity)):**
    For chronological record $k$ ($k \ge 1$, where $H_0 = \text{"GENESIS"}$ per [DT-ERD-DOC-001 §3.5.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#351-audit_logs)):
-   $$H_k = \text{SHA-256}\left(H_{k-1} \parallel \text{Id}_k \parallel \text{UserId}_k \parallel \text{EventType}_k \parallel \text{EntityType}_k \parallel \text{EntityId}_k \parallel \text{TimestampUtc}_k \parallel \text{CanonicalJson}(\text{PrevState}_k) \parallel \text{CanonicalJson}(\text{NewState}_k)\right)$$
+   $$H_k = \text{SHA-256}\left(H_{k-1} \parallel \text{Id}_k \parallel \text{UserId}_k \parallel \text{ActionType}_k \parallel \text{EntityType}_k \parallel \text{EntityId}_k \parallel \text{TimestampUtc}_k \parallel \text{CanonicalJson}(\text{PrevState}_k) \parallel \text{CanonicalJson}(\text{NewState}_k)\right)$$
 2. **Tamper Breach Quarantine (`AF-001`):** If $H_k^{\text{recalculated}} \ne H_k^{\text{stored}}$ or $H_{k-1}^{\text{linked}} \ne H_{k-1}^{\text{stored}}$, `CMP-10` immediately blocks `[Export Forensic Package]` in `CMP-13`, highlights the exact broken link, and dispatches a `SECURITY_ALERT` notification (`TR-003-NFR-380`).
 
 #### 5.3.3. Self-Referential Meta-Auditing & 7-Year Regulatory Retention (`FR-350`, `FR-353`, `FR-358`, `NFR-359`, `NFR-360`)
@@ -335,8 +335,8 @@ public string? InitialEntityTypeFilter { get; set; }
 [Parameter, SupplyParameterFromQuery(Name = "entityId")]
 public Guid? InitialEntityIdFilter { get; set; }
 
-[Parameter, SupplyParameterFromQuery(Name = "eventType")]
-public AuditActionType? InitialEventTypeFilter { get; set; }
+[Parameter, SupplyParameterFromQuery(Name = "actionType")]
+public AuditActionType? InitialActionTypeFilter { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-13`)
@@ -410,14 +410,14 @@ public EventCallback<AuditLogEntryDto> OnEntrySelected { get; set; }
 
 // CMP-07: AuditEventBadge.razor
 [Parameter]
-public required AuditActionType EventType { get; set; }
+public required AuditActionType ActionType { get; set; }
 
 [Parameter]
 public required ChainIntegrityStatus IntegrityStatus { get; set; }
 
 // CMP-12: AuditWorkspaceDock.razor
 [Parameter]
-public bool IsOpen { get; set; }
+public bool IsOpen { get; set; } = false;
 
 [Parameter]
 public AuditDockTab ActiveTab { get; set; } = AuditDockTab.FORENSIC_DIFF;
@@ -463,7 +463,7 @@ public EventCallback OnCloseRequested { get; set; }
 
 // CMP-11: MetaAuditAndRetentionPane.razor (FR-350, FR-358, NFR-360)
 [Parameter]
-public required IReadOnlyList<AuditLogEntryDto> RecentMetaAuditQueries { get; set; }
+public required IReadOnlyList<MetaAuditQueryEntryDto> RecentMetaAuditQueries { get; set; }
 
 [Parameter]
 public required IReadOnlyList<AuditRetentionPartitionDto> RetentionPartitions { get; set; }
@@ -473,7 +473,7 @@ public required IReadOnlyList<AuditRetentionPartitionDto> RetentionPartitions { 
 public required ChainIntegrityStatus OverallChainStatus { get; set; }
 
 [Parameter]
-public required int VerifiedRecordsCount { get; set; }
+public required long VerifiedRecordsCount { get; set; }
 
 [Parameter]
 public required string HeadIntegrityHash { get; set; }
@@ -547,7 +547,7 @@ public record AuditLogWorkspaceDto
     public required IReadOnlyList<AuditActivityBucketDto> TrendBuckets { get; init; }
     public required IReadOnlyList<AuditLogEntryDto> Entries { get; init; }
     public required IReadOnlyList<AuditRetentionPartitionDto> RetentionPartitions { get; init; }
-    public required IReadOnlyList<AuditLogEntryDto> RecentMetaAuditQueries { get; init; }
+    public required IReadOnlyList<MetaAuditQueryEntryDto> RecentMetaAuditQueries { get; init; }
     public required string HeadIntegrityHash { get; init; }
 }
 
@@ -565,9 +565,10 @@ public record AuditLogQueryFilterDto
 {
     public DateTimeOffset? DateFromUtc { get; init; }
     public DateTimeOffset? DateToUtc { get; init; }
-    public AuditActionType? EventType { get; init; }
+    public AuditActionType? ActionType { get; init; }
     public string? EntityType { get; init; }
     public Guid? EntityId { get; init; }
+    public string? SearchQuery { get; init; }
     public string? OperatorUsername { get; init; }
     public string? IpAddress { get; init; }
     public string? JsonbContainmentExpression { get; init; }
@@ -585,11 +586,14 @@ public record AuditActivityBucketDto
 public record AuditLogEntryDto
 {
     public required Guid Id { get; init; }
+    public required string AuditReferenceCode { get; init; }
     public Guid? UserId { get; init; }
     public required string OperatorBadgeCode { get; init; }
-    public required AuditActionType EventType { get; init; }
+    public required string OperatorFullName { get; init; }
+    public required AuditActionType ActionType { get; init; }
     public required string EntityType { get; init; }
     public required Guid EntityId { get; init; }
+    public required string EntityDisplayCode { get; init; }
     public required DateTimeOffset TimestampUtc { get; init; }
     public string? IpAddress { get; init; }
     public required string PreviousHash { get; init; }
@@ -612,12 +616,14 @@ public record AuditStatePropertyDiffDto
 public record AuditLogDetailDto
 {
     public required Guid Id { get; init; }
+    public required string AuditReferenceCode { get; init; }
     public Guid? UserId { get; init; }
     public required string OperatorBadgeCode { get; init; }
     public required string OperatorFullName { get; init; }
-    public required AuditActionType EventType { get; init; }
+    public required AuditActionType ActionType { get; init; }
     public required string EntityType { get; init; }
     public required Guid EntityId { get; init; }
+    public required string EntityDisplayCode { get; init; }
     public required DateTimeOffset TimestampUtc { get; init; }
     public string? IpAddress { get; init; }
     public string? UserAgent { get; init; }
@@ -661,6 +667,14 @@ public record AuditRetentionPartitionDto
     public required string PartitionAnchorHash { get; init; }
     public required bool IsColdArchived { get; init; }
     public required ChainIntegrityStatus IntegrityStatus { get; init; }
+}
+
+public record MetaAuditQueryEntryDto
+{
+    public required string MetaReferenceCode { get; init; }
+    public required string OperatorBadgeCode { get; init; }
+    public required DateTimeOffset ExecutedAtUtc { get; init; }
+    public required string QueryDescription { get; init; }
 }
 ```
 

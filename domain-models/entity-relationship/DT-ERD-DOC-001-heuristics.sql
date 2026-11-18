@@ -65,10 +65,12 @@ CREATE INDEX IF NOT EXISTS idx_audit_retention_partitions_period
 -- -----------------------------------------------------------------------------
 -- 4. ROW-LEVEL SECURITY (RLS) FOR IMMUTABLE AUDIT (ADR-003)
 -- -----------------------------------------------------------------------------
--- Strict Row-Level Security enablement
+-- Strict Row-Level Security enforcement (applies to table owner too; requires non-SUPERUSER/NOBYPASSRLS app roles)
 ALTER TABLE adm.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE adm.audit_logs FORCE ROW LEVEL SECURITY;
+REVOKE UPDATE, DELETE, TRUNCATE ON adm.audit_logs FROM PUBLIC;
 
--- Append-only policy: Allow inserts, but RLS explicitly denies UPDATE and DELETE
+-- Append-only policy: Allow inserts, while RLS + REVOKE deny UPDATE and DELETE
 DROP POLICY IF EXISTS rls_audit_logs_insert_policy ON adm.audit_logs;
 CREATE POLICY rls_audit_logs_insert_policy
     ON adm.audit_logs
@@ -88,17 +90,41 @@ COMMENT ON POLICY rls_audit_logs_insert_policy ON adm.audit_logs IS
 -- -----------------------------------------------------------------------------
 -- 5. DECLARATIVE RANGE PARTITIONING FOR 7-YEAR AUDIT RETENTION (FR-350 / FR-358)
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS adm.part_audit_2026_q2
-    PARTITION OF adm.audit_logs
-    FOR VALUES FROM ('2026-04-01 00:00:00+00') TO ('2026-07-01 00:00:00+00');
+-- Idempotent dynamic bootstrap: provisions Q1-Q4 of the current UTC year plus
+-- next-year Q1 lookahead (5 quarters total) and revokes mutating privileges on
+-- each child partition. Ongoing future quarters are pre-created by the scheduled
+-- AuditPartitionProvisioningJob / pg_cron worker before quarter rollover.
+DO $$
+DECLARE
+    base_year_utc timestamp := date_trunc('year', timezone('UTC', now()));
+    q_idx         integer;
+    q_start_utc   timestamp;
+    q_end_utc     timestamp;
+    part_name     text;
+BEGIN
+    FOR q_idx IN 0..4 LOOP
+        q_start_utc := base_year_utc + make_interval(months => q_idx * 3);
+        q_end_utc   := q_start_utc + interval '3 months';
+        part_name   := format(
+            'part_audit_%s_q%s',
+            to_char(q_start_utc, 'YYYY'),
+            EXTRACT(QUARTER FROM q_start_utc)::integer
+        );
 
-CREATE TABLE IF NOT EXISTS adm.part_audit_2026_q3
-    PARTITION OF adm.audit_logs
-    FOR VALUES FROM ('2026-07-01 00:00:00+00') TO ('2026-10-01 00:00:00+00');
+        EXECUTE format(
+            'CREATE TABLE IF NOT EXISTS adm.%I PARTITION OF adm.audit_logs FOR VALUES FROM (%L) TO (%L)',
+            part_name,
+            q_start_utc AT TIME ZONE 'UTC',
+            q_end_utc AT TIME ZONE 'UTC'
+        );
 
-CREATE TABLE IF NOT EXISTS adm.part_audit_2026_q4
-    PARTITION OF adm.audit_logs
-    FOR VALUES FROM ('2026-10-01 00:00:00+00') TO ('2027-01-01 00:00:00+00');
+        EXECUTE format(
+            'REVOKE UPDATE, DELETE, TRUNCATE ON adm.%I FROM PUBLIC',
+            part_name
+        );
+    END LOOP;
+END $$;
 
 CREATE TABLE IF NOT EXISTS adm.part_audit_default
     PARTITION OF adm.audit_logs DEFAULT;
+REVOKE UPDATE, DELETE, TRUNCATE ON adm.part_audit_default FROM PUBLIC;
