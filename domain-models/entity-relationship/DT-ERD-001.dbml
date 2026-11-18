@@ -52,6 +52,7 @@ TableGroup adm {
   "adm"."users"
   "adm"."work_order_assignments"
   "adm"."idempotency_logs"
+  "adm"."audit_retention_partitions"
 }
 
 Table "tax"."equipment_classes" {
@@ -211,7 +212,7 @@ Table "mtto"."work_requests" {
   "request_date" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC timeline for audit.']
   "request_source" "VARCHAR(80)" [not null, note: 'Origin of the request.']
   "status" "VARCHAR(20)" [not null, note: 'Request lifecycle status.']
-  "work_class" "SMALLINT" [not null, note: 'Numeric weight (1..10) of the selected work class for RIME.']
+  "work_class_code" "SMALLINT" [not null, note: 'Numeric weight (1..10) of the selected work class for RIME (`WorkRequest.workClassCode`, DT-DM-DOC-001 §4.24).']
 }
 
 Table "mtto"."maintenance_plan_crafts" {
@@ -361,18 +362,18 @@ Table "vis"."work_permits" {
 }
 
 Table "adm"."audit_logs" {
-  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (composite PK `(id, timestamp)` for PostgreSQL 18 declarative range partitioning per FR-350).']
   "user_id" "UUID" [note: 'Foreign key to the related table.']
-  "event_type" "VARCHAR(80)" [not null, note: 'Controlled audit operation type (CREATE, UPDATE, DELETE, QUERY, ADJUST, SECURITY_ALERT).']
+  "action_type" "VARCHAR(80)" [not null, note: 'Controlled audit operation type (`AuditLog.actionType`, DT-DM-DOC-001 §4.36: CREATE, UPDATE, DELETE, QUERY, ADJUST, SECURITY_ALERT).']
   "entity_type" "VARCHAR(80)" [not null, note: 'Affected table or domain entity.']
   "entity_id" "UUID" [not null, note: 'Identifier of the affected record.']
-  "timestamp" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'Exact UTC moment of the mutation.']
+  "timestamp" "TIMESTAMPTZ" [pk, not null, default: `clock_timestamp()`, note: 'Exact UTC moment of the mutation and range-partitioning key (composite PK `(id, timestamp)`, FR-350).']
   "previous_state" "JSONB" [note: 'Pre-mutation entity state snapshot captured via `RETURNING old.*` ([§6.7](#67-admaudit_logsprevious_state-and-new_state), ADR-003).']
   "new_state" "JSONB" [note: 'Post-mutation state snapshot, `QUERY` meta-audit payload, or `SECURITY_ALERT` context including transversal `justification` ([§6.7](#67-admaudit_logsprevious_state-and-new_state), ADR-003).']
   "ip_address" "VARCHAR(45)" [note: 'Network traceability (IPv4 or IPv6).']
   "user_agent" "VARCHAR(255)" [note: 'Client traceability.']
   "previous_hash" "VARCHAR(64)" [not null, note: 'SHA-256 integrity hash of the preceding audit record (`GENESIS` sentinel on first entry, ADR-003).']
-  "integrity_hash" "VARCHAR(64)" [unique, not null, note: 'SHA-256 cryptographic hash chaining `previous_hash` and current payload (ADR-003).']
+  "integrity_hash" "VARCHAR(64)" [unique, not null, note: 'SHA-256 cryptographic hash chaining `previous_hash` and current payload (ADR-003; composite unique `(integrity_hash, timestamp)` on partitioned table).']
 }
 
 Table "adm"."auth_tokens" {
@@ -418,7 +419,7 @@ Table "adm"."users" {
 Table "adm"."work_order_assignments" {
   "work_order_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
   "user_id" "UUID" [pk, not null, note: 'Foreign key to the related table.']
-  "assigned_role" "VARCHAR(80)" [not null, note: 'Operational role of the technician in the specific WO.']
+  "role_in_work" "VARCHAR(80)" [not null, note: 'Operational role of the technician in the specific WO (`WorkOrderAssignment.roleInWork`, DT-DM-DOC-001 §4.41).']
   "assigned_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC moment of assignment.']
 }
 
@@ -429,6 +430,18 @@ Table "adm"."idempotency_logs" {
   "request_hash" "VARCHAR(64)" [not null, note: 'SHA-256 fingerprint to prevent payload mutation.']
   "status" "VARCHAR(20)" [not null, note: 'Controlled state of the transaction (PROCESSING, COMPLETED, FAILED).']
   "created_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC partitioning key for MVCC cleanup.']
+}
+
+Table "adm"."audit_retention_partitions" {
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
+  "partition_name" "VARCHAR(80)" [unique, not null, note: 'Physical PostgreSQL range partition identifier (e.g., `part_audit_2026_q4`, FR-350).']
+  "period_start" "DATE" [not null, note: 'Inclusive UTC start date of the quarterly retention window (FR-358).']
+  "period_end" "DATE" [not null, note: 'Inclusive UTC end date of the quarterly retention window (FR-358).']
+  "record_count" "BIGINT" [not null, default: 0, note: 'Total immutable audit records sealed inside the retention partition.']
+  "partition_anchor_hash" "VARCHAR(64)" [not null, note: 'Final SHA-256 `integrity_hash` anchoring continuity across archived partition boundaries (ADR-003, FR-350).']
+  "is_cold_archived" "BOOLEAN" [not null, default: false, note: 'Flag indicating whether the quarterly partition is sealed in 7-year cold storage (FR-350, FR-358).']
+  "integrity_status" "VARCHAR(30)" [not null, default: `'VERIFIED_INTACT'`, note: 'Controlled partition integrity status vocabulary (DT-DM-DOC-001 §4.43).']
+  "sealed_at" "TIMESTAMPTZ" [note: 'UTC timestamp when the partition was sealed for cold archival (`NULL` while hot/active).']
 }
 
 // --- RELATIONSHIPS ---

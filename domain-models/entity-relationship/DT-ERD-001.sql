@@ -222,10 +222,10 @@ CREATE TABLE IF NOT EXISTS mtto.work_requests (
     request_date                   TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
     request_source                 VARCHAR(80) NOT NULL,
     status                         VARCHAR(20) NOT NULL,
-    work_class                     SMALLINT NOT NULL,
+    work_class_code                SMALLINT NOT NULL,
 
     CONSTRAINT ck_work_requests_status CHECK (status IN ('NEW', 'APPROVED', 'REJECTED')),
-    CONSTRAINT ck_work_requests_work_class CHECK (work_class BETWEEN 1 AND 10),
+    CONSTRAINT ck_work_requests_work_class_code CHECK (work_class_code BETWEEN 1 AND 10),
     CONSTRAINT pk_work_requests PRIMARY KEY (id)
 );
 
@@ -438,7 +438,7 @@ CREATE TABLE IF NOT EXISTS vis.work_permits (
 CREATE TABLE IF NOT EXISTS adm.audit_logs (
     id                             UUID NOT NULL DEFAULT uuidv7(),
     user_id                        UUID,
-    event_type                     VARCHAR(80) NOT NULL,
+    action_type                    VARCHAR(80) NOT NULL,
     entity_type                    VARCHAR(80) NOT NULL,
     entity_id                      UUID NOT NULL,
     timestamp                      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
@@ -449,10 +449,10 @@ CREATE TABLE IF NOT EXISTS adm.audit_logs (
     previous_hash                  VARCHAR(64) NOT NULL,
     integrity_hash                 VARCHAR(64) NOT NULL,
 
-    CONSTRAINT ck_audit_logs_event_type CHECK (event_type IN ('CREATE', 'UPDATE', 'DELETE', 'QUERY', 'ADJUST', 'SECURITY_ALERT')),
-    CONSTRAINT uq_audit_logs_integrity_hash UNIQUE (integrity_hash),
-    CONSTRAINT pk_audit_logs PRIMARY KEY (id)
-);
+    CONSTRAINT ck_audit_logs_action_type CHECK (action_type IN ('CREATE', 'UPDATE', 'DELETE', 'QUERY', 'ADJUST', 'SECURITY_ALERT')),
+    CONSTRAINT uq_audit_logs_integrity_hash UNIQUE (integrity_hash, timestamp),
+    CONSTRAINT pk_audit_logs PRIMARY KEY (id, timestamp)
+) PARTITION BY RANGE (timestamp);
 
 CREATE TABLE IF NOT EXISTS adm.auth_tokens (
     id                             UUID NOT NULL DEFAULT uuidv7(),
@@ -514,10 +514,10 @@ CREATE TABLE IF NOT EXISTS adm.users (
 CREATE TABLE IF NOT EXISTS adm.work_order_assignments (
     work_order_id                  UUID NOT NULL,
     user_id                        UUID NOT NULL,
-    assigned_role                  VARCHAR(80) NOT NULL,
+    role_in_work                   VARCHAR(80) NOT NULL,
     assigned_at                    TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
 
-    CONSTRAINT ck_work_order_assignments_assigned_role CHECK (assigned_role IN ('TECHNICIAN', 'SUPERVISOR', 'PLANNER', 'SAFETY_AUTHORITY')),
+    CONSTRAINT ck_work_order_assignments_role_in_work CHECK (role_in_work IN ('TECHNICIAN', 'SUPERVISOR', 'PLANNER', 'SAFETY_AUTHORITY')),
     CONSTRAINT pk_work_order_assignments PRIMARY KEY (work_order_id, user_id)
 );
 
@@ -532,6 +532,22 @@ CREATE TABLE IF NOT EXISTS adm.idempotency_logs (
     CONSTRAINT uq_idempotency_logs_idempotency_key UNIQUE (idempotency_key),
     CONSTRAINT ck_idempotency_logs_status CHECK (status IN ('PROCESSING', 'COMPLETED', 'FAILED')),
     CONSTRAINT pk_idempotency_logs PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS adm.audit_retention_partitions (
+    id                             UUID NOT NULL DEFAULT uuidv7(),
+    partition_name                 VARCHAR(80) NOT NULL,
+    period_start                   DATE NOT NULL,
+    period_end                     DATE NOT NULL,
+    record_count                   BIGINT NOT NULL DEFAULT 0,
+    partition_anchor_hash          VARCHAR(64) NOT NULL,
+    is_cold_archived               BOOLEAN NOT NULL DEFAULT FALSE,
+    integrity_status               VARCHAR(30) NOT NULL DEFAULT 'VERIFIED_INTACT',
+    sealed_at                      TIMESTAMPTZ,
+
+    CONSTRAINT uq_audit_retention_partitions_partition_name UNIQUE (partition_name),
+    CONSTRAINT ck_audit_retention_partitions_integrity_status CHECK (integrity_status IN ('VERIFIED_INTACT', 'VERIFYING_IN_PROGRESS', 'TAMPER_BREACH_DETECTED')),
+    CONSTRAINT pk_audit_retention_partitions PRIMARY KEY (id)
 );
 
 -- ==========================================
@@ -871,6 +887,10 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entity
     ON adm.audit_logs (entity_type, entity_id);
 
+-- 7-Year Audit Retention Partition Window Lookup (ADM-032 / FR-350 / FR-358)
+CREATE INDEX IF NOT EXISTS idx_audit_retention_partitions_period
+    ON adm.audit_retention_partitions (period_start DESC, period_end DESC);
+
 -- -----------------------------------------------------------------------------
 -- 4. ROW-LEVEL SECURITY (RLS) FOR IMMUTABLE AUDIT (ADR-003)
 -- -----------------------------------------------------------------------------
@@ -893,3 +913,21 @@ CREATE POLICY rls_audit_logs_select_policy
 
 COMMENT ON POLICY rls_audit_logs_insert_policy ON adm.audit_logs IS
     'Enforces physical append-only behavior: database engine denies UPDATE and DELETE operations.';
+
+-- -----------------------------------------------------------------------------
+-- 5. DECLARATIVE RANGE PARTITIONING FOR 7-YEAR AUDIT RETENTION (FR-350 / FR-358)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS adm.part_audit_2026_q2
+    PARTITION OF adm.audit_logs
+    FOR VALUES FROM ('2026-04-01 00:00:00+00') TO ('2026-07-01 00:00:00+00');
+
+CREATE TABLE IF NOT EXISTS adm.part_audit_2026_q3
+    PARTITION OF adm.audit_logs
+    FOR VALUES FROM ('2026-07-01 00:00:00+00') TO ('2026-10-01 00:00:00+00');
+
+CREATE TABLE IF NOT EXISTS adm.part_audit_2026_q4
+    PARTITION OF adm.audit_logs
+    FOR VALUES FROM ('2026-10-01 00:00:00+00') TO ('2027-01-01 00:00:00+00');
+
+CREATE TABLE IF NOT EXISTS adm.part_audit_default
+    PARTITION OF adm.audit_logs DEFAULT;

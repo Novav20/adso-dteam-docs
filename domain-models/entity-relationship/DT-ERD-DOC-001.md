@@ -222,7 +222,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | request_date | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC timeline for audit. |
 | request_source | VARCHAR(80) | NOT NULL | | - | Origin of the request. |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Request lifecycle status. |
-| work_class | SMALLINT | NOT NULL | CHECK | - | Numeric weight (1..10) of the selected work class for RIME. |
+| work_class_code | SMALLINT | NOT NULL | CHECK | - | Numeric weight (1..10) of the selected work class for RIME (`WorkRequest.workClassCode`, DT-DM-DOC-001 §4.24). |
 
 #### 3.2.8 maintenance_plan_crafts
 
@@ -410,18 +410,18 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
-| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (composite PK `(id, timestamp)` for PostgreSQL 18 declarative range partitioning per FR-350). |
 | user_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
-| event_type | VARCHAR(80) | NOT NULL | CHECK | - | Controlled audit operation type (CREATE, UPDATE, DELETE, QUERY, ADJUST, SECURITY_ALERT). |
+| action_type | VARCHAR(80) | NOT NULL | CHECK | - | Controlled audit operation type (`AuditLog.actionType`, DT-DM-DOC-001 §4.36: CREATE, UPDATE, DELETE, QUERY, ADJUST, SECURITY_ALERT). |
 | entity_type | VARCHAR(80) | NOT NULL | | - | Affected table or domain entity. |
 | entity_id | UUID | NOT NULL | | - | Identifier of the affected record. |
-| timestamp | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | Exact UTC moment of the mutation. |
+| timestamp | TIMESTAMPTZ | NOT NULL | PK | clock_timestamp() | Exact UTC moment of the mutation and range-partitioning key (composite PK `(id, timestamp)`, FR-350). |
 | previous_state | JSONB | NULL | | NULL | Pre-mutation entity state snapshot captured via `RETURNING old.*` ([§6.7](#67-admaudit_logsprevious_state-and-new_state), ADR-003). |
 | new_state | JSONB | NULL | | NULL | Post-mutation state snapshot, `QUERY` meta-audit payload, or `SECURITY_ALERT` context including transversal `justification` ([§6.7](#67-admaudit_logsprevious_state-and-new_state), ADR-003). |
 | ip_address | VARCHAR(45) | NULL | | NULL | Network traceability (IPv4 or IPv6). |
 | user_agent | VARCHAR(255) | NULL | | NULL | Client traceability. |
 | previous_hash | VARCHAR(64) | NOT NULL | | - | SHA-256 integrity hash of the preceding audit record (`GENESIS` sentinel on first entry, ADR-003). |
-| integrity_hash | VARCHAR(64) | NOT NULL | UNIQUE | - | SHA-256 cryptographic hash chaining `previous_hash` and current payload (ADR-003). |
+| integrity_hash | VARCHAR(64) | NOT NULL | UNIQUE | - | SHA-256 cryptographic hash chaining `previous_hash` and current payload (ADR-003; composite unique `(integrity_hash, timestamp)` on partitioned table). |
 
 #### 3.5.2 auth_tokens
 
@@ -479,7 +479,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | --- | --- | --- | --- | --- | --- |
 | work_order_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
 | user_id | UUID | NOT NULL | PK, FK | - | Foreign key to the related table. |
-| assigned_role | VARCHAR(80) | NOT NULL | CHECK | - | Operational role of the technician in the specific WO. |
+| role_in_work | VARCHAR(80) | NOT NULL | CHECK | - | Operational role of the technician in the specific WO (`WorkOrderAssignment.roleInWork`, DT-DM-DOC-001 §4.41). |
 | assigned_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC moment of assignment. |
 
 #### 3.5.8 idempotency_logs
@@ -492,6 +492,20 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | request_hash | VARCHAR(64) | NOT NULL | | - | SHA-256 fingerprint to prevent payload mutation. |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled state of the transaction (PROCESSING, COMPLETED, FAILED). |
 | created_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC partitioning key for MVCC cleanup. |
+
+#### 3.5.9 audit_retention_partitions
+
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
+| --- | --- | --- | --- | --- | --- |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| partition_name | VARCHAR(80) | NOT NULL | UNIQUE | - | Physical PostgreSQL range partition identifier (e.g., `part_audit_2026_q4`, FR-350). |
+| period_start | DATE | NOT NULL | | - | Inclusive UTC start date of the quarterly retention window (FR-358). |
+| period_end | DATE | NOT NULL | | - | Inclusive UTC end date of the quarterly retention window (FR-358). |
+| record_count | BIGINT | NOT NULL | | 0 | Total immutable audit records sealed inside the retention partition. |
+| partition_anchor_hash | VARCHAR(64) | NOT NULL | | - | Final SHA-256 `integrity_hash` anchoring continuity across archived partition boundaries (ADR-003, FR-350). |
+| is_cold_archived | BOOLEAN | NOT NULL | | FALSE | Flag indicating whether the quarterly partition is sealed in 7-year cold storage (FR-350, FR-358). |
+| integrity_status | VARCHAR(30) | NOT NULL | CHECK | 'VERIFIED_INTACT' | Controlled partition integrity status vocabulary (DT-DM-DOC-001 §4.43). |
+| sealed_at | TIMESTAMPTZ | NULL | | NULL | UTC timestamp when the partition was sealed for cold archival (`NULL` while hot/active). |
 
 ## 4. Referential Relationships and Cascading (FKs)
 

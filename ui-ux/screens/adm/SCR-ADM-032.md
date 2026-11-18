@@ -90,7 +90,7 @@ status: Stable
    - **Architectural Scope:** Acts as a one-click category filter over the ledger grid and surfaces immediate tamper-evident chain health (`FR-351`, `TR-001-FR-367`). Detailed in §5.1.
 
 4. **`CMP-04`: Multi-Criteria & JSONB Containment Filter Toolbar (`FR-348`)**
-   - **Visual Role:** Flat toolbar hosting UTC `DateFrom` / `DateTo` pickers, `AuditActionType` selector (`CREATE`, `UPDATE`, `DELETE`, `QUERY`, `ADJUST`, `SECURITY_ALERT`), `EntityType` selector (`WorkRequest`, `WorkOrder`, `WorkOrderIsolation`, `EquipmentUnit`, `Role`, `User`, `InventoryTransaction`, `GenesisLedgerAnchor`), debounced search input across `Operator`, `IpAddress`, `EntityId`, and `IntegrityHash` (`Ctrl+K`), structured `JSONB` key-value containment query input (`{"status": "LOCKED"}`), `[Forensic Inspection]` dock toggle, and `[Reset]` action.
+   - **Visual Role:** Flat toolbar hosting UTC `DateFrom` / `DateTo` pickers, `AuditActionType` selector (`CREATE`, `UPDATE`, `DELETE`, `QUERY`, `ADJUST`, `SECURITY_ALERT`), `EntityType` selector (`WorkRequest`, `WorkOrder`, `WorkOrderIsolation`, `EquipmentUnit`, `Role`, `User`, `InventoryTransaction`, `AuditLog`), debounced search input across `Operator`, `IpAddress`, `EntityId`, and `IntegrityHash` (`Ctrl+K`), structured `JSONB` key-value containment query input (`{"is_active": false}`), `[Forensic Inspection]` dock toggle, and `[Reset]` action.
    - **Design Tokens:**
      - Surface: `--dt-color-surface-base`
      - Controls: `--dt-color-surface-card`
@@ -151,10 +151,10 @@ status: Stable
    - **Architectural Scope:** Visualizes `AuditLog.VerifyIntegrity()` ([DT-DM-DOC-002 §6.3](../../../domain-models/class/DT-DM-DOC-002.md#63-auditlog-entity)). Detailed in §5.3.2.
 
 10. **`CMP-10`: Tamper-Evident Chain Breach Alert Modal (`AF-001` / `FR-346` / `FR-351`)**
-    - **Visual Role:** Centered high-salience security alert modal deployed automatically if `VerifyIntegrity()` detects a hash mismatch or missing chronological link (`AF-001`), presenting flat hairline-divided stored vs. recalculated SHA-256 digests and immediate export quarantine protocol.
+    - **Visual Role:** Centered ISA-101 restrained security alert modal deployed automatically if `VerifyIntegrity()` detects a hash mismatch or missing chronological link (`AF-001`), keeping a neutral modal frame paired with a critical left-accent forensic callout, flat hairline-divided registered vs. recalculated SHA-256 digests, and immediate export quarantine protocol.
     - **Design Tokens:**
-      - Surface: `--dt-color-surface-card`
-      - Header & Border: `--dt-color-alarm-critical`
+      - Surface & Neutral Frame: `--dt-color-surface-card`, `--dt-color-border-subtle`
+      - Callout Left Accent & Mismatch Value: `--dt-color-alarm-critical`
       - Hash Compare Divider: `--dt-color-border-subtle`
       - Radius: `--dt-radius-xl`
       - Elevation: `--dt-z-modal-fail-safe`
@@ -240,7 +240,7 @@ sequenceDiagram
     UI->>API: GET /api/v1/security/audit-logs (Default window; records QUERY Meta-Audit)
     API-->>UI: Returns AuditLogWorkspaceDto (Metrics, TrendBuckets, Entries, Partitions)
     UI-->>Aud: Renders KPI Strip (CMP-03), Trend Strip (CMP-05) & Ledger Grid (CMP-06)
-    Aud->>UI: Enters JSONB containment filter '{"status": "LOCKED"}' & EntityType="WorkOrder"
+    Aud->>UI: Enters JSONB containment filter '{"is_active": false}' & EntityType="WorkOrder"
     UI->>API: POST /api/v1/security/audit-logs/query (GIN @> query & appends QUERY Meta-Audit)
     API-->>UI: Returns matching AuditLogEntryDto list
     Aud->>UI: Selects event row in CMP-06 (Opens CMP-12 Dock)
@@ -287,7 +287,7 @@ sequenceDiagram
 
 #### 5.3.3. Self-Referential Meta-Auditing & 7-Year Regulatory Retention (`FR-350`, `FR-353`, `FR-358`, `NFR-359`, `NFR-360`)
 1. **Meta-Audit Logging (`NFR-360`, `TR-001-FR-361`):** Every query executed in `CMP-04` and every forensic export triggered in `CMP-13` automatically appends an `AuditActionType.QUERY` record to the immutable `AuditLog` ledger capturing Auditor identity, network metadata, and query parameters under the Meta-Audit profile defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
-2. **7-Year Retention & Cold-Archive Lifecycle (`FR-350`, `FR-358`, `TR-001-FR-367`):** `CMP-11` displays the status of time-partitioned audit segments retained for a minimum of **7 years** (ISO 55001 Clause 7.5), verifying anchor hashes of cold-archived partitions so chain continuity remains unbroken across archived boundaries.
+2. **7-Year Retention & Cold-Archive Lifecycle (`FR-350`, `FR-358`, `TR-001-FR-367`):** `CMP-11` projects quarterly retention segments from `AuditRetentionPartition` persistence metadata ([DT-ERD-DOC-001 §3.5.9](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#359-audit_retention_partitions), [DT-ARQ-DB-DOC-001 §3.11](../../../architecture/DT-ARQ-DB-DOC-001.md#311-7-year-declarative-range-partitioning-and-cold-archive-anchoring-adm-032-fr-350-fr-358)) retained for a minimum of **7 years** (ISO 55001 Clause 7.5), verifying partition anchor hashes (`PartitionAnchorHash`) across cold-archived segments so chain continuity remains unbroken across archived boundaries.
 3. **Portable Forensic Extraction (`FR-353`, `NFR-359`):** Clicking `[Export Forensic Package]` in `CMP-13` generates a self-contained `AuditExportFormat` bundle (`SIGNED_FORENSIC_JSON` or `SIGNED_FORENSIC_CSV`) accompanied by a detached SHA-256 manifest so external auditors can independently verify chain continuity offline (`NFR-359`).
 
 ---

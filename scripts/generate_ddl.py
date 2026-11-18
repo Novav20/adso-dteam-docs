@@ -6,9 +6,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 ENUM_ALIASES = {
-    "work_requests.work_class": "work_requests.work_class_code",
-    "work_order_assignments.assigned_role": "work_order_assignments.role_in_work",
-    "audit_logs.event_type": "audit_logs.action_type",
     "maintenance_plan_crafts.craft": "maintenance_plans.required_specialty",
 }
 
@@ -18,6 +15,10 @@ EXPLICIT_FK_TARGETS = {
     "subunit_id": "subunits",
     "maintainable_item_id": "maintainable_items",
     "equipment_class_id": "equipment_classes",
+}
+
+PARTITIONED_TABLES = {
+    "adm.audit_logs": "timestamp",
 }
 
 
@@ -224,9 +225,15 @@ def parse_erd(
                     )
 
                 if "UNIQUE" in c["constraints"]:
-                    constraints.append(
-                        f"    CONSTRAINT uq_{raw_table}_{c['field']} UNIQUE ({c['field']})"
-                    )
+                    part_col = PARTITIONED_TABLES.get(table_name)
+                    if part_col and c["field"] != part_col:
+                        constraints.append(
+                            f"    CONSTRAINT uq_{raw_table}_{c['field']} UNIQUE ({c['field']}, {part_col})"
+                        )
+                    else:
+                        constraints.append(
+                            f"    CONSTRAINT uq_{raw_table}_{c['field']} UNIQUE ({c['field']})"
+                        )
 
                 if "CHECK" in c["constraints"]:
                     enum_key_specific = f"{raw_table}.{c['field']}"
@@ -315,7 +322,11 @@ def parse_erd(
             sql += ",\n".join(col_defs)
             if constraints:
                 sql += ",\n\n" + ",\n".join(constraints)
-            sql += "\n);\n\n"
+            part_col = PARTITIONED_TABLES.get(table_name)
+            if part_col:
+                sql += f"\n) PARTITION BY RANGE ({part_col});\n\n"
+            else:
+                sql += "\n);\n\n"
             if include_comments:
                 sql += "\n".join(comments) + "\n\n"
 

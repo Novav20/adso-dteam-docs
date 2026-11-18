@@ -59,7 +59,7 @@ To reflect the Modular Monolith architecture in the persistence layer and avoid 
 - `mtto`: Maintenance and reliability management (`work_requests`, `work_orders`, `work_order_histories`, `maintenance_plans`, `maintenance_plan_crafts`, `failure_records`, `media_attachments`, `backlog_items`).
 - `inv`: Resource and supply control (`spare_parts`, `inventory_transactions`, `material_requirements`, `warehouses`, `locators`, `suppliers`).
 - `vis`: Digital twin and operational safety layers (`mesh_mappings`, `spatial_metadata`, `visual_layers`, `telemetry_signals`, `work_permits`, `isolation_points`, `work_order_isolations`).
-- `adm`: Perimeter security, IAM, and immutable audit (`users`, `roles`, `user_roles`, `role_permissions`, `auth_tokens`, `work_order_assignments`, `audit_logs`, `idempotency_logs`).
+- `adm`: Perimeter security, IAM, and immutable audit (`users`, `roles`, `user_roles`, `role_permissions`, `auth_tokens`, `work_order_assignments`, `audit_logs`, `audit_retention_partitions`, `idempotency_logs`).
 
 This segregation allows for:
 1. **Defense in Depth:** Granular assignment of SQL privileges (GRANT/REVOKE) per module to prevent unauthorized cross-access.
@@ -102,6 +102,7 @@ This segregation allows for:
 | AuthToken | Entity | Has a lifecycle of issuance, usage, and expiration, and must remain traceable back to its owner. | ISO 9000 traceability |
 | WorkOrderAssignment | Entity | Auditable relationship between a user/role and a work order. | ISO 55000 competence control |
 | AuditLog | Entity | Append-only audit record containing the before/after state and chained SHA-256 hashes. | ISO 9000 audit evidence and record immutability |
+| AuditRetentionPartition | Entity | Governs the 7-year quarterly audit partition lifecycle, cold-archive sealing, and cryptographic anchor hash continuity (`FR-350`, `FR-358`). | ISO 55001 Clause 7.5; ISO 27001 A.8.10 |
 | IdempotencyLog | Entity | Deduplication ledger preventing duplicate execution of retransmitted offline or API commands (`ADR-007`). | Distributed Systems Idempotency |
 | MaterialRequirement | Entity | Represents future planning and consumption reservation of a spare part for a specific work order. | ISO 55000 resource planning |
 
@@ -551,6 +552,14 @@ This segregation allows for:
 | APPROVE | Grants supervisory authority to authorize permits, closures, or high-risk actions. | RBAC Granular Authorization (`FR-248`) |
 | AUDIT | Grants compliance and forensic inspection rights over module trails. | RBAC Granular Authorization (`FR-248`) |
 | EXECUTE | Grants field execution authority (e.g., LOTO isolations, work order completion). | RBAC Granular Authorization (`FR-248`) |
+
+#### 4.43 AuditRetentionPartition.integrityStatus
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| VERIFIED_INTACT | Partition anchor hash matches the final sealed audit record within the retention window. | ISO 27001 A.8.16 / ADR-003 (`FR-350`) |
+| VERIFYING_IN_PROGRESS | Asynchronous cryptographic anchor verification is executing on the partition segment. | Forensic Integrity Check (`FR-351`) |
+| TAMPER_BREACH_DETECTED | Cryptographic anchor mismatch or missing chained link detected within the partition window. | Tamper Quarantine (`TR-003-NFR-377`) |
 
 ## 5. Physical Mapping and Data Dictionary
 

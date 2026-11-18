@@ -2,7 +2,7 @@
 
 | Document ID | DT-UL-DOC-001 |
 | ----------- | ------------- |
-| Version     | 1.2.0         |
+| Version     | 1.2.1         |
 | Status      | APPROVED      |
 | Scope       | Domain-Driven Design |
 
@@ -69,6 +69,7 @@ All actors, entities, processes, and states must adhere strictly to these defini
 | **Tamper-Evident**        | A cryptographic property of the audit log that ensures any external modification or deletion of records instantly breaks the hash chain, raising a critical alert. |
 | **Root Cause Analysis (RCA)** | A systematic engineering process for identifying the fundamental origin of a failure to prevent its recurrence. |
 | **Meta-Audit**            | The action of recording and tracing the queries made by administrators or auditors over the immutable audit log itself. |
+| **Audit Retention Partition** | Quarterly PostgreSQL range partition metadata and cold-archive cryptographic anchor record guaranteeing 7-year audit log retention and cross-boundary SHA-256 continuity (FR-350, FR-358). |
 | **Offline Lease**         | A bounded temporary authorization token signed via HMAC-SHA256, issued to a mobile device to perform safety-critical operations (like LOTO) offline within a safe time window. |
 | **Command-Sourced Synchronization** | Architectural pattern where mobile clients synchronize atomic operational commands to a local queue (`SyncOutbox`) instead of final mutated states. |
 | **Cryptographic Manual Override** | An exception for areas without network coverage, allowing technicians to manually bypass digital safety blocks after physical verification. |

@@ -215,6 +215,13 @@ Additionally, the document justifies the existence of each method under the prin
 | `Revoke(): void` | Forcibly invalidates the token before its natural expiration. | [ADM-014](../../requirements/user-stories/adm/ADM-014.md)<br>FR-262<br>[TR-006](../../requirements/common/TR-006.md)<br>NFR-394, NFR-395 | **Access Control:** Fundamental for instantly killing active sessions when an account is suspended due to security risk. |
 | `MarkAsUsed(): void` | Invalidates the token by marking it as used. | [ADM-014](../../requirements/user-stories/adm/ADM-014.md)<br>FR-261<br>[TR-006](../../requirements/common/TR-006.md)<br>NFR-394 | **Single-Use Rule:** Prevents replay attacks on sensitive tokens such as password reset links or onboarding invitations. |
 
+### 6.5. `AuditRetentionPartition` (`<<Entity>>`)
+
+| Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
+| :--- | :--- | :--- | :--- |
+| `SealColdArchive(anchorHash: String, sealedRecordCount: long): void` | Transitions `IsColdArchived` to `true`, locks `RecordCount` and `PartitionAnchorHash` (final SHA-256 `IntegrityHash` of the closed quarterly window), and stamps `SealedAt` in UTC. | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>FR-350, FR-358<br>[TR-001](../../requirements/common/TR-001.md)<br>TR-001-FR-367 | **7-Year Retention Lifecycle:** Preserves unbroken cryptographic continuity (`ADR-003`) across quarterly hot-to-cold archival boundaries per ISO 55001 Clause 7.5. |
+| `VerifyPartitionAnchor(recalculatedAnchorHash: String): boolean` | Compares the stored `PartitionAnchorHash` against the recalculated digest at the partition boundary and updates `IntegrityStatus` (`VERIFIED_INTACT` or `TAMPER_BREACH_DETECTED`). | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>FR-350, FR-351<br>[TR-003](../../requirements/common/TR-003.md) | **Tamper-Evident Continuity:** Detects unauthorized manipulation or deletion of archived segments across multi-year retention windows. |
+
 ---
 
 ## **Architectural Notes**

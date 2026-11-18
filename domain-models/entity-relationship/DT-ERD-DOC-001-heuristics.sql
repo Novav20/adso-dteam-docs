@@ -58,6 +58,10 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entity
     ON adm.audit_logs (entity_type, entity_id);
 
+-- 7-Year Audit Retention Partition Window Lookup (ADM-032 / FR-350 / FR-358)
+CREATE INDEX IF NOT EXISTS idx_audit_retention_partitions_period
+    ON adm.audit_retention_partitions (period_start DESC, period_end DESC);
+
 -- -----------------------------------------------------------------------------
 -- 4. ROW-LEVEL SECURITY (RLS) FOR IMMUTABLE AUDIT (ADR-003)
 -- -----------------------------------------------------------------------------
@@ -80,3 +84,21 @@ CREATE POLICY rls_audit_logs_select_policy
 
 COMMENT ON POLICY rls_audit_logs_insert_policy ON adm.audit_logs IS
     'Enforces physical append-only behavior: database engine denies UPDATE and DELETE operations.';
+
+-- -----------------------------------------------------------------------------
+-- 5. DECLARATIVE RANGE PARTITIONING FOR 7-YEAR AUDIT RETENTION (FR-350 / FR-358)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS adm.part_audit_2026_q2
+    PARTITION OF adm.audit_logs
+    FOR VALUES FROM ('2026-04-01 00:00:00+00') TO ('2026-07-01 00:00:00+00');
+
+CREATE TABLE IF NOT EXISTS adm.part_audit_2026_q3
+    PARTITION OF adm.audit_logs
+    FOR VALUES FROM ('2026-07-01 00:00:00+00') TO ('2026-10-01 00:00:00+00');
+
+CREATE TABLE IF NOT EXISTS adm.part_audit_2026_q4
+    PARTITION OF adm.audit_logs
+    FOR VALUES FROM ('2026-10-01 00:00:00+00') TO ('2027-01-01 00:00:00+00');
+
+CREATE TABLE IF NOT EXISTS adm.part_audit_default
+    PARTITION OF adm.audit_logs DEFAULT;

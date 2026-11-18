@@ -112,7 +112,7 @@ package "Maintenance Management (MTTO)" <<Folder>> #F0F0F0 {
         - RequestDate: DateTime
         - RequestSource: String
         - Status: String
-        - WorkClass: Integer
+        - WorkClassCode: Integer
         --
         + ApproveAsWorkOrder(): WorkOrder
         + Reject(reason: String): void
@@ -429,13 +429,13 @@ package "Safety and Governance (ADM)" <<Folder>> #F0F0F0 {
     class WorkOrderAssignment <<Entity>> {
         - WorkOrderId: UUID
         - UserId: UUID
-        - AssignedRole: String
+        - RoleInWork: String
         - AssignedAt: DateTime
     }
     class AuditLog <<Entity>> {
         - Id: UUID
         - UserId: UUID?
-        - EventType: String
+        - ActionType: String
         - EntityType: String
         - EntityId: UUID
         - Timestamp: DateTime
@@ -447,6 +447,20 @@ package "Safety and Governance (ADM)" <<Folder>> #F0F0F0 {
         - IntegrityHash: String
         --
         + VerifyIntegrity(): boolean
+    }
+    class AuditRetentionPartition <<Entity>> {
+        - Id: UUID
+        - PartitionName: String
+        - PeriodStart: DateTime
+        - PeriodEnd: DateTime
+        - RecordCount: Integer
+        - PartitionAnchorHash: String
+        - IsColdArchived: Boolean
+        - IntegrityStatus: String
+        - SealedAt: DateTime?
+        --
+        + SealColdArchive(anchorHash: String, sealedRecordCount: long): void
+        + VerifyPartitionAnchor(recalculatedAnchorHash: String): boolean
     }
     class IdempotencyLog <<Entity>> {
         - Id: UUID
