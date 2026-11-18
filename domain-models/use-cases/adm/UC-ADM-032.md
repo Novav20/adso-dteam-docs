@@ -20,7 +20,7 @@ Enables authorized governance personnel to query, inspect, verify, and export th
 * The centralized append-only audit ledger ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md)) is active and enforces strict write-once immutability preventing modification or deletion by any role ([FR-347](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)).
 
 ## 3. Main Flow
-1. The Auditor accesses the Immutable Audit Log Viewer ([SCR-ADM-032](../../../ui-ux/screens/adm/SCR-ADM-032.md)) from the Web Portal Governance menu or via the `"Audit Modification"` handoff in the RBAC Matrix ([SCR-ADM-013](../../../ui-ux/screens/adm/SCR-ADM-013.md)).
+1. The Auditor accesses the Immutable Audit Log Viewer ([SCR-ADM-032](../../../ui-ux/screens/adm/SCR-ADM-032.md)) from the Web Portal Governance menu, via `"Audit Modification"` in the RBAC Matrix ([SCR-ADM-013](../../../ui-ux/screens/adm/SCR-ADM-013.md)), or via `"Forensic Audit"` in User Management ([SCR-ADM-014](../../../ui-ux/screens/adm/SCR-ADM-014.md)).
 2. The System presents the audit analysis dashboard visualizing technical activity volume trends and anomaly indicators ([FR-352](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)), alongside multi-criteria filtering controls: UTC date-time range, operator identity, source IP address, operation type (`CREATE`, `UPDATE`, `DELETE`, `QUERY`, `ADJUST`, `SECURITY_ALERT`), affected domain entity type, specific entity identifier, and structured attribute path values ([FR-345](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [FR-348](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)).
 3. The Auditor configures the search criteria (such as filtering `ADJUST` and `UPDATE` operations on a specific Work Order or Equipment Unit) and executes the query.
 4. The System retrieves the matching encrypted historical records with high-speed indexed performance ([NFR-355](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr), [NFR-356](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr), [NFR-357](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr)) while ensuring background operational logging never penalizes live plant transactions ([NFR-354](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr)).
@@ -28,15 +28,15 @@ Enables authorized governance personnel to query, inspect, verify, and export th
 6. The Auditor selects a specific audit event from the ledger for forensic inspection.
 7. The System displays the detailed forensic comparison pane ([FR-349](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)), presenting the UTC timestamp, operator badge, source IP address, client user agent, and a structured diff comparing the Previous State against the New State, automatically masking sensitive credential hashes or cryptographic keys.
 8. The System executes a cryptographic hash-chain verification across the inspected record and its chronological predecessors ([FR-346](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [FR-351](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [TR-003](../../../requirements/common/TR-003.md), [ADR-003](../../../architecture/adr/ADR-003.md)):
-   9. Recomputes the SHA-256 digest chaining the preceding record's integrity hash (`GENESIS` sentinel on the initial ledger entry) with the current record's immutable payload.
-   10. Compares the recalculated digest against the stored integrity hash.
-11. Upon confirming an exact mathematical match and unbroken chain continuity, the System displays a documentary confirmation seal: *"Cryptographic Integrity Verified: Unaltered Record Chain"* ([TR-011](../../../requirements/common/TR-011.md)).
-12. The Auditor optionally exports the verified audit trail subset in a structured, cryptographically signed format (`CSV` or `JSON`) for external regulatory reviews or offline forensic analysis ([FR-349](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [FR-353](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [NFR-359](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr)), while the System governs long-term 7-year archival retention ([FR-350](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [FR-358](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)).
+   * Recomputes the SHA-256 digest chaining the preceding record's integrity hash (`GENESIS` sentinel on the initial ledger entry) with the current record's immutable event attributes and state snapshots.
+   * Compares the recalculated digest against the stored integrity hash.
+9. Upon confirming an exact mathematical match and unbroken chain continuity, the System displays a documentary confirmation seal: *"Cryptographic Integrity Verified: Unaltered Record Chain"* ([TR-011](../../../requirements/common/TR-011.md)).
+10. The Auditor optionally exports the verified audit trail subset in a structured, cryptographically signed format (`CSV` or `JSON`) for external regulatory reviews or offline forensic analysis ([FR-349](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [FR-353](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [NFR-359](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr)), while the System governs long-term 7-year archival retention ([FR-350](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [FR-358](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)).
 
 ## 4. Alternate Flows
 
 ### AF-001: Compromised Chain Integrity Alert (Tamper-Evident Breach Detected)
-In step 8 or during periodic automated background verification ([FR-346](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [FR-351](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)), if the recalculated SHA-256 hash mismatches the stored digest or a chronological gap indicates external database row deletion:
+In step 8 or during periodic automated background verification ([FR-346](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [FR-351](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)), if the recalculated SHA-256 hash mismatches the stored digest or a chronological gap indicates external row deletion:
 1. The System immediately flags the exact compromised record and blocks standard compliance export for the corrupted range to prevent circulation of tampered evidence.
 2. The System deploys a high-salience critical security alert using redundant shape and color coding per WCAG 2.1 AA ([TR-011](../../../requirements/common/TR-011.md)): *"CRITICAL SECURITY ALERT: Cryptographic Hash-Chain Discrepancy Detected. Possible External Database Tampering."*
 3. The System automatically appends a high-priority `SECURITY_ALERT` event to the security log and dispatches an immediate incident notification to the Lead Auditor, System Administrator, and HSEQ supervision ([TR-003](../../../requirements/common/TR-003.md)).
@@ -50,6 +50,11 @@ If any user—including a System Administrator—attempts to edit, overwrite, or
 In step 4, if no historical transactions match the specified filter criteria:
 1. The System records the Meta-Audit `QUERY` event ([NFR-360](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr)) and displays a neutral empty-state notice: *"No audit records match the selected filter parameters."*
 2. The Auditor adjusts the filter criteria, returning to step 2.
+
+### AF-004: Unauthorized Route or Governance Access Rejection
+If an authenticated user lacking audit inspection privileges attempts to navigate directly to the Audit Log Viewer ([SCR-ADM-032](../../../ui-ux/screens/adm/SCR-ADM-032.md)) or invoke forensic query/export endpoints ([TR-006](../../../requirements/common/TR-006.md)):
+1. The System rejects the request immediately with a `403 Forbidden` authorization block prior to loading any historical audit records.
+2. The System records the rejected access attempt as a `SECURITY_ALERT` event in the immutable audit trail ([TR-001](../../../requirements/common/TR-001.md)).
 
 ## 5. Postconditions
 * The Auditor obtains a verified, secret-masked before-and-after comparison of the target historical transactions ([FR-349](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)).
@@ -73,7 +78,7 @@ In step 4, if no historical transactions match the specified filter criteria:
   * [NFR-354](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr): Asynchronous audit capture ensuring zero performance penalty on primary operational transactions.
   * [NFR-355](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr): High-efficiency query response times across large volumes of accumulated historical data.
   * [NFR-356](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr): Optimized persistence indexing guaranteeing data integrity and rapid retrieval.
-  * [NFR-357](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr): Encryption at rest protecting sensitive state payloads within audit logs.
+  * [NFR-357](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr): Encryption at rest protecting sensitive state snapshots within audit logs.
   * [NFR-359](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr): Portable data extraction enabling independent offline forensic analysis in external environments.
   * [NFR-360](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr): Self-referential Meta-Auditing recording all accesses and queries made to the auditing tools.
 * **Transversal Requirements:**
@@ -84,5 +89,5 @@ In step 4, if no historical transactions match the specified filter criteria:
   * [TR-006](../../../requirements/common/TR-006.md): Role-Based Access Control (RBAC) restricting audit trail access to authorized governance roles.
   * [TR-011](../../../requirements/common/TR-011.md): ANSI/ISA-101 High-Performance HMI grayscale discipline and WCAG 2.1 AA redundant coding.
 * **Architectural Decision Records:**
-  * [ADR-003](../../../architecture/adr/ADR-003.md): Tamper-evident cryptographic SHA-256 hash chaining (`GENESIS` sentinel and sequential payload linking).
+  * [ADR-003](../../../architecture/adr/ADR-003.md): Tamper-evident cryptographic SHA-256 hash chaining (`GENESIS` sentinel and sequential event linking).
   * [ADR-005](../../../architecture/adr/ADR-005.md): Time-sequential UUIDv7 primary key generation preventing B-Tree index fragmentation in high-velocity audit tables.
