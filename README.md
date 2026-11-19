@@ -44,8 +44,7 @@ adso-dteam-docs/
 │   └── views/            # C4 Component (CMP) and Physical Deployment (DEP) Structurizr DSL models & specs
 ├── business-processes/   # BPMN 2.0 operational process flows (Draw.io)
 ├── compliance/           # Normative shield and ISO 14224 / ISO 55001 compliance justifications
-├── domain-models/        # Tactical DDD modelling, activity diagrams, and Use Cases
-│   ├── activity/         # UML activity diagrams for critical flows (LOTO, Preventive)
+├── domain-models/        # Tactical DDD modelling, ERD/DDL, Ubiquitous Language, and Use Cases
 │   ├── class/            # Domain model specifications (DT-DM-DOC-001/002) and PlantUML class diagram
 │   ├── entity-relationship/ # Physical data dictionary (DT-ERD-DOC-001), DBML, and PostgreSQL 18 DDL
 │   ├── ubiquitous-language/ # Ubiquitous Language glossary (DT-UL-DOC-001)
@@ -54,7 +53,6 @@ adso-dteam-docs/
 ├── requirements/         # Software requirements and master sources
 │   ├── common/           # Transversal Domain and Platform Requirements (TR-001 to TR-011)
 │   ├── data/             # Master catalogs synchronized as CSVs (actors, SRS, stories, gherkin)
-│   ├── interviews/       # Elicitation transcripts and field interviews
 │   └── user-stories/     # Detailed user stories by module (ADM, INV, MTTO, VIS)
 ├── scripts/              # Generators (DDL, DBML, Structurizr, Tokens, Sprite, Requirements), verifiers & plot_plan_generator/
 ├── TODO.md               # Engineering roadmap, milestone log, and pre-implementation backlog

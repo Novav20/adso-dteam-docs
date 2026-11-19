@@ -50,6 +50,10 @@ CREATE INDEX IF NOT EXISTS idx_backlog_items_priority_score
 CREATE INDEX IF NOT EXISTS idx_auth_tokens_expires_at
     ON adm.auth_tokens (expires_at);
 
+-- Idempotency Log 24h TTL Batched Purge (ADR-007)
+CREATE INDEX IF NOT EXISTS idx_idempotency_logs_created_at
+    ON adm.idempotency_logs (created_at);
+
 -- Audit Log Chronological Search
 CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp
     ON adm.audit_logs (timestamp DESC);
