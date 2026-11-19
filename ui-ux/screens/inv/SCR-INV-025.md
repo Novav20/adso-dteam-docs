@@ -247,9 +247,9 @@ The resulting cryptographic hash is bound to the transaction command payload, ch
 Upon pressing `[Swap Rotable Asset]`, the client dispatches an atomic substitution command against the backend API endpoint:
 `POST /api/v1/inventory/rotable-swaps`
 
-* **Client Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) guaranteeing exactly-once transaction processing during network reconnection retries.
-* **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) binding functional location, dismounted equipment ID, destination status enum, holding warehouse ID, replacement equipment ID, optional justifying work order reference, technician user ID, and previous cryptographic hash.
-* **Backend Persistence Invariant:** The backend orchestrates `ExecuteAssetSwapCommand` within a single-commit atomic transaction ([ADR-005](../../../architecture/adr/ADR-005.md), `NFR-596`): unlinking the dismounted asset, updating destination status and warehouse holding state, mounting the replacement rotable unit, and recording the chained cryptographic audit entry ([TR-001](../../../requirements/common/TR-001.md)). Returns HTTP 200 OK with `AssetSwapCompletedEvent`.
+* **Client Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) guaranteeing exactly-once transaction processing during network reconnection retries, alongside `If-Match: "{DismountedConcurrencyToken}"` enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169).
+* **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) binding functional location, dismounted equipment ID and concurrency token, destination status enum, holding warehouse ID, replacement equipment ID and concurrency token, optional justifying work order reference, technician user ID, and previous cryptographic hash.
+* **Backend Persistence Invariant:** The backend orchestrates `ExecuteAssetSwapCommand` within a single-commit atomic transaction ([ADR-005](../../../architecture/adr/ADR-005.md), `NFR-596`): verifying concurrency tokens on both dismounted and replacement units (returning HTTP 409 Conflict on stale state), unlinking the dismounted asset, updating destination status and warehouse holding state, mounting the replacement rotable unit, recording the chained cryptographic audit entry ([TR-001](../../../requirements/common/TR-001.md)), and broadcasting `AssetSwapCompleted(AssetSwapCompletedEvent)` over SignalR hub `/hubs/operations` (`IOperationsClient`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)). Returns HTTP 200 OK with `AssetSwapCompletedEvent`.
 * **Success Handling (HTTP 200 OK):** Transitions UI state to `Swap Completed (Success)`, renders checkmark animation, dispatches `OnSwapCompleted` callback with `AssetSwapCompletedEvent`, and dismisses modal after $1.5\text{s}$.
 * **Offline Outbox Fallback (TR-007, TR-002):** On network disconnection or HTTP 5xx timeout, the client serializes `ExecuteAssetSwapCommand` into local encrypted storage via `IOfflineStorage` ([TR-002](../../../requirements/common/TR-002.md)), assigns an offline lease token, displays the "Offline Queued" state (§4), and dismisses after $1.5\text{s}$. Background synchronization worker drains the queue upon reconnecting to plant Wi-Fi.
 
@@ -458,6 +458,7 @@ public record InstalledAssetDetailsDto
     public required string EquipmentClassName { get; init; }
     public required long OperatingHours { get; init; }
     public required DateOnly InstallationDate { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record RotableSpareSummaryDto
@@ -475,15 +476,18 @@ public record RotableSpareSummaryDto
     public required Guid WarehouseId { get; init; }
     public required string WarehouseName { get; init; }
     public bool IsCompatible { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record ExecuteAssetSwapCommand
 {
     public required Guid FunctionalLocationId { get; init; }
     public required Guid DismountedAssetId { get; init; }
+    public required uint DismountedConcurrencyToken { get; init; }
     public required DismountDestinationStatus DestinationStatus { get; init; }
     public required Guid HoldingWarehouseId { get; init; }
     public required Guid ReplacementAssetId { get; init; }
+    public required uint ReplacementConcurrencyToken { get; init; }
     public Guid? JustifyingWorkOrderId { get; init; }
     public required Guid TechnicianUserId { get; init; }
     public required string PreviousHash { get; init; }
@@ -548,9 +552,9 @@ public record AssetSwapCompletedEvent
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-09` | Role-Based Access Control (RBAC): Enforces permissions (`Reliability Engineer`, `Technician`, `Supervisor`). |
 | [TR-007](../../../requirements/common/TR-007.md) | `CMP-01`, `CMP-09` | Offline Operation and Synchronization: Queues atomic swap operations into local outbox storage during field disconnects. |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-04`, `CMP-06` | ISO 14224 Hierarchy Management and Validation: Enforces taxonomic constraints and class parity in domain rules. |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-09` | Real-time synchronization: broadcasts completed rotable swap events to connected clients via WebSockets (< 1s). |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-09` | Real-time synchronization: broadcasts `AssetSwapCompleted(AssetSwapCompletedEvent)` over `/hubs/operations` to connected clients (< 1s). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`..`CMP-10` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, saturated color reserved for status and alerts. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-08`, `CMP-09` | Tamper-evident cryptographic SHA-256 hash chaining on all asset swap mutations. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-01`, `CMP-09` | Time-sequential UUIDv7 generation for new Installation record and command idempotency. |
 | [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-09` | Idempotent API message processing via `X-Idempotency-Key` header. |
-| [ADR-008](../../../architecture/adr/ADR-008.md) | `CMP-01`, `CMP-09` | AssetInstallation timeline tracking decoupling physical unit from functional location slot. |
+| [ADR-010](../../../architecture/adr/ADR-010.md) | `CMP-01`, `CMP-09` | AssetInstallation timeline tracking decoupling physical unit from functional location slot. |

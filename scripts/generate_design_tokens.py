@@ -158,6 +158,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     mai_tokens = table_for(tables, "Dual-Theme Semantic Token Table for MAI", "Semantic CSS")
     spatial_tokens = table_for(tables, "Spatial and Physical Material", "Spatial Material Token")
     typography = table_for(tables, "Typographic Scale", "Typographic Token")
+    shadows = table_for(tables, "Elevation Shadows", "Light Theme Value")
     radii = table_for(tables, "Border Radii", "Token")
     zindex = table_for(tables, "Layers and Stacking", "Z-Index Token")
     font_base_penpot, font_base_css, font_mono_penpot, font_mono_css = parse_font_families(tables)
@@ -225,40 +226,41 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         ]
     )
 
+    light_semantic: dict[str, str] = {}
+    dark_semantic: dict[str, str] = {}
+
     for row in semantic:
         if row and row[0].startswith("--"):
             token, dark, light = row[:3]
-            lines.append(f"  {token}: {semantic_value(light)};")
+            light_semantic[token] = semantic_value(light)
+            dark_semantic[token] = semantic_value(dark)
     for row in mai_tokens:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, light, dark = row[:4]  # MAI table has Light in col 2 and Dark in col 3
-            lines.append(f"  {token}: {semantic_value(light)};")
+            light_semantic[token] = semantic_value(light)
+            dark_semantic[token] = semantic_value(dark)
     for row in spatial_tokens:
         if row and row[0].startswith("--"):
             token, dark, light = row[:3]
-            lines.append(f"  {token}: {semantic_value(light)};")
+            light_semantic[token] = semantic_value(light)
+            dark_semantic[token] = semantic_value(dark)
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, dark, light = row[:4]
-            lines.append(f"  {token}: {semantic_value(light)};")
+            light_semantic[token] = semantic_value(light)
+            dark_semantic[token] = semantic_value(dark)
+    for row in shadows:
+        if row and len(row) > 2 and row[0].startswith("--"):
+            token, light, dark = row[:3]
+            light_semantic[token] = css_value(light)
+            dark_semantic[token] = css_value(dark)
+
+    for token, val in light_semantic.items():
+        lines.append(f"  {token}: {val};")
     lines.append("}")
     lines.extend(["", "/* Dark theme semantic tokens */", '[data-theme="dark"] {'])
-    for row in semantic:
-        if row and row[0].startswith("--"):
-            token, dark, _ = row[:3]
-            lines.append(f"  {token}: {semantic_value(dark)};")
-    for row in mai_tokens:
-        if row and len(row) > 3 and row[1].startswith("--"):
-            _, token, _, dark = row[:4]
-            lines.append(f"  {token}: {semantic_value(dark)};")
-    for row in spatial_tokens:
-        if row and row[0].startswith("--"):
-            token, dark, _ = row[:3]
-            lines.append(f"  {token}: {semantic_value(dark)};")
-    for row in alarms:
-        if row and len(row) > 3 and row[1].startswith("--"):
-            _, token, dark, _ = row[:4]
-            lines.append(f"  {token}: {semantic_value(dark)};")
+    for token, val in dark_semantic.items():
+        lines.append(f"  {token}: {val};")
     lines.extend(["}", ""])
     lines.extend(
         [
@@ -436,6 +438,12 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             penpot["Semantic-Light"][name] = penpot_token(
                 penpot_reference(light), "color"
             )
+    for row in shadows:
+        if row and len(row) > 2 and row[0].startswith("--dt-"):
+            token, light, dark = row[:3]
+            name = penpot_semantic_name(token)
+            penpot["Semantic-Dark"][name] = penpot_token(css_value(dark), "boxShadow")
+            penpot["Semantic-Light"][name] = penpot_token(css_value(light), "boxShadow")
 
     penpot_target.parent.mkdir(parents=True, exist_ok=True)
     penpot_target.write_text(json.dumps(penpot, indent=2) + "\n", encoding="utf-8")

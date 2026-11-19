@@ -3,9 +3,44 @@
     DTEAM Centralized Iconography Sprite Sheet
     Standard: DT-UI-DS-DOC-001 v1.8 (Section 6.4)
     GENERATED FILE - Do not edit manually.
-    Source: ui-ux\assets\icons-src/
+    Source: ui-ux/assets/icons-src/
     Regenerate with: python3 scripts/build_icons_sprite.py
   -->
+
+  <symbol id="icon-sync-pending" viewBox="0 0 24 24">
+    <g id="icon-sync-pending">
+      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M3 3v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M16 16h5v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" />
+    </g>
+  </symbol>
+
+  <symbol id="icon-check-circle" viewBox="0 0 24 24">
+    <g id="icon-check-circle">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+  </symbol>
+
+  <symbol id="icon-info" viewBox="0 0 24 24">
+    <g id="icon-info">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <line x1="12" y1="16" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <line x1="12" y1="8" x2="12.01" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+  </symbol>
+
+  <symbol id="icon-trash" viewBox="0 0 24 24">
+    <g id="icon-trash">
+      <path d="M3 6h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M19 6v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+  </symbol>
 
   <symbol id="icon-warning" viewBox="0 0 24 24">
     <g id="icon-warning" transform="matrix(5.8823528,0,0,5.8823528,32.548813,10.592401)"><path style="fill: currentColor;fill-rule:evenodd;stroke-width:0.162915" fill-rule="evenodd" d="M -4.8144708,1.771095 C -4.9227021,1.757915 -5.0006684,1.717632 -5.0797317,1.6340309 -5.1894631,1.5180058 -5.2231303,1.3451304 -5.1655507,1.1933437 c 0.011568,-0.03049 0.131745,-0.24687332 0.2670654,-0.48084569 0.1353194,-0.23397238 0.4254954,-0.73648117 0.6448366,-1.1166856 0.2193404,-0.38020534 0.4102303,-0.70797991 0.4241992,-0.72838751 0.041551,-0.0607 0.1197589,-0.1176112 0.1991764,-0.1449349 0.1468399,-0.050519 0.3068371,-0.017012 0.4219192,0.088373 0.025798,0.023624 0.065057,0.074079 0.087585,0.1125567 0.022456,0.038353 0.078781,0.13554307 0.1251704,0.21597147 0.2379382,0.41252838 0.493426,0.85533887 0.5343544,0.92614003 0.1040319,0.17996363 0.5159161,0.89285678 0.5658141,0.9793153 0.029539,0.05118 0.063318,0.1168178 0.075067,0.145858 0.026007,0.064269 0.034757,0.1735875 0.019702,0.2460409 C -1.838,1.61642 -1.9890398,1.7504369 -2.1778489,1.7714278 c -0.09528,0.010589 -2.5494432,0.010281 -2.6366183,-3.252e-4 z M -3.5586196,1.2536263 C -3.6213946,1.2312343 -3.6592627,1.1991223 -3.685041,1.1464358 -3.730396,1.0537233 -3.711709,0.95027218 -3.63753,0.88345671 c 0.1397018,-0.12583622 0.3590884,-0.0273653 0.3597397,0.16146729 3.578e-4,0.1025354 -0.055401,0.1805 -0.1490764,0.2084459 -0.053372,0.015925 -0.08764,0.015988 -0.1317495,2.609e-4 z m -0.019259,-0.5214689 c -0.040255,-0.0227999 -0.072132,-0.0655555 -0.083382,-0.11184013 -0.011359,-0.0467412 -0.074451,-0.71101717 -0.075411,-0.79407793 -7.011e-4,-0.0605643 0.00263,-0.0773585 0.022637,-0.11521347 0.081009,-0.15298507 0.2727332,-0.18366941 0.393032,-0.0629013 0.061008,0.0612437 0.079841,0.11971819 0.071181,0.22100622 -0.030735,0.35969808 -0.076027,0.76945546 -0.087477,0.79137673 -0.017464,0.0334526 -0.057475,0.0707097 -0.088537,0.0824493 -0.042882,0.0161964 -0.1131908,0.0112052 -0.1520403,-0.0107976 z" id="path1" /></g>

@@ -26,7 +26,7 @@ status: Stable
 
 ## 1. Purpose and Operational Context
 
-* **View Objective:** Centralized Level 2 taxonomic explorer and governance workspace for structuring, reorganizing, and auditing the plant's ISO 14224 Functional Location hierarchy across Levels 1 to 5 (`Industry` $\to$ `Business Category` $\to$ `Installation` $\to$ `Plant / Unit` $\to$ `Section / System`). Decouples permanent process slots from physical rotating machinery ([ADR-008](../../../architecture/adr/ADR-008.md)), governs process criticality ($1..10$) and environmental exposure inheritance, enforces cycle-free re-parenting (`FR-162`, `NFR-167`), and blocks deletion of occupied or parent nodes (`FR-163`).
+* **View Objective:** Centralized Level 2 taxonomic explorer and governance workspace for structuring, reorganizing, and auditing the plant's ISO 14224 Functional Location hierarchy across Levels 1 to 5 (`Industry` $\to$ `Business Category` $\to$ `Installation` $\to$ `Plant / Unit` $\to$ `Section / System`). Decouples permanent process slots from physical rotating machinery ([ADR-010](../../../architecture/adr/ADR-010.md)), governs process criticality ($1..10$) and environmental exposure inheritance, enforces cycle-free re-parenting (`FR-162`, `NFR-167`), and blocks deletion of occupied or parent nodes (`FR-163`).
 * **Primary Target Persona:** Project Engineer and Reliability Engineer defining root and child Functional Locations, calibrating process criticality indices, reorganizing plant branches, and exporting taxonomic coverage reports (`FR-165`).
 * **Secondary Personas:**
   * **Maintenance Planner & Supervisor:** Navigates the process hierarchy to inspect installed equipment units, verify RIME criticality multipliers, and drill down into Level 3 Equipment Master Data Cards ([SCR-INV-005](SCR-INV-005.md)).
@@ -128,7 +128,7 @@ status: Stable
      - Border: `--dt-color-border-subtle`
      - Button Surface: `--dt-color-surface-btn-secondary`
      - Radius: `--dt-radius-md`
-   - **Architectural Scope:** Bridges the Level 5 `FunctionalLocation` slot to its mounted Level 6 `EquipmentUnit` ([SCR-INV-005](SCR-INV-005.md)) and Rotable Asset Swap modal ([SCR-INV-025](SCR-INV-025.md)) per [ADR-008](../../../architecture/adr/ADR-008.md). Detailed in §5.2.
+   - **Architectural Scope:** Bridges the Level 5 `FunctionalLocation` slot to its mounted Level 6 `EquipmentUnit` ([SCR-INV-005](SCR-INV-005.md)) and Rotable Asset Swap modal ([SCR-INV-025](SCR-INV-025.md)) per [ADR-010](../../../architecture/adr/ADR-010.md). Detailed in §5.2.
 
 8. **`CMP-08`: Tree Re-Parenting & Cycle Prevention Modal**
    - **Visual Role:** Centered transactional modal dialog for moving a Functional Location node (`ReorganizeTree`) to a new parent node, featuring a target parent picker, live level-coherence preview, neutral grayscale ready validation state, critical red cycle detection alert (`AF-002`), and mandatory `AuditJustification` input.
@@ -217,7 +217,7 @@ status: Stable
    - **Visual Modification:** Modal `CMP-09` renders a critical red interlock banner (`--dt-color-alarm-critical`, `#icon-ban`) listing the blocking child count or mounted equipment serial number, hard-disabling the delete confirmation button and offering a direct link to [SCR-INV-025](SCR-INV-025.md) (*"Dismount via Rotable Asset Swap"*).
 
 7. **Concurrent Modification Conflict (`AF-004` / `NFR-169`)**
-   - **Activation Condition:** Engineer submits a node edit or re-parenting command whose optimistic concurrency token (`RowVersion`) mismatches the server state due to a simultaneous edit by another engineer.
+   - **Activation Condition:** Engineer submits a node edit or re-parenting command whose optimistic concurrency token (`ConcurrencyToken` / `If-Match`) mismatches the server state due to a simultaneous edit by another engineer.
    - **Visual Modification:** `CMP-11` renders an amber concurrency warning (`--dt-color-alarm-warning`, `#icon-warning`) in the footer status slot: *"Concurrent Modification Detected: Target branch was updated by another engineer. Tree refreshed; please review before re-applying."*
 
 8. **Documentary Confirmation (Post-Commit Success)**
@@ -297,14 +297,14 @@ sequenceDiagram
 2. If either condition is false, `CMP-09` blocks deletion (`ON DELETE RESTRICT` per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)) and directs the user to relocate child nodes or execute a Rotable Asset Swap ([SCR-INV-025](SCR-INV-025.md)).
 
 #### 5.3.4. Concurrency Isolation & Architecture Export (`FR-165`, `NFR-169`, `AF-004`)
-1. **Optimistic Concurrency Guard (`NFR-169`, `AF-004`):** Every mutation command carries the node's concurrency token (`RowVersion`) and `X-Idempotency-Key`. Concurrent modifications by another engineer return HTTP 409 Conflict, triggering State 7 (`AF-004`) and refreshing the affected branch without silent data loss.
+1. **Optimistic Concurrency Guard (`NFR-169`, `AF-004`):** Every mutation command carries the node's PostgreSQL `xmin`-backed `ConcurrencyToken` (`If-Match: "{ConcurrencyToken}"` header per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) and `X-Idempotency-Key`. Concurrent modifications by another engineer return HTTP 409 Conflict, triggering State 7 (`AF-004`) and refreshing the affected branch without silent data loss.
 2. **Taxonomic Architecture Export (`FR-165`):** Clicking `[Export]` in `CMP-02` opens the export menu (`CSV` / `JSON`), downloading the full or filtered hierarchy including ISO level paths, criticality indices, environmental exposures, and mounted equipment serial numbers.
 
 ---
 
 ## 6. Industrial and Safety Considerations
 
-* **Process Slot vs. Physical Machine Decoupling (ISO 14224 §8.1 / [ADR-008](../../../architecture/adr/ADR-008.md)):** Separating the Level 5 `FunctionalLocation` (where process criticality and environmental exposure reside) from the serialized Level 6 `EquipmentUnit` ensures that RIME backlog prioritization ([SCR-MTTO-026](../mtto/SCR-MTTO-026.md)) and SIMOPS spatial mapping ([SCR-VIS-008](../vis/SCR-VIS-008.md)) remain intact across rotable equipment swaps.
+* **Process Slot vs. Physical Machine Decoupling (ISO 14224 §8.1 / [ADR-010](../../../architecture/adr/ADR-010.md)):** Separating the Level 5 `FunctionalLocation` (where process criticality and environmental exposure reside) from the serialized Level 6 `EquipmentUnit` ensures that RIME backlog prioritization ([SCR-MTTO-026](../mtto/SCR-MTTO-026.md)) and SIMOPS spatial mapping ([SCR-VIS-008](../vis/SCR-VIS-008.md)) remain intact across rotable equipment swaps.
 * **Criticality Inheritance & RIME Fail-Safe Prevention ([DT-DM-DOC-001 §4.5](../../../domain-models/class/DT-DM-DOC-001.md#45-functionallocationcriticality)):** Configuring the `Criticality` index ($1..10$) on Level 4 and Level 5 Functional Locations directly feeds the RIME prioritization engine, eliminating unconfigured criticality fail-safe alerts (`AF-002` in `SCR-MTTO-026`).
 * **HPHMI Grayscale & Anti-Badge-Inflation Discipline ([TR-011](../../../requirements/common/TR-011.md)):** In accordance with [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope) and [§6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle), taxonomic level markers (`L1`–`L5`), environmental exposure labels, normal equipment occupancy states, and pre-commit ready states (`CMP-08`/`CMP-09`) render in strictly neutral grayscale (`--dt-font-mono-data`, `--dt-color-text-body`, `--dt-color-text-muted`). Saturated `--dt-color-alarm-warning` and `--dt-color-alarm-critical` are reserved exclusively for unconfigured criticality warnings and `AF-001`–`AF-004` validation blocks, while `--dt-color-state-success` appears strictly on post-commit documentary confirmations (`CMP-11`).
 
@@ -668,6 +668,19 @@ public enum TaxonomyExportFormat
     FULL_TREE_JSON
 }
 
+/// <summary>
+/// Canonical cryptographic audit action vocabulary per DT-DM-DOC-001 §4.42.
+/// </summary>
+public enum AuditActionType
+{
+    CREATE,
+    UPDATE,
+    DELETE,
+    QUERY,
+    ADJUST,
+    SECURITY_ALERT
+}
+
 public record FunctionalLocationTreeNodeDto
 {
     public required Guid FunctionalLocationId { get; init; }
@@ -684,7 +697,7 @@ public record FunctionalLocationTreeNodeDto
     public required int ChildLocationsCount { get; init; }
     public required int MaxSubtreeDepth { get; init; }
     public MountedEquipmentSummaryDto? MountedEquipment { get; init; }
-    public required string RowVersion { get; init; }
+    public required uint ConcurrencyToken { get; init; }
     public required string LatestIntegrityHash { get; init; }
 }
 
@@ -719,7 +732,7 @@ public record UpsertFunctionalLocationFormDto
     public int? Criticality { get; set; }
     public string? GeographicLocation { get; set; }
     public EnvironmentalExposureLevel EnvironmentalExposure { get; set; } = EnvironmentalExposureLevel.MODERATE;
-    public string? RowVersion { get; set; }
+    public uint? ConcurrencyToken { get; set; }
 }
 
 public record TreeReorganizationValidationDto
@@ -752,7 +765,7 @@ public record ReorganizeFunctionalLocationCommand
 {
     public required Guid FunctionalLocationId { get; init; }
     public required Guid NewParentId { get; init; }
-    public required string RowVersion { get; init; }
+    public required uint ConcurrencyToken { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid EngineerUserId { get; init; }
     public required string PreviousHash { get; init; }
@@ -763,7 +776,7 @@ public record TaxonomyAuditEntryDto
     public required Guid AuditLogId { get; init; }
     public required DateTimeOffset TimestampUtc { get; init; }
     public required string OperatorBadgeCode { get; init; }
-    public required string ActionType { get; init; }
+    public required AuditActionType ActionType { get; init; }
     public required string LocationTag { get; init; }
     public required string ChangeSummary { get; init; }
     public required string AuditJustification { get; init; }
@@ -814,7 +827,7 @@ public record TaxonomyAuditEntryDto
 | [NFR-166](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-05` | Recursive hierarchy resolution and UI row virtualization load and render extensive hierarchies in $< 3\text{s}$. |
 | [NFR-167](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-06`, `CMP-08`, `CMP-11` | Tag uniqueness, level coherence, and circular reference detection execute in $< 1\text{s}$ (`< 500ms` indexed lookup). |
 | [NFR-168](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-06`, `CMP-08`, `CMP-09` | All-or-nothing ACID transaction guarantees tree creations and re-parenting operations never leave partial or orphaned branches. |
-| [NFR-169](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-06`, `CMP-08`, `CMP-11` | Optimistic concurrency token (`RowVersion`) prevents simultaneous edits by multiple engineers from overwriting tree changes (`AF-004`). |
+| [NFR-169](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-06`, `CMP-08`, `CMP-11` | Optimistic concurrency token (`ConcurrencyToken` backed by PostgreSQL `xmin` via `If-Match`) prevents simultaneous edits by multiple engineers from overwriting tree changes (`AF-004`). |
 | [TR-001](../../../requirements/common/TR-001.md) | `CMP-06`, `CMP-10`, `CMP-11` | Immutable append-only audit trail logging with SHA-256 hash chaining on all taxonomic mutations. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-05`, `CMP-06`, `CMP-08` | Enforces TLS/HTTPS encryption in transit across all recursive tree queries, uniqueness checks, and mutation commands. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-06`, `CMP-13` | Enforces RBAC role authorization (`Project Engineer` and `Reliability Engineer` for mutations; read/navigation access for all roles). |
@@ -822,4 +835,4 @@ public record TaxonomyAuditEntryDto
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-13` | ANSI/ISA-101 HPHMI 90/10 grayscale baseline, zero green before commit, zero badge inflation on static level tags, and WCAG 2.1 AA redundant coding. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-06`, `CMP-10` | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on taxonomic audit records. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-06` | Time-sequential UUIDv7 identifier generation for newly created `FunctionalLocation` entities. |
-| [ADR-008](../../../architecture/adr/ADR-008.md) | `CMP-07` | Decouples permanent Level 5 `FunctionalLocation` slots from physical Level 6 `EquipmentUnit` installation history. |
+| [ADR-010](../../../architecture/adr/ADR-010.md) | `CMP-07` | Decouples permanent Level 5 `FunctionalLocation` slots from physical Level 6 `EquipmentUnit` installation history. |

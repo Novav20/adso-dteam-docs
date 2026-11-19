@@ -88,4 +88,4 @@ In step 8 or during tree reorganization, if another engineer has modified the sa
 * **Architectural Decision Records:**
   * [ADR-003](../../../architecture/adr/ADR-003.md): Tamper-evident cryptographic SHA-256 hash chaining for audit logs.
   * [ADR-005](../../../architecture/adr/ADR-005.md): Sequential UUIDv7 primary key generation for taxonomic entities.
-  * [ADR-008](../../../architecture/adr/ADR-008.md): Chronological installation history decoupling Functional Locations from physical Equipment Units.
+  * [ADR-010](../../../architecture/adr/ADR-010.md): Chronological installation history decoupling Functional Locations from physical Equipment Units.

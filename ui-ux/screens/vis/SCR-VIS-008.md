@@ -167,8 +167,8 @@ status: Stable
 ## 5. Interaction Rules and Data Flow
 
 ### 5.1. Spatial Resolution, Proximity Engine, and Layer Rendering
-1. Upon loading the view, the system retrieves the vector layout representing the facility's Functional Locations (ISO 14224 Levels 1 to 5).
-2. When the Work Permits layer is active, the system queries all `WorkPermits` in the `APPROVED` lifecycle state.
+1. Upon loading the view, the system retrieves the vector layout representing the facility's Functional Locations (ISO 14224 Levels 1 to 5) via `GET /api/v1/visualization/plot-plans/{facilityCode}` ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)).
+2. When the Work Permits layer is active, the system queries all `WorkPermits` in the `APPROVED` lifecycle state via `GET /api/v1/safety/work-permits?status=APPROVED` and retrieves unmapped integrity anomalies via `GET /api/v1/safety/work-permits/orphans`. Spatial reassignment of an orphan permit's equipment mesh mapping (`FR-186`) dispatches `PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}` carrying both `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)).
 3. **Referential Resolution Path:**
    $$\text{WorkPermit} \xrightarrow{\text{EquipmentUnitId}} \text{EquipmentUnit} \xrightarrow{\text{MeshMapping}} \text{SVG Coordinates / Centroid}$$
    * If the Equipment Unit has an explicit `MeshMapping` node in the SVG, the `CMP-05` badge is centered over that equipment hotspot.
@@ -212,10 +212,9 @@ status: Stable
    * On desktop workstations, in tablet portrait, and whenever `CMP-07` is closed, the badge displays its full alphanumeric label `[#icon-warning 3 Unmapped]`. Responsive breakpoint mapping is detailed in Section 8.
 
 ### 5.3. Real-Time Synchronization (`TR-010`)
-1. The client subscribes to the SignalR hub for work permit domain events:
-   * `WorkPermitApproved`: Injects a new `CMP-05` badge (or updates `CMP-09` cluster count) within $< 5\text{s}$ (`FR-187`, `NFR-192`).
-   * `WorkPermitRevoked` / `WorkPermitClosed`: Removes the badge with a fluid fade transition in $< 5\text{s}$.
-   * `WorkPermitExpiringSoon`: Transitions the badge to the expiring warning state.
+1. The client subscribes to the canonical SignalR hubs registered in [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010):
+   * **`/hubs/operations` (`IOperationsClient`):** Subscribes to `PermitStatusChanged(WorkPermitStatusEvent)` — injects a new `CMP-05` badge (or updates `CMP-09` cluster count) within $< 5\text{s}$ when `Status == APPROVED` (`FR-187`, `NFR-192`), removes the badge with a fluid fade transition when `Status` transitions to `REVOKED` or `CLOSED`, and activates the expiring warning state when `IsExpiringSoon == true`.
+   * **`/hubs/telemetry` (`ITelemetryClient`):** Subscribes to `EmergencyEvacuationBroadcast(EvacuationAlertDto)` to escalate affected equipment zones immediately during life-safety re-energization alerts.
 2. **Operational Resilience (`AF-002`):** If the real-time link drops, the client transitions to the "Loss of Synchronization" diagnostic state without blocking canvas navigation, preserving the last known snapshot with explicit timestamp traceability (`NFR-194`).
 
 ### 5.4. Dual Navigation, Tactile Controllability, and Semantic Zoom Clustering
@@ -518,6 +517,9 @@ public record SimopsConflictDto
     public required string ConflictDescription { get; init; }
 }
 
+/// <summary>
+/// Note: CoordinateX, CoordinateY, CentroidX, CentroidY, and spatial buffer distances in visualization DTOs intentionally use IEEE 754 double exclusively for SVG/Canvas 2D viewport rendering geometry per DT-ARQ-CMP-DOC-001 §6; financial and physical engineering quantities remain strictly decimal.
+/// </summary>
 public record OrphanPermitDto
 {
     public required Guid Id { get; init; }
@@ -528,6 +530,7 @@ public record OrphanPermitDto
     public required string ExpectedEquipmentTag { get; init; }
     public required string DiagnosticMessage { get; init; }
     public required DateTimeOffset ValidTo { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record PlantPlotPlanDto
@@ -604,5 +607,6 @@ public record PlantZoneDto
 | [NFR-195](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | 2D vector rendering guarantees full spatial supervision on hardware lacking WebGL 3D acceleration. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-05` | All initial REST queries and real-time permit synchronization streams execute over encrypted TLS/HTTPS and WSS transport channels. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-06`, `CMP-07` | RBAC enforcement restricts permit layer inspection, orphan resolution, and L3 escalation to authorized roles (`HSEQ Inspector`, `Maintenance Supervisor`). |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-05`, `CMP-09` | Persistent real-time event subscription updates permit badges and cluster counts with $<1\text{s}$ publication latency and graceful polling fallback. |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-05`, `CMP-09` | Persistent real-time SignalR subscriptions on `/hubs/operations` (`PermitStatusChanged`) and `/hubs/telemetry` (`EmergencyEvacuationBroadcast`) update permit badges and cluster counts with $<1\text{s}$ publication latency and graceful polling fallback. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-05`, `CMP-09`, `CMP-10` | High-Performance HMI (ANSI/ISA-101): Neutral grayscale canvas (`--dt-color-bg-canvas`), reserving saturated tokens strictly for active permits and alarms. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-07` | Idempotency contract (`X-Idempotency-Key: {uuidv7}`) paired with PostgreSQL `xmin` optimistic concurrency (`If-Match`) on orphan permit mesh mapping reassignments (`PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}`). |

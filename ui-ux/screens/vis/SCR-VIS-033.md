@@ -220,8 +220,8 @@ status: Stable
 ## 5. Interaction Rules and Data Flow
 
 ### 5.1. Initial Load
-1. The client retrieves the vector schematic corresponding to the target Functional Location and renders `CMP-01` using neutral grayscale material tokens.
-2. Interactive SVG equipment groups (`CMP-04`) are bidirectionally bound via `data-tag` and `data-equip-id` attributes to registered Level 6 `EquipmentUnit` records (`FR-599`).
+1. The client retrieves the vector schematic corresponding to the target Functional Location via `GET /api/v1/visualization/plot-plans/{functionalLocationCode}` ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)) and renders `CMP-01` using neutral grayscale material tokens.
+2. Interactive SVG equipment groups (`CMP-04`) are bidirectionally bound via `data-tag` and `data-equip-id` attributes to registered Level 6 `EquipmentUnit` records (`FR-599`). Selecting an equipment unit loads its Level 3 faceplate via `GET /api/v1/visualization/equipment-units/{tagNumber}/faceplate` and its active maintenance orders via `GET /api/v1/maintenance/work-orders?equipmentUnitId={id}&status=ACTIVE`.
 3. The viewport initializes centered on Level 1 macro overview (`L1: Terminal`) with pan limits clamped to calibrated SVG operational boundaries; no equipment hotspot is pre-selected unless an `InitialEquipmentTag` deep-link parameter is provided, and `CMP-05` starts closed off-screen without obstructing `CMP-12`.
 
 ### 5.2. Spatial Navigation and Mobile Ergonomics
@@ -256,7 +256,7 @@ status: Stable
     - The hierarchical level indicator inside `CMP-02` enforces a strict fixed width of `--dt-layout-toolbar-badge-width` so transitions across `L1: Terminal`, `L2: Subsystem`, and `L3: Equipment` never cause horizontal button jitter.
 
 ### 5.3. Inspection and Telemetry
-1. Selecting a mapped asset opens `CMP-05` and subscribes to the Equipment Unit's real-time SignalR telemetry hub (`TR-010`).
+1. Selecting a mapped asset opens `CMP-05` and subscribes to the canonical SignalR hubs registered in [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010): `/hubs/telemetry` (`ITelemetryClient`: `ReceiveTelemetryReading(TelemetryReadingDto)`, `EmergencyEvacuationBroadcast(EvacuationAlertDto)`) and `/hubs/operations` (`IOperationsClient`: `WorkOrderStatusChanged(WorkOrderTransitionEvent)`, `AssetSwapCompleted(AssetSwapCompletedEvent)`).
 2. `CMP-05` renders strictly Level 3 operational data: Header & Identity (`CMP-06`), Moving Analog Indicators (`CMP-07`), Safety Context Pills (`CMP-08`), Actionable Work Orders (`CMP-10`), and Tactical Triggers (`CMP-09`).
 3. **SignalR Subscription & Debounce Governance:** Rapid hotspot switching cancels pending stale stream requests and applies global subscription debouncing to prevent channel collisions ([DT-ARQ-CMP-DOC-001](../../../architecture/views/DT-ARQ-CMP-DOC-001.md)), refreshing MAI bars in $< 1\text{s}$ from server ingestion (`NFR-604`).
 4. **Diagnostic Connection Resilience (`AF-002`):** Upon heartbeat timeout or "Bad" SCADA packet quality ([DT-ARQ-DEP-DOC-001](../../../architecture/views/DT-ARQ-DEP-DOC-001.md)), `CMP-07` immediately transitions to `Telemetry Loss` using Priority 4 Diagnostic styling:
@@ -717,5 +717,5 @@ public enum TelemetryAlarmSeverity
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-09`, `CMP-10`, `CMP-11` | RBAC enforcement restricts LOTO verification navigation, Work Order execution dispatch, and master catalog actions per authorized operational role ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)). |
 | [TR-007](../../../requirements/common/TR-007.md) | `CMP-01`, `CMP-05` | Preserves 2D plot plan inspection and cached equipment faceplate consultation against encrypted local storage (`IOfflineStorage`) during field wireless dropouts (`AF-003`). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-01`, `CMP-04`, `CMP-06` | Enforces ISO 14224 hierarchical integrity across Functional Location (`Levels 1 to 5`) and Equipment Unit (`Level 6`) tags and `CriticalityIndex` inheritance. |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-05`, `CMP-07`, `CMP-10` | Persistent debounced SignalR subscription streams telemetry and work order state updates in $< 1\text{s}$ with automatic stale-cache Priority 4 fallback on disconnect. |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-05`, `CMP-07`, `CMP-10` | Persistent debounced SignalR subscriptions on `/hubs/telemetry` (`ReceiveTelemetryReading`, `EmergencyEvacuationBroadcast`) and `/hubs/operations` (`WorkOrderStatusChanged`, `AssetSwapCompleted`) stream updates in $< 1\text{s}$ with automatic stale-cache Priority 4 fallback on disconnect. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-04`, `CMP-07`, `CMP-08`, `CMP-12` | High-Performance HMI philosophy: eliminates green for normal equipment state and segregates telemetry loss into slate Priority 4 diagnostic indicators. |

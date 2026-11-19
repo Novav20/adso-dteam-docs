@@ -93,4 +93,4 @@ In step 3, if the Engineer designates the equipment unit as a Safety Critical El
 * **Architectural Decision Records:**
   - [ADR-003](../../../architecture/adr/ADR-003.md): Tamper-evident cryptographic SHA-256 hash chaining.
   - [ADR-005](../../../architecture/adr/ADR-005.md): Time-sequential UUIDv7 generation.
-  - [ADR-008](../../../architecture/adr/ADR-008.md): AssetInstallation timeline tracking decoupling physical unit from functional location slot.
+  - [ADR-010](../../../architecture/adr/ADR-010.md): AssetInstallation timeline tracking decoupling physical unit from functional location slot.

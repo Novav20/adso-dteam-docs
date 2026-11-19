@@ -126,7 +126,7 @@
       "$description": ""
     },
     "layout-drawer-width-tablet": {
-      "$value": "320px",
+      "$value": "380px",
       "$type": "dimension",
       "$description": ""
     },
@@ -247,6 +247,11 @@
     },
     "radius-xl": {
       "$value": "12px",
+      "$type": "borderRadius",
+      "$description": ""
+    },
+    "radius-2xl": {
+      "$value": "20px",
       "$type": "borderRadius",
       "$description": ""
     },
@@ -624,28 +629,23 @@
       "$type": "color",
       "$description": ""
     },
-    "mai-normal-zone": {
-      "$value": "{blue-700}",
-      "$type": "color",
-      "$description": ""
-    },
-    "mai-pointer": {
-      "$value": "{gray-10}",
-      "$type": "color",
-      "$description": ""
-    },
-    "mai-interlock": {
-      "$value": "{gray-10}",
-      "$type": "color",
-      "$description": ""
-    },
     "mai-track-border": {
       "$value": "{gray-650}",
       "$type": "color",
       "$description": ""
     },
+    "mai-normal-zone": {
+      "$value": "{blue-700}",
+      "$type": "color",
+      "$description": ""
+    },
     "mai-normal-zone-border": {
       "$value": "{blue-450}",
+      "$type": "color",
+      "$description": ""
+    },
+    "mai-pointer": {
+      "$value": "{gray-10}",
       "$type": "color",
       "$description": ""
     },
@@ -681,6 +681,11 @@
     },
     "mai-stale-zone-border": {
       "$value": "{gray-450}",
+      "$type": "color",
+      "$description": ""
+    },
+    "mai-interlock": {
+      "$value": "{gray-10}",
       "$type": "color",
       "$description": ""
     },
@@ -732,6 +737,16 @@
     "state-disabled": {
       "$value": "{gray-580}",
       "$type": "color",
+      "$description": ""
+    },
+    "shadow-hud": {
+      "$value": "0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35)",
+      "$type": "boxShadow",
+      "$description": ""
+    },
+    "shadow-panel": {
+      "$value": "-3px 0 10px rgba(0, 0, 0, 0.50), -1px 0 3px rgba(0, 0, 0, 0.30)",
+      "$type": "boxShadow",
       "$description": ""
     }
   },
@@ -806,26 +821,6 @@
       "$type": "color",
       "$description": ""
     },
-    "mai-track": {
-      "$value": "{gray-100}",
-      "$type": "color",
-      "$description": ""
-    },
-    "mai-normal-zone": {
-      "$value": "{blue-200}",
-      "$type": "color",
-      "$description": ""
-    },
-    "mai-pointer": {
-      "$value": "{gray-980}",
-      "$type": "color",
-      "$description": ""
-    },
-    "mai-interlock": {
-      "$value": "{gray-980}",
-      "$type": "color",
-      "$description": ""
-    },
     "canvas-asphalt": {
       "$value": "{gray-280}",
       "$type": "color",
@@ -884,6 +879,16 @@
     "state-disabled": {
       "$value": "{gray-380}",
       "$type": "color",
+      "$description": ""
+    },
+    "shadow-hud": {
+      "$value": "0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.08)",
+      "$type": "boxShadow",
+      "$description": ""
+    },
+    "shadow-panel": {
+      "$value": "-2px 0 8px rgba(0, 0, 0, 0.12), -1px 0 2px rgba(0, 0, 0, 0.06)",
+      "$type": "boxShadow",
       "$description": ""
     }
   },

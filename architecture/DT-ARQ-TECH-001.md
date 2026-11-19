@@ -37,12 +37,13 @@ This document is the consolidated source for identifying the target technology s
 2. Previous frontend technologies can only appear in historical records or superseded decisions, clearly identified as inactive.
 3. Mobile persistence is formalized under `sqlite-net-pcl` with SQLCipher encryption; the use of Entity Framework Core on the mobile client is not allowed.
 4. Stack changes must be recorded via a new ADR or an approved new version of ADR-004.
-5. Draw.io diagram labels must match this matrix; diagram file names and view codes do not change due to the stack.
+5. Structurizr diagram labels (`DT-ARQ-CMP-001-component-model.dsl`, `DT-ARQ-DEP-001-deployment-model.dsl`) must match this matrix; diagram file names and view codes do not change due to the stack.
+6. Authentication sessions implement a split-lifecycle token strategy (`TR-006`): short-lived stateless **Access JWTs (15-minute TTL)** minimize replay exposure while rotating **Session Refresh Tokens (8-hour maximum shift TTL)** stored in `adm.auth_tokens` (`purpose = 'SESSION_REFRESH'`) enforce industrial shift boundaries and support immediate revocation upon account deactivation or risk lockout (`SCR-ADM-014`).
 
 ## Related Artifacts
 
 - [ADR-004: Frontend Client with .NET MAUI Blazor Hybrid](adr/ADR-004.md)
-- [Component Model](views/DT-ARQ-CMP-001-component-model.drawio)
+- [Component Model](views/DT-ARQ-CMP-001-component-model.dsl)
 - [Component Specification](views/DT-ARQ-CMP-DOC-001.md)
-- [Deployment Model](views/DT-ARQ-DEP-001-deployment-model.drawio)
+- [Deployment Model](views/DT-ARQ-DEP-001-deployment-model.dsl)
 - [Deployment Specification](views/DT-ARQ-DEP-DOC-001.md)

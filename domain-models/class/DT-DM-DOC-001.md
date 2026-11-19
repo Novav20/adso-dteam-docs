@@ -73,7 +73,7 @@ This segregation allows for:
 | FunctionalLocation | Aggregate Root | Owns the asset's location hierarchy and boundary definition. | ISO 14224 Chapters 8.1 and 8.2 |
 | EquipmentClass | Aggregate Root | Owns the asset class taxonomy and class-specific boundary semantics. | ISO 14224 Annex A |
 | EquipmentUnit | Aggregate Root | Owns the inventory record and the four-dimensional orthogonal status split (`operationalStatus`, `lifecycleStatus`, `maintenanceStatus`, `healthStatus`) for a physical asset. | ISO 14224 Chapter 9.1 and Table 5 |
-| AssetInstallation | Entity | Chronological mounting/dismounting record linking an `EquipmentUnit` to a `FunctionalLocation` slot (`ADR-008`). | ISO 14224 Installation History |
+| AssetInstallation | Entity | Chronological mounting/dismounting record linking an `EquipmentUnit` to a `FunctionalLocation` slot (`ADR-010`). | ISO 14224 Installation History |
 | Subunit | Entity | Depends on the parent asset's lifecycle and taxonomy context. | ISO 14224 Taxonomy Levels 6–9 |
 | MaintainableItem | Entity | Represents the lowest repairable level used for maintenance and failure analysis. | ISO 14224 Taxonomy Levels 8–9 |
 | WorkRequest | Aggregate Root | Initiates the maintenance intake flow and owns the RIME prioritization factors. | ISO 55000 risk and decision guidance; ADR 002 |

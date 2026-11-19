@@ -48,12 +48,12 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 ### Inventory & Asset Master Data Screens (INV)
 - [x] **SCR-INV-025: Rotable Asset Swap**
   - [x] Field modal / drawer for atomic 1:1 rotable equipment exchange.
-  - [x] Canonical specification finalized: [`SCR-INV-025.md`](ui-ux/screens/inv/SCR-INV-025.md) (v1.5 Stable — Screen #7, Level 4 Transactional Modal Dialog Archetype, 100% C# 14 / .NET 10 contracts, `TaxonomicCompatibilityBadge.razor` `CMP-06` nested in `ModalActionFooter.razor` `CMP-09`, `TR-001`–`TR-011`, `ADR-003`/`005`/`007`/`008` traceability).
+  - [x] Canonical specification finalized: [`SCR-INV-025.md`](ui-ux/screens/inv/SCR-INV-025.md) (v1.5 Stable — Screen #7, Level 4 Transactional Modal Dialog Archetype, 100% C# 14 / .NET 10 contracts, `TaxonomicCompatibilityBadge.razor` `CMP-06` nested in `ModalActionFooter.razor` `CMP-09`, `TR-001`–`TR-011`, `ADR-003`/`005`/`007`/`010` traceability).
   - [x] Visual prototype modern continuous redesign & dual-theme captures updated (Dark/Light).
 
 - [x] **SCR-INV-005: Equipment Master Data Card (Technical Data Sheet)**
   - [x] Pre-flight Use Case Audit and CAP execution: [`UC-INV-005.md`](domain-models/use-cases/inv/UC-INV-005.md) (v1.1 Stable / PASSED).
-  - [x] Canonical specification finalized: [`SCR-INV-005.md`](ui-ux/screens/inv/SCR-INV-005.md) (v1.3 Stable — Screen #6, Level 3 Master Datasheet & Audited Governance Archetype, `EquipmentTechnicalSchematicCard.razor` `CMP-13`, 100% C# 14 / .NET 10 contracts, `TR-001`–`TR-011`, `ADR-003`/`ADR-005`/`ADR-008` traceability).
+  - [x] Canonical specification finalized: [`SCR-INV-005.md`](ui-ux/screens/inv/SCR-INV-005.md) (v1.3 Stable — Screen #6, Level 3 Master Datasheet & Audited Governance Archetype, `EquipmentTechnicalSchematicCard.razor` `CMP-13`, 100% C# 14 / .NET 10 contracts, `TR-001`–`TR-011`, `ADR-003`/`ADR-005`/`ADR-010` traceability).
   - [x] Execute Tier 0/1/2 UI audit, capture 1080p screenshot, and persist report (`PASSED`).
   - [x] Modernize visual ergonomics & tablet landscape responsiveness, extract shared [`portal-shell.css`](ui-ux/assets/portal-shell.css), and update high-res visual artifact.
 

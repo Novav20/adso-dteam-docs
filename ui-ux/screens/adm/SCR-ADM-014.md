@@ -295,19 +295,19 @@ sequenceDiagram
 
 #### 5.3.2. Brute-Force Lockout, Soft-Delete & Immediate Token Revocation (`FR-250`, `FR-260`, `FR-262`–`FR-264`, `NFR-268`, `NFR-271`)
 1. **Brute-Force Defense & Login Telemetry (`FR-260`, `AC-ADM-014-77`, `NFR-268`, `NFR-271`):** Each failed login invokes `User.RecordFailedLogin()`. When `FailedLoginAttempts` reaches the configured threshold (`5`), `LockoutUntilUtc` advances by `15 min`, an `AuditActionType.SECURITY_ALERT` entry appends to the immutable audit trail, and an immediate alert email is dispatched asynchronously (`NFR-270`, `NFR-271`). Conversely, successful authentication invokes `User.RegisterSuccessfulLogin()`, updating `LastLoginAtUtc` and resetting `FailedLoginAttempts = 0` (`AC-ADM-014-77`) reflected in `CMP-05` and `CMP-08`.
-2. **Suspension, Soft-Delete & Token Revocation (`FR-262`, `FR-264`, `AF-001`):** Invoking `User.Deactivate(reason)` sets `IsActive = false` and calls `AuthToken.Revoke()` across all active tokens belonging to that user (`ACCESS`, `SESSION_REFRESH`, `OFFLINE_LOTO_LEASE`), terminating active client sessions within $< 2\text{s}$ (`TR-006-NFR-402`, `TR-010`) while preserving historical operational foreign keys across Work Permits, Work Order Assignments, and Audit Logs. Selective or bulk revocations from `CMP-08` execute via `RevokeUserTokensCommand` carrying deterministic `AuditJustification` and `PreviousHash` sealing (`TR-001`, `ADR-003`).
-3. **Audited Account Restoration & Pre-Activation Onboarding Guard (`FR-259`, `FR-263`, `AF-004`):** `[Restore Account]` (`User.Activate()`) is hard-disabled whenever `HasPendingRegistrationToken == true` so newly provisioned accounts cannot bypass first-access password setup via administrative activation (`FR-259`). For previously active suspended or locked accounts (`!HasPendingRegistrationToken`), invoking `User.Activate()` with a mandatory `AuditJustification` sets `IsActive = true`, resets `FailedLoginAttempts = 0`, clears `LockoutUntilUtc = null`, and seals the justification inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
+2. **Suspension, Soft-Delete & Token Revocation (`FR-262`, `FR-264`, `AF-001`):** Invoking `User.Deactivate(reason)` (`POST /api/v1/security/users/{id}/lifecycle`) sets `IsActive = false` and calls `AuthToken.Revoke()` across all active tokens belonging to that user (`ACCESS`, `SESSION_REFRESH`, `OFFLINE_LOTO_LEASE`), pushing `/hubs/security` `SessionRevoked(SessionRevocationEvent)` ([DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)) to terminate active client sessions within $< 2\text{s}$ (`TR-006-NFR-402`, `TR-010`) while preserving historical operational foreign keys across Work Permits, Work Order Assignments, and Audit Logs. Selective or bulk revocations from `CMP-08` execute via `POST /api/v1/security/users/{id}/tokens/revoke` (`RevokeUserTokensCommand`) carrying `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), `If-Match: "{ConcurrencyToken}"` ([DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)), and deterministic `AuditJustification` / `PreviousHash` sealing (`TR-001`, `ADR-003`).
+3. **Audited Account Restoration & Pre-Activation Onboarding Guard (`FR-259`, `FR-263`, `AF-004`):** `[Restore Account]` (`User.Activate()`) is hard-disabled whenever `HasPendingRegistrationToken == true` so newly provisioned accounts cannot bypass first-access password setup via administrative activation (`FR-259`). For previously active suspended or locked accounts (`!HasPendingRegistrationToken`), invoking `User.Activate()` with a mandatory `AuditJustification`, `X-Idempotency-Key`, and `If-Match: "{ConcurrencyToken}"` sets `IsActive = true`, resets `FailedLoginAttempts = 0`, clears `LockoutUntilUtc = null`, and seals the justification inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
 4. **Root Administrator Account Guard (`FR-250`):** When inspecting or mutating the built-in `SEC-ROOT-01` account (`IsProtectedRootAccount == true`), administrative suspension (`User.Deactivate()`) and root-role unassignment (`User.RemoveRole()`) are strictly blocked in both `CMP-07` controls and server-side command validation.
 
 #### 5.3.3. Single-Use Password Reset & Credential Rotation Policy (`FR-261`, `FR-266`, `NFR-267`, `NFR-272`)
-1. **Single-Use Recovery (`FR-261`):** Triggering `[Issue Password Reset Link]` in `CMP-07` dispatches `IssuePasswordResetCommand` (sealed with deterministic `AuditJustification` and `PreviousHash`), generating an `AuthToken` with `AuthTokenPurpose.PASSWORD_RESET` and strict temporal expiration (`NFR-269`). Replay attempts after `AuthToken.MarkAsUsed()` are rejected (`DT-DM-DOC-002 §6.4`).
-2. **Non-Reuse & Complexity Governance (`FR-266`, `NFR-272`):** `CMP-11` submits `UpdatePasswordSecurityPolicyCommand` (requiring `AuditJustification` $\ge 15$ characters and SHA-256 `PreviousHash` sealing under `TR-001` / `ADR-003`) to govern `User.UpdatePassword(newPasswordHash)` complexity thresholds and `PasswordHistoryNonReuseCount` non-reuse verification (`FR-266`).
+1. **Single-Use Recovery (`FR-261`):** Triggering `[Issue Password Reset Link]` in `CMP-07` dispatches `POST /api/v1/security/users/{id}/password-reset` (`IssuePasswordResetCommand` with `X-Idempotency-Key` and `If-Match: "{ConcurrencyToken}"`, sealed with deterministic `AuditJustification` and `PreviousHash`), generating an `AuthToken` with `AuthTokenPurpose.PASSWORD_RESET` and strict temporal expiration (`NFR-269`). Replay attempts after `AuthToken.MarkAsUsed()` are rejected (`DT-DM-DOC-002 §6.4`).
+2. **Non-Reuse & Complexity Governance (`FR-266`, `NFR-272`):** `CMP-11` submits `PUT /api/v1/security/password-policy` (`UpdatePasswordSecurityPolicyCommand` carrying `X-Idempotency-Key`, `If-Match: "{ConcurrencyToken}"`, `AuditJustification` $\ge 15$ characters, and SHA-256 `PreviousHash` sealing under `TR-001` / `ADR-003`) to govern `User.UpdatePassword(newPasswordHash)` complexity thresholds and `PasswordHistoryNonReuseCount` non-reuse verification (`FR-266`).
 
 #### 5.3.4. Multi-Role Least-Privilege Union Consolidation & Cross-Role SoD (`FR-251`)
 1. **Effective Permission Union Formula:** When a non-root user $u$ is assigned a set of roles $R_u \neq \emptyset$, `ISodValidationEngine` computes the effective permission set deterministically in $< 50\text{ms}$:
    $$P_{\text{effective}}(u) = \bigcup_{r \in R_u} P_r$$
 2. **Cross-Role SoD Interlock (`FR-249`, `FR-251`):** Even when individual roles are internally compliant in [SCR-ADM-013](SCR-ADM-013.md), combining two otherwise valid roles on the same user (for example, `Maintenance Technician` granting `SAFETY:EXECUTE` paired with `HSEQ Inspector` granting `SAFETY:APPROVE`) can violate a toxic pair in $\mathcal{C}_{\text{SoD}}$ (`SOD-SAF-01`, `SOD-INV-01`, `SOD-MTTO-01`, `SOD-SYS-01`). Whenever $P_{\text{effective}}(u)$ contains both privileges of any SoD rule (or $R_u = \emptyset$), both `CMP-07`/`CMP-13` and `CMP-09` highlight the contributing roles in `--dt-color-alarm-critical` and hard-block save/provisioning.
-3. **Destructive PoLP Advisory & Audit Sealing:** If the union introduces destructive privileges (`DELETE`) on non-root accounts without a hard SoD conflict, the Role Union Evaluation panel (`CMP-07`) displays an amber Principle of Least Privilege notice requiring explicit justification ($\ge 15$ chars) in `CMP-13`. Clicking `[Discard]` reverts staged role toggles cleanly; clicking `[Save Assignment]` commits `AssignUserRolesCommand`, chains the SHA-256 `IntegrityHash` (`ADR-003`), and broadcasts SignalR session synchronization in $< 2\text{s}$ (`TR-010`).
+3. **Destructive PoLP Advisory & Audit Sealing:** If the union introduces destructive privileges (`DELETE`) on non-root accounts without a hard SoD conflict, the Role Union Evaluation panel (`CMP-07`) displays an amber Principle of Least Privilege notice requiring explicit justification ($\ge 15$ chars) in `CMP-13`. Clicking `[Discard]` reverts staged role toggles cleanly; clicking `[Save Assignment]` commits `PUT /api/v1/security/users/{id}/roles` (`AssignUserRolesCommand` with `X-Idempotency-Key` and `If-Match: "{ConcurrencyToken}"`), chains the SHA-256 `IntegrityHash` (`ADR-003`), and broadcasts SignalR `/hubs/security` `PermissionsUpdated(RolePermissionsUpdatedEvent)` in $< 2\text{s}$ (`TR-010`).
 
 ---
 
@@ -757,6 +757,7 @@ public record UserDirectoryRowDto
     public required bool HasActiveOfflineLotoLease { get; init; }
     public IReadOnlyList<string> AssignedRoleNames { get; init; } = [];
     public required string LatestIntegrityHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record UserDetailProfileDto
@@ -776,6 +777,7 @@ public record UserDetailProfileDto
     public required IReadOnlySet<Guid> AssignedRoleIds { get; init; }
     public IReadOnlyList<ActiveAuthTokenSummaryDto> ActiveTokens { get; init; } = [];
     public required string LatestIntegrityHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record ActiveAuthTokenSummaryDto
@@ -823,6 +825,7 @@ public record AssignUserRolesCommand
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
@@ -835,6 +838,7 @@ public record ExecuteUserLifecycleTransitionCommand
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
@@ -847,6 +851,7 @@ public record RevokeUserTokensCommand
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
@@ -858,6 +863,7 @@ public record IssuePasswordResetCommand
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
@@ -869,6 +875,7 @@ public record UpdatePasswordSecurityPolicyCommand
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
@@ -894,8 +901,8 @@ public record UserAuditEntryDto
 
 1. **Debounced Identity Uniqueness & `FR-251` Role Union Validator (`IIdentityValidationInterop`):**
    * Throttles `Username` and `Email` uniqueness queries ($250\text{ms}$ debounce) and evaluates multi-role Least-Privilege Union consolidation ($P_{\text{effective}}(u) = \bigcup P_r$) against active cross-role Segregation of Duties rules in $< 50\text{ms}$ (`FR-251`, `NFR-255`).
-2. **Real-Time Session Termination & Lockout Hub (`ISecuritySessionHub` / `TR-010`):**
-   * Broadcasts `AuthToken.Revoke()`, `User.Deactivate()`, and `AssignUserRolesCommand` invalidation events to connected clients so suspended or re-scoped sessions update within $< 2\text{s}$ (`FR-262`, `TR-006-NFR-402`, `TR-010-NFR-432`) and streams live brute-force lockout alerts (`FR-260`, `NFR-271`) to the administrator console.
+2. **Real-Time Session Termination & Lockout Hub (`/hubs/security` — `ISecuritySessionClient` / `TR-010`):**
+   * Subscribes to and processes canonical SignalR `/hubs/security` events (`SessionRevoked(SessionRevocationEvent)` and `PermissionsUpdated(RolePermissionsUpdatedEvent)` per [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)) so suspended or re-scoped sessions terminate or refresh within $< 2\text{s}$ (`FR-262`, `TR-006-NFR-402`, `TR-010-NFR-432`) and streams live brute-force lockout alerts (`FR-260`, `NFR-271`) to the administrator console.
 3. **Web Cryptography SHA-256 Digest Bridge (`ICryptoInterop`):**
    * Computes candidate `IntegrityHash` digests asynchronously in a Web Worker for user provisioning, multi-role assignment updates, suspensions, password resets, and restorations (`TR-001`, `ADR-003`).
 
@@ -939,7 +946,8 @@ public record UserAuditEntryDto
 | [TR-002](../../../requirements/common/TR-002.md)                                             | `CMP-08`, `CMP-09`                               | Encrypts sensitive identity attributes, password hashes, and token digests at rest.                                                                                   |
 | [TR-005](../../../requirements/common/TR-005.md)                                             | `CMP-05`, `CMP-09`, `CMP-10`                     | Enforces TLS/HTTPS encryption in transit across all identity provisioning, authentication, and token revocation requests.                                             |
 | [TR-006](../../../requirements/common/TR-006.md)                                             | `CMP-01` to `CMP-13`                             | Enforces RBAC role authorization, 8-hour token expiration (`TR-006-NFR-399`), and active user state verification (`TR-006-NFR-402`).                                  |
-| [TR-010](../../../requirements/common/TR-010.md)                                             | `CMP-02`, `CMP-07`, `CMP-08`, `CMP-10`           | Real-time SignalR session termination and permission synchronization upon user suspension or multi-role assignment update (`< 2s`).                                   |
+| [TR-010](../../../requirements/common/TR-010.md)                                             | `CMP-02`, `CMP-07`, `CMP-08`, `CMP-10`           | Real-time SignalR synchronization on `/hubs/security` (`ISecuritySessionClient`: `SessionRevoked`, `PermissionsUpdated`) upon user suspension, token revocation, or multi-role assignment update (`< 2s`). |
 | [TR-011](../../../requirements/common/TR-011.md)                                             | `CMP-01` to `CMP-13`                             | ANSI/ISA-101 HPHMI 90/10 neutral grayscale directory, zero badge inflation on active users, and WCAG 2.1 AA redundant coding on `LOCKED` and SoD conflict states.       |
 | [ADR-003](../../../architecture/adr/ADR-003.md)                                              | `CMP-11`, `CMP-12`, `CMP-13`                     | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on user lifecycle and policy audit records.                                 |
 | [ADR-005](../../../architecture/adr/ADR-005.md)                                              | `CMP-08`, `CMP-09`                               | Time-sequential UUIDv7 identifier generation for `User` and `AuthToken` primary keys.                                                                                 |
+| [ADR-007](../../../architecture/adr/ADR-007.md)                                              | `CMP-07`, `CMP-08`, `CMP-09`, `CMP-10`, `CMP-11`, `CMP-13` | Idempotency contract (`X-Idempotency-Key: {uuidv7}`) paired with PostgreSQL `xmin` optimistic concurrency (`If-Match`) across user provisioning, role assignment, lifecycle transitions, token revocation, password reset, and policy updates. |

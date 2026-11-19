@@ -429,7 +429,7 @@ Table "adm"."idempotency_logs" {
   "tenant_id" "UUID" [not null, note: 'Multi-tenant isolation boundary.']
   "request_hash" "VARCHAR(64)" [not null, note: 'SHA-256 fingerprint to prevent payload mutation.']
   "status" "VARCHAR(20)" [not null, note: 'Controlled state of the transaction (PROCESSING, COMPLETED, FAILED).']
-  "created_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC partitioning key for MVCC cleanup.']
+  "created_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC timestamp indexed for scheduled batched 24-hour TTL purge on the unpartitioned table (ADR-007).']
 }
 
 Table "adm"."audit_retention_partitions" {

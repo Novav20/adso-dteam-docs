@@ -257,8 +257,8 @@ sequenceDiagram
     UI->>Crypto: ComputeSha256Digest(PreviousHash, MovementPayload)
     Crypto-->>UI: Previews SHA-256 integrity seal
     WM->>UI: Clicks [Confirm and Generate Receipt]
-    UI->>API: POST /api/v1/inventory/transactions (RegisterInventoryTransactionCommand + X-Idempotency-Key)
-    API-->>UI: HTTP 201 Created (InventoryTransactionVoucherDto)
+    UI->>API: POST /api/v1/inventory/transactions (RegisterInventoryTransactionCommand + X-Idempotency-Key + If-Match)
+    API-->>UI: HTTP 201 Created (InventoryTransactionVoucherDto + updated ETag / ConcurrencyToken)
     UI-->>WM: Displays Technical Receipt Voucher Modal (CMP-10, FR-131) & refreshes ledger
 ```
 
@@ -300,7 +300,7 @@ sequenceDiagram
 2. **Technical Receipt Voucher (`FR-131`):** Every committed transaction returns an `InventoryTransactionVoucherDto` (§7.2.3) containing the sequential transaction folio, UTC timestamp, locator bin path, cost breakdown, and SHA-256 integrity hash, rendered immediately in `CMP-10`.
 
 #### 5.3.4. Background Retry Queue on Connectivity Drop (`NFR-136`, `AF-004`, `TR-007`, `ADR-007`)
-1. If a warehouse tablet experiences a wireless dropout during `RegisterInventoryTransactionCommand` submission, the client encrypts the payload in local SQLCipher storage (`TR-002`) with `X-Idempotency-Key: {uuidv7}` (`ADR-005`, `ADR-007`) and automatically retries via idempotent upsert ingestion upon reconnection ([DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007)).
+1. If a warehouse tablet experiences a wireless dropout during `RegisterInventoryTransactionCommand` submission, the client encrypts the payload in local SQLCipher storage (`TR-002`) with `X-Idempotency-Key: {uuidv7}` (`ADR-005`, `ADR-007`) and the observed `SparePart` `ConcurrencyToken` (`If-Match` per PostgreSQL `xmin` optimistic concurrency in [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)), and automatically retries via idempotent ingestion upon reconnection ([DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007)); if concurrent warehouse issues depleted stock during the outage, the backend rejects over-issues with HTTP `409 Conflict` for supervisor reconciliation.
 
 ---
 
@@ -734,6 +734,7 @@ public record SparePartAvailabilityDto
     public required decimal ReorderPoint { get; init; }
     public required decimal MaxCapacity { get; init; }
     public required decimal StandardUnitCost { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record KardexTransactionRowDto
@@ -784,6 +785,7 @@ public record RegisterInventoryTransactionCommand
     public required string Reason { get; init; }
     public required Guid OperatorUserId { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record InventoryTransactionVoucherDto
@@ -875,4 +877,4 @@ public record KardexAuditEntryDto
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-13` | ANSI/ISA-101 HPHMI 90/10 neutral grayscale ledger, zero badge inflation on routine movements, and WCAG 2.1 AA redundant coding. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-10`, `CMP-11` | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on Kardex audit records. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-08` | Time-sequential UUIDv7 identifier generation for `InventoryTransaction` primary keys. |
-| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-08` | Idempotent transaction processing via `X-Idempotency-Key` header during background retry reconciliation. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-08` | Idempotent transaction processing via `X-Idempotency-Key` header paired with PostgreSQL `xmin` optimistic concurrency (`If-Match`) during live and background retry stock reconciliation. |

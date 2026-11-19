@@ -288,7 +288,7 @@ sequenceDiagram
 2. **Standardized Units of Measure (`FR-181`):** `UnitOfMeasure` is constrained to standardized ISO 80000 / UNECE Rec 20 codes (`EA` Each, `SET` Set/Kit, `L` Liter, `KG` Kilogram, `M` Meter), preventing free-text unit synonyms from corrupting inventory conversions.
 
 #### 5.3.3. Versioned Policy Updates, Supplier Governance & Lifecycle Transitions (`FR-174`, `AF-003`, `TR-001`)
-1. **Versioned Policy & Attribute Mutation (`FR-174`, `AF-003`):** Invoking `SparePart.UpdateStockPolicy(policy, reorderPoint, maxCapacity)` ([DT-DM-DOC-002 §4.1](../../../domain-models/class/DT-DM-DOC-002.md#41-sparepart-aggregate-root)) or `Supplier.UpdateContactInfo(contactInfo, warrantyTerms)` ([DT-DM-DOC-002 §4.3](../../../domain-models/class/DT-DM-DOC-002.md#43-supplier-aggregate-root)) inside `CMP-08` increments the technical catalog revision and seals the mandatory `AuditJustification` inside a SHA-256 hash-chained `AuditLog` JSONB envelope ([DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), `CMP-11`, `TR-001`, `ADR-003`).
+1. **Versioned Policy & Attribute Mutation (`FR-174`, `AF-003`):** Invoking `PUT /api/v1/inventory/spare-parts/{id}/policy` (`UpdateSparePartPolicyCommand` carrying `X-Idempotency-Key: {uuidv7}` per [ADR-007](../../../architecture/adr/ADR-007.md) and `If-Match: "{ConcurrencyToken}"` per PostgreSQL `xmin` optimistic concurrency in [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) executes `SparePart.UpdateStockPolicy(policy, reorderPoint, maxCapacity)` ([DT-DM-DOC-002 §4.1](../../../domain-models/class/DT-DM-DOC-002.md#41-sparepart-aggregate-root)) or `Supplier.UpdateContactInfo(contactInfo, warrantyTerms)` ([DT-DM-DOC-002 §4.3](../../../domain-models/class/DT-DM-DOC-002.md#43-supplier-aggregate-root)) inside `CMP-08`, increments the technical catalog revision, and seals the mandatory `AuditJustification` inside a SHA-256 hash-chained `AuditLog` JSONB envelope ([DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), `CMP-11`, `TR-001`, `ADR-003`).
 2. **Controlled Lifecycle Archival ([DT-DM-DOC-001 §4.26](../../../domain-models/class/DT-DM-DOC-001.md#426-sparepartstatus)):** Transitioning a part to `SparePartStatus.OBSOLETE` blocks new purchase orders while retaining full historical Kardex and failure traceability; `SparePartStatus.SUSPENDED` temporarily quarantines the SKU during quality or supplier investigations.
 
 ---
@@ -729,6 +729,7 @@ public record SparePartMasterItemDto
     public string? EquipmentClassName { get; init; }
     public required int VersionNumber { get; init; }
     public required string LatestIntegrityHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record DuplicateSparePartCandidateDto
@@ -788,6 +789,7 @@ public record UpdateSparePartPolicyCommand
     public required string AuditJustification { get; init; }
     public required Guid ManagerUserId { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record PartMasterAuditEntryDto
@@ -854,3 +856,4 @@ public record PartMasterAuditEntryDto
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-13` | ANSI/ISA-101 HPHMI 90/10 neutral grayscale workspace, zero badge inflation on healthy SKUs, `--dt-font-caption` floor, and WCAG 2.1 AA redundant coding. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-08`, `CMP-09`, `CMP-11` | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on Part Master audit records. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-09` | Time-sequential UUIDv7 identifier generation for newly registered `SparePart` entities. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-08`, `CMP-09` | Mandatory `X-Idempotency-Key: {uuidv7}` header paired with PostgreSQL `xmin` optimistic concurrency (`If-Match`) across SKU onboarding and versioned replenishment policy updates. |

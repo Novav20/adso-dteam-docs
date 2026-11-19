@@ -7,6 +7,7 @@ workspace "System Deployment Model" {
             scada_engine = container "Sensor Emulator" "Instrumentation gateway; emulates and transmits sensor readings via MQTT." "SCADA Engine (C# / Python)" "ComponentShape"
             admin_portal = container "Web Admin Portal" "Web administrative interface for HSEQ supervision, WOs, and KPI dashboards." "Blazor Web App" "WebBrowser"
             iot_hub = container "Azure IoT Hub" "Managed broker for asynchronous high-frequency telemetry ingestion." "Azure IoT Hub Service" "Broker"
+            object_storage = container "Azure Blob Storage" "Valet Key object storage for ISO 14224 multimedia evidence and WORM cold-archived audit partitions (ADR-008, TR-002)." "Azure Storage Account" "Database"
             nginx_proxy = container "Nginx Reverse Proxy" "TLS 1.3 termination, reverse routing, and static web delivery." "Nginx (Alpine Linux)" "ComponentShape"
             backend_api = container "Backend API Monolith" "Modular monolith with DDD business logic and domain services." ".NET 10 Web API Monolith" "ComponentShape"
             postgres_db = container "PostgreSQL Master" "Relational master store, immutable audit (ADR-003), and time series." "PostgreSQL 18 + TimescaleDB" "Database"
@@ -25,6 +26,8 @@ workspace "System Deployment Model" {
         nginx_proxy -> backend_api "Internal routing of API requests and terminated WebSocket traffic." "HTTP (Docker Net) - Isolated Internal Net"
         backend_api -> postgres_db "Persistence operations via EF Core under Unit of Work pattern." "TCP/IP (Port 5432) - SSL / Private Net"
         backend_api -> redis_cache "Millisecond-latency idempotency key validation (SETNX) to prevent duplicate transactions." "TCP (RESP) (Port 6379) - TLS / Private Net"
+        backend_api -> object_storage "Issuance of short-lived Valet Key SAS tokens and sealed cold-archive partition uploads (ADR-008)." "HTTPS (Port 443) - TLS 1.3 / Managed Identity"
+        mobile_app -> object_storage "Direct binary upload of SHA-256 sealed ISO 14224 multimedia evidence bypassing the API monolith (ADR-008)." "HTTPS (Port 443) - TLS 1.3 / Pre-Signed SAS"
 
         # Deployment Environment
         production = deploymentEnvironment "Production" {
@@ -41,6 +44,7 @@ workspace "System Deployment Model" {
             }
             azure_cloud = deploymentNode "Azure Cloud Platform" "" "Managed Cloud Service (Azure Tenant)" {
                 iot_hub_inst = containerInstance iot_hub
+                object_storage_inst = containerInstance object_storage
             }
             cloud_host = deploymentNode "Cloud Host Server" "" "Execution Environment (Linux VPS)" {
                 docker_engine = deploymentNode "Docker Engine" "" "Docker Runtime" {

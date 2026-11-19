@@ -234,18 +234,20 @@ sequenceDiagram
     participant API as Safety Application Service
 
     Tech->>UI: Opens "LOTO Route" from Work Order
+    UI->>API: GET /api/v1/safety/loto-plans/work-orders/{workOrderId}
+    API-->>UI: Returns LotoIsolationPlanDto (with ETag / ConcurrencyToken)
     UI->>UI: Renders isolation boundary on SVG and initializes drawer (CMP-05)
-    UI->>IoT: Subscribes to real-time telemetry stream (V, I, P, Q)
+    UI->>IoT: Subscribes to /hubs/telemetry (ReceiveTelemetryReading, LotoHeartbeatAck, EmergencyEvacuationBroadcast) & /hubs/operations (PermitStatusChanged, WorkOrderStatusChanged)
     IoT-->>UI: Live sensor readings pushed (< 1s latency)
     UI->>UI: Maps readings to MAI scale bars (CMP-07)
     
     Tech->>UI: Inputs Padlock Tag IDs sequentially into CMP-06
-    UI->>API: Dispatches ConfirmCutoffPointCommand(cutoffId, padlockTag)
-    API-->>UI: Isolation step confirmed & acknowledged
+    UI->>API: POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm (ConfirmCutoffStepRequestDto + X-Idempotency-Key + If-Match)
+    API-->>UI: Isolation step confirmed & acknowledged (updated ConcurrencyToken)
     
     Tech->>UI: Selects verification method, enters reading, signs Try-Out (CMP-08)
-    UI->>API: Dispatches AttestTryOutCommand(attestationDto)
-    API-->>UI: Attestation & hardware-bound signature registered
+    UI->>API: POST /api/v1/safety/loto-plans/{planId}/try-out (TryOutAttestationDto + X-Idempotency-Key + If-Match)
+    API-->>UI: Attestation & hardware-bound signature registered (updated ConcurrencyToken)
     
     alt Hazardous Energy Detected (> threshold)
         API-->>UI: Safety Interlock Denied (Energy Detected / Uncertain)
@@ -255,12 +257,12 @@ sequenceDiagram
         API-->>UI: Safety Interlock Authorized (Zero State Proven)
         UI->>SEC: Enables [Start Work] control (CMP-09)
         Tech->>UI: Presses [Start Work]
-        UI->>API: Dispatches StartWorkOrderExecutionCommand(workOrderId)
+        UI->>API: POST /api/v1/maintenance/work-orders/{id}/start-execution (X-Idempotency-Key + If-Match)
         API-->>UI: Execution confirmed (WorkOrder IN_PROGRESS, TR-001 audit logged)
     end
 
     opt Re-energization Breach during Execution (AF-003)
-        API-->>UI: High-priority SignalR push: EmergencyEvacuationBroadcast (WorkOrder SUSPENDED)
+        API-->>UI: High-priority /hubs/telemetry push: EmergencyEvacuationBroadcast (WorkOrder SUSPENDED)
         UI->>UI: Deploys non-interactive local emergency beacon (touch locked out)
         UI->>Tech: Emits high-urgency audio sweep & visual strobe warning (AF-003)
     end
@@ -272,8 +274,9 @@ sequenceDiagram
    * LOTO vector overlay path is rendered in solid red (`--dt-color-alarm-critical`), indicating active hazardous energy.
    * Drawer `CMP-05` initializes in baseline state with checklist step 1 highlighted and Try-Out card disabled.
 
-2. **Data Subscriptions & Cache Initialization:**
-   * Establishes real-time duplex WebSocket stream via SignalR (`/hubs/telemetry`) subscribing to sensor topics mapped to the plan's cutoff points.
+2. **Data Subscriptions, API Idempotency & Cache Initialization:**
+   * Establishes real-time duplex WebSocket streams per [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010): `/hubs/telemetry` (`ITelemetryClient`: `ReceiveTelemetryReading`, `LotoHeartbeatAck`, `EmergencyEvacuationBroadcast`) and `/hubs/operations` (`IOperationsClient`: `PermitStatusChanged`, `WorkOrderStatusChanged`).
+   * Every mutating isolation command (`POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm`, `POST /api/v1/safety/loto-plans/{planId}/try-out`, and `POST /api/v1/maintenance/work-orders/{id}/start-execution`) mandates both `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guard offline-sync retries and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) so concurrent isolation updates fail deterministically with HTTP `409 Conflict`.
    * Queries local secure storage (`ISecureStorage` / `IOfflineStorage`) for an active `CryptographicOfflineLeaseDto` issued to the device (`TR-006`).
 
 ### 5.2. Spatial Navigation & Tactile Mechanics
@@ -600,6 +603,7 @@ public record LotoIsolationPlanDto
     public IReadOnlyList<CutoffPointStatusDto> CutoffPoints { get; init; } = [];
     public IReadOnlyList<ChecklistStepDto> ChecklistSteps { get; init; } = [];
     public IReadOnlyList<SimopsPermitSummaryDto> ActiveSimopsPermits { get; init; } = [];
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record CutoffPointStatusDto
@@ -640,6 +644,7 @@ public record ConfirmCutoffStepRequestDto
     public required int SequenceOrder { get; init; }
     public required Guid IsolationPointId { get; init; }
     public required string AppliedPadlockTagId { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record SimopsPermitSummaryDto
@@ -660,6 +665,7 @@ public record TryOutAttestationDto
     public required string TechnicianSignatureHash { get; init; }
     public required IReadOnlyDictionary<string, decimal> TelemetrySnapshot { get; init; }
     public required DateTimeOffset AttestedAtUtc { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
@@ -819,6 +825,7 @@ public enum WorkOrderStatus
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-07`, `CMP-12` | Enforces TLS/HTTPS and WSS encryption across all isolation command dispatches and real-time SignalR telemetry/evacuation streams. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-08`, `CMP-09`, `CMP-11` | Enforces RBAC role authorization and hardware-keystore verification for Try-Out signing and offline safety lease validation. |
 | [TR-007](../../../requirements/common/TR-007.md) | `CMP-05`, `CMP-06`, `CMP-08`, `CMP-11` | Offline Sync Outbox persists sequential padlock confirmations and signed Try-Out commands using UUIDv7 idempotency keys during field disconnections. |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-07`, `CMP-12` | Persistent real-time telemetry and emergency evacuation broadcast stream with $< 1\text{s}$ latency and automatic disconnect fail-safe detection. |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-07`, `CMP-12` | Persistent real-time SignalR streams on `/hubs/telemetry` (`ReceiveTelemetryReading`, `LotoHeartbeatAck`, `EmergencyEvacuationBroadcast`) and `/hubs/operations` (`PermitStatusChanged`, `WorkOrderStatusChanged`) with $< 1\text{s}$ latency and automatic disconnect fail-safe detection. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-04`, `CMP-07`, `CMP-13` | ANSI/ISA-101 HPHMI: 90/10 grayscale baseline with focal island de-emphasis, MAI zero-energy scales, Teal confirmation tokens, and `--dt-touch-target-mobile` gloved ergonomics. |
 | [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-08`, `CMP-09`, `CMP-11` | Cryptographic Offline Lease protocol governing bounded disconnected zero-energy field verification. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-06`, `CMP-08`, `CMP-09` | Mandatory `X-Idempotency-Key: {uuidv7}` header paired with PostgreSQL `xmin` optimistic concurrency (`If-Match`) across cutoff confirmation, Try-Out attestation, and Work Order execution start commands. |

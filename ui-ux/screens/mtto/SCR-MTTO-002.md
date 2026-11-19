@@ -212,7 +212,7 @@ sequenceDiagram
     Crypto-->>UI: Return validated SHA-256 hash stamp
     Tech->>UI: Clicks [Finalize Work Order] (CMP-09)
     alt Network Connected
-        UI->>API: POST /api/v1/work-orders/{id}/technical-closure (SubmitTechnicalClosureCommand + X-Idempotency-Key)
+        UI->>API: POST /api/v1/maintenance/work-orders/{id}/technical-closure (SubmitTechnicalClosureCommand + X-Idempotency-Key + If-Match)
         API-->>UI: HTTP 200 OK (WorkOrderTechnicallyCompletedEvent)
         UI-->>Tech: Display completion certificate modal & navigate to SCR-MTTO-026
     else Disconnected / Offline Outbox (AF-002)
@@ -228,6 +228,8 @@ sequenceDiagram
    * If the initial Work Order status is `SCHEDULED`, the client dispatches an execution start command, transitioning the Work Order status to `IN_PROGRESS` with server-side audit timestamp logging.
 2. **Local Cache Pre-Hydration (Offline Readiness):**
    * Pre-hydrates the ISO 14224 taxonomic datasets (maintainable items catalog, equipment class failure modes) from the local encrypted database ([TR-002](../../../requirements/common/TR-002.md)), guaranteeing zero network latency when populating dropdowns in field dead-zones.
+3. **Real-Time Safety & Status Channels ([TR-010](../../../requirements/common/TR-010.md), [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)):**
+   * Subscribes to `/hubs/telemetry` (`ITelemetryClient`) for `EmergencyEvacuationBroadcast(EvacuationAlertDto)` (triggering `AF-005` execution suspension) and `LotoHeartbeatAck(DateTimeOffset)` for `CMP-08` connectivity monitoring, while technical closure broadcasts `WorkOrderStatusChanged(WorkOrderTransitionEvent)` over `/hubs/operations` (`IOperationsClient`).
 
 ### 5.2. Mobile Ergonomics & Tactile Mechanics
 
@@ -285,11 +287,11 @@ sequenceDiagram
   6. If file reading throws an I/O error or hash evaluation fails, the UI enters state `Evidence Corrupt` (`AF-003`), halts finalization, and forces recapture.
 
 #### 5.3.4. Atomic Technical Closure Command Dispatch (`CMP-09`, `TR-001`)
-* Upon pressing `[Finalize Work Order]`, the application dispatches an atomic technical closure command (`SubmitTechnicalClosureCommand`) against the backend API endpoint `POST /api/v1/work-orders/{id}/technical-closure`.
+* Upon pressing `[Finalize Work Order]`, the application dispatches an atomic technical closure command (`SubmitTechnicalClosureCommand`) against the backend API endpoint `POST /api/v1/maintenance/work-orders/{id}/technical-closure`.
 * **Client Command Contract:**
-  * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries.
-  * **Command Payload:** Serializes `FailureRecordInputDto` (7-tier ISO 14224 classifications, downtime, technician notes), `ActualLaborHours`, and `List<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
-  * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (failure record insertion, Work Order status update to `COMPLETE`, history logging, and cryptographic audit chaining) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
+  * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries, plus `If-Match: "{ConcurrencyToken}"` enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169).
+  * **Command Payload:** Serializes `FailureRecordInputDto` (7-tier ISO 14224 classifications, downtime, technician notes), `ActualLaborHours`, `ConcurrencyToken`, and `IReadOnlyList<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
+  * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (concurrency verification, failure record insertion, Work Order status update to `COMPLETE`, history logging, cryptographic audit chaining, and `/hubs/operations` `WorkOrderStatusChanged` broadcast) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
   * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates downstream to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
   * **Failure / Disconnected Handling:** On network timeout or HTTP 5xx error, transitions to the Zero-Shift Offline Outbox Protocol (§5.3.5, [TR-007](../../../requirements/common/TR-007.md)).
 
@@ -302,7 +304,7 @@ sequenceDiagram
   5. The full atomic command payload is serialized into JSON and written to the encrypted local outbox protected by database encryption at rest ([TR-002](../../../requirements/common/TR-002.md)).
   6. Assigns a unique `IdempotencyKey` (UUIDv7) per `ADR-007`.
   7. Marks the local UI view as `COMPLETE (Pending Sync)`.
-  8. Background synchronization worker monitors connectivity; upon restoration, drains the outbox queue via idempotent `POST /api/v1/work-orders/{id}/technical-closure` with `X-Idempotency-Key` header.
+  8. Background synchronization worker monitors connectivity; upon restoration, drains the outbox queue via idempotent `POST /api/v1/maintenance/work-orders/{id}/technical-closure` with `X-Idempotency-Key` and `If-Match` headers.
 
 #### 5.3.6. Rotable Asset Swap Branching (`CMP-04`)
 * If the physical repair requires unmounting the pump unit, tapping `[Rotate Dismounted Equipment]` preserves the in-flight form draft in local memory and deploys the in-situ overlay modal [SCR-INV-025](../inv/SCR-INV-025.md). Upon completing the asset swap, `SCR-INV-025` returns the new mounted equipment serial number (`P-0101B`) and stamps the replacement reference into technical observations.
@@ -670,6 +672,7 @@ public record WorkOrderClosingContextDto
     public required IsolationStatus LotoIsolationStatus { get; init; }
     public required decimal EstimatedHours { get; init; }
     public decimal? ActualLaborHours { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record FailureRecordInputDto
@@ -726,6 +729,7 @@ public record SubmitTechnicalClosureCommand
     public required IReadOnlyList<SparePartAllocationDto> ConsumedSpares { get; init; }
     public required IReadOnlyList<MediaAttachmentDto> EvidenceAttachments { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 ```
 
@@ -776,7 +780,7 @@ public record SubmitTechnicalClosureCommand
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-09` | Enforces RBAC role authorization and authenticated technician session validation prior to technical closure submission. |
 | [TR-007](../../../requirements/common/TR-007.md) | `CMP-08`, `CMP-09` | Transactional Offline Sync Outbox queues completed technical closures during disconnected field operation with idempotent retry. |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-05`, `CMP-06` | Validates ISO 14224 hierarchical integrity linking Level 6 `EquipmentUnit` class taxonomy to Level 8 `MaintainableItem` failure records. |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-08` | Real-time synchronization via WebSockets/SignalR for telemetry connection health and outbox reconciliation. |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-08`, `CMP-09` | Real-time synchronization via `/hubs/telemetry` (`EmergencyEvacuationBroadcast`, `LotoHeartbeatAck`) and `/hubs/operations` (`WorkOrderStatusChanged`). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-10` | ANSI/ISA-101 HPHMI & ISO 9241-110 ergonomics: 90/10 neutral grayscale palette, Priority 4 diagnostic segregation, and `--dt-touch-target-mobile` gloved controls with `--dt-space-2` separation. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-07`, `CMP-08`, `CMP-09` | Client-side sequential UUIDv7 identifier generation for offline-captured failure records and media attachments. |
 | [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-01`, `CMP-08` | Integration with Cryptographic Offline Lease protocol for disconnected field operations. |

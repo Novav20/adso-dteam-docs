@@ -31,7 +31,7 @@ Spacing and sizing are governed by an **8px** base grid system (with a 4px sub-f
 
 > **Multiplier Scale of $4\text{px}$ / $0.25\text{rem}$:**  
 > The `--dt-space-N` naming utilizes a **linear multiplier** convention where $N$ represents the factor by which the $4\text{px}$ base unit is multiplied ($N \times 4\text{px}$ or $N \times 0.25\text{rem}$), an industry standard (Tailwind CSS / W3C DTCG).  
-> From $16\text{px}$, the scale deliberately omits odd/intermediate values like `--dt-space-5` ($20\text{px}$) or `--dt-space-7` ($28\text{px}$) to ensure all larger spacings are **strictly multiples of 8px** ($24\text{px} = 3 \times 8$, $32\text{px} = 4 \times 8$, $48\text{px} = 6 \times 8$, $64\text{px} = 8 \times 8$), preserving visual harmonic alignment of the layout and preventing design decision paralysis.
+> From $16\text{px}$ upward, the scale deliberately omits odd intermediate multipliers ($5\times 4\text{px} = 20\text{px}$ and $7\times 4\text{px} = 28\text{px}$) to ensure all larger spacings are **strictly multiples of 8px** ($24\text{px} = 3 \times 8$, $32\text{px} = 4 \times 8$, $48\text{px} = 6 \times 8$, $64\text{px} = 8 \times 8$), preserving visual harmonic alignment of the layout and preventing design decision paralysis.
 
 ### 2.1. Spacing Scale
 
@@ -174,10 +174,8 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-color-text-muted             | --dt-primitive-gray-420     | --dt-primitive-gray-620       | Units of measurement / Timestamps (Dark Theme adjusted to 4.55:1 WCAG AA) |
 | --dt-color-text-body              | --dt-primitive-gray-280     | --dt-primitive-gray-850       | Main text / Table values                                      |
 | --dt-color-text-primary           | --dt-primitive-gray-10      | --dt-primitive-gray-980       | Titles / Critical values                                              |
-| --dt-color-mai-track              | --dt-primitive-gray-700     | --dt-primitive-gray-100       | Analog MAI indicator track background                              |
-| --dt-color-mai-normal-zone        | --dt-primitive-blue-700     | --dt-primitive-blue-200       | Normal operation range strip in MAI                              |
-| --dt-color-mai-pointer            | --dt-primitive-gray-10      | --dt-primitive-gray-980       | MAI current value pointer                                             |
-| --dt-color-mai-interlock          | --dt-primitive-gray-10      | --dt-primitive-gray-980       | MAI interlock trip limit marker                    |
+
+> **Note:** Semantic color tokens for Moving Analog Indicators (`--dt-color-mai-*`) are defined exclusively in [§6.1.1 Dual-Theme Semantic Token Table for MAI](#611-dual-theme-semantic-token-table-for-mai) to preserve single-source-of-truth generation with zero duplicate CSS declarations.
 
 ### 3.3. Alarm and Safety Semantics (10% Reserved)
 

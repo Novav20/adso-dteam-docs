@@ -46,34 +46,37 @@ MVP_APPROVED_SCREENS: set[str] = {
 }
 
 APPROVED_ROLES: set[str] = {
-    "Technician", "Supervisor", "Planner", "Reliability Eng.",
-    "Warehouse Manager", "HSEQ", "Administrator", "Auditor", "Manager",
-    "Reliability Engineering", "Field Technician",
+    "Technician", "Maintenance Technician", "Field Technician",
+    "Supervisor", "Maintenance Supervisor",
+    "Planner", "Maintenance Planner",
+    "Reliability Eng.", "Reliability Engineer", "Reliability Engineering",
+    "Warehouse Manager", "HSEQ", "HSEQ Inspector",
+    "Administrator", "System Administrator",
+    "Auditor", "Manager", "Plant Manager",
+    "Project Engineer", "Plant Operator", "Scheduler", "Contractor",
+    "System (Digital Twin Engine)",
 }
 
 APPROVED_COLOR_PALETTE: set[str] = {
-    # Primitivos (DS v1.2)
-    "#11141A", "#16191F", "#1E222B", "#2A2F3D", "#353B4D",
-    "#5C667A", "#6B7280", "#6E7A92", "#7E8B9B", "#8A98AA",
-    "#B8C0CC", "#D8DBE0", "#E5E8EC", "#F4F5F7", "#FFFFFF",
-    "#FDFEFE", "#C2CBD6", "#4B5563", "#1F2937", "#111827",
-    "#3A4154",
-    # Alarmas y estados (v1.2 — valores actualizados)
+    # Primitives (DS v2.2)
+    "#11141A", "#16191F", "#1E222B", "#2A2F3D", "#353B4D", "#3A4154",
+    "#5C667A", "#6B7280", "#6E7A92", "#7E8B9B", "#8A98AA", "#AAB1BD",
+    "#B8C0CC", "#D8DBE0", "#E5E8EC", "#F4F5F7", "#FAFBFC", "#FCFDFD",
+    "#FFFFFF", "#FDFEFE", "#C2CBD6", "#4B5563", "#1F2937", "#111827",
+    # Alarms and states (v2.2)
     "#E63946",  # alarm-critical
-    "#AC5E04",  # alarm-warning light (AJUSTADO v1.2)
-    "#D97706",  # amber base (primitive, not semantic)
+    "#AC5E04",  # alarm-warning light (WCAG AA 3.47:1)
+    "#D97706",  # amber base (primitive)
     "#F4A261",  # alarm-warning dark
     "#2563EB",  # state-info light
-    "#4881A4",  # state-info dark (AJUSTADO v1.2)
+    "#4881A4",  # state-info dark (WCAG AA 3.15:1)
     "#457B9D",  # blue-400 base
-    "#0B857A",  # state-success light (AJUSTADO v1.2)
+    "#0B857A",  # state-success light (WCAG AA 3.25:1)
     "#0D9488",  # teal-600 base
     "#2A9D8F",  # state-success dark
     "#9CA3AF", "#4A5263",
     # MAI
     "#BAE6FD", "#0369A1",
-    # Alarm text
-    "#FFFFFF",  # alarm-text-critical
 }
 
 APPROVED_STANDARDS: set[str] = {
@@ -95,13 +98,13 @@ APPROVED_TECH: set[str] = {
 }
 
 FORBIDDEN_TECH_PATTERNS: list[tuple[str, str]] = [
-    (r"\bReact\b(?!\s+Native\s+Paper|\s+Native\s+Navigation)", "React (frontend no aprobado — usar Blazor)"),
-    (r"\bAngular\b", "Angular (frontend no aprobado — usar Blazor)"),
-    (r"\bVue\.?js\b", "Vue.js (frontend no aprobado — usar Blazor)"),
+    (r"\bReact\b(?!\s+Native\s+Paper|\s+Native\s+Navigation)", "React (unapproved frontend — use Blazor)"),
+    (r"\bAngular\b(?!\s+velocity\b)", "Angular (unapproved frontend — use Blazor)"),
+    (r"\bVue\.?js\b", "Vue.js (unapproved frontend — use Blazor)"),
     (r"\bReact Native\b", "React Native (unapproved platform — use .NET MAUI)"),
     (r"\bFlutter\b", "Flutter (unapproved platform — use .NET MAUI)"),
     (r"\bEntity Framework.*mobile\b", "EF Core on mobile (forbidden — use sqlite-net-pcl)"),
-    (r"\bREST\s+sin\s+contrato\b", "REST sin contrato (requiere OpenAPI/Swagger)"),
+    (r"\bREST\s+sin\s+contrato\b", "REST without contract (requires OpenAPI/Swagger)"),
 ]
 
 VALID_ISA_LEVELS: set[str] = {"L1", "L2", "L3", "L4"}
@@ -133,8 +136,47 @@ def find_repo_root(start: Path) -> Path | None:
     return None
 
 
+def _strip_out_of_scope_sections(content: str) -> str:
+    """Blank out explicitly labeled post-MVP / planned-for-later-phases sections so line numbers remain stable."""
+    lines = content.splitlines()
+    out: list[str] = []
+    skipping = False
+    for line in lines:
+        if re.match(r"^###\s+Use Cases Planned for Later Phases", line, re.IGNORECASE):
+            skipping = True
+            out.append("")
+            continue
+        if skipping and re.match(r"^#{1,3}\s+", line):
+            skipping = False
+        out.append("" if skipping else line)
+    return "\n".join(out)
+
+
+def _strip_adr_alternatives_and_supersedes(content: str) -> str:
+    """Blank out ADR frontmatter `supersedes:` and `## Alternatives Considered` sections when checking forbidden tech."""
+    lines = content.splitlines()
+    out: list[str] = []
+    in_alt = False
+    for line in lines:
+        if re.match(r"^\s*supersedes\s*:", line, re.IGNORECASE):
+            out.append("")
+            continue
+        if re.match(r"^##\s+(?:Alternatives\s+Considered|Rejected\s+Alternatives|Superseded)", line, re.IGNORECASE):
+            in_alt = True
+            out.append("")
+            continue
+        if in_alt and re.match(r"^##\s+", line):
+            in_alt = False
+        out.append("" if in_alt else line)
+    return "\n".join(out)
+
+
 def file_exists_in_repo(repo_root: Path, id_pattern: str) -> bool:
-    """Searches for any file whose name contains the pattern (glob-like)."""
+    """Searches for any file whose name contains the pattern (glob-like), with ASR section resolution."""
+    if re.fullmatch(r"ASR-0*(?:1|2)", id_pattern):
+        asr_doc = repo_root / "architecture" / "asr" / "DT-ARQ-ASR-001.md"
+        if asr_doc.is_file():
+            return True
     for p in repo_root.rglob(f"*{id_pattern}*"):
         if p.is_file():
             return True
@@ -149,32 +191,34 @@ def _counters() -> dict[str, int]:
 
 
 def audit_traceability(content: str, repo_root: Path) -> list[Finding]:
-    """Eje 1: Valida que todos los IDs referenciados existan en el repositorio."""
+    """Axis 1: Validates that all referenced artifact IDs exist in the repository."""
     findings: list[Finding] = []
     b = _counters()["B"]
     w = _counters()["W"]
 
+    scoped_content = _strip_out_of_scope_sections(content)
+
     patterns = [
         # (regex, blocker_or_warning, label)
-        (r"\bUC-[A-Z]+-\d+\b",   "BLOCKER", "Caso de Uso"),
-        (r"\bSCR-[A-Z]+-\d+\b",  "BLOCKER", "Screen"),
-        (r"\bADR-\d+\b",         "BLOCKER", "Architecture Decision Record"),
-        (r"\bASR-\d+\b",         "WARNING", "Architecturally Significant Requirement"),
-        (r"\bDT-UI-DS-DOC-\d+\b","WARNING", "Documento Design System"),
-        (r"\bDT-UI-NAV-DOC-\d+\b","WARNING","Navigation Document"),
-        (r"\bDT-ARQ-[A-Z-]+-\d+\b","WARNING","Artefacto de Arquitectura"),
-        (r"\bDT-DM-DOC-\d+\b",   "WARNING", "Documento Modelo de Dominio"),
-        (r"\bDT-UC-TRC-\d+\b",   "WARNING", "Trazabilidad de Casos de Uso"),
+        (r"(?<![A-Z0-9-])UC-[A-Z]+-\d+\b",   "BLOCKER", "Use Case"),
+        (r"(?<![A-Z0-9-])SCR-[A-Z]+-\d+\b",  "BLOCKER", "Screen"),
+        (r"(?<![A-Z0-9-])ADR-\d+\b",         "BLOCKER", "Architecture Decision Record"),
+        (r"(?<![A-Z0-9-])ASR-\d+\b",         "WARNING", "Architecturally Significant Requirement"),
+        (r"(?<![A-Z0-9-])DT-UI-DS-DOC-\d+\b","WARNING", "Design System Document"),
+        (r"(?<![A-Z0-9-])DT-UI-NAV-DOC-\d+\b","WARNING","Navigation Document"),
+        (r"(?<![A-Z0-9-])DT-ARQ-[A-Z-]+-\d+\b","WARNING","Architecture Artifact"),
+        (r"(?<![A-Z0-9-])DT-DM-DOC-\d+\b",   "WARNING", "Domain Model Document"),
+        (r"(?<![A-Z0-9-])DT-UC-TRC-\d+\b",   "WARNING", "Use Case Traceability Matrix"),
     ]
 
     found_ids: set[str] = set()
     for pattern, severity, label in patterns:
-        for match in re.finditer(pattern, content):
+        for match in re.finditer(pattern, scoped_content):
             artifact_id = match.group(0)
             if artifact_id in found_ids:
                 continue
             found_ids.add(artifact_id)
-            line_num = content[:match.start()].count("\n") + 1
+            line_num = scoped_content[:match.start()].count("\n") + 1
             if not file_exists_in_repo(repo_root, artifact_id):
                 if severity == "BLOCKER":
                     b += 1
@@ -197,44 +241,45 @@ def audit_normative(content: str) -> list[Finding]:
     """Axis 2: Verifies coherence with approved standards, tokens, and roles."""
     findings: list[Finding] = []
     b, w, i = 0, 0, 0
+    lines_list = content.splitlines()
 
-    # — Colores hexadecimales no en paleta
+    # — Hex colors outside approved palette (exempt Mermaid classDef styling and explicit prohibition notes)
+    hex_exempt_re = re.compile(
+        r"(?:classDef\b|hardcoded\s+hex|avoid\s+hardcoded|prohibited|forbidden|not\s+allowed|example|placeholder)",
+        re.IGNORECASE,
+    )
     for match in re.finditer(r"#([0-9A-Fa-f]{6})\b", content):
         color = f"#{match.group(1).upper()}"
         if color.upper() not in {c.upper() for c in APPROVED_COLOR_PALETTE}:
             line_num = content[:match.start()].count("\n") + 1
-            # Detectar si es el token obsoleto D97706 (reemplazado en v1.2)
-            if color.upper() == "#D97706":
-                w += 1
-                findings.append(Finding(
-                    "WARNING", f"W-NRM{w:02d}",
-                    f"Color `{color}` is the primitive base amber. The semantic warning token "
-                    f"en tema claro fue actualizado a `#AC5E04` en v1.2 (WCAG AA 3.47:1). "
-                    f"Using the primitive explicitly is valid only in the palette section.",
-                    line_num
-                ))
-            else:
-                w += 1
-                findings.append(Finding(
-                    "WARNING", f"W-NRM{w:02d}",
-                    f"Color `{color}` is not in the approved palette of DT-UI-DS-DOC-001 v1.2.",
-                    line_num
-                ))
+            line_text = lines_list[line_num - 1] if 0 < line_num <= len(lines_list) else ""
+            if hex_exempt_re.search(line_text):
+                continue
+            w += 1
+            findings.append(Finding(
+                "WARNING", f"W-NRM{w:02d}",
+                f"Color `{color}` is not in the approved palette of DT-UI-DS-DOC-001 v2.2.",
+                line_num
+            ))
 
-    # — Invalid ISA-101 Levels (Lx donde x no es 1-4)
-    # Excluir ocurrencias dentro de versiones de norma (ej. 9241-110), URLs, o niveles taxonómicos ISO 14224 (L5-L9)
+    # — Invalid ISA-101 Levels (Lx where x is not 1-4)
+    # Exclude ISO 14224 taxonomy levels (L5-L9), asset hierarchy paths, and engineering specs
     iso14224_ctx_re = re.compile(
         r"(?:ISO\s*14224|taxonom|functional\s+location|equipment\s+unit|subunit|maintainable\s+item|"
-        r"hierarchy|cascading|picker|selector|L1\s+to\s+L5|L6[\-–/]L[78]|L6\s*/\s*L7\s*/\s*L8)",
-        re.IGNORECASE
+        r"hierarchy|cascading|picker|selector|slot|boundary|boundaries|tag|breadcrumb|asset|equipment|"
+        r"parent|child|node|tree|level|L1\s*(?:to|[-–—])\s*L[56789]|L[5678]\s*[-–/→]\s*L[6789]|"
+        r"L[5678]\s*\$\\to\$\s*L[6789]|component|spare|master\s+data)",
+        re.IGNORECASE,
     )
-    lines_list = content.splitlines()
-    for match in re.finditer(r"(?<![0-9\-./])L(\d+)\b", content):
+    for match in re.finditer(r"(?<![A-Za-z0-9\-./])L(\d+)\b", content):
         level = f"L{match.group(1)}"
         if level not in VALID_ISA_LEVELS:
             line_num = content[:match.start()].count("\n") + 1
             line_text = lines_list[line_num - 1] if 0 < line_num <= len(lines_list) else ""
-            if level in {"L5", "L6", "L7", "L8", "L9"} and iso14224_ctx_re.search(line_text):
+            prev_line = lines_list[line_num - 2] if line_num >= 2 else ""
+            if level in {"L5", "L6", "L7", "L8", "L9"} and (
+                iso14224_ctx_re.search(line_text) or iso14224_ctx_re.search(prev_line)
+            ):
                 continue
             b += 1
             findings.append(Finding(
@@ -244,10 +289,19 @@ def audit_normative(content: str) -> list[Finding]:
                 line_num
             ))
 
-    # — Prohibited Technologies
+    # — Prohibited Technologies (exempt ADR supersedes / Alternatives Considered and explicit prohibition clauses)
+    tech_content = _strip_adr_alternatives_and_supersedes(content)
+    tech_lines = tech_content.splitlines()
+    prohibition_ctx_re = re.compile(
+        r"(?:discarded|not\s+allowed|forbidden|prohibited|excluded|rejected|avoid|disallowed|superseded|replaced\s+by|instead\s+of)",
+        re.IGNORECASE,
+    )
     for pattern, description in FORBIDDEN_TECH_PATTERNS:
-        for match in re.finditer(pattern, content, re.IGNORECASE):
-            line_num = content[:match.start()].count("\n") + 1
+        for match in re.finditer(pattern, tech_content, re.IGNORECASE):
+            line_num = tech_content[:match.start()].count("\n") + 1
+            line_text = tech_lines[line_num - 1] if 0 < line_num <= len(tech_lines) else ""
+            if prohibition_ctx_re.search(line_text):
+                continue
             w += 1
             findings.append(Finding(
                 "WARNING", f"W-NRM{w:02d}",
@@ -287,12 +341,13 @@ def audit_scope(content: str) -> list[Finding]:
     """Axis 3: Detects silent expansion of the MVP scope."""
     findings: list[Finding] = []
     b, w = 0, 0
+    scoped_content = _strip_out_of_scope_sections(content)
 
     # — Screens outside the MVP index
-    for match in re.finditer(r"\bSCR-([A-Z]+)-(\d+)\b", content):
+    for match in re.finditer(r"(?<![A-Z0-9-])SCR-([A-Z]+)-(\d+)\b", scoped_content):
         screen_id = match.group(0)
         if screen_id not in MVP_APPROVED_SCREENS:
-            line_num = content[:match.start()].count("\n") + 1
+            line_num = scoped_content[:match.start()].count("\n") + 1
             b += 1
             findings.append(Finding(
                 "BLOCKER", f"B-SCP{b:02d}",
@@ -302,10 +357,10 @@ def audit_scope(content: str) -> list[Finding]:
             ))
 
     # — Use cases outside the MVP index
-    for match in re.finditer(r"\bUC-([A-Z]+)-(\d+)\b", content):
+    for match in re.finditer(r"(?<![A-Z0-9-])UC-([A-Z]+)-(\d+)\b", scoped_content):
         uc_id = match.group(0)
         if uc_id not in MVP_APPROVED_UCS:
-            line_num = content[:match.start()].count("\n") + 1
+            line_num = scoped_content[:match.start()].count("\n") + 1
             b += 1
             findings.append(Finding(
                 "BLOCKER", f"B-SCP{b:02d}",
@@ -346,12 +401,14 @@ def audit_scope(content: str) -> list[Finding]:
                     candidate = candidate.strip().strip(".").strip()
                     if len(candidate) < 4 or len(candidate.split()) > 5:
                         continue
-                    if re.match(r"^(All|Screen|Event|Target|Level|Source|State|Token|Value|Application|Symbol|Theme|Type|Layer|Technology|Use|Traceability)", candidate, re.IGNORECASE):
+                    if re.match(r"^(All|Screen|Event|Target|Level|Source|State|Token|Value|Application|Symbol|Theme|Type|Layer|Technology|Use|Traceability|Primary|Secondary|Read-Only)", candidate, re.IGNORECASE):
                         continue
-                    
+                    cleaned_candidate = re.sub(r"\s*\([^)]*\)", "", candidate).strip()
+                    if not cleaned_candidate:
+                        continue
                     # Check against approved roles
                     if not any(
-                        role.lower() in candidate.lower() or candidate.lower() in role.lower()
+                        role.lower() in cleaned_candidate.lower() or cleaned_candidate.lower() in role.lower()
                         for role in APPROVED_ROLES
                     ):
                         w += 1

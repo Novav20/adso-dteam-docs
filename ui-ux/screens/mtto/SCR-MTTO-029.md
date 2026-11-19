@@ -261,7 +261,7 @@ sequenceDiagram
     UI->>Crypto: ComputeSha256Digest(PreviousHash, BoundaryMutationPayload)
     Crypto-->>UI: Updates candidate SHA-256 seal preview (CMP-10)
     Eng->>UI: Enters AuditJustification & clicks [Save Boundary Definition] (CMP-12)
-    UI->>API: PUT /api/v1/taxonomy/equipment-units/{id}/boundaries (SaveEquipmentBoundariesCommand + X-Idempotency-Key)
+    UI->>API: PUT /api/v1/taxonomy/equipment-units/{id}/boundaries (SaveEquipmentBoundariesCommand + X-Idempotency-Key + If-Match)
     API-->>UI: HTTP 200 OK (EquipmentBoundariesUpdatedEvent)
     UI->>Store: Clear local draft cache
     UI-->>Eng: Renders Teal confirmation, updates Commissioning Gate (CMP-03), enters Consultation Mode
@@ -307,7 +307,7 @@ sequenceDiagram
    When a candidate item is linked or validated, the system executes asynchronous uniqueness verification in $< 1\text{s}$ (`NFR-099`). Any conflict triggers State 7 (`AF-001`), highlighting the row with `--dt-color-alarm-critical` and `#icon-ban`, displaying the owning unit tag, and hard-disabling `[Save Boundary Definition]`.
 
 #### 5.3.3. Client Command Dispatch & Cryptographic Audit Chain (`FR-098`, `NFR-095`, `TR-001`, `ADR-003`)
-1. **Atomic Command Dispatch (`NFR-095`):** Clicking `[Save Boundary Definition]` in `CMP-12` requires a mandatory `AuditJustification` ($\ge 15$ characters) persisted inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), and dispatches `SaveEquipmentBoundariesCommand` (§7.2.3) to `PUT /api/v1/taxonomy/equipment-units/{id}/boundaries` with header `X-Idempotency-Key: {uuidv7}`. On `HTTP 200 OK`, the client clears local draft storage, updates `CMP-03` Commissioning Gate state, prepends the committed revision to `CMP-10`, and returns cleanly to Read-Only Consultation Mode; on conflict or validation failure (`HTTP 409` / `422`), `CMP-11` surfaces the server diagnostic without data loss.
+1. **Atomic Command Dispatch (`NFR-095`):** Clicking `[Save Boundary Definition]` in `CMP-12` requires a mandatory `AuditJustification` ($\ge 15$ characters) persisted inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), and dispatches `SaveEquipmentBoundariesCommand` (§7.2.3) to `PUT /api/v1/taxonomy/equipment-units/{id}/boundaries` with headers `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)). On `HTTP 200 OK`, the client clears local draft storage, updates `CMP-03` Commissioning Gate state, prepends the committed revision to `CMP-10`, and returns cleanly to Read-Only Consultation Mode; on concurrency conflict or validation failure (`HTTP 409` / `422`), `CMP-11` surfaces the server diagnostic without data loss.
 2. **Chained Cryptographic Digest Preview (`FR-098`, `TR-001`, `ADR-003`):** `ICryptoInterop` computes the candidate SHA-256 integrity preview displayed in `CMP-10`:
    $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{EngineerUserId} \parallel \text{EquipmentUnitId} \parallel \text{BoundaryStart} \parallel \text{BoundaryEnd} \parallel \text{SubunitItemTreeHash} \parallel \text{AuditJustification} \parallel \text{TimestampUtc})$$
 
@@ -882,6 +882,7 @@ public record EquipmentBoundaryCardDto
     public IReadOnlyList<BoundaryAuditEntryDto> AuditHistory { get; init; } = [];
     public required string PreviousIntegrityHash { get; init; }
     public required string LatestIntegrityHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record EquipmentBoundaryHeaderDto
@@ -995,6 +996,7 @@ public record SaveEquipmentBoundariesCommand
     public required string AuditJustification { get; init; }
     public required Guid EngineerUserId { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 ```
 
@@ -1055,3 +1057,4 @@ public record SaveEquipmentBoundariesCommand
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-12` | ANSI/ISA-101 HPHMI 90/10 neutral grayscale workspace, flat 2D boundary diagram, WCAG 2.1 AA redundant coding, and [DT-UI-DS-DOC-001 §6.7](../../DT-UI-DS-DOC-001.md#67-relational-entity-lookup-modal-pattern-lov-list-of-values) Tier A lookup ergonomics. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-10`, `CMP-12` | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on boundary configuration commits. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-06`, `CMP-12` | Time-sequential UUIDv7 identifier generation for newly created `Subunit` and `MaintainableItem` entities. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-12` | Idempotent boundary configuration updates via `X-Idempotency-Key` header on `PUT /api/v1/taxonomy/equipment-units/{id}/boundaries`. |

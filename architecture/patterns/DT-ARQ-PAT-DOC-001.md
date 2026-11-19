@@ -40,7 +40,7 @@ standard:
 
 ### State
 * **Location:** Work order execution flow (`WorkOrder.currentStatus`).
-* **Purpose:** Encapsulates state transitions (`PLANNING` $\to$ `WAITING_PARTS` $\to$ `SCHEDULED` $\to$ `IN_PROGRESS` $\to$ `COMPLETE` $\to$ `CLOSED`). Encapsulates safety preconditions (such as blocking `IN_PROGRESS` if LOTO or PTW are not verified) within dedicated state classes, eliminating nested `switch/if-else`.
+* **Purpose:** Encapsulates state transitions (`PLANNING` $\to$ `WAITING_PARTS` $\to$ `SCHEDULED` $\to$ `IN_PROGRESS` $\leftrightarrow$ `SUSPENDED` $\to$ `COMPLETE` $\to$ `CLOSED`). Encapsulates safety preconditions (such as blocking `IN_PROGRESS` if LOTO or PTW are not verified, or suspending active execution via `SuspendExecution()` upon live Zero Energy telemetry violation) within dedicated state classes, eliminating nested `switch/if-else`. Domain calculations strictly use `decimal`, whereas IEEE-754 `double` is restricted exclusively to non-persisted 2D/3D SVG presentation viewport coordinates (`DT-ARQ-DB-DOC-001 §2`).
 
 ### Observer
 * **Location:** Reactive Zero Energy monitoring (`IsolationPoint` as subject, `WorkOrder` as observer).

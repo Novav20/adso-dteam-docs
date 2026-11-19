@@ -201,13 +201,13 @@ sequenceDiagram
     participant MTTO as Maintenance Planning Service (mtto)
 
     Planner->>UI: Accesses "Create Preventive Plan"
-    UI->>TAX: Query Equipment Units (Level 6) & Master Classes
+    UI->>TAX: GET /api/v1/taxonomy/equipment-units/lookup
     TAX-->>UI: Returns active equipment catalog
     Planner->>UI: Selects Equipment Unit (P-0101A)
-    UI->>TAX: Verify BoundaryStart & BoundaryEnd (MTTO-029)
+    UI->>TAX: GET /api/v1/taxonomy/equipment-units/{id}/boundaries (MTTO-029)
     alt Boundaries Configured
         TAX-->>UI: Boundaries Validated (CMP-04 Teal)
-        UI->>TAX: Load Subunits (L7) & Maintainable Items (L8)
+        UI->>TAX: GET /api/v1/taxonomy/equipment-units/{id}/subunits
         TAX-->>UI: Populates cascading selectors (CMP-03)
     else Boundaries Missing (AF-002)
         TAX-->>UI: Boundaries NULL
@@ -217,16 +217,21 @@ sequenceDiagram
     UI->>UI: Evaluates Criticality (9) vs. Interval (12 Wks) -> Deploys AF-003 Warning
     Planner->>UI: Confirms 8 Weeks or enters CadenceOverrideJustification
     Planner->>UI: Clicks "Save & Schedule Preventive Plan"
-    UI->>MTTO: CreateMaintenancePlanCommand
-    MTTO-->>UI: Returns PlanId & InitialWorkOrderId
+    UI->>MTTO: POST /api/v1/maintenance/plans (CreateMaintenancePlanCommand + X-Idempotency-Key)
+    MTTO-->>UI: HTTP 201 Created (PlanId & InitialWorkOrderId)
     UI-->>Planner: Renders Teal confirmation & projected execution date
 ```
 
-1. **Taxonomic Hierarchy Loading:** When an Equipment Unit (Level 6) is selected, the system filters `AvailableSubunits` where `EquipmentUnitId` matches the selected unit. Selecting a Subunit dynamically loads `AvailableMaintainableItems` associated with the selected `SubunitId` (`FR-001`).
-2. **Deterministic Next Date Calculation (`FR-003`):** The system calculates:
+1. **Minimal API Endpoint Contract ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)):**
+   * `GET /api/v1/taxonomy/equipment-units/lookup` — retrieves active Level 6 `EquipmentUnitLookupDto` catalog entries.
+   * `GET /api/v1/taxonomy/equipment-units/{id}/boundaries` — verifies physical battery limits (`BoundaryStart`, `BoundaryEnd`).
+   * `GET /api/v1/taxonomy/equipment-units/{id}/subunits` — loads cascading Level 7 Subunits and Level 8 Maintainable Items (`FR-001`).
+   * `POST /api/v1/maintenance/plans` — dispatches `CreateMaintenancePlanCommand` with mandatory `X-Idempotency-Key: {uuidv7}` header ([ADR-007](../../../architecture/adr/ADR-007.md)), returning HTTP 201 Created with `MaintenancePlanSummaryDto` and `ETag: "{ConcurrencyToken}"` (PostgreSQL `xmin` concurrency standard per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)). Subsequent edits to existing plans use `PUT /api/v1/maintenance/plans/{id}` with `X-Idempotency-Key` and `If-Match: "{ConcurrencyToken}"`.
+2. **Taxonomic Hierarchy Loading:** When an Equipment Unit (Level 6) is selected, the system filters `AvailableSubunits` where `EquipmentUnitId` matches the selected unit. Selecting a Subunit dynamically loads `AvailableMaintainableItems` associated with the selected `SubunitId` (`FR-001`).
+3. **Deterministic Next Date Calculation (`FR-003`):** The system calculates:
    $$\text{NextWorkOrderDate} = \text{CurrentDate} + (\text{IntervalValue} \times \text{UnitMultiplier})$$
    where $\text{UnitMultiplier} = 1\text{ day}$ for `DAYS`, $7\text{ days}$ for `WEEKS`, $30.4375\text{ days}$ for `MONTHS`, and $365.25\text{ days}$ for `YEARS`.
-3. **Automatic Work Order Instantiation (`FR-005`):** On plan confirmation, the system dispatches `CreateMaintenancePlanCommand` to persist the active `MaintenancePlan` (`Status = MaintenancePlanStatus.ACTIVE`, `FrequencyType = CALENDAR_TIME`, `MaintenanceMethod = MaintenanceMethod.PREVENTIVE`, `IntervalValue`, `IntervalUnit`, `EstimatedLaborHours`, `CadenceOverrideJustification`, `NextWorkOrderDate`) and automatically instantiates the initial preventive `WorkOrder` via `MaintenancePlan.GenerateWorkOrder(NextWorkOrderDate)` ([DT-DM-DOC-002 §3.2](../../../domain-models/class/DT-DM-DOC-002.md#32-maintenanceplan-aggregate-root)) alongside its prioritized `BacklogItem` triage context:
+4. **Automatic Work Order Instantiation & Real-Time Broadcast (`FR-005`, [TR-010](../../../requirements/common/TR-010.md)):** On plan confirmation, the system dispatches `CreateMaintenancePlanCommand` to `POST /api/v1/maintenance/plans` to persist the active `MaintenancePlan` (`Status = MaintenancePlanStatus.ACTIVE`, `FrequencyType = CALENDAR_TIME`, `MaintenanceMethod = MaintenanceMethod.PREVENTIVE`, `IntervalValue`, `IntervalUnit`, `EstimatedLaborHours`, `CadenceOverrideJustification`, `NextWorkOrderDate`), automatically instantiates the initial preventive `WorkOrder` via `MaintenancePlan.GenerateWorkOrder(NextWorkOrderDate)` ([DT-DM-DOC-002 §3.2](../../../domain-models/class/DT-DM-DOC-002.md#32-maintenanceplan-aggregate-root)) alongside its prioritized `BacklogItem` triage context, and broadcasts `WorkOrderStatusChanged(WorkOrderTransitionEvent)` over SignalR hub `/hubs/operations` (`IOperationsClient`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)):
    * `Status = WorkOrderStatus.PLANNING` (`DT-DM-DOC-001 §4.21`)
    * `MaintenanceMethod = MaintenanceMethod.PREVENTIVE` (`DT-DM-DOC-001 §4.22`)
    * `ScheduledDate = NextWorkOrderDate`
@@ -576,6 +581,7 @@ public record MaintenancePlanSummaryDto
     public required MaintenancePlanStatus Status { get; init; }
     public required Guid InitialWorkOrderId { get; init; }
     public required int RimeScore { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 ```
 
@@ -623,7 +629,8 @@ public record MaintenancePlanSummaryDto
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-03` | Encryption in Transit: Transport layer security (TLS/HTTPS) for all RESTful DTO transmissions and API calls. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-12` | Role-Based Access Control (RBAC): Enforces permissions (`Maintenance Planner`, `Maintenance Supervisor`). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-03`, `CMP-04` | ISO 14224 Hierarchy Management and Validation: Enforces taxonomic hierarchy and physical battery limits ([MTTO-029](../../../requirements/user-stories/mtto/MTTO-029.md)). |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-11`, `CMP-12` | Real-time synchronization: broadcasts generated preventive work order events to connected clients via WebSockets (`< 1s`). |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-11`, `CMP-12` | Real-time synchronization: broadcasts `WorkOrderStatusChanged(WorkOrderTransitionEvent)` over `/hubs/operations` to connected clients (`< 1s`). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`..`CMP-12` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, functional alert color, and redundant coding. |
 | [ADR-002](../../../architecture/adr/ADR-002.md) | `CMP-09`, `CMP-11` | Strategy Pattern for RIME Prioritization Engine (`IRimeCalculator` decoupling score calculation). |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-03`, `CMP-11` | Time-sequential UUIDv7 generation for plan and work order entities. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-12` | Idempotent maintenance plan creation via `X-Idempotency-Key` header on `POST /api/v1/maintenance/plans`. |

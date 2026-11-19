@@ -250,7 +250,7 @@ sequenceDiagram
         UI-->>Aud: Renders masked JSONB diff (CMP-08) & Teal Verified Seal (CMP-09)
     else Hash Mismatch or Missing Link (AF-001)
         Crypto-->>UI: Returns IntegrityVerificationResultDto (IsIntact = false)
-        UI->>API: POST /api/v1/security/audit-logs/report-tamper-breach (Logs SECURITY_ALERT)
+        UI->>API: POST /api/v1/security/audit-logs/report-tamper-breach (X-Idempotency-Key + Logs SECURITY_ALERT)
         UI-->>Aud: Deploys Tamper Breach Modal (CMP-10) & blocks compliance export
     end
 ```
@@ -283,7 +283,7 @@ sequenceDiagram
 1. **Hash-Chain Mathematical Contract (`AuditLog.VerifyIntegrity()`, [DT-DM-DOC-002 §6.3](../../../domain-models/class/DT-DM-DOC-002.md#63-auditlog-entity)):**
    For chronological record $k$ ($k \ge 1$, where $H_0 = \text{"GENESIS"}$ per [DT-ERD-DOC-001 §3.5.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#351-audit_logs)):
    $$H_k = \text{SHA-256}\left(H_{k-1} \parallel \text{Id}_k \parallel \text{UserId}_k \parallel \text{ActionType}_k \parallel \text{EntityType}_k \parallel \text{EntityId}_k \parallel \text{TimestampUtc}_k \parallel \text{CanonicalJson}(\text{PrevState}_k) \parallel \text{CanonicalJson}(\text{NewState}_k)\right)$$
-2. **Tamper Breach Quarantine (`AF-001`):** If $H_k^{\text{recalculated}} \ne H_k^{\text{stored}}$ or $H_{k-1}^{\text{linked}} \ne H_{k-1}^{\text{stored}}$, `CMP-10` immediately blocks `[Export Forensic Package]` in `CMP-13`, highlights the exact broken link, and dispatches a `SECURITY_ALERT` notification (`TR-003-NFR-380`).
+2. **Tamper Breach Quarantine (`AF-001`, `ADR-007`):** If $H_k^{\text{recalculated}} \ne H_k^{\text{stored}}$ or $H_{k-1}^{\text{linked}} \ne H_{k-1}^{\text{stored}}$, `CMP-10` immediately blocks `[Export Forensic Package]` in `CMP-13`, highlights the exact broken link, and dispatches `POST /api/v1/security/audit-logs/report-tamper-breach` carrying `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to record a deduplicated `SECURITY_ALERT` notification (`TR-003-NFR-380`).
 
 #### 5.3.3. Self-Referential Meta-Auditing & 7-Year Regulatory Retention (`FR-350`, `FR-353`, `FR-358`, `NFR-359`, `NFR-360`)
 1. **Meta-Audit Logging (`NFR-360`, `TR-001-FR-361`):** Every query executed in `CMP-04` and every forensic export triggered in `CMP-13` automatically appends an `AuditActionType.QUERY` record to the immutable `AuditLog` ledger capturing Auditor identity, network metadata, and query parameters under the Meta-Audit profile defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
@@ -729,3 +729,4 @@ public record MetaAuditQueryEntryDto
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-13` | ANSI/ISA-101 HPHMI 90/10 neutral grayscale ledger, zero badge inflation on routine events, and WCAG 2.1 AA redundant coding on tamper alerts. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-08`, `CMP-09`, `CMP-10` | Chained SHA-256 hash verification (`GENESIS` sentinel $\to$ `PreviousHash` $\to$ `IntegrityHash`). |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-06` | Time-sequential `UUIDv7` primary keys preventing B-Tree page fragmentation in high-velocity audit tables. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-10` | Mandatory `X-Idempotency-Key: {uuidv7}` header on `POST /api/v1/security/audit-logs/report-tamper-breach` preventing duplicate `SECURITY_ALERT` emissions under transient network retries. |

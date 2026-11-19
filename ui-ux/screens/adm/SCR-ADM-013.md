@@ -252,15 +252,15 @@ sequenceDiagram
     UI->>Crypto: ComputeSha256Digest(PreviousHash, RoleMatrixPayload)
     Crypto-->>UI: Updates read-only candidate SHA-256 preview in CMP-07
     Admin->>UI: Enters AuditJustification (>= 15 chars) & clicks [Save Permission Matrix] (CMP-13)
-    UI->>API: PUT /api/v1/security/roles/{id}/permissions (UpdateRolePermissionsCommand + X-Idempotency-Key)
-    API-->>UI: HTTP 200 OK (Broadcasts SignalR PermissionRevocationEvent in < 2s, NFR-257)
+    UI->>API: PUT /api/v1/security/roles/{id}/permissions (UpdateRolePermissionsCommand + X-Idempotency-Key + If-Match)
+    API-->>UI: HTTP 200 OK (Broadcasts /hubs/security PermissionsUpdated(RolePermissionsUpdatedEvent) in < 2s, NFR-257)
     UI-->>Admin: Displays Teal confirmation in CMP-13, sync chip in CMP-02 & updates CMP-11 Audit Pane
 ```
 
 1. **Canonical Domain Module & Action Matrix (`FR-248`, [DT-DM-DOC-001 §4.39](../../../domain-models/class/DT-DM-DOC-001.md#439-rolepermissionmodule), [§4.42](../../../domain-models/class/DT-DM-DOC-001.md#442-rolepermissionaction)):**
    * The matrix rows bind strictly to the 5 canonical `RbacModule` enum values (`ASSETS`, `MAINTENANCE`, `INVENTORY`, `SAFETY`, `SYSTEM`), and the columns bind to the 7 canonical `RbacAction` enum values (`CREATE`, `READ`, `EDIT`, `DELETE`, `APPROVE`, `AUDIT`, `EXECUTE`).
-2. **Imperceptible Authorization Cache Architecture (`NFR-256`, `NFR-257`, `TR-010`):**
-   * Committed matrix changes invalidate distributed memory/JWT permission claims and push a real-time SignalR `PermissionsUpdatedEvent` to connected clients in $< 2\text{s}$ (`NFR-257`, `TR-010-NFR-432`), enabling runtime endpoint authorization checks to execute in $< 5\text{ms}$–$10\text{ms}$ (`NFR-256`, `TR-006-NFR-401`).
+2. **Imperceptible Authorization Cache & Optimistic Concurrency (`NFR-256`, `NFR-257`, `TR-010`, `ADR-007`):**
+   * Committed matrix updates (`PUT /api/v1/security/roles/{id}/permissions`) and logical role deactivations (`POST /api/v1/security/roles/{id}/deactivate`) carry `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)). Upon commit, the backend invalidates distributed memory/JWT permission claims and pushes a real-time SignalR `/hubs/security` (`ISecuritySessionClient`) `PermissionsUpdated(RolePermissionsUpdatedEvent)` broadcast (or `SessionRevoked(SessionRevocationEvent)` on deactivation) to connected clients in $< 2\text{s}$ (`NFR-257`, `TR-010-NFR-432`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)), enabling runtime endpoint authorization checks to execute in $< 5\text{ms}$–$10\text{ms}$ (`NFR-256`, `TR-006-NFR-401`).
 3. **Audit Justification Payload Mapping ([DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):**
    * Mandatory interactive `AuditJustification` text captured in `CMP-13` (matrix commits) and `CMP-10` (role deactivation) ($\ge 15$ characters) persists inside the `AuditLog` post-mutation `JSONB` envelope (`NewState`) under the transversal justification contract defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
    * For custom role creation in `CMP-09` (which captures `Name`, `Description`, `CloneFromRoleId`, and `AuthorizedModules` without a redundant second justification input), the Application layer deterministically composes `CreateCustomRoleCommand.AuditJustification` from the role's business `Description` and authorized module scope (guaranteed $\ge 15$ characters) before sealing the `IntegrityHash` (`ADR-003`).
@@ -301,7 +301,7 @@ sequenceDiagram
 3. **Discard Baseline Reversion (`CMP-13`):** Clicking `[Discard Changes]` restores the active role's working matrix cleanly to its persisted server baseline and clears pending justification text.
 
 #### 5.3.4. Logical Role Deactivation, Export & Immediate Session Revocation (`FR-252`, `FR-254`, `NFR-257`, `AF-004`)
-1. Confirming logical deactivation in `CMP-10` invokes `Role.Deactivate(reason)` ([DT-DM-DOC-002 §6.2](../../../domain-models/class/DT-DM-DOC-002.md#62-role-aggregate-root)), sets `IsActive = false` on the custom role, revokes active bearer/refresh tokens (`AuthToken.Revoke()` per `DT-DM-DOC-002 §6.4`) or pushes a SignalR permission refresh to affected sessions within $< 2\text{s}$ (`NFR-257`), and retains all historical user-role assignments and cryptographic audit entries. In MVP scope, deactivated custom roles remain archived as read-only historical records; `Role.Activate()` is reserved for backend administrative recovery outside the MVP UI.
+1. Confirming logical deactivation in `CMP-10` dispatches `POST /api/v1/security/roles/{id}/deactivate` (carrying `X-Idempotency-Key` and `If-Match: "{ConcurrencyToken}"`), invokes `Role.Deactivate(reason)` ([DT-DM-DOC-002 §6.2](../../../domain-models/class/DT-DM-DOC-002.md#62-role-aggregate-root)), sets `IsActive = false` on the custom role, revokes active bearer/refresh tokens (`AuthToken.Revoke()` per `DT-DM-DOC-002 §6.4`), pushes `/hubs/security` `SessionRevoked(SessionRevocationEvent)` / `PermissionsUpdated(RolePermissionsUpdatedEvent)` to affected sessions within $< 2\text{s}$ (`NFR-257`), and retains all historical user-role assignments and cryptographic audit entries. In MVP scope, deactivated custom roles remain archived as read-only historical records; `Role.Activate()` is reserved for backend administrative recovery outside the MVP UI.
 2. Selecting `CSV` or `JSON` in `[Export]` (`CMP-02`) exports the complete multi-role authorization matrix and SoD evaluation ledger for ISO/IEC 27001 external audits (`FR-252`).
 
 ---
@@ -674,6 +674,7 @@ public record RoleSummaryDto
     public required bool IsCustomRole { get; init; }
     public required bool IsActive { get; init; }
     public required int AssignedUsersCount { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record RoleMatrixDetailDto
@@ -687,6 +688,7 @@ public record RoleMatrixDetailDto
     public required int AssignedUsersCount { get; init; }
     public required IReadOnlySet<PermissionGrantKeyDto> GrantedPermissions { get; init; }
     public required string LatestIntegrityHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record SodEvaluationResultDto
@@ -734,6 +736,7 @@ public record UpdateRolePermissionsCommand
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record DeactivateCustomRoleCommand
@@ -742,6 +745,7 @@ public record DeactivateCustomRoleCommand
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
     public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
@@ -767,8 +771,8 @@ public record RbacAuditEntryDto
 
 1. **In-Memory Segregation of Duties & PoLP Validator (`ISodValidationEngine`):**
    * Evaluates `Role.ValidateSoD()` and Principle of Least Privilege advisories synchronously in WebAssembly on every checkbox toggle (completing in $< 10\text{ms}$, well below the $500\text{ms}$ `NFR-255` ceiling).
-2. **Real-Time Session Permission Revocation Hub (`IPermissionBroadcastHub` / `TR-010`):**
-   * Subscribes to and dispatches SignalR permission invalidation events upon role matrix commits or custom role deactivations, propagating privilege changes to active client sessions in $< 2\text{s}$ (`NFR-257`, `TR-010-NFR-432`).
+2. **Real-Time Session Permission Revocation Hub (`/hubs/security` — `ISecuritySessionClient` / `TR-010`):**
+   * Subscribes to and processes canonical SignalR `/hubs/security` events (`PermissionsUpdated(RolePermissionsUpdatedEvent)` and `SessionRevoked(SessionRevocationEvent)` per [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)), propagating privilege changes to active client sessions in $< 2\text{s}$ (`NFR-257`, `TR-010-NFR-432`).
 3. **Web Cryptography SHA-256 Digest Bridge (`ICryptoInterop`):**
    * Computes candidate `IntegrityHash` digests asynchronously in a Web Worker across canonicalized role permission sets (`TR-001`, `ADR-003`).
 
@@ -805,7 +809,8 @@ public record RbacAuditEntryDto
 | [TR-002](../../../requirements/common/TR-002.md)                                             | `CMP-05`, `CMP-11`                     | Encrypts persisted RBAC role matrices, token hashes, and audit logs at rest.                                                                    |
 | [TR-005](../../../requirements/common/TR-005.md)                                             | `CMP-02`, `CMP-05`, `CMP-13`           | Enforces TLS/HTTPS and WSS encryption in transit across all RBAC configuration requests and session revocation broadcasts.                      |
 | [TR-006](../../../requirements/common/TR-006.md)                                             | `CMP-01` to `CMP-13`                   | Implements the core RBAC permissions matrix, ownership controls, and `< 5ms`–`10ms` authorization verification.                                 |
-| [TR-010](../../../requirements/common/TR-010.md)                                             | `CMP-02`, `CMP-13`                     | Real-time SignalR synchronization propagating permission revocations to active user sessions (`TR-010-NFR-432`).                                |
+| [TR-010](../../../requirements/common/TR-010.md)                                             | `CMP-02`, `CMP-13`                     | Real-time SignalR synchronization on `/hubs/security` (`ISecuritySessionClient`: `PermissionsUpdated`, `SessionRevoked`) propagating permission revocations to active user sessions (`TR-010-NFR-432`). |
 | [TR-011](../../../requirements/common/TR-011.md)                                             | `CMP-01` to `CMP-13`                   | ANSI/ISA-101 HPHMI 90/10 neutral grayscale matrix, rounded role selector tabs, circular checkboxes, zero pre-commit green, WCAG 2.1 AA coding.  |
 | [ADR-003](../../../architecture/adr/ADR-003.md)                                              | `CMP-11`, `CMP-13`                     | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on RBAC audit records.                                |
 | [ADR-005](../../../architecture/adr/ADR-005.md)                                              | `CMP-09`                               | Time-sequential UUIDv7 identifier generation for newly created `Role` entities.                                                                 |
+| [ADR-007](../../../architecture/adr/ADR-007.md)                                              | `CMP-09`, `CMP-10`, `CMP-13`           | Idempotency contract (`X-Idempotency-Key: {uuidv7}`) paired with PostgreSQL `xmin` optimistic concurrency (`If-Match`) across role creation, permission matrix updates, and logical role deactivation. |

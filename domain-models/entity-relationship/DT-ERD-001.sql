@@ -829,13 +829,13 @@ ALTER TABLE adm.work_order_assignments
 
 -- =============================================================================
 -- DTEAM CORE DATABASE: BESPOKE MANUAL HEURISTICS & POLICIES
--- Engine: PostgreSQL 18.x + TimescaleDB | Standard: ISO 14224 / ISO 27001 / ADR-003 / ADR-008
+-- Engine: PostgreSQL 18.x + TimescaleDB | Standard: ISO 14224 / ISO 27001 / ADR-003 / ADR-010
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
 -- 1. BESPOKE PARTIAL & UNIQUE INDEXES
 -- -----------------------------------------------------------------------------
--- ISO 14224 1:1 Active Slot Occupancy Invariant (ADR-008 / INV-025)
+-- ISO 14224 1:1 Active Slot Occupancy Invariant (ADR-010 / INV-025)
 CREATE UNIQUE INDEX IF NOT EXISTS uq_asset_installations_active_slot
     ON tax.asset_installations (functional_location_id)
     WHERE removed_at IS NULL;

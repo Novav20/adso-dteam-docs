@@ -36,31 +36,34 @@ In accordance with architecture decision **[ADR-004](architecture/adr/ADR-004.md
 
 ```text
 adso-dteam-docs/
-├── .agents/              # Agent skills for coherence auditing and SDLC analysis
-├── architecture/         # C4 views (Components & Deployment), ASRs, ADRs, and Tech Stack Matrix
-│   ├── adr/              # Architecture Decision Records (ADR-001 to ADR-006)
-│   ├── asr/              # Architecturally Significant Requirements (ASR-001)
+├── .agents/              # Agent skills for SDLC deep audits, UI coherence, and Use Case auditing
+├── architecture/         # C4 views (Components & Deployment), ASRs, ADRs, DB guidelines, and Tech Stack Matrix
+│   ├── adr/              # Architecture Decision Records (ADR-001 to ADR-010)
+│   ├── asr/              # Architecturally Significant Requirements (ASR-001, ASR-002)
 │   ├── patterns/         # Catalogue of applied GoF patterns and DDD tactics
-│   └── views/            # C4 Component (CMP) and Physical Deployment (DEP) models
+│   └── views/            # C4 Component (CMP) and Physical Deployment (DEP) Structurizr DSL models & specs
 ├── business-processes/   # BPMN 2.0 operational process flows (Draw.io)
 ├── compliance/           # Normative shield and ISO 14224 / ISO 55001 compliance justifications
 ├── domain-models/        # Tactical DDD modelling, activity diagrams, and Use Cases
 │   ├── activity/         # UML activity diagrams for critical flows (LOTO, Preventive)
-│   ├── class/            # Domain model specification, DDD entities and methods
-│   ├── entity-relationship/ # Conceptual and logical relational database models
+│   ├── class/            # Domain model specifications (DT-DM-DOC-001/002) and PlantUML class diagram
+│   ├── entity-relationship/ # Physical data dictionary (DT-ERD-DOC-001), DBML, and PostgreSQL 18 DDL
 │   ├── ubiquitous-language/ # Ubiquitous Language glossary (DT-UL-DOC-001)
-│   └── use-cases/        # Formal use cases and Master Traceability Matrix (DT-UC-TRC-001)
+│   └── use-cases/        # Formal use cases (17 MVP UC-*.md) and Master Traceability Matrix (DT-UC-TRC-001)
+├── reports/              # Persisted screen, use-case, and repository audit reports
 ├── requirements/         # Software requirements and master sources
 │   ├── common/           # Transversal Domain and Platform Requirements (TR-001 to TR-011)
 │   ├── data/             # Master catalogs synchronized as CSVs (actors, SRS, stories, gherkin)
 │   ├── interviews/       # Elicitation transcripts and field interviews
 │   └── user-stories/     # Detailed user stories by module (ADM, INV, MTTO, VIS)
-├── scripts/              # Documentation generation tools and coherence audit helpers
+├── scripts/              # Generators (DDL, DBML, Structurizr, Tokens, Sprite, Requirements), verifiers & plot_plan_generator/
+├── TODO.md               # Engineering roadmap, milestone log, and pre-implementation backlog
 └── ui-ux/                # User interface design and information architecture
-    ├── assets/           # CSS token files (tokens.css), MAI graphics (SVG), and wireframes
-    ├── screens/          # Technical screen specification blueprints (SCR-*.md)
+    ├── assets/           # Generated tokens.css, tokens_penpot.json, icons.svg sprite, portal-shell.css & schematics
+    ├── screens/          # 16 canonical screen specification blueprints (SCR-*.md)
     ├── DT-UI-DS-DOC-001  # Design Tokens, HPHMI principles, and Visual Style Guide
-    └── DT-UI-NAV-DOC-001 # Global Navigation Specification and Safety Guards
+    ├── DT-UI-NAV-DOC-001 # Global Navigation Specification, Transition Matrix, and Safety Guards
+    └── DT-UI-SVG-DOC-001 # Normative 7-Layer SVG Plot Plan Ingestion Contract (Rev 2.0)
 ```
 
 ---

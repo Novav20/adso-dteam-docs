@@ -30,6 +30,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 - `vis`: Digital twin and operational safety layers.
 - `adm`: Perimeter security, IAM, and immutable audit.
 
+**Optimistic Concurrency Standard (PostgreSQL `xmin`):** Physical tables do **not** declare synthetic `row_version` columns. Instead, all mutable aggregate roots leverage PostgreSQL 18's native `xmin` system column mapped in Entity Framework Core via `.Property<uint>("ConcurrencyToken").IsRowVersion()` and serialized as HTTP `ETag` / `If-Match` headers ([DT-ARQ-DB-DOC-001 §3.12](../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)).
+
 ## 3. Physical Data Dictionary by Schema
 
 ### 3.1 Schema `tax`
@@ -491,7 +493,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | tenant_id | UUID | NOT NULL | | - | Multi-tenant isolation boundary. |
 | request_hash | VARCHAR(64) | NOT NULL | | - | SHA-256 fingerprint to prevent payload mutation. |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled state of the transaction (PROCESSING, COMPLETED, FAILED). |
-| created_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC partitioning key for MVCC cleanup. |
+| created_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC timestamp indexed for scheduled batched 24-hour TTL purge on the unpartitioned table (ADR-007). |
 
 #### 3.5.9 audit_retention_partitions
 
@@ -775,3 +777,10 @@ All `JSONB` columns are indexed in PostgreSQL using `GIN (... jsonb_path_ops)` t
 }
 ```
 
+## 7. Optimistic Concurrency Mapping (PostgreSQL `xmin` System Column)
+
+Per [DT-ARQ-DB-DOC-001 §3.12](../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169) and [NFR-169](../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr), every mutable aggregate root in schemas `tax`, `mtto`, `inv`, `vis`, and `adm` enforces optimistic concurrency through PostgreSQL's native 32-bit `xmin` transaction-ID system column rather than a custom `row_version` column:
+
+| Persistence Layer | Wire / DTO Representation | Conflict Handling |
+| :--- | :--- | :--- |
+| PostgreSQL `xmin` (`xid` system column) mapped in EF Core via `builder.Property<uint>("ConcurrencyToken").IsRowVersion()` | `uint ConcurrencyToken` in DTOs/commands paired with HTTP `ETag: "{xmin}"` (response) and `If-Match: "{xmin}"` (request) | Npgsql appends `AND xmin = @pN` on `UPDATE`/`DELETE`; 0 affected rows raises `DbUpdateConcurrencyException` $\to$ `HTTP 409 Conflict` (`HTTP 412 Precondition Failed` on header mismatch). |

@@ -224,26 +224,33 @@ sequenceDiagram
 
     Engineer->>UI: Accesses "Create Condition-Based Plan"
     Engineer->>LOV: Opens Equipment Lookup Modal (CMP-03 Search Trigger)
-    LOV->>TAX: EquipmentUnitLookupQueryDto (SearchTerm, Area, Class, Criticality, Boundary)
+    LOV->>TAX: GET /api/v1/taxonomy/equipment-units/lookup (EquipmentUnitLookupQueryDto)
     TAX-->>LOV: Returns paged EquipmentUnitLookupDto matches
     Engineer->>LOV: Selects Equipment Unit (Compressor C-201)
     LOV-->>UI: Closes modal & binds SelectedEquipmentUnitId (C-201)
-    UI->>TAX: Fetch Subunits/Items (L7/L8 Tier B) & Verify Boundaries (MTTO-029)
+    UI->>TAX: GET /api/v1/taxonomy/equipment-units/{id}/boundaries & /subunits
     TAX-->>UI: Boundaries Validated (CMP-03 Teal) & Tier B Subunits/Items
-    UI->>VIS: Query mapped TelemetrySignalDto for EquipmentUnitId
+    UI->>VIS: GET /api/v1/telemetry/equipment-units/{id}/signals
     VIS-->>UI: Returns [C201_RUN_HOURS (OPERATING_HOURS), C201_STROKE_CYCLES]
     Engineer->>UI: Selects Maintainable Item (Bearing) & Signal (C201_RUN_HOURS)
-    UI->>VIS: Fetch current cumulative reading for C201_RUN_HOURS
-    VIS-->>UI: Returns CurrentValue = 4500.00, IsOnline = true
-    UI->>UI: Renders CMP-07 (Baseline: 4,500.00)
+    UI->>UI: Subscribes to /hubs/telemetry (ReceiveTelemetryReading) & renders CMP-07
     Engineer->>UI: Sets Delta = 1000.00 OPERATING_HOURS, Wrench Time = 6.0 HH, Crafts
     UI->>UI: Computes Target Limit = 4500.00 + 1000.00 = 5500.00 (CMP-08)
     UI->>UI: Computes RIME Score = Criticality (8) * 5 = 40 (CMP-09)
     Engineer->>UI: Clicks "Save & Activate Predictive Plan"
-    UI->>MTTO: CreateCbmPlanCommand
-    MTTO-->>UI: Returns PlanId (UUIDv7) & Active Threshold
+    UI->>MTTO: POST /api/v1/maintenance/plans/cbm (CreateCbmPlanCommand + X-Idempotency-Key)
+    MTTO-->>UI: HTTP 201 Created (PlanId UUIDv7 & Active Threshold)
     UI-->>Engineer: Renders Teal confirmation & ACTIVE monitoring status
 ```
+
+1. **Minimal API Endpoint Contract ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)):**
+   * `GET /api/v1/taxonomy/equipment-units/lookup` — paginated Tier A equipment search (`EquipmentUnitLookupQueryDto`).
+   * `GET /api/v1/taxonomy/equipment-units/{id}/boundaries` and `GET /api/v1/taxonomy/equipment-units/{id}/subunits` — verifies battery limits and hydrates cascading Level 7/8 taxonomy selectors.
+   * `GET /api/v1/telemetry/equipment-units/{id}/signals` — returns mapped `TelemetrySignalDto` streams with current baselines and `ETag: "{ConcurrencyToken}"`.
+   * `POST /api/v1/maintenance/plans/cbm` — dispatches `CreateCbmPlanCommand` with mandatory `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), returning HTTP 201 Created.
+   * `POST /api/v1/telemetry/signals/{id}/manual-readings` — dispatches `RecordManualReadingCommand` (`AF-003`) with mandatory `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` concurrency standard per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)), preventing duplicate monotonic counter violations on retry.
+2. **Real-Time SignalR Contracts ([TR-010](../../../requirements/common/TR-010.md), [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)):**
+   * Subscribes to `/hubs/telemetry` (`ITelemetryClient`) receiving `ReceiveTelemetryReading(TelemetryReadingDto)` and `CbmReadingRecorded(CbmTriggerEventDto)` for live baseline updates and monotonicity blocks (`AF-002`), while auto-instantiated CBM Work Orders broadcast `WorkOrderStatusChanged(WorkOrderTransitionEvent)` over `/hubs/operations` (`IOperationsClient`).
 
 ---
 
@@ -693,6 +700,7 @@ public record TelemetrySignalDto
     public required DateTimeOffset LastUpdatedUtc { get; init; }
     public required bool IsOnline { get; init; }
     public required bool IsSafetyCritical { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record ProjectedWorkOrderPreviewDto
@@ -730,6 +738,7 @@ public record RecordManualReadingCommand
     public required DateTimeOffset ReadingTimestampUtc { get; init; }
     public required Guid OperatorUserId { get; init; }
     public string? PhysicalGaugePhotoUrl { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 ```
 
@@ -738,7 +747,7 @@ public record RecordManualReadingCommand
 ### 7.3. Client-Side DOM & Interop Bridge
 
 1. **Debounced Target Calculation (`ITelemetryThresholdInterop`):** Client-side interop recalculating $\text{Target Limit} = \text{Baseline} + \Delta$ instantaneously using decimal-safe parsing as interval values or selected signals change, without server roundtrips.
-2. **Real-Time Telemetry Subscription (`ITelemetryStreamInterop`):** SignalR hub subscription pushing live counter updates and monotonicity violation states to `BaselineAccumulationCard.razor` without altering vertical card geometry (`CLS = 0`).
+2. **Real-Time Telemetry Subscription (`ITelemetryStreamInterop`):** SignalR hub subscription to `/hubs/telemetry` (`ITelemetryClient`: `ReceiveTelemetryReading`, `CbmReadingRecorded`) pushing live counter updates and monotonicity violation states to `BaselineAccumulationCard.razor` without altering vertical card geometry (`CLS = 0`).
 
 ---
 
@@ -775,7 +784,8 @@ public record RecordManualReadingCommand
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-04` | Encryption in Transit: TLS/HTTPS transport across `mtto`, `tax`, and `vis` service DTO boundaries. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-12` | Role-Based Access Control (RBAC): enforces permissions (`Reliability Engineer`, `Maintenance Planner`). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-03` | Enforces ISO 14224 taxonomy structure (Level 6, Level 7, Level 8) and physical battery limits. |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-04`, `CMP-07`, `CMP-10` | Integrates with SCADA / Historian telemetry streams and broadcasts instantiated Work Order events. |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-04`, `CMP-07`, `CMP-10` | Subscribes to `/hubs/telemetry` (`ReceiveTelemetryReading`, `CbmReadingRecorded`) and broadcasts triggered CBM Work Orders over `/hubs/operations` (`WorkOrderStatusChanged`). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`..`CMP-12` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, functional alert color discipline, and neutral tier baselines paired with [DT-UI-DS-DOC-001 §6.7](../../DT-UI-DS-DOC-001.md#67-relational-entity-lookup-modal-pattern-lov-list-of-values) for Tier A LOV lookup ergonomics. |
 | [ADR-002](../../../architecture/adr/ADR-002.md) | `CMP-09`, `CMP-10` | Strategy Pattern for RIME Prioritization Engine (`WorkClassWeight = 5` for Predictive Maintenance). |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-03`, `CMP-10`, `CMP-11` | Time-sequential UUIDv7 generation for plan, work order, and telemetry entities. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-11`, `CMP-12` | Idempotent CBM plan activation and contingency manual readings via `X-Idempotency-Key` header. |
