@@ -227,7 +227,7 @@ Isolation points representing mechanical energy dissipation or electrical de-ene
 
 *Cartographic Placement & Routing Invariant:*
 * Bleed valves, instrument taps, and secondary cutoff symbols MUST be positioned with clear spatial offset from primary equipment bounding hit targets, ensuring independent pointer target disambiguation.
-* Runtime LOTO overlays (`SCR-VIS-011`) project **electrical energy routes** along orthogonal `H/V + 45°` conduits from the parent Substation/MCC origin to the target motor/equipment centroid, and project **mechanical boundary lines** directly to edge-anchored nozzle/valve contact points (`boxBorderPoint`), never penetrating tank cores.
+* Runtime LOTO overlays (`SCR-VIS-011`) project **electrical energy routes** along orthogonal `H/V + 45°` conduits from the parent Substation/MCC origin to the target motor/equipment centroid, and project **mechanical boundary lines** directly to edge-anchored nozzle/valve contact points, never penetrating tank cores.
 
 ---
 
@@ -268,16 +268,16 @@ Field instrumentation nodes in layer `L-INSP-INST` represent real-time SCADA/DCS
 
 ## 9. High-Performance HMI (HPHMI), ISO 128 Lineweights & Adaptive Typography
 
-### 9.1 Palette Governance & Alarm Reservation (`CAD Calibrado`)
-In strict compliance with ANSI/ISA-101.01 §6.2, steady-state digital twin layouts MUST employ the calibrated neutral **`CAD Calibrado`** material palette ([DT-UI-DS-DOC-001 §3.4](DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas)). Pure red (`#FF0000` / `#EF4444`) and warning amber (`#FFA500` / `#F59E0B`) are **strictly prohibited** on static piping, equipment fills, or civil boundaries; saturated hues are reserved exclusively for active alarm states, PTW hazard shapes, and LOTO energy vectors.
+### 9.1 Palette Governance & Alarm Reservation
+In strict compliance with ANSI/ISA-101.01 §6.2, steady-state digital twin layouts MUST employ the calibrated neutral HPHMI spatial material palette ([DT-UI-DS-DOC-001 §3.4](DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas)). Pure red (`#FF0000` / `#EF4444`) and warning amber (`#FFA500` / `#F59E0B`) are **strictly prohibited** on static piping, equipment fills, or civil boundaries; saturated hues are reserved exclusively for active alarm states, PTW hazard shapes, and LOTO energy vectors.
 
-**Absolute pure white (`#FFFFFF`) and absolute pure black (`#000000`) are strictly forbidden** across both Light and Dark CAD themes. In Dark Theme, civil and process entities follow a strictly monotonic elevation luminance ladder (`--dt-color-bg-canvas` $\to$ `--dt-color-canvas-bund-floor` $\to$ `--dt-color-canvas-asphalt` $\to$ `--dt-color-canvas-concrete` $\to$ `--dt-color-canvas-equip-shell` $\to$ `--dt-color-canvas-steel` $\to$ `--dt-color-canvas-pipe-sec` $\to$ `--dt-color-canvas-pipe-proc`).
+Pure white/black prohibition and primitive palette governance are inherited from [DT-UI-DS-DOC-001 §3.1](DT-UI-DS-DOC-001.md#31-primitive-palette-tokens). In Dark Theme, civil and process entities follow a strictly monotonic elevation luminance ladder (`--dt-color-bg-canvas` $\to$ `--dt-color-canvas-bund-floor` $\to$ `--dt-color-canvas-asphalt` $\to$ `--dt-color-canvas-concrete` $\to$ `--dt-color-canvas-equip-shell` $\to$ `--dt-color-canvas-steel` $\to$ `--dt-color-canvas-pipe-sec` $\to$ `--dt-color-canvas-pipe-proc`).
 
 *Contrast Rule:*
 Text labels MUST achieve a minimum WCAG 2.1 AA relative luminance contrast ratio of $\ge 4.5:1$ against their immediate background (`--dt-color-label-halo` / `--dt-color-canvas-equip-shell`). Graphical line elements MUST achieve $\ge 3.0:1$.
 
-### 9.2 ISO 128 Hierarchical Lineweights & `CAD Adaptativo`
-To eliminate muddy silhouette overlapping across plant scales, CAD strokes follow a 4-tier **ISO 128** hierarchy modulated at runtime by the **CAD Adaptativo** zoom factor (`vector-effect: non-scaling-stroke`):
+### 9.2 ISO 128 Hierarchical Lineweights & Zoom-Adaptive Scaling
+To eliminate muddy silhouette overlapping across plant scales, CAD strokes follow a 4-tier **ISO 128** hierarchy modulated at runtime by a zoom-adaptive attenuation factor (`vector-effect: non-scaling-stroke`):
 
 | ISO 128 Tier | Base Screen Stroke (px) | Target Cartographic Elements |
 | :---: | :---: | :--- |
@@ -286,7 +286,7 @@ To eliminate muddy silhouette overlapping across plant scales, CAD strokes follo
 | **Tier 3 (Auxiliary Civil & Structures)** | `1.0` | Sleeperway steel bents (`--dt-color-canvas-steel`), canopy columns, hazard dashed envelopes, apron joints. |
 | **Tier 4 (Micro Detail & Grids)** | `0.65` | Stairs, bolt rings, radial tank seams, impulse leads, coordinate grid lines (`--dt-color-canvas-grid`). |
 
-*`CAD Adaptativo` Attenuation Formula:*
+*Zoom-Adaptive Attenuation Formula:*
 $$\text{StrokeWidth}_{\text{effective}} = \text{BaseTierPx} \times \text{clamp}\left(\frac{\text{NominalWidth}}{\text{CurrentViewBoxWidth}},\ \text{--dt-cad-stroke-floor},\ 1.0\right)$$
 * Physical roadway lane markings (`.dt-road-marking`, physical painted line width `0.18 m` in User Space) are **explicitly exempted** from `vector-effect: non-scaling-stroke` so lane paint scales proportionally with pavement geometry rather than bloating into thick white bands at site-fit zoom.
 
@@ -300,7 +300,7 @@ $$\text{HaloStroke}_{\text{userUnits}} = \max\left(0.05,\ \frac{3.0}{\max(\text{
 
 ### 9.4 Adaptive Multi-Scale Coordinate Grid & SDF Boundary Dissolve
 * **Multi-Scale Metric Grid:** Minor/major grid intervals select deterministically from `[0.25, 0.5, 1, 2, 5, 10, 20, 50, 100, 200]` meters so major coordinate lines maintain $\ge 72\text{ px}$ visual separation on screen.
-* **Zero-Grain SDF Property Fade (`#dt-Grid-Fade`):** Beyond the legal site boundary (`L-CIVL-PROP`), the exterior canvas field fades smoothly to `--dt-color-bg-canvas` using a signed-distance-field (SDF) quintic smoothstep radial alpha ramp (`0%` fade inside `L-CIVL-PROP`) paired with $4 \times 4$ ordered Bayer dithering to prevent dark-theme 8-bit banding.
+* **Zero-Grain Exterior Boundary Fade (`#dt-Grid-Fade`):** Beyond the legal site boundary (`L-CIVL-PROP`), the exterior canvas field fades smoothly to `--dt-color-bg-canvas` using a smooth radial distance fade (`0%` fade inside `L-CIVL-PROP`) with anti-banding dithering in Dark Theme.
 * **Open Highway Edge Dissolve (`#L-CIVL-PUBROAD`):** Public perimeter highways entering and exiting the canvas dissolve cleanly at both longitudinal open ends via linear alpha-mask gradients into the background ground without clipped rectangle edges.
 
 ---
@@ -330,11 +330,11 @@ Level 3: Micro Equipment Detail   (Scale >= var(--dt-zoom-scale-l2-max))
   └── Electrical MCC circuit breaker nodes (CMP-ISO-BREAKER) & ISO 14224 breadcrumb target
 ```
 
-### 10.2 Pure `viewBox` Camera, `PAN_BOUNDS` & Transition Rules
+### 10.2 Pure `viewBox` Camera, Site-Boundary Clamping & Transition Rules
 1. **Pure `viewBox` Geometry (Zero CSS `transform: scale`):** All pan and zoom operations mutate the `<svg>` `viewBox` attribute directly in double-precision floating point so vector crispness, hit testing, and screen-space clamped plates remain exact at $0.65\times$ through $15\times$ magnification.
-2. **`PAN_BOUNDS` Center Clamping:** Pan clamping bounds the viewport center $(cx, cy)$ within the facility bounding box extents (`[siteBox.minX .. siteBox.maxX, siteBox.minY .. siteBox.maxY]`), allowing any corner of the property boundary to reach the screen center while preventing panning into infinite empty void.
+2. **Site-Boundary Center Clamping:** Pan clamping bounds the viewport center $(cx, cy)$ within the facility bounding box extents (`[siteBox.minX .. siteBox.maxX, siteBox.minY .. siteBox.maxY]`), allowing any corner of the property boundary to reach the screen center while preventing panning into infinite empty void.
 3. **Instant Focal Wheel vs. Smooth Programmatic Fly-To:**
-   * Mouse wheel zoom (`exp(-delta * 0.0014)`) and drag panning apply immediately per frame without inertia lag around the pointer focal coordinate.
+   * Mouse wheel zoom and drag panning apply immediately per frame without inertia lag around the pointer focal coordinate.
    * Programmatic transitions (double-click `1.7x` focus, `Reset View` fit, `Space` / `Ctrl+K` intent zoom framing, LOTO full-circuit framing) execute smooth delta-time interpolation (`requestAnimationFrame`), braking cleanly on user input.
    * Desktop panning supports a unified **$> 4\text{ px}$ drag threshold** on primary or middle mouse button (stationary clicks $\le 4\text{ px}$ select `.dt-interactive` equipment), matching tablet single-finger touch disambiguation.
 4. **Hybrid Cross-Fade & Hit-Test Guard:** Mutual-exclusion swaps (L1 pills $\leftrightarrow$ L2 pins) transition over **$180\text{ ms}$** using `opacity` interpolation; suppressed layers enforce `pointer-events: none` (never abrupt `visibility: hidden` mid-transition that snaps cross-fades).
@@ -346,7 +346,7 @@ Level 3: Micro Equipment Detail   (Scale >= var(--dt-zoom-scale-l2-max))
 
 ## 11. Spatial Metric Calibration
 
-Layer `L-ANNO-TEXT` MUST contain a hidden metric calibration vector. To ensure the camera, LOD thresholds, and grid scale generalize cleanly across micro-skids ($20\text{ m}$), pump houses, and full bulk terminals ($300\text{ m}+$), the root SVG or `CALIBRATION-VECTOR` exposes facility scale anchors with deterministic fallback defaults:
+Layer `L-ANNO-TEXT` MUST contain a hidden metric calibration vector. To ensure the camera, LOD thresholds, and grid scale generalize cleanly across compact process skids ($20\text{ m}$), pump houses, and full bulk terminals ($300\text{ m}+$), the root SVG or `CALIBRATION-VECTOR` exposes facility scale anchors with deterministic fallback defaults:
 
 ```xml
 <g id="L-ANNO-TEXT" class="dt-layer-anno-text">
@@ -374,7 +374,7 @@ $$\text{Scale Ratio } K = \frac{\text{data-real-meters}}{\sqrt{(x_2 - x_1)^2 + (
 When importing raw industrial CAD models (AutoCAD Model Space DXF/DWG/SVG exports), the DTEAM server ingestion pipeline applies the following deterministic transformations:
 
 1. **Layer Canonicalization:** Maps legacy AutoCAD layers into the 7 standard groups according to ISO 13567 naming rules.
-2. **ACI Color Normalization:** Converts legacy AutoCAD Color Index primaries (ACI 1 Red, ACI 2 Yellow, ACI 4 Cyan, ACI 6 Magenta) and CAD dark backgrounds into semantic `CAD Calibrado` tokens (`--dt-color-canvas-*`), stripping saturated static hues.
+2. **ACI Color Normalization:** Converts legacy AutoCAD Color Index primaries (ACI 1 Red, ACI 2 Yellow, ACI 4 Cyan, ACI 6 Magenta) and CAD dark backgrounds into semantic HPHMI spatial tokens (`--dt-color-canvas-*`), stripping saturated static hues.
 3. **Polyline Closure, Tangential Road Fillets & Blind Flange Terminations:** Closes open boundary polygons, replaces sharp corners at road intersections with **tangential fillets** ($R \ge 4.4\text{ m}$), eliminates stray pipe overhangs across roadway curbs, and terminates stub/manifold ends with canonical blind flanges.
 4. **Data Schedule Re-synchronization:** Binds incoming equipment and instrumentation graphics to authoritative architectural catalogs (EAM Master Catalog, Spatial MeshMapping Repository, and LOTO Isolation Registry), supporting progressive MOC promotion of static piping corridors into discrete `EquipmentUnit` records without breaking base plot coordinates.
 5. **Cartographic Abstraction & Micro-Geometry Stripping:** EPC CAD models frequently include manufacturing-level detail (individual spiral stair treads, radial roof rafters, motor cooling fins, baseplate anchor bolt pitch circles) that introduces excessive visual clutter and exhausts mobile GPU fill-rates. The ingestion pipeline strips non-interactive structural micro-lines to satisfy the **$6,000$-node operational target** ($\le 15,000$ hard cap), preserving primary equipment envelopes, nozzle stubs, and walkways.

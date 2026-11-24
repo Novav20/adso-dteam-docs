@@ -1,5 +1,5 @@
 /* GENERATED FILE - Do not edit manually.
- * Source: ui-ux/DT-UI-DS-DOC-001.md
+ * Source: ui-ux\DT-UI-DS-DOC-001.md
  * Regenerate with: python3 scripts/generate_design_tokens.py
  */
 :root {
@@ -208,30 +208,30 @@
   --dt-color-icon-fill-success: var(--dt-primitive-teal-400);
   --dt-color-icon-fill-warning: var(--dt-primitive-amber-400);
   --dt-color-icon-fill-info: var(--dt-primitive-blue-380);
-  --dt-color-loto-disc: rgba(247, 249, 251, 0.85);
-  --dt-color-state-info-fill: rgba(37, 99, 235, 0.10);
-  --dt-color-state-success-fill: rgba(11, 133, 122, 0.12);
-  --dt-color-alarm-critical-fill: rgba(230, 57, 70, 0.11);
-  --dt-color-alarm-warning-fill: rgba(172, 94, 4, 0.12);
-  --dt-color-conflict-fill: rgba(230, 57, 70, 0.22);
-  --dt-color-ruler-bg: rgba(247, 249, 251, 0.42);
-  --dt-color-ruler-border: rgba(100, 116, 139, 0.28);
-  --dt-color-scale-bg: rgba(247, 249, 251, 0.38);
-  --dt-color-float-bg: rgba(247, 249, 251, 0.36);
-  --dt-color-float-bg-strong: rgba(247, 249, 251, 0.46);
-  --dt-color-float-border: rgba(100, 116, 139, 0.32);
-  --dt-color-float-border-strong: rgba(71, 85, 105, 0.44);
+  --dt-color-loto-disc: color-mix(in srgb, var(--dt-primitive-slate-30) 85%, transparent);
+  --dt-color-state-info-fill: color-mix(in srgb, var(--dt-primitive-blue-600) 10%, transparent);
+  --dt-color-state-success-fill: color-mix(in srgb, var(--dt-primitive-teal-700) 12%, transparent);
+  --dt-color-alarm-critical-fill: color-mix(in srgb, var(--dt-primitive-red-600) 11%, transparent);
+  --dt-color-alarm-warning-fill: color-mix(in srgb, var(--dt-primitive-amber-600) 12%, transparent);
+  --dt-color-conflict-fill: color-mix(in srgb, var(--dt-primitive-red-600) 22%, transparent);
+  --dt-color-ruler-bg: color-mix(in srgb, var(--dt-primitive-slate-30) 42%, transparent);
+  --dt-color-ruler-border: color-mix(in srgb, var(--dt-primitive-slate-550) 28%, transparent);
+  --dt-color-scale-bg: color-mix(in srgb, var(--dt-primitive-slate-30) 38%, transparent);
+  --dt-color-float-bg: color-mix(in srgb, var(--dt-primitive-slate-30) 36%, transparent);
+  --dt-color-float-bg-strong: color-mix(in srgb, var(--dt-primitive-slate-30) 46%, transparent);
+  --dt-color-float-border: color-mix(in srgb, var(--dt-primitive-slate-550) 32%, transparent);
+  --dt-color-float-border-strong: color-mix(in srgb, var(--dt-primitive-slate-700) 44%, transparent);
   --dt-color-float-text: var(--dt-primitive-slate-920);
   --dt-color-float-muted: var(--dt-primitive-slate-700);
-  --dt-color-float-hover: rgba(15, 23, 42, 0.08);
-  --dt-color-float-kbd-bg: rgba(207, 214, 223, 0.62);
+  --dt-color-float-hover: color-mix(in srgb, var(--dt-primitive-slate-920) 8%, transparent);
+  --dt-color-float-kbd-bg: color-mix(in srgb, var(--dt-primitive-slate-200) 62%, transparent);
   --dt-color-state-info: var(--dt-primitive-blue-600);
   --dt-color-state-success: var(--dt-primitive-teal-700);
   --dt-color-state-disabled: var(--dt-primitive-gray-380);
-  --dt-shadow-marker: 0 1px 2px rgba(15, 23, 42, 0.22), 0 1px 1px rgba(15, 23, 42, 0.10);
-  --dt-shadow-hud: 0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.08);
-  --dt-shadow-glass: 0 1px 4px rgba(15, 23, 42, 0.18), 0 1px 2px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(247, 249, 251, 0.72);
-  --dt-shadow-panel: -2px 0 8px rgba(0, 0, 0, 0.12), -1px 0 2px rgba(0, 0, 0, 0.06);
+  --dt-shadow-marker: 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-920) 22%, transparent), 0 1px 1px color-mix(in srgb, var(--dt-primitive-slate-920) 10%, transparent);
+  --dt-shadow-hud: 0 1px 4px color-mix(in srgb, var(--dt-primitive-slate-920) 18%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-920) 8%, transparent);
+  --dt-shadow-glass: 0 1px 4px color-mix(in srgb, var(--dt-primitive-slate-920) 18%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-920) 8%, transparent), inset 0 1px 0 color-mix(in srgb, var(--dt-primitive-slate-30) 72%, transparent);
+  --dt-shadow-panel: -2px 0 8px color-mix(in srgb, var(--dt-primitive-slate-920) 12%, transparent), -1px 0 2px color-mix(in srgb, var(--dt-primitive-slate-920) 6%, transparent);
 }
 
 /* Dark theme semantic tokens */
@@ -282,30 +282,30 @@
   --dt-color-icon-fill-success: var(--dt-primitive-teal-700);
   --dt-color-icon-fill-warning: var(--dt-primitive-amber-700);
   --dt-color-icon-fill-info: var(--dt-primitive-blue-600);
-  --dt-color-loto-disc: rgba(22, 30, 46, 0.85);
-  --dt-color-state-info-fill: rgba(72, 129, 164, 0.16);
-  --dt-color-state-success-fill: rgba(42, 157, 143, 0.17);
-  --dt-color-alarm-critical-fill: rgba(230, 57, 70, 0.15);
-  --dt-color-alarm-warning-fill: rgba(244, 162, 97, 0.16);
-  --dt-color-conflict-fill: rgba(230, 57, 70, 0.25);
-  --dt-color-ruler-bg: rgba(13, 17, 23, 0.46);
-  --dt-color-ruler-border: rgba(96, 112, 137, 0.34);
-  --dt-color-scale-bg: rgba(17, 24, 39, 0.42);
-  --dt-color-float-bg: rgba(17, 24, 39, 0.40);
-  --dt-color-float-bg-strong: rgba(17, 24, 39, 0.52);
-  --dt-color-float-border: rgba(148, 163, 184, 0.28);
-  --dt-color-float-border-strong: rgba(148, 163, 184, 0.42);
+  --dt-color-loto-disc: color-mix(in srgb, var(--dt-primitive-slate-900) 85%, transparent);
+  --dt-color-state-info-fill: color-mix(in srgb, var(--dt-primitive-blue-450) 16%, transparent);
+  --dt-color-state-success-fill: color-mix(in srgb, var(--dt-primitive-teal-400) 17%, transparent);
+  --dt-color-alarm-critical-fill: color-mix(in srgb, var(--dt-primitive-red-600) 15%, transparent);
+  --dt-color-alarm-warning-fill: color-mix(in srgb, var(--dt-primitive-amber-400) 16%, transparent);
+  --dt-color-conflict-fill: color-mix(in srgb, var(--dt-primitive-red-600) 25%, transparent);
+  --dt-color-ruler-bg: color-mix(in srgb, var(--dt-primitive-slate-950) 46%, transparent);
+  --dt-color-ruler-border: color-mix(in srgb, var(--dt-primitive-slate-600) 34%, transparent);
+  --dt-color-scale-bg: color-mix(in srgb, var(--dt-primitive-gray-980) 42%, transparent);
+  --dt-color-float-bg: color-mix(in srgb, var(--dt-primitive-gray-980) 40%, transparent);
+  --dt-color-float-bg-strong: color-mix(in srgb, var(--dt-primitive-gray-980) 52%, transparent);
+  --dt-color-float-border: color-mix(in srgb, var(--dt-primitive-slate-400) 28%, transparent);
+  --dt-color-float-border-strong: color-mix(in srgb, var(--dt-primitive-slate-400) 42%, transparent);
   --dt-color-float-text: var(--dt-primitive-slate-100);
   --dt-color-float-muted: var(--dt-primitive-slate-400);
-  --dt-color-float-hover: rgba(241, 245, 249, 0.11);
-  --dt-color-float-kbd-bg: rgba(34, 43, 58, 0.72);
+  --dt-color-float-hover: color-mix(in srgb, var(--dt-primitive-slate-100) 11%, transparent);
+  --dt-color-float-kbd-bg: color-mix(in srgb, var(--dt-primitive-slate-800) 72%, transparent);
   --dt-color-state-info: var(--dt-primitive-blue-450);
   --dt-color-state-success: var(--dt-primitive-teal-400);
   --dt-color-state-disabled: var(--dt-primitive-gray-580);
-  --dt-shadow-marker: 0 2px 3px rgba(0, 0, 0, 0.50), 0 1px 2px rgba(0, 0, 0, 0.34);
-  --dt-shadow-hud: 0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
-  --dt-shadow-glass: 0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(241, 245, 249, 0.09);
-  --dt-shadow-panel: -3px 0 10px rgba(0, 0, 0, 0.50), -1px 0 3px rgba(0, 0, 0, 0.30);
+  --dt-shadow-marker: 0 2px 3px color-mix(in srgb, var(--dt-primitive-slate-975) 50%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-975) 34%, transparent);
+  --dt-shadow-hud: 0 2px 6px color-mix(in srgb, var(--dt-primitive-slate-975) 45%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-975) 35%, transparent);
+  --dt-shadow-glass: 0 2px 6px color-mix(in srgb, var(--dt-primitive-slate-975) 45%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-975) 35%, transparent), inset 0 1px 0 color-mix(in srgb, var(--dt-primitive-slate-100) 9%, transparent);
+  --dt-shadow-panel: -3px 0 10px color-mix(in srgb, var(--dt-primitive-slate-975) 50%, transparent), -1px 0 3px color-mix(in srgb, var(--dt-primitive-slate-975) 30%, transparent);
 }
 
 /* Responsive layout overrides */

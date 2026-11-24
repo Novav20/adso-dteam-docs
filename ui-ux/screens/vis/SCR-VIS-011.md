@@ -53,7 +53,7 @@ status: Stable
      - Energized Route: `--dt-color-alarm-critical`
      - Isolated Route: `--dt-color-loto-isolated-path`
      - Spatial Materials: `--dt-color-canvas-bund-floor`, `--dt-color-canvas-equip-shell`, `--dt-color-canvas-pipe-proc`
-   - **Architectural Scope:** Strictly flat $Z = 0$ base vector layer ([DT-UI-DS-DOC-001 §5.1](../../DT-UI-DS-DOC-001.md#51-hphmi-shadow-discipline-canvas-vs-hud-chrome-separation)) with superimposed LOTO vector paths and pure SVG mask-clipped de-emphasis. Spatial kinematics, full-circuit framing, `PAN_BOUNDS` clamping, and unified pan ergonomics specified in §5.1 and §5.2.
+   - **Architectural Scope:** Strictly flat $Z = 0$ base vector layer ([DT-UI-DS-DOC-001 §5.1](../../DT-UI-DS-DOC-001.md#51-hphmi-shadow-discipline-canvas-vs-hud-chrome-separation)) with superimposed LOTO vector paths and pure SVG mask-clipped de-emphasis. Spatial kinematics, full-circuit framing, site-boundary clamping, and unified pan ergonomics specified in §5.1 and §5.2.
 
 2. **`CMP-02`: Viewport Toolbar**
    - **Visual Role:** Frosted floating capsule toolbar integrating inline equipment tag search (`Space` / `Ctrl + K`), fixed-width hierarchical level indicator (`L3: LOTO Matrix`), view reset, zoom controls (`+` / `-`), and LOTO focal de-emphasis layer toggle (`#icon-layers`).
@@ -89,7 +89,7 @@ status: Stable
      - Marker Elevation: `--dt-shadow-marker`
      - Stacking: `--dt-z-layer-markers`
      - Touch Target: `--dt-touch-target-mobile`
-   - **Architectural Scope:** Bound via `data-cutoff-id` and `data-equip-id` ([DT-UI-SVG-DOC-001 §7](../../DT-UI-SVG-DOC-001.md#7-lockout-tagout-loto-isolation-point-contract)) with 4-channel redundant spatial symbology ([DT-UI-DS-DOC-001 §6.4.2](../../DT-UI-DS-DOC-001.md#642-profile-b-two-tone-spatial-canvas-markers-48-48-affinity-set)). Screen-space clamping, obstacle collision avoidance, and edge beacon clustering in §5.2; bidirectional checklist synchronization in §5.3.
+   - **Architectural Scope:** Bound via `data-cutoff-id` and `data-equip-id` ([DT-UI-SVG-DOC-001 §7](../../DT-UI-SVG-DOC-001.md#7-lockout-tagout-loto-isolation-point-contract)) with 4-channel redundant spatial symbology ([DT-UI-DS-DOC-001 §6.4.2](../../DT-UI-DS-DOC-001.md#642-profile-b-two-tone-spatial-canvas-markers-48-48)). Screen-space clamping, obstacle collision avoidance, and edge beacon clustering in §5.2; bidirectional checklist synchronization in §5.3.
 
 5. **`CMP-05`: LOTO Isolation Drawer**
    - **Visual Role:** Adaptable contextual safety panel (docked lateral drawer in landscape/desktop; sliding bottom sheet in portrait) hosting the minimize (`>`) and close (`×`) controls, Equipment Unit tag badge, dynamic safety status pill, Work Order badge, SOP link, and subcomponents `CMP-06` through `CMP-11`.
@@ -277,7 +277,7 @@ sequenceDiagram
 1. **Initial Full-Circuit Framing & Pure SVG `<mask>` Focus+Context:**
    * Upon activation from a Work Order or [SCR-VIS-033](./SCR-VIS-033.md), the viewport executes a smooth fly-to transition framing the **complete isolation circuit** (`target EquipmentUnit` plus all linked upstream MCC breakers and mechanical isolation cutoff nodes) centered within the unoccluded canvas workspace left of `CMP-05`.
    * Under Focal Island De-emphasis, non-isolated plant equipment is attenuated cleanly outside a pure SVG `<mask>` aperture framing the target equipment and isolation zone while keeping full contrast exclusively inside the mask.
-   * Electrical energy routes trace oblique orthogonal-plus-45-degree (`H/V + 45 deg`) paths from the remote MCC breaker core to the motor terminal, while mechanical process isolation boundaries anchor strictly to the exterior shell boundary perimeter (`boxBorderPoint`, never cutting through tank interiors). Undocumented dotted perimeter halos around equipment casings are strictly prohibited.
+   * Electrical energy routes trace oblique orthogonal-plus-45-degree (`H/V + 45 deg`) paths from the remote MCC breaker core to the motor terminal, while mechanical process isolation boundaries anchor strictly to the exterior shell boundary perimeter (never cutting through tank interiors). Undocumented dotted perimeter halos around equipment casings are strictly prohibited.
    * Cutoff discs (`CMP-04`) project screen-space clamped scales (`32–40 px`) with obstacle collision avoidance against ANSI/ISA-5.1 instrument plates.
    * Drawer `CMP-05` initializes in baseline state with checklist step 1 highlighted and Try-Out card disabled.
 
@@ -288,29 +288,22 @@ sequenceDiagram
 
 ### 5.2. Spatial Navigation, Edge Beacons & Tactile Mechanics
 
-1. **Unified Drag-Threshold Pan Ergonomics (Desktop & Tablet):**
-   * **Desktop Workstation:** Supports continuous pure-`viewBox` panning on **both primary and middle mouse buttons** with active pointer capture using a unified **$> 4\text{px}$ movement threshold** ($\Delta d = \sqrt{\Delta x^2 + \Delta y^2} > 4\text{px}$). Stationary clicks ($\Delta d \le 4\text{px}$) trigger cutoff disc or equipment selection cleanly. Mouse wheel executes instant focal zooming around pointer $(cx, cy)$, while programmatic navigation (`CMP-06` step jump, edge beacon tap, view reset) interpolates smoothly via delta-time animation.
-   * **Industrial Tablet:** Single-finger touch pan applies the identical **$4\text{px}$ movement threshold** to differentiate intentional pan gestures from stationary taps on cutoff hotspot discs (`CMP-04`).
+1. **Viewport Pan, Zoom & LOTO Framing:** Shared pure-`viewBox` camera, site-boundary clamping, instant focal wheel zoom, and unified `> 4px` drag-threshold panning follow [DT-UI-SVG-DOC-001 §10.2](../../DT-UI-SVG-DOC-001.md#102-pure-viewbox-camera-site-boundary-clamping-transition-rules). Stationary clicks ($\le 4\text{px}$) select cutoff hotspot discs (`CMP-04`), while programmatic navigation (`CMP-06` step jump, edge beacon tap, view reset) interpolates smoothly.
 
 2. **Off-Screen Directional Edge Beacons (Level 3 Zoom Awareness):**
    * When zooming deeply into the target unit (`Scale >= --dt-zoom-scale-l2-max`), upstream MCC breakers or distant isolation valves located outside the visible `viewBox` remain tracked via frosted directional edge beacons (`--dt-color-float-bg-strong`, `--dt-shadow-glass`) docked along the unoccluded viewport boundary edge (offset inward from `CMP-05` and HUD margins).
    * Nearby off-screen nodes along the same edge cluster cleanly into directional badges (`<< 2 MCC`), showing aggregate energized/isolated status; tapping any beacon smoothly pans and frames that isolation node.
 
-3. **Pure `viewBox` Zoom & `PAN_BOUNDS` Center Clamping:**
-   * The normalized zoom range spans `--dt-zoom-scale-fit` to maximum tactical magnification ($15\times$ raw range) via pure `<svg>` `viewBox` updates with zero CSS scaling.
-   * When zooming toward focal point $(cx, cy)$ in viewport coordinates, the new SVG `viewBox` origin preserves the focal coordinate in double precision ([DT-UI-SVG-DOC-001 §10.2](../../DT-UI-SVG-DOC-001.md#102-pure-viewbox-camera-pan_bounds-transition-rules)).
-   * Translation is governed by `PAN_BOUNDS` center clamping so the viewport center $(cx, cy)$ stays within the calibrated `L-CIVL-PROP` facility bounding box, allowing any property corner to reach the viewport center without drifting into unbounded void.
-
-4. **Layout Shift Invariants & Dimension Enforcements:**
+3. **Layout Shift Invariants & Dimension Enforcements:**
    * Toolbar `CMP-02`: Level indicator badge enforces a rigid fixed width (`--dt-layout-toolbar-badge-width`), preventing horizontal control jitter across zoom transitions.
    * Drawer `CMP-05`: Sized by normative layout token `--dt-layout-drawer-width` with permanent scrollbar gutter reservation, strictly preserving canvas visibility. Breakpoint mappings are detailed in Section 8.
 
-5. **Bottom Sheet Snap Physics & Discrete Switching (`CMP-05`):**
+4. **Bottom Sheet Snap Physics & Discrete Switching (`CMP-05`):**
    * In portrait tablet orientation, `CMP-05` operates as an ergonomic bottom sheet transitioning between natural collapsed height and expanded height (exact viewport percentages detailed in Section 8).
    * **Gesture Snap Physics:** Dragging past velocity threshold $> 0.5\text{px/ms}$ or displacement $> 25\%$ distance snaps to destination state via spring animation.
    * **Discrete Switching Invariant (ISO 9241-110 Clause 5.5 / [DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)):** To guarantee usability under adverse field conditions (e.g., rain droplets, gloved operation), container deployment is NEVER conditioned exclusively to drag gestures. A single discrete tap on the touch drag handle immediately toggles sheet elevation between natural collapsed height and expanded height via standard cubic-bezier sheet transition.
 
-6. **Overlay Drawer Lifecycle (Minimize vs. Deselect / Close Contract):**
+5. **Overlay Drawer Lifecycle (Minimize vs. Deselect / Close Contract):**
    * Per [DT-UI-DS-DOC-001 §2.4](../../DT-UI-DS-DOC-001.md#24-structural-layout-and-dimensional-tokens) and [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md):
      * **Minimization (Chevron Trigger `>` / Tactical Pull-Down):** Retracts `CMP-05` to the viewport edge while preserving an exposed peek tab (`--dt-layout-bottom-sheet-peek-height`) for immediate re-expansion during spatial route tracing. The active equipment selection halo, checklist cursor, and real-time SignalR telemetry subscriptions are retained in memory.
      * **Explicit Dismissal / Exit (Close `×` Button):** Closes `CMP-05`, suppresses the peek trigger, and clears cutoff focus on the SVG canvas, returning the viewport to the supervisory baseline.
@@ -779,7 +772,7 @@ public enum WorkOrderStatus
 
 1. **SVG Viewport & LOTO Route Interop (`ILotoCanvasInterop`):**
    * Manipulates SVG path stroke attributes (crimson solid oblique `H/V + 45 deg` and edge-anchored paths for active hazardous energy vs. `--dt-color-loto-isolated-path` dashed paths for confirmed isolated lines) and pure `<mask>` Focal Island apertures in real time without triggering full SVG re-parsing.
-   * Tracks PointerEvents for pure `viewBox` panning (`PAN_BOUNDS` center clamping), unified primary/middle-click and tablet $4\text{px}$ drag thresholding, instant focal wheel zoom, smooth full-circuit fly-to transitions, and directional off-screen edge beacon projection.
+   * Tracks PointerEvents for pure `viewBox` panning (site-boundary center clamping), unified primary/middle-click and tablet $4\text{px}$ drag thresholding, instant focal wheel zoom, smooth full-circuit fly-to transitions, and directional off-screen edge beacon projection.
 2. **Cutoff Node Hotspot Binding:**
    * Standardized SVG data attribute binding (`data-cutoff-id`, `data-equip-id`). Disambiguates $> 4\text{px}$ pan drags from discrete stationary taps ($\le 4\text{px}$) on cutoff discs (`CMP-04`), enforces screen-space clamping (`32–40 px`) with ANSI/ISA-5.1 obstacle avoidance, and dispatches selection to highlight corresponding checklist steps in `CMP-06` and MAI cards in `CMP-07`.
 3. **Encrypted Offline Storage & Lease Interop (`IOfflineStorage`):**

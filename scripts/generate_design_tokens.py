@@ -83,15 +83,33 @@ def css_value(value: str) -> str:
 
 def semantic_value(value: str) -> str:
     value = css_value(value)
+    at_match = re.match(r"^(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%$", value)
+    if at_match:
+        prim, pct = at_match.group(1), at_match.group(2)
+        return f"color-mix(in srgb, var({prim}) {pct}%, transparent)"
     if value.startswith("--"):
         return f"var({value})"
     return value
 
 
-def penpot_reference(value: str) -> str:
+def penpot_reference(value: str, primitive_hex_map: dict[str, str] | None = None) -> str:
     value = css_value(value)
     if value.startswith("--dt-primitive-"):
         return "{" + value.removeprefix("--dt-primitive-") + "}"
+    mix_match = re.match(
+        r"^(?:color-mix\(\s*in\s+srgb\s*,\s*var\((--dt-primitive-[a-z0-9-]+)\)\s+(\d+(?:\.\d+)?)%\s*,\s*transparent\s*\)|(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%)$",
+        value,
+    )
+    if mix_match and primitive_hex_map:
+        prim_name = mix_match.group(1) or mix_match.group(3)
+        pct_str = mix_match.group(2) or mix_match.group(4)
+        hex_val = primitive_hex_map.get(prim_name, "").lstrip("#")
+        if len(hex_val) == 6:
+            r = int(hex_val[0:2], 16)
+            g = int(hex_val[2:4], 16)
+            b = int(hex_val[4:6], 16)
+            alpha = round(float(pct_str) / 100.0, 4)
+            return f"rgba({r}, {g}, {b}, {alpha:g})"
     return value
 
 
@@ -252,8 +270,16 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     for row in shadows:
         if row and len(row) > 2 and row[0].startswith("--"):
             token, light, dark = row[:3]
-            light_semantic[token] = css_value(light)
-            dark_semantic[token] = css_value(dark)
+            light_semantic[token] = re.sub(
+                r"(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%",
+                lambda m: f"color-mix(in srgb, var({m.group(1)}) {m.group(2)}%, transparent)",
+                css_value(light),
+            )
+            dark_semantic[token] = re.sub(
+                r"(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%",
+                lambda m: f"color-mix(in srgb, var({m.group(1)}) {m.group(2)}%, transparent)",
+                css_value(dark),
+            )
 
     for token, val in light_semantic.items():
         lines.append(f"  {token}: {val};")
@@ -394,10 +420,13 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             }
 
     # Color Primitives
+    primitive_hex_map: dict[str, str] = {}
     for row in primitives:
         if row and row[0].startswith("--dt-primitive-"):
+            hex_val = css_value(row[1])
+            primitive_hex_map[row[0]] = hex_val
             penpot["Primitives"][row[0].removeprefix("--dt-primitive-")] = penpot_token(
-                css_value(row[1]), "color"
+                hex_val, "color"
             )
 
     # Semantic Color Tokens
@@ -406,44 +435,58 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             token, dark, light = row[:3]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
-                penpot_reference(dark), "color"
+                penpot_reference(dark, primitive_hex_map), "color"
             )
             penpot["Semantic-Light"][name] = penpot_token(
-                penpot_reference(light), "color"
+                penpot_reference(light, primitive_hex_map), "color"
             )
     for row in mai_tokens:
         if row and len(row) > 3 and row[1].startswith("--dt-"):
             _, token, light, dark = row[:4]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
-                penpot_reference(dark), "color"
+                penpot_reference(dark, primitive_hex_map), "color"
             )
     for row in spatial_tokens:
         if row and row[0].startswith("--dt-"):
             token, dark, light = row[:3]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
-                penpot_reference(dark), "color"
+                penpot_reference(dark, primitive_hex_map), "color"
             )
             penpot["Semantic-Light"][name] = penpot_token(
-                penpot_reference(light), "color"
+                penpot_reference(light, primitive_hex_map), "color"
             )
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--dt-"):
             _, token, dark, light = row[:4]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
-                penpot_reference(dark), "color"
+                penpot_reference(dark, primitive_hex_map), "color"
             )
             penpot["Semantic-Light"][name] = penpot_token(
-                penpot_reference(light), "color"
+                penpot_reference(light, primitive_hex_map), "color"
             )
     for row in shadows:
         if row and len(row) > 2 and row[0].startswith("--dt-"):
             token, light, dark = row[:3]
             name = penpot_semantic_name(token)
-            penpot["Semantic-Dark"][name] = penpot_token(css_value(dark), "boxShadow")
-            penpot["Semantic-Light"][name] = penpot_token(css_value(light), "boxShadow")
+            penpot["Semantic-Dark"][name] = penpot_token(
+                re.sub(
+                    r"(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%",
+                    lambda m: penpot_reference(m.group(0), primitive_hex_map),
+                    css_value(dark),
+                ),
+                "boxShadow",
+            )
+            penpot["Semantic-Light"][name] = penpot_token(
+                re.sub(
+                    r"(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%",
+                    lambda m: penpot_reference(m.group(0), primitive_hex_map),
+                    css_value(light),
+                ),
+                "boxShadow",
+            )
 
     penpot_target.parent.mkdir(parents=True, exist_ok=True)
     penpot_target.write_text(json.dumps(penpot, indent=2) + "\n", encoding="utf-8")

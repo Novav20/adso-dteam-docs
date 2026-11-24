@@ -76,7 +76,7 @@ graph TD
 ### 3.1. Level 1: Plant Overview (L1 - Area / Overview)
 Macro screens providing a holistic, uninterrupted view of the industrial plant. They apply the 90% neutral grays HPHMI rule to highlight only alarm conditions.
 
-* **[SCR-VIS-008](screens/vis/SCR-VIS-008.md) — 2D Plant Map:** Scalable vector graphic canvas (SVG) adopting the *Simplified Plot Plan / Process Overview* format in a neutral `CAD Calibrado` palette, representing the spatial distribution of the plant (`L-CIVL-PROP`), programmatic L1 functional-zone summary pills, operating states, and active work permit layers. Traceable with **[UC-VIS-008](../domain-models/use-cases/vis/UC-VIS-008.md)** and **[UC-VIS-033](../domain-models/use-cases/vis/UC-VIS-033.md)**. Transitions across Level 1 (`--dt-zoom-scale-fit`), Level 2 (`--dt-zoom-scale-l1-max` / `--dt-zoom-scale-tactical`), and Level 3 (`--dt-zoom-scale-l2-max`) within the unified single-canvas viewport occur via continuous focal `viewBox` zoom, interactive ISO 14224 spatial breadcrumb (`Terminal > Zone > Asset`), or intent-based `Space` / `Ctrl + K` fuzzy search framing governed by [DT-UI-DS-DOC-001 §2.5](DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports).
+* **[SCR-VIS-008](screens/vis/SCR-VIS-008.md) — 2D Plant Map:** Scalable vector graphic canvas (SVG) adopting the *Simplified Plot Plan / Process Overview* format in a neutral HPHMI spatial palette, representing the spatial distribution of the plant (`L-CIVL-PROP`), programmatic L1 functional-zone summary pills, operating states, and active work permit layers. Traceable with **[UC-VIS-008](../domain-models/use-cases/vis/UC-VIS-008.md)** and **[UC-VIS-033](../domain-models/use-cases/vis/UC-VIS-033.md)**. Transitions across Level 1 (`--dt-zoom-scale-fit`), Level 2 (`--dt-zoom-scale-l1-max` / `--dt-zoom-scale-tactical`), and Level 3 (`--dt-zoom-scale-l2-max`) within the unified single-canvas viewport occur via continuous focal `viewBox` zoom, interactive ISO 14224 spatial breadcrumb (`Terminal > Zone > Asset`), or intent-based `Space` / `Ctrl + K` fuzzy search framing governed by [DT-UI-DS-DOC-001 §2.5](DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports).
 
 ### 3.2. Level 2: Process Supervision and Planning (L2 - Unit / Process)
 Intermediate control screens for supervisors, planners, and auditors. They consolidate aggregated information, hierarchy trees, and performance metrics.
@@ -111,63 +111,49 @@ Specialized interfaces for atomic execution, safety verification at the point of
 
 ### 4.1. Navigation Structure — Mobile Client
 
-```plantuml
-@startmindmap
-skinparam defaultFontName "Segoe UI"
-skinparam defaultFontSize 12
-skinparam nodesep 20
-skinparam ranksep 30
-
-* **Mobile Client (MAUI)**
-** 1.0 Plant (L1)\n[[screens/vis/SCR-VIS-008.md SCR-VIS-008]]
-*** Asset Contextual Card (L3)\n[[screens/vis/SCR-VIS-033.md SCR-VIS-033]]
-*** LOTO Isolation Routes (L4)\n[[screens/vis/SCR-VIS-011.md SCR-VIS-011]]
-** 2.0 My Orders (L2)
-*** Mobile WO Closing (L4)\n[[screens/mtto/SCR-MTTO-002.md SCR-MTTO-002]]
-*** LOTO Isolation Routes (L4)\n[[screens/vis/SCR-VIS-011.md SCR-VIS-011]]
-** 3.0 Assets (L2)
-*** Equipment Master Data (L3)\n[[screens/inv/SCR-INV-005.md SCR-INV-005]]
-*** Modal Asset Swap (L4)\n[[screens/inv/SCR-INV-025.md SCR-INV-025]]
-** 4.0 Synchronization (L2)
-*** Offline Transactional Queue
-** 5.0 Side Drawer
-*** Boundary Limits Card (L3)\n[[screens/mtto/SCR-MTTO-029.md SCR-MTTO-029]]
-*** Kardex History (L3)\n[[screens/inv/SCR-INV-006.md SCR-INV-006]]
-*** Profile and License
-@endmindmap
+```mermaid
+flowchart LR
+    MOB["Mobile Client (MAUI)"] --> M1["1.0 Plant (L1) - SCR-VIS-008"]
+    M1 --> M1A["Asset Contextual Card (L3) - SCR-VIS-033"]
+    M1 --> M1B["LOTO Isolation Routes (L4) - SCR-VIS-011"]
+    MOB --> M2["2.0 My Orders (L2)"]
+    M2 --> M2A["Mobile WO Closing (L4) - SCR-MTTO-002"]
+    M2 --> M2B["LOTO Isolation Routes (L4) - SCR-VIS-011"]
+    MOB --> M3["3.0 Assets (L2)"]
+    M3 --> M3A["Equipment Master Data (L3) - SCR-INV-005"]
+    M3 --> M3B["Modal Asset Swap (L4) - SCR-INV-025"]
+    MOB --> M4["4.0 Synchronization (L2)"]
+    M4 --> M4A["Offline Transactional Queue"]
+    MOB --> M5["5.0 Side Drawer"]
+    M5 --> M5A["Boundary Limits Card (L3) - SCR-MTTO-029"]
+    M5 --> M5B["Kardex History (L3) - SCR-INV-006"]
+    M5 --> M5C["Profile and License"]
 ```
 
 ### 4.2. Navigation Structure — Web Portal Client
 
-```plantuml
-@startmindmap
-skinparam defaultFontName "Segoe UI"
-skinparam defaultFontSize 12
-skinparam nodesep 20
-skinparam ranksep 30
-
-* **Web Portal (Blazor)**
-** 1.0 Digital Twin
-*** 2D Plant Map (L1)\n[[screens/vis/SCR-VIS-008.md SCR-VIS-008]]
-*** Asset Contextual Card (L3)\n[[screens/vis/SCR-VIS-033.md SCR-VIS-033]]
-*** LOTO Isolation Routes (L4)\n[[screens/vis/SCR-VIS-011.md SCR-VIS-011]]
-** 2.0 Maintenance
-*** RIME Backlog Dashboard (L2)\n[[screens/mtto/SCR-MTTO-026.md SCR-MTTO-026]]
-*** Preventive Scheduling (L3)\n[[screens/mtto/SCR-MTTO-001.md SCR-MTTO-001]]
-*** Telemetry Scheduling (L3)\n[[screens/mtto/SCR-MTTO-023.md SCR-MTTO-023]]
-*** Boundary Limits Card (L3)\n[[screens/mtto/SCR-MTTO-029.md SCR-MTTO-029]]
-*** WO Historical Record (L4)\n[[screens/mtto/SCR-MTTO-002.md SCR-MTTO-002]]
-** 3.0 Inventory
-*** Functional Locations Tree (L2)\n[[screens/inv/SCR-INV-027.md SCR-INV-027]]
-*** Equipment Master Data (L3)\n[[screens/inv/SCR-INV-005.md SCR-INV-005]]
-*** Spare Parts Catalog (L3)\n[[screens/inv/SCR-INV-031.md SCR-INV-031]]
-*** Kardex History (L3)\n[[screens/inv/SCR-INV-006.md SCR-INV-006]]
-*** Asset Swap Modal (L4)\n[[screens/inv/SCR-INV-025.md SCR-INV-025]]
-** 4.0 Governance
-*** RBAC Matrix (L2)\n[[screens/adm/SCR-ADM-013.md SCR-ADM-013]]
-*** User Management (L2)\n[[screens/adm/SCR-ADM-014.md SCR-ADM-014]]
-*** Immutable SHA-256 Audit (L2)\n[[screens/adm/SCR-ADM-032.md SCR-ADM-032]]
-@endmindmap
+```mermaid
+flowchart LR
+    WEB["Web Portal (Blazor)"] --> W1["1.0 Digital Twin"]
+    W1 --> W1A["2D Plant Map (L1) - SCR-VIS-008"]
+    W1 --> W1B["Asset Contextual Card (L3) - SCR-VIS-033"]
+    W1 --> W1C["LOTO Isolation Routes (L4) - SCR-VIS-011"]
+    WEB --> W2["2.0 Maintenance"]
+    W2 --> W2A["RIME Backlog Dashboard (L2) - SCR-MTTO-026"]
+    W2 --> W2B["Preventive Scheduling (L3) - SCR-MTTO-001"]
+    W2 --> W2C["Telemetry Scheduling (L3) - SCR-MTTO-023"]
+    W2 --> W2D["Boundary Limits Card (L3) - SCR-MTTO-029"]
+    W2 --> W2E["WO Historical Record (L4) - SCR-MTTO-002"]
+    WEB --> W3["3.0 Inventory"]
+    W3 --> W3A["Functional Locations Tree (L2) - SCR-INV-027"]
+    W3 --> W3B["Equipment Master Data (L3) - SCR-INV-005"]
+    W3 --> W3C["Spare Parts Catalog (L3) - SCR-INV-031"]
+    W3 --> W3D["Kardex History (L3) - SCR-INV-006"]
+    W3 --> W3E["Asset Swap Modal (L4) - SCR-INV-025"]
+    WEB --> W4["4.0 Governance"]
+    W4 --> W4A["RBAC Matrix (L2) - SCR-ADM-013"]
+    W4 --> W4B["User Management (L2) - SCR-ADM-014"]
+    W4 --> W4C["Immutable SHA-256 Audit (L2) - SCR-ADM-032"]
 ```
 
 
