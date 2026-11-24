@@ -130,7 +130,7 @@ def build(source_dir: Path, target: Path, prototype_target: Path | None = None, 
             continue
 
         found_groups = False
-        # 1. Check if the file has multi-icon groups (id="icon-*", id="sym-icon-*", or inkscape:label="icon-*")
+        # 1. Check if the file has multi-icon groups (id="icon-*" or inkscape:label="icon-*")
         for group in root.findall(".//g"):
             group_id = group.attrib.get("id", "")
             label = ""
@@ -140,19 +140,16 @@ def build(source_dir: Path, target: Path, prototype_target: Path | None = None, 
                     break
 
             symbol_id = ""
-            if label.startswith(("icon-", "sym-icon-")):
+            if label.startswith("icon-"):
                 symbol_id = label
-            elif group_id.startswith(("icon-", "sym-icon-")):
+            elif group_id.startswith("icon-"):
                 symbol_id = group_id
 
             if symbol_id:
                 explicit_vb = group.attrib.pop("data-viewbox", None) or group.attrib.pop("viewBox", None)
                 clean_xml_element(group)
                 group.attrib["id"] = symbol_id
-                default_vb = "0 0 48 48" if symbol_id.startswith("sym-icon-") else "0 0 24 24"
-                viewbox = explicit_vb or root.attrib.get("viewBox", default_vb)
-                if symbol_id.startswith("sym-icon-") and not explicit_vb and viewbox == "0 0 24 24":
-                    viewbox = "0 0 48 48"
+                viewbox = explicit_vb or root.attrib.get("viewBox", "0 0 24 24")
                 inner_xml = ET.tostring(group, encoding="unicode").strip()
                 extracted_symbols[symbol_id] = (
                     f'  <symbol id="{symbol_id}" viewBox="{viewbox}">\n    {inner_xml}\n  </symbol>'
@@ -252,8 +249,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-dir", type=Path, default=DEFAULT_SOURCE_DIR)
     parser.add_argument("--target", type=Path, default=DEFAULT_TARGET)
-    parser.add_argument("--prototype-target", type=Path, default=DEFAULT_PROTOTYPE_TARGET)
-    parser.add_argument("--prototype-data-js", type=Path, default=DEFAULT_PROTOTYPE_DATA_JS)
+    parser.add_argument("--prototype-target", type=Path, default=None)
+    parser.add_argument("--prototype-data-js", type=Path, default=None)
     parser.add_argument(
         "--target-prototype-dir",
         type=Path,
@@ -267,7 +264,12 @@ def main() -> None:
         prototype_dir = args.target_prototype_dir.resolve()
         prototype_target = prototype_dir / "icons.svg"
         prototype_data_js = prototype_dir / "icons-data.js"
-    build(args.source_dir.resolve(), args.target.resolve(), prototype_target.resolve(), prototype_data_js.resolve())
+    build(
+        args.source_dir.resolve(),
+        args.target.resolve(),
+        prototype_target.resolve() if prototype_target else None,
+        prototype_data_js.resolve() if prototype_data_js else None,
+    )
 
 
 if __name__ == "__main__":

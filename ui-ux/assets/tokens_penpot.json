@@ -397,13 +397,13 @@
     }
   },
   "Primitives": {
-    "gray-980": {
-      "$value": "#111827",
+    "gray-950": {
+      "$value": "#11141A",
       "$type": "color",
       "$description": ""
     },
-    "gray-950": {
-      "$value": "#11141A",
+    "gray-980": {
+      "$value": "#111827",
       "$type": "color",
       "$description": ""
     },
@@ -412,13 +412,13 @@
       "$type": "color",
       "$description": ""
     },
-    "gray-850": {
-      "$value": "#1F2937",
+    "gray-800": {
+      "$value": "#1E222B",
       "$type": "color",
       "$description": ""
     },
-    "gray-800": {
-      "$value": "#1E222B",
+    "gray-850": {
+      "$value": "#1F2937",
       "$type": "color",
       "$description": ""
     },
@@ -427,18 +427,13 @@
       "$type": "color",
       "$description": ""
     },
-    "gray-650": {
-      "$value": "#3A4154",
-      "$type": "color",
-      "$description": ""
-    },
-    "gray-620": {
-      "$value": "#4B5563",
-      "$type": "color",
-      "$description": ""
-    },
     "gray-600": {
       "$value": "#353B4D",
+      "$type": "color",
+      "$description": ""
+    },
+    "gray-650": {
+      "$value": "#3A4154",
       "$type": "color",
       "$description": ""
     },
@@ -447,8 +442,8 @@
       "$type": "color",
       "$description": ""
     },
-    "gray-550": {
-      "$value": "#6B7280",
+    "gray-620": {
+      "$value": "#4B5563",
       "$type": "color",
       "$description": ""
     },
@@ -457,18 +452,23 @@
       "$type": "color",
       "$description": ""
     },
+    "gray-550": {
+      "$value": "#6B7280",
+      "$type": "color",
+      "$description": ""
+    },
     "gray-450": {
       "$value": "#6E7A92",
       "$type": "color",
       "$description": ""
     },
-    "gray-420": {
-      "$value": "#8A98AA",
+    "gray-400": {
+      "$value": "#7E8B9B",
       "$type": "color",
       "$description": ""
     },
-    "gray-400": {
-      "$value": "#7E8B9B",
+    "gray-420": {
+      "$value": "#8A98AA",
       "$type": "color",
       "$description": ""
     },
@@ -532,13 +532,13 @@
       "$type": "color",
       "$description": ""
     },
-    "slate-925": {
-      "$value": "#131923",
+    "slate-920": {
+      "$value": "#0F172A",
       "$type": "color",
       "$description": ""
     },
-    "slate-920": {
-      "$value": "#0F172A",
+    "slate-925": {
+      "$value": "#131923",
       "$type": "color",
       "$description": ""
     },
@@ -612,11 +612,6 @@
       "$type": "color",
       "$description": ""
     },
-    "slate-100": {
-      "$value": "#F1F5F9",
-      "$type": "color",
-      "$description": ""
-    },
     "slate-80": {
       "$value": "#ECEFF3",
       "$type": "color",
@@ -624,6 +619,11 @@
     },
     "slate-60": {
       "$value": "#F0F3F7",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-100": {
+      "$value": "#F1F5F9",
       "$type": "color",
       "$description": ""
     },
@@ -804,18 +804,8 @@
       "$type": "color",
       "$description": ""
     },
-    "alarm-critical": {
-      "$value": "{red-600}",
-      "$type": "color",
-      "$description": ""
-    },
     "alarm-text-critical": {
       "$value": "{gray-10}",
-      "$type": "color",
-      "$description": ""
-    },
-    "alarm-warning": {
-      "$value": "{amber-400}",
       "$type": "color",
       "$description": ""
     },
@@ -909,31 +899,6 @@
       "$type": "color",
       "$description": ""
     },
-    "icon-outline": {
-      "$value": "{slate-100}",
-      "$type": "color",
-      "$description": ""
-    },
-    "icon-fill-critical": {
-      "$value": "{red-600}",
-      "$type": "color",
-      "$description": ""
-    },
-    "icon-fill-success": {
-      "$value": "{teal-700}",
-      "$type": "color",
-      "$description": ""
-    },
-    "icon-fill-warning": {
-      "$value": "{amber-700}",
-      "$type": "color",
-      "$description": ""
-    },
-    "icon-fill-info": {
-      "$value": "{blue-600}",
-      "$type": "color",
-      "$description": ""
-    },
     "loto-disc": {
       "$value": "{slate-900 @ 85%}",
       "$type": "color",
@@ -1016,6 +981,16 @@
     },
     "float-kbd-bg": {
       "$value": "{slate-800 @ 72%}",
+      "$type": "color",
+      "$description": ""
+    },
+    "alarm-critical": {
+      "$value": "{red-600}",
+      "$type": "color",
+      "$description": ""
+    },
+    "alarm-warning": {
+      "$value": "{amber-400}",
       "$type": "color",
       "$description": ""
     },
@@ -1126,6 +1101,61 @@
       "$type": "color",
       "$description": ""
     },
+    "mai-track": {
+      "$value": "{gray-300}",
+      "$type": "color",
+      "$description": ""
+    },
+    "mai-track-border": {
+      "$value": "{gray-350}",
+      "$type": "color",
+      "$description": ""
+    },
+    "mai-normal-zone": {
+      "$value": "{blue-200}",
+      "$type": "color",
+      "$description": ""
+    },
+    "mai-normal-zone-border": {
+      "$value": "{blue-400}",
+      "$type": "color",
+      "$description": ""
+    },
+    "mai-pointer": {
+      "$value": "{gray-980}",
+      "$type": "color",
+      "$description": ""
+    },
+    "mai-pointer-border": {
+      "$value": "{gray-10}",
+      "$type": "color",
+      "$description": ""
+    },
+    "alarm-text-critical": {
+      "$value": "{gray-10}",
+      "$type": "color",
+      "$description": ""
+    },
+    "alarm-text-warning": {
+      "$value": "{gray-10}",
+      "$type": "color",
+      "$description": ""
+    },
+    "mai-stale-zone": {
+      "$value": "{gray-280}",
+      "$type": "color",
+      "$description": ""
+    },
+    "mai-stale-zone-border": {
+      "$value": "{gray-420}",
+      "$type": "color",
+      "$description": ""
+    },
+    "mai-interlock": {
+      "$value": "{gray-980}",
+      "$type": "color",
+      "$description": ""
+    },
     "canvas-bund-floor": {
       "$value": "{slate-140}",
       "$type": "color",
@@ -1193,31 +1223,6 @@
     },
     "marker-border": {
       "$value": "{slate-550}",
-      "$type": "color",
-      "$description": ""
-    },
-    "icon-outline": {
-      "$value": "{slate-920}",
-      "$type": "color",
-      "$description": ""
-    },
-    "icon-fill-critical": {
-      "$value": "{red-600}",
-      "$type": "color",
-      "$description": ""
-    },
-    "icon-fill-success": {
-      "$value": "{teal-400}",
-      "$type": "color",
-      "$description": ""
-    },
-    "icon-fill-warning": {
-      "$value": "{amber-400}",
-      "$type": "color",
-      "$description": ""
-    },
-    "icon-fill-info": {
-      "$value": "{blue-380}",
       "$type": "color",
       "$description": ""
     },

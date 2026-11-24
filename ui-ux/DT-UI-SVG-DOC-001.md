@@ -36,7 +36,7 @@ Before client-side DOM insertion or database persistence, all incoming SVG docum
    * **Hard Ingestion Rejection Ceiling:** Total parsed SVG DOM tree count MUST NOT exceed **15,000 nodes**. Documents exceeding 15,000 nodes MUST fail ingestion deterministically with an explicit micro-geometry stripping diagnostic.
 3. **MOC Cryptographic Payload Checksum:** The root element MUST carry a SHA-256 digest (`data-checksum-sha256`) computed over the raw sanitized XML template (excluding the checksum attribute itself). The ingestion pipeline re-calculates and asserts this checksum against the active MOC registry.
 4. **Coordinate System & Metric Scale:** All geometry MUST be expressed in SVG User Space coordinates normalized to a metric scale ratio defined in the root header (`data-scale-ratio` and `data-units="meters"`). Global geodesic EPSG transformations are decoupled and computed at runtime via the root calibration metadata (§11).
-5. **Zero Unresolved Asset Placement & Physical Hit-Target Boundary:** Unmapped database equipment records (`UNMAPPED`) MUST NOT be injected at synthetic coordinates such as $(0, 0)$. Direct pointer hover and click interaction on the canvas targets strictly physical equipment hotspots (`class="dt-interactive"`, ISO 14224 Level 6 `EquipmentUnit` entities); logical Functional Locations (`ZONE-*`, `DIKE-*`) are navigated via the breadcrumb selector, L1 summary pills (`CMP-09`), or the `Space` / `Ctrl+K` intent-search bar.
+5. **Zero Unresolved Asset Placement & Physical Hit-Target Boundary:** Unmapped database equipment records (`UNMAPPED`) MUST NOT be injected at synthetic coordinates such as $(0, 0)$. Direct pointer hover and click interaction on the canvas targets strictly physical equipment hotspots (`class="dt-interactive"`, ISO 14224 Level 6 `EquipmentUnit` entities); logical Functional Locations (`ZONE-*`, `DIKE-*`) are navigated via the breadcrumb selector, L1 summary pills, or global tag search.
 
 ---
 
@@ -48,7 +48,7 @@ The root `<svg>` element MUST define Management of Change (MOC) attributes, spat
 <svg 
   xmlns="http://www.w3.org/2000/svg" 
   viewBox="0 0 2000 1500" 
-  class="dt-canvas zoom-l1"
+  class="dt-canvas dt-zoom-l1"
   data-moc-id="MOC-2026-0042"
   data-rev-number="2.3"
   data-checksum-sha256="892a420e807f2f98..."
@@ -259,17 +259,17 @@ Field instrumentation nodes in layer `L-INSP-INST` represent real-time SCADA/DCS
 *Rules:*
 1. **Loop Decoupling:** General BPCS transmitters use standard circular bubbles. Safety-Critical SIS loops (e.g., API 2350 overfill switches `LSHH`, hazardous gas detectors `AIT`) MUST enclose the bubble within a neutral bounding square box (`--dt-color-marker-border`, preserving red strictly for active alarms).
 2. **Impulse Lead Lines (`L-INSP-LEADS`):** Instruments mounted on stanchions off equipment skids MUST carry fine dashed lead lines (`stroke-dasharray="3 2"`, width `0.7px`) linking the process physical tap point to the instrument bubble centroid.
-3. **Telemetry Boundary (Zero Live Numeric Values on SVG):** Process variable units, live engineering readings, and trip setpoints reside strictly within the C# telemetry DTO contracts (`SCR-VIS-033` §7.2.3); embedding live telemetry values on SVG instrument plates or DOM attributes is strictly prohibited.
-4. **Client-Driven Criticality & Screen-Space Decluttering:** Criticality is authoritatively driven by backend `is_safety_critical` metadata. At `--dt-zoom-scale-tactical` and above (`L2`), the viewport engine applies screen-space collision culling keeping priority order: **selected/hovered asset instruments $\to$ SIS safety-critical loops $\to$ BPCS process loops**, revealing loop sub-numbers (`0101A`) progressively at Level 3 (`--dt-zoom-scale-l2-max`).
-5. **Rule 5 — Geometric Enclosure Separation (SIS Box Clearance):** When rendering safety-critical SIS loops (`is_safety_critical="TRUE"`), the enclosing rounded rectangular box (`rx = 1.2`) MUST maintain an outer radial clearance of at least **$1.2\text{ px}$** beyond the circular instrument bubble ($r_{\text{box}} = r_{\text{bubble}} + 1.2$). Tangential or intersecting corner spikes are prohibited.
-6. **Rule 6 — 4-Character Functional Tag Scaling:** Instrument functional identifiers comprising 4 alphanumeric characters (e.g., `LSHH`, `PSHH`, `FSHH`) MUST scale proportionally ($\le 2.4\text{ px}$ base font unit inside $\varnothing 10.4$ SVG bubble, or equivalent in screen-space clamped plate) to guarantee $\ge 1.5\text{ px}$ lateral chord clearance from the inner circle edge.
+3. **Telemetry Boundary (Zero Live Numeric Values on SVG):** Process variable units, live engineering readings, and trip setpoints reside strictly within backend telemetry DTO contracts (`SCR-VIS-033` §7.2.3); embedding live telemetry values on SVG instrument plates or DOM attributes is strictly prohibited.
+4. **Client-Driven Criticality & Screen-Space Decluttering:** Criticality is authoritatively driven by backend `data-safety-critical` metadata. At `--dt-zoom-scale-tactical` and above (`L2`), the viewport engine applies screen-space collision culling keeping priority order: **selected/hovered asset instruments $\to$ SIS safety-critical loops $\to$ BPCS process loops**, revealing loop sub-numbers (`0101A`) progressively at Level 3 (`--dt-zoom-scale-l2-max`).
+5. **Geometric Enclosure Separation (SIS Box Clearance):** When rendering safety-critical SIS loops (`data-safety-critical="true"`), the enclosing rounded rectangular box (`rx = 1.2`) MUST maintain an outer radial clearance of at least **$1.2\text{ px}$** beyond the circular instrument bubble ($r_{\text{box}} = r_{\text{bubble}} + 1.2$). Tangential or intersecting corner spikes are prohibited.
+6. **4-Character Functional Tag Scaling:** Instrument functional identifiers comprising 4 alphanumeric characters (e.g., `LSHH`, `PSHH`, `FSHH`) MUST scale proportionally ($\le 2.4\text{ px}$ base font unit inside $\varnothing 10.4$ SVG bubble, or equivalent in screen-space clamped plate) to guarantee $\ge 1.5\text{ px}$ lateral chord clearance from the inner circle edge.
 
 ---
 
 ## 9. High-Performance HMI (HPHMI), ISO 128 Lineweights & Adaptive Typography
 
 ### 9.1 Palette Governance & Alarm Reservation
-In strict compliance with ANSI/ISA-101.01 §6.2, steady-state digital twin layouts MUST employ the calibrated neutral HPHMI spatial material palette ([DT-UI-DS-DOC-001 §3.4](DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas)). Pure red (`#FF0000` / `#EF4444`) and warning amber (`#FFA500` / `#F59E0B`) are **strictly prohibited** on static piping, equipment fills, or civil boundaries; saturated hues are reserved exclusively for active alarm states, PTW hazard shapes, and LOTO energy vectors.
+In strict compliance with ANSI/ISA-101.01 §6.2, steady-state digital twin layouts MUST employ the calibrated neutral HPHMI spatial material palette ([DT-UI-DS-DOC-001 §3.4](DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas)). Saturated alarm hues ([DT-UI-DS-DOC-001 §3.3](DT-UI-DS-DOC-001.md#33-alarm-and-safety-semantics-10-reserved)) are **strictly prohibited** on static piping, equipment fills, or civil boundaries and are reserved exclusively for active alarm states, PTW hazard shapes, and LOTO energy vectors.
 
 Pure white/black prohibition and primitive palette governance are inherited from [DT-UI-DS-DOC-001 §3.1](DT-UI-DS-DOC-001.md#31-primitive-palette-tokens). In Dark Theme, civil and process entities follow a strictly monotonic elevation luminance ladder (`--dt-color-bg-canvas` $\to$ `--dt-color-canvas-bund-floor` $\to$ `--dt-color-canvas-asphalt` $\to$ `--dt-color-canvas-concrete` $\to$ `--dt-color-canvas-equip-shell` $\to$ `--dt-color-canvas-steel` $\to$ `--dt-color-canvas-pipe-sec` $\to$ `--dt-color-canvas-pipe-proc`).
 
@@ -314,13 +314,13 @@ Progressive disclosure combines discrete cross-faded swaps (for mutually exclusi
 Level 1: Macro Terminal Overview  (Scale < var(--dt-zoom-scale-l1-max))
   ├── Legal property perimeter (L-CIVL-PROP), perimeter roads, retention basins
   ├── Diked tank farm envelopes (DIKE-*) and gross equipment footprints
-  ├── Programmatic L1 Functional Zone Summary Pills (CMP-09)
+  ├── Programmatic L1 Functional Zone Summary Pills
   └── Primary macro asset tags (TK-*, BLD-*)
 
 Level 2: Subsystem & Units         (var(--dt-zoom-scale-l1-max) <= Scale < var(--dt-zoom-scale-l2-max))
   ├── Smoothstep additive ramp (l2-start .. l2-end): secondary pipe racks, sleeperway steel
   ├── L2 Fire protection hydrants/monitors (L-FIRE-PROT) & tank stairs/ramps
-  ├── Mechanical LOTO isolation valves (CMP-ISO-VALVE) & PTW overlays (CMP-05)
+  ├── Mechanical LOTO isolation valves (CMP-ISO-VALVE) & PTW overlays
   └── ANSI/ISA-5.1 field instrument plates disclosed at Scale >= var(--dt-zoom-scale-tactical)
 
 Level 3: Micro Equipment Detail   (Scale >= var(--dt-zoom-scale-l2-max))
@@ -334,13 +334,12 @@ Level 3: Micro Equipment Detail   (Scale >= var(--dt-zoom-scale-l2-max))
 1. **Pure `viewBox` Geometry (Zero CSS `transform: scale`):** All pan and zoom operations mutate the `<svg>` `viewBox` attribute directly in double-precision floating point so vector crispness, hit testing, and screen-space clamped plates remain exact at $0.65\times$ through $15\times$ magnification.
 2. **Site-Boundary Center Clamping:** Pan clamping bounds the viewport center $(cx, cy)$ within the facility bounding box extents (`[siteBox.minX .. siteBox.maxX, siteBox.minY .. siteBox.maxY]`), allowing any corner of the property boundary to reach the screen center while preventing panning into infinite empty void.
 3. **Instant Focal Wheel vs. Smooth Programmatic Fly-To:**
-   * Mouse wheel zoom and drag panning apply immediately per frame without inertia lag around the pointer focal coordinate.
-   * Programmatic transitions (double-click `1.7x` focus, `Reset View` fit, `Space` / `Ctrl+K` intent zoom framing, LOTO full-circuit framing) execute smooth delta-time interpolation (`requestAnimationFrame`), braking cleanly on user input.
-   * Desktop panning supports a unified **$> 4\text{ px}$ drag threshold** on primary or middle mouse button (stationary clicks $\le 4\text{ px}$ select `.dt-interactive` equipment), matching tablet single-finger touch disambiguation.
-4. **Hybrid Cross-Fade & Hit-Test Guard:** Mutual-exclusion swaps (L1 pills $\leftrightarrow$ L2 pins) transition over **$180\text{ ms}$** using `opacity` interpolation; suppressed layers enforce `pointer-events: none` (never abrupt `visibility: hidden` mid-transition that snaps cross-fades).
+   * Direct wheel zoom and drag panning apply immediately per frame without inertia lag around the pointer focal coordinate.
+   * Programmatic transitions (zone focus, `Reset View` fit, search intent framing, LOTO full-circuit framing) execute smooth delta-time interpolation, braking cleanly on user input.
+4. **Hybrid Cross-Fade & Hit-Test Guard:** Mutual-exclusion swaps (L1 pills $\leftrightarrow$ L2 pins) transition via `opacity` interpolation; suppressed layers enforce `pointer-events: none` (never abrupt `visibility: hidden` mid-transition).
 5. **Focus+Context De-Emphasis (`<mask>` Clipping):** When isolating a zone or executing LOTO (`SCR-VIS-011`), non-target plant regions attenuate cleanly (`opacity: 0.24`) while preserving full opacity exclusively on the isolated circuit or SVG `<mask>` hole around the target zone/dike.
 6. **Screen-Space Marker Clamping:** Floating cartographic overlays rescale inversely against `pxPerUnit` within strict pixel bounds: smart labels (`9.5–14 px`), ISA-5.1 plates (`36–46 px`), LOTO cutoff discs (`32–40 px`), SIMOPS pins (`26–36 px`), and small tap dots (`5–8 px`).
-7. **Programmatic L1 Zone Summary Pills:** L1 zone pills aggregate counts dynamically from relational catalog joins (`tax.functional_locations` + `tax.equipment_units` + `vis.mesh_mappings` via API DTOs) rather than requiring separate database geometry tables or hardcoded label coordinates.
+7. **Programmatic L1 Zone Summary Pills:** L1 zone pills aggregate counts dynamically from relational EAM/Spatial catalog DTOs rather than requiring separate geometry tables or hardcoded label coordinates.
 
 ---
 
@@ -379,10 +378,10 @@ When importing raw industrial CAD models (AutoCAD Model Space DXF/DWG/SVG export
 4. **Data Schedule Re-synchronization:** Binds incoming equipment and instrumentation graphics to authoritative architectural catalogs (EAM Master Catalog, Spatial MeshMapping Repository, and LOTO Isolation Registry), supporting progressive MOC promotion of static piping corridors into discrete `EquipmentUnit` records without breaking base plot coordinates.
 5. **Cartographic Abstraction & Micro-Geometry Stripping:** EPC CAD models frequently include manufacturing-level detail (individual spiral stair treads, radial roof rafters, motor cooling fins, baseplate anchor bolt pitch circles) that introduces excessive visual clutter and exhausts mobile GPU fill-rates. The ingestion pipeline strips non-interactive structural micro-lines to satisfy the **$6,000$-node operational target** ($\le 15,000$ hard cap), preserving primary equipment envelopes, nozzle stubs, and walkways.
 
-### 12.5 Cartographic Spatial Clearance Invariants
+### 12.1. Cartographic Spatial Clearance Invariants
 1. **Roadway & Underground Fire Main Decoupling:** Underground fire-water ring mains (`L-FIRE-PROT`) MUST run outside paved roadway curbs (`> roadHalfWidth`) rather than slicing inside traffic aprons; above-ground pipe racks MUST cross roads only over designated sleeperway bridges (`dt-zoom-l2`).
 2. **Tank Roof vs. Manifold Isolation:** Tank stairways, roof gauges, and perimeter walkways MUST maintain unobstructed clearance around dike access stairs and suction manifolds.
 3. **Zero Longitudinal Sleeperway Pipes in L1:** Auxiliary longitudinal pipe runs inside sleeperways declare `.dt-zoom-l2` to suppress line density during Level 1 macro supervision.
-4. **Rule 4 — Nozzle vs. Instrument Decoupling:** On atmospheric storage tanks (API 650), tank roof telemetry instruments (e.g., Radar Level Transmitters `LIT`) MUST be angularly decoupled from base process nozzles and root isolation valves (`MOV`) by an arc separation **$\ge 90^\circ$** ($\Delta \theta \ge 90^\circ$) to eliminate interactive bounding box collisions.
-5. **Rule 5 — Civil Roadway Setback Clearance:** In accordance with NFPA 30 §22.5.2 and OSHA 1910.106 fire response requirements, secondary containment bund wall toes and crowns MUST maintain a minimum clear setback distance of **$1.2\text{ m}$** from internal perimeter road curb lines. Sharp acute bund vertices projecting into curved roadway turning radii MUST be chamfered.
+4. **Nozzle vs. Instrument Decoupling:** On atmospheric storage tanks (API 650), tank roof telemetry instruments (e.g., Radar Level Transmitters `LIT`) MUST be angularly decoupled from base process nozzles and root isolation valves (`MOV`) by an arc separation **$\ge 90^\circ$** ($\Delta \theta \ge 90^\circ$) to eliminate interactive bounding box collisions.
+5. **Civil Roadway Setback Clearance:** In accordance with NFPA 30 §22.5.2 and OSHA 1910.106 fire response requirements, secondary containment bund wall toes and crowns MUST maintain a minimum clear setback distance of **$1.2\text{ m}$** from internal perimeter road curb lines. Sharp acute bund vertices projecting into curved roadway turning radii MUST be chamfered.
 6. **Integrity Sealing:** Re-computes and embeds the SHA-256 payload digest in `data-checksum-sha256`. Documents failing hash validation or the $15,000$-node DOM hard ceiling are rejected with an explicit ingestion diagnostic log.

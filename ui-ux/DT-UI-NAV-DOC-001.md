@@ -1,7 +1,7 @@
 ---
 code: DT-UI-NAV-DOC-001
-version: 1.1
-date: 2026-09-04
+version: 1.2
+date: 2026-11-24
 status: In Review
 author: Juan David Julio
 standard:
@@ -36,9 +36,9 @@ graph TD
     UIComponents --> Mobile
     UIComponents --> Web
 
-    classDef shared fill:#E8F1FF,stroke:#2563EB,stroke-width:2px,color:#0F172A;
-    classDef mobile fill:#ECFDF5,stroke:#059669,stroke-width:2px,color:#064E3B;
-    classDef web fill:#FFF7ED,stroke:#EA580C,stroke-width:2px,color:#7C2D12;
+    classDef shared fill:#E5E8EC,stroke:#353B4D,stroke-width:2px,color:#111827;
+    classDef mobile fill:#F4F5F7,stroke:#5C667A,stroke-width:2px,color:#111827;
+    classDef web fill:#F4F5F7,stroke:#5C667A,stroke-width:2px,color:#111827;
 
     class UIComponents shared;
     class Mobile mobile;
@@ -76,7 +76,7 @@ graph TD
 ### 3.1. Level 1: Plant Overview (L1 - Area / Overview)
 Macro screens providing a holistic, uninterrupted view of the industrial plant. They apply the 90% neutral grays HPHMI rule to highlight only alarm conditions.
 
-* **[SCR-VIS-008](screens/vis/SCR-VIS-008.md) — 2D Plant Map:** Scalable vector graphic canvas (SVG) adopting the *Simplified Plot Plan / Process Overview* format in a neutral HPHMI spatial palette, representing the spatial distribution of the plant (`L-CIVL-PROP`), programmatic L1 functional-zone summary pills, operating states, and active work permit layers. Traceable with **[UC-VIS-008](../domain-models/use-cases/vis/UC-VIS-008.md)** and **[UC-VIS-033](../domain-models/use-cases/vis/UC-VIS-033.md)**. Transitions across Level 1 (`--dt-zoom-scale-fit`), Level 2 (`--dt-zoom-scale-l1-max` / `--dt-zoom-scale-tactical`), and Level 3 (`--dt-zoom-scale-l2-max`) within the unified single-canvas viewport occur via continuous focal `viewBox` zoom, interactive ISO 14224 spatial breadcrumb (`Terminal > Zone > Asset`), or intent-based `Space` / `Ctrl + K` fuzzy search framing governed by [DT-UI-DS-DOC-001 §2.5](DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports).
+* **[SCR-VIS-008](screens/vis/SCR-VIS-008.md) — 2D Plant Map:** Scalable vector graphic canvas (SVG) adopting the *Simplified Plot Plan / Process Overview* format in a neutral HPHMI spatial palette, representing the spatial distribution of the plant (`L-CIVL-PROP`), programmatic L1 functional-zone summary pills, operating states, and active work permit layers. Traceable with **[UC-VIS-008](../domain-models/use-cases/vis/UC-VIS-008.md)** and **[UC-VIS-033](../domain-models/use-cases/vis/UC-VIS-033.md)**. Transitions across Level 1 (`--dt-zoom-scale-fit`), Level 2 (`--dt-zoom-scale-l1-max` / `--dt-zoom-scale-tactical`), and Level 3 (`--dt-zoom-scale-l2-max`) within the unified single-canvas viewport occur via continuous focal `viewBox` zoom, interactive ISO 14224 spatial breadcrumb (`Terminal > Zone > Asset`), or intent-based `Space` / `Ctrl + K` fuzzy search framing governed by [DT-UI-DS-DOC-001 §2.5](DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports). Contextual asset inspection (`SCR-VIS-033`) and LOTO isolation mode (`SCR-VIS-011`) open as overlaid drawers/modes on this unified canvas as well as via direct deep-linked routes.
 
 ### 3.2. Level 2: Process Supervision and Planning (L2 - Unit / Process)
 Intermediate control screens for supervisors, planners, and auditors. They consolidate aggregated information, hierarchy trees, and performance metrics.
@@ -91,7 +91,7 @@ Intermediate control screens for supervisors, planners, and auditors. They conso
 Screens dedicated to detailed inspection of a specific equipment unit (ISO 14224 Level 6) or the formal preparation of maintenance interventions.
 
 * **[SCR-VIS-033](screens/vis/SCR-VIS-033.md) — Asset Inspection Card:** Detailed contextual view of the selected equipment with telemetry data, structural breakdown, and recent history. Traceable with **[UC-VIS-033](../domain-models/use-cases/vis/UC-VIS-033.md)**.
-* **[SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md) — Preventive Scheduling Form:** Configuration interface for cyclic maintenance plans by calendar, operating hours, or starts. Traceable with **[UC-MTTO-001](../domain-models/use-cases/mtto/UC-MTTO-001.md)**.
+* **[SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md) — Preventive Scheduling Form:** Configuration interface for cyclic maintenance plans based strictly on calendar time intervals (`CALENDAR_TIME`). Traceable with **[UC-MTTO-001](../domain-models/use-cases/mtto/UC-MTTO-001.md)**.
 * **[SCR-MTTO-023](screens/mtto/SCR-MTTO-023.md) — Telemetry Scheduling Form:** Configuration of condition-based maintenance (CBM) rules driven by IoT sensors. Traceable with **[UC-MTTO-023](../domain-models/use-cases/mtto/UC-MTTO-023.md)**.
 * **[SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md) — Asset Boundary Limits Card:** Technical definition of the physical limits of the equipment (battery limits) for cost control. Traceable with **[UC-MTTO-029](../domain-models/use-cases/mtto/UC-MTTO-029.md)**.
 * **[SCR-INV-005](screens/inv/SCR-INV-005.md) — Equipment Master Data Card & Commissioning Gate:** Master record of the physical asset with manufacturer specifications, purchase date, operational status, and embedded Commissioning Gate validation queue (`?mode=commissioning`). Traceable with **[UC-INV-005](../domain-models/use-cases/inv/UC-INV-005.md)** and **[UC-INV-007](../domain-models/use-cases/inv/UC-INV-007.md)**.
@@ -113,28 +113,24 @@ Specialized interfaces for atomic execution, safety verification at the point of
 
 ```mermaid
 flowchart LR
-    MOB["Mobile Client (MAUI)"] --> M1["1.0 Plant (L1) - SCR-VIS-008"]
-    M1 --> M1A["Asset Contextual Card (L3) - SCR-VIS-033"]
-    M1 --> M1B["LOTO Isolation Routes (L4) - SCR-VIS-011"]
-    MOB --> M2["2.0 My Orders (L2)"]
+    MOB["Mobile Field Client"] --> M1["1.0 Plant Canvas (L1) - SCR-VIS-008"]
+    M1 --> M1A["Asset Inspection Drawer (L3) - SCR-VIS-033"]
+    M1 --> M1B["LOTO Isolation Mode (L4) - SCR-VIS-011"]
+    MOB --> M2["2.0 Field Execution"]
     M2 --> M2A["Mobile WO Closing (L4) - SCR-MTTO-002"]
-    M2 --> M2B["LOTO Isolation Routes (L4) - SCR-VIS-011"]
-    MOB --> M3["3.0 Assets (L2)"]
+    M2 --> M2B["LOTO Isolation Mode (L4) - SCR-VIS-011"]
+    MOB --> M3["3.0 Asset & Materials"]
     M3 --> M3A["Equipment Master Data (L3) - SCR-INV-005"]
-    M3 --> M3B["Modal Asset Swap (L4) - SCR-INV-025"]
-    MOB --> M4["4.0 Synchronization (L2)"]
-    M4 --> M4A["Offline Transactional Queue"]
-    MOB --> M5["5.0 Side Drawer"]
-    M5 --> M5A["Boundary Limits Card (L3) - SCR-MTTO-029"]
-    M5 --> M5B["Kardex History (L3) - SCR-INV-006"]
-    M5 --> M5C["Profile and License"]
+    M3 --> M3B["Asset Swap Modal (L4) - SCR-INV-025"]
+    M3 --> M3C["Boundary Limits Card (L3) - SCR-MTTO-029"]
+    M3 --> M3D["Kardex History (L3) - SCR-INV-006"]
 ```
 
 ### 4.2. Navigation Structure — Web Portal Client
 
 ```mermaid
 flowchart LR
-    WEB["Web Portal (Blazor)"] --> W1["1.0 Digital Twin"]
+    WEB["Supervisory Web Portal"] --> W1["1.0 Digital Twin"]
     W1 --> W1A["2D Plant Map (L1) - SCR-VIS-008"]
     W1 --> W1B["Asset Contextual Card (L3) - SCR-VIS-033"]
     W1 --> W1C["LOTO Isolation Routes (L4) - SCR-VIS-011"]
@@ -208,7 +204,7 @@ flowchart TD
     CheckConn -- "Yes" --> StdRoute["Standard API Routing"]
     CheckConn -- "No" --> OfflineGuard["Activate Offline Guard"]
     OfflineGuard --> Action1["1. Deploy Persistent Amber Banner"]
-    OfflineGuard --> Action2["2. Query Local SQLCipher Database"]
+    OfflineGuard --> Action2["2. Query Encrypted Local Store (TR-002)"]
     OfflineGuard --> Action3["3. Enqueue Transactional Mutation"]
 ```
 
@@ -222,7 +218,7 @@ In compliance with the **ISO 45001 (Clause 8.1)** standard and the **[ASR-002](.
 
 ```mermaid
 flowchart TD
-    StartLOTO["Transition Towards Order Execution<br/>(SCR-MTTO-002)"] --> CheckLOTO["Verify LOTO Safety Preconditions:<br/>1. WorkPermit == APPROVED<br/>2. Isolation Points == TRUE<br/>3. Energy Telemetry == 0.0"]
+    StartLOTO["Transition Towards Order Execution<br/>(SCR-MTTO-002)"] --> CheckLOTO["Verify LOTO Safety Preconditions:<br/>1. WorkPermit == APPROVED<br/>2. IsolationStatus == VERIFIED_ZERO_ENERGY<br/>3. Energy Telemetry == 0.0"]
     CheckLOTO --> LOTOValid{"Are All Conditions Met?"}
     LOTOValid -- "Yes" --> AllowRoute["Allow Routing to SCR-MTTO-002"]
     LOTOValid -- "No" --> FailSafeModal["Activate Critical Lockout Modal<br/>(--dt-z-modal-fail-safe: 1500)<br/>[Intervention Blocked by LOTO]"]

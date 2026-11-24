@@ -79,7 +79,7 @@ status: Stable
    - **Architectural Scope:** Anchors spatial hazard grouping and hosts single macro zone summary pills (`CMP-09`) during Level 1 overview (`< --dt-zoom-scale-l1-max`).
 
 5. **`CMP-05`: PTW Overlay Markers & Shape-Aware Hazard Buffers**
-   - **Visual Role:** Floating two-tone vector spatial pins (`#sym-icon-ptw-*`, `48 × 48` two-tone spatial profile with `--icon-fill` / `--icon-outline` and `--dt-shadow-marker` elevation) paired with shape-aware dynamic safety clearance buffers, multi-permit concurrency counter pills, and frosted fan-out trays.
+   - **Visual Role:** Floating vector spatial pins (`#icon-hot-work`, `#icon-electrical`, `#icon-heights`, `#icon-cold-work`, `#icon-confined-space`, `#icon-chemical`, `#icon-warning` with `--dt-shadow-marker` elevation) paired with shape-aware dynamic safety clearance buffers, multi-permit concurrency counter pills, and frosted fan-out trays.
    - **Design Tokens:** 
 	   - Surface: `--dt-color-marker-surface`
 	   - Frosted Tray Surface: `--dt-color-float-bg-strong`
@@ -87,7 +87,7 @@ status: Stable
 	   - Elevation: `--dt-shadow-marker`, `--dt-shadow-glass`
 	   - Dynamic Buffers: `--dt-z-layer-ptw`
 	   - Marker Stacking: `--dt-z-layer-markers`
-   - **Architectural Scope:** Represents active authorized permits on the map using 4-channel redundant coding per [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) and [§6.4.2](../../DT-UI-DS-DOC-001.md#642-profile-b-two-tone-spatial-canvas-markers-48-48). Enforces IOGP 459 / API 2015 3-state (`A` / `R` / `X`) compatibility rules, union-only conflict intersection hatching, and concurrency fan-out clustering specified in §5.1.
+   - **Architectural Scope:** Represents active authorized permits on the map using 4-channel redundant coding per [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) and [§6.4](../../DT-UI-DS-DOC-001.md#64-iconography-and-redundant-symbology-standards). Enforces IOGP 459 / API 2015 3-state (`A` / `R` / `X`) compatibility rules, union-only conflict intersection hatching, and concurrency fan-out clustering specified in §5.1.
 
 6. **`CMP-06`: Context Popover Card**
    - **Visual Role:** Transient frosted card displaying permit metadata, validity window, contractor, LOTO reference, SIMOPS joint countermeasures confirmation (for `R` state), and drill-down action.
@@ -157,7 +157,7 @@ status: Stable
 
 5. **SIMOPS Spatial Conflict (`X` Incompatible) & Restricted Joint Co-Activity (`R`)**
    - **Activation Condition:** Automated Spatial Integrity Engine evaluates the IOGP 459 / API 2015 3-state matrix across active permits (`A` Allowed, `R` Restricted with joint countermeasures, `X` Incompatible / Hard Conflict) and detects spatial overlap or shared-asset co-activity per §5.1.
-   - **Visual Modification:** Individual permit clearance zones retain flat unhatched translucent fills. Strictly inside the exact geometric intersection `A ∩ B` of an `X` incompatible pair (clipped to the overlapping region only), the canvas renders a red diagonal hatch pattern (`#sym-icon-alarm-critical` octagon badge at centroid) framed by a continuous perimeter stroke (`--dt-color-alarm-critical`). Toolbar `CMP-02` displays `[#icon-warning SIMOPS CONFLICT]`. Restricted (`R`) pairs render an amber warning triangle indicator; confirming joint safety controls elevates `R` to Authorized (`A`).
+   - **Visual Modification:** Individual permit clearance zones retain flat unhatched translucent fills. Strictly inside the exact geometric intersection `A ∩ B` of an `X` incompatible pair (clipped to the overlapping region only), the canvas renders a red diagonal hatch pattern (`#icon-warning` octagon badge at centroid) framed by a continuous perimeter stroke (`--dt-color-alarm-critical`). Toolbar `CMP-02` displays `[#icon-warning SIMOPS CONFLICT]`. Restricted (`R`) pairs render an amber warning triangle indicator; confirming joint safety controls elevates `R` to Authorized (`A`).
 
 6. **Expiring Soon Warning**
    - **Activation Condition:** System detects permit time window has $< 60\text{ min}$ remaining until `ValidTo`.
@@ -189,11 +189,11 @@ status: Stable
      * **`HOT_WORK`:** $15\text{m}$ circular buffer around point sources or stadium-shaped corridor envelope along piping segments (`--dt-color-alarm-critical` flat translucent fill, unhatched outside intersections).
      * **`CONFINED_SPACE`:** $13\text{m}$ circular clearance envelope or polygonal containment footprint (`--dt-color-alarm-warning` flat translucent fill).
      * **`ELECTRICAL`, `WORK_AT_HEIGHT`, `EXCAVATION`, `CHEMICAL`, `COLD_WORK`:** Asset-envelope buffer or configurable operational corridor perimeter ($5\text{m}$ default).
-   * **Intersection-Only Conflict Hatching & Redundant Coding:** When two permits violate minimum separation or share a bounded envelope under `X` (Incompatible), the engine computes the exact geometric intersection `A ∩ B` using SVG clipping paths/masks. Diagonal red hatching renders **exclusively inside `A ∩ B`** surrounded by a continuous `--dt-color-alarm-critical` perimeter contour and a red octagon conflict badge (`#sym-icon-alarm-critical`) at the intersection centroid.
+   * **Intersection-Only Conflict Hatching & Redundant Coding:** When two permits violate minimum separation or share a bounded envelope under `X` (Incompatible), the engine computes the exact geometric intersection `A ∩ B` using SVG clipping paths/masks. Diagonal red hatching renders **exclusively inside `A ∩ B`** surrounded by a continuous `--dt-color-alarm-critical` perimeter contour and a red octagon conflict badge (`#icon-warning`) at the intersection centroid.
    * **Restricted Co-Activity (`R`) Escalation:** Pairs classified `R` display an amber warning triangle indicator; toggling verified joint safety countermeasures in `CMP-06` promotes the pair operationally to Allowed (`A`).
    * **SIMOPS Mode `L-ELEC-HAZ` Auto-Activation:** Entering SIMOPS supervision mode automatically activates the `L-ELEC-HAZ` NFPA 497 Zone 1 / Zone 2 classified electrical boundary layer alongside permit buffers so inspectors immediately detect Hot Work encroachments into hydrocarbon vapor envelopes.
 5. **Mandatory 4-Channel Redundant Coding Matrix (FR-183, TR-011, WCAG 2.1 AA):**
-   * To prevent single-channel color dependency and ensure pre-attentive salience, every `CMP-05` marker encodes its permit classification across four sensory channels (Color + Geometric Shape Silhouette + Two-Tone Spatial Vector Icon `#sym-icon-ptw-*` + Alphanumeric Label) governed strictly by [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto), [§6.4.2](../../DT-UI-DS-DOC-001.md#642-profile-b-two-tone-spatial-canvas-markers-48-48), and [DT-DM-DOC-001 §4.34](../../../domain-models/class/DT-DM-DOC-001.md#434-workpermitpermittype).
+   * To prevent single-channel color dependency and ensure pre-attentive salience, every `CMP-05` marker encodes its permit classification across four sensory channels (Color + Geometric Shape Silhouette + Vector Icon + Alphanumeric Label) governed strictly by [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto), [§6.4](../../DT-UI-DS-DOC-001.md#64-iconography-and-redundant-symbology-standards), and [DT-DM-DOC-001 §4.34](../../../domain-models/class/DT-DM-DOC-001.md#434-workpermitpermittype).
    * Individual spatial hazard buffers, intersection hatch overlays, and conflict halos operate non-blocking for pointer traversal to guarantee uninterrupted canvas panning across active permit zones.
    * Markers enforce screen-space clamped sizing (`26–36 px` equivalent in screen space) and `--dt-shadow-marker` silhouette elevation (`Z = 50`, never on `<text>`), while interactive hit areas obey `--dt-touch-target-mobile` for gloved field operation.
 
@@ -252,7 +252,7 @@ status: Stable
 
 * **Read-Only Supervisory Boundary (ISO 45001 §8.1):** `SCR-VIS-008` operates strictly as a passive spatial supervision and SIMOPS audit interface. It cannot issue equipment start/stop commands, alter process setpoints, or bypass LOTO interlocks ([DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)).
 * **Spatial Integrity Fail-Safe (`AF-001`):** Unmapped permits (`MeshMapping` status `UNMAPPED` or `SYNC_ERROR`) are strictly withheld from arbitrary canvas placement and excluded from mapped spatial filter counts (`CMP-08`) to prevent false spatial confidence during co-activity risk assessment (§5.2).
-* **HPHMI & Accessibility Governance ([TR-011](../../../requirements/common/TR-011.md)):** Visual salience, 4-channel redundant permit coding (`#sym-icon-ptw-*`), neutral HPHMI spatial palette compliance, hybrid semantic zoom decluttering, and Priority 4 diagnostic state segregation adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope), [§3.4](../../DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas), [§6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto), and the interaction mechanics in §4 and §5.
+* **HPHMI & Accessibility Governance ([TR-011](../../../requirements/common/TR-011.md)):** Visual salience, 4-channel redundant permit coding, neutral HPHMI spatial palette compliance, hybrid semantic zoom decluttering, and Priority 4 diagnostic state segregation adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope), [§3.4](../../DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas), [§6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto), and the interaction mechanics in §4 and §5.
 
 ---
 

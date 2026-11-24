@@ -173,10 +173,10 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     primitives = table_for(tables, "Primitive Palette", "Primitive Token")
     semantic = table_for(tables, "Semantic Tokens", "Semantic Token")
     alarms = table_for(tables, "Alarm and Safety Semantics", "State / Severity")
-    mai_tokens = table_for(tables, "Dual-Theme Semantic Token Table for MAI", "Semantic CSS")
+    mai_tokens = table_for(tables, "Moving Analog Indicator (MAI) Semantic Tokens", "Semantic Token")
     spatial_tokens = table_for(tables, "Spatial and Physical Material", "Spatial Material Token")
     typography = table_for(tables, "Typographic Scale", "Typographic Token")
-    shadows = table_for(tables, "Elevation Shadows", "Light Theme Value")
+    shadows = table_for(tables, "Elevation Shadows", "Dark Theme Value")
     radii = table_for(tables, "Border Radii", "Token")
     zindex = table_for(tables, "Layers and Stacking", "Z-Index Token")
     font_base_penpot, font_base_css, font_mono_penpot, font_mono_css = parse_font_families(tables)
@@ -254,7 +254,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             dark_semantic[token] = semantic_value(dark)
     for row in mai_tokens:
         if row and len(row) > 3 and row[1].startswith("--"):
-            _, token, light, dark = row[:4]  # MAI table has Light in col 2 and Dark in col 3
+            _, token, dark, light = row[:4]
             light_semantic[token] = semantic_value(light)
             dark_semantic[token] = semantic_value(dark)
     for row in spatial_tokens:
@@ -269,7 +269,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             dark_semantic[token] = semantic_value(dark)
     for row in shadows:
         if row and len(row) > 2 and row[0].startswith("--"):
-            token, light, dark = row[:3]
+            token, dark, light = row[:3]
             light_semantic[token] = re.sub(
                 r"(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%",
                 lambda m: f"color-mix(in srgb, var({m.group(1)}) {m.group(2)}%, transparent)",
@@ -442,10 +442,13 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             )
     for row in mai_tokens:
         if row and len(row) > 3 and row[1].startswith("--dt-"):
-            _, token, light, dark = row[:4]
+            _, token, dark, light = row[:4]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
                 penpot_reference(dark, primitive_hex_map), "color"
+            )
+            penpot["Semantic-Light"][name] = penpot_token(
+                penpot_reference(light, primitive_hex_map), "color"
             )
     for row in spatial_tokens:
         if row and row[0].startswith("--dt-"):
@@ -469,7 +472,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             )
     for row in shadows:
         if row and len(row) > 2 and row[0].startswith("--dt-"):
-            token, light, dark = row[:3]
+            token, dark, light = row[:3]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
                 re.sub(

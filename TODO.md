@@ -16,13 +16,13 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Canonical specification finalized and locked as Gold Standard Baseline: [`SCR-VIS-033.md`](ui-ux/screens/vis/SCR-VIS-033.md) (v2.3 Stable).
 
 - [x] **SCR-VIS-008: Level 1 General Plant Map with SIMOPS Layer**
-  - [x] Redundant coding for PTW pins (`#sym-icon-ptw-*`, `48 × 48` two-tone spatial profile, Color + Shape Silhouette + Icon + Label per ANSI/ISA-101).
+  - [x] Redundant coding for PTW pins (`#icon-*`, Color + Shape Silhouette + Icon + Label per ANSI/ISA-101).
   - [x] IOGP 459 / API 2015 3-state SIMOPS matrix (`A` / `R` / `X`), shape-aware buffers with intersection-only diagonal hatching (`A ∩ B`), concurrency fan-out trays, auto-enabled `L-ELEC-HAZ`, programmatic L1 zone summary pills, and contextual popovers with viewport boundary clamping.
   - [x] Modernized frosted HUD elevation (`--dt-shadow-glass`), unified `> 4px` pan ergonomics, borderless discrete risk filters, and flat unmapped permits list: [`SCR-VIS-008.md`](ui-ux/screens/vis/SCR-VIS-008.md) (v2.2 Stable).
 
 - [x] **SCR-VIS-011: LOTO Isolation Boundary Matrix**
   - [x] Cognitive Task Analysis (CTA): Physical Try-Out attestation primacy and negative interlock logic.
-  - [x] Spatial Isolation Precision: Oblique `H/V + 45 deg` MCC electrical routes, edge-anchored mechanical boundary lines, translucent `--dt-color-loto-disc` cutoff discs (`#sym-icon-loto-isolated` / `#sym-icon-eloto-energized` / `#sym-icon-mloto-energized`), pure SVG `<mask>` Focal Island aperture, full-circuit initial framing, and inward-clustered off-screen directional edge beacons.
+  - [x] Spatial Isolation Precision: Oblique `H/V + 45 deg` MCC electrical routes, edge-anchored mechanical boundary lines, translucent `--dt-color-loto-disc` cutoff discs (`#icon-loto-locked` / `#icon-loto-energized`), pure SVG `<mask>` Focal Island aperture, full-circuit initial framing, and inward-clustered off-screen directional edge beacons.
   - [x] Canonical specification finalized and locked as Gold Standard Baseline: [`SCR-VIS-011.md`](ui-ux/screens/vis/SCR-VIS-011.md) (v2.2 Stable).
 
 ### Maintenance Management Screens (MTTO)
@@ -90,9 +90,9 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Apply canonical `tokens.css` and `portal-shell.css` to portal workstation screens and preserve archetype-specific modal, canvas, and mobile layouts.
   - [x] Validate local `file:///` asset references, JavaScript syntax, HTML parsing, and `dev-wrapper.html` catalog integrity.
 
-- [x] **Unified Spatial Application Shell & Dual Icon Profile**
+- [x] **Unified Spatial Application Shell & Icon Sprite**
   - [x] Formalized single-canvas viewport kinematics, normalized zoom tokens (`--dt-zoom-scale-*`, `--dt-cad-stroke-floor`), site-boundary clamping, and hybrid LOD cross-fades across `SCR-VIS-008`, `SCR-VIS-033`, and `SCR-VIS-011` ([`DT-UI-DS-DOC-001.md`](ui-ux/DT-UI-DS-DOC-001.md) v2.3, [`DT-UI-NAV-DOC-001.md`](ui-ux/DT-UI-NAV-DOC-001.md)).
-  - [x] Reconciled dual SVG icon profile: `24 × 24` monochromatic UI glyphs (`#icon-*`) + `48 × 48` two-tone spatial markers (`#sym-icon-*`) in [`ui-ux/assets/icons.svg`](ui-ux/assets/icons.svg) with WCAG 2.1 AA verification across HPHMI spatial surfaces.
+  - [x] Consolidated canonical `24 × 24` monochromatic SVG `<symbol>` sprite (`#icon-*`) in [`ui-ux/assets/icons.svg`](ui-ux/assets/icons.svg) with WCAG 2.1 AA verification across HPHMI surfaces.
 
 - [ ] **Known Spatial HMI & Product Backlog Gaps (MVP / Post-MVP Triage)**
   - [ ] **`LIM-UI-002` (Telemetry Quality Token):** Introduce a dedicated Magenta ANSI/ISA-101 "Bad Quality" diagnostic token (`--dt-color-quality-bad`) in [`DT-UI-DS-DOC-001.md`](ui-ux/DT-UI-DS-DOC-001.md) §3.3 to decouple SCADA communication loss (`Priority 4` slate) from active sensor hardware/signal quality faults.

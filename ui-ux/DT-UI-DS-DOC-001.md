@@ -15,13 +15,13 @@ standard:
 # Design Tokens Technical Specification
 
 ## 1. Scope
-This document establishes the **Single Source of Truth** for all design tokens applied in prototype design and user interface implementation of the DTEAM platform, covering both mobile clients for field operations and web portals for supervision and administration.
+This document establishes the **Single Source of Truth** for all design tokens (Sections 2–5) and cross-screen High-Performance HMI visual patterns (Section 6) applied across the DTEAM platform, covering both mobile field clients and supervisory web portals.
 
 ### Mandatory Principles:
-1. **90/10 HPHMI Rule:** 90% of the interface operates in neutral, low-contrast grayscale to minimize visual fatigue. The remaining 10% of saturated color is reserved exclusively for anomalies, alarms, and hazard conditions.
-2. **Elimination of Green as "Normal" State:** Green is not used to indicate that a motor is running or in normal operation. Normal state is represented using neutral grays and canonical status text (`UP` / `STANDBY`). Documentary confirmations and connection status are restricted to **Teal / Pine** shades via `--dt-color-state-success` ([§3.3](#33-alarm-and-safety-semantics-10-reserved)), avoiding any confusion with industrial state green.
-3. **Redundant Coding (WCAG 2.1 AA):** No critical safety or alarm state should be communicated solely by color. Every indicator must combine **Shape + Icon + Color + Text** per the canonical matrix in [§6.2](#62-redundant-coding-matrix-for-permits-and-loto).
-4. **Industrial Tactile Ergonomics:** Interactive elements on mobile devices and field tablets must respect the minimum touch area governed by `--dt-touch-target-mobile` ([§2.2](#22-dimensions-of-controls-and-touch-areas)) to allow operation with safety gloves.
+1. **90/10 HPHMI Rule:** 90% of the interface operates in neutral, low-contrast grayscale to minimize visual fatigue. The remaining 10% of saturated color is reserved exclusively for anomalies, alarms, and hazard conditions ([§3.3](#33-alarm-and-safety-semantics-10-reserved)).
+2. **Elimination of Green as "Normal" State:** Green is never used to indicate normal equipment operation. Normal states use neutral grays and canonical domain status text; documentary confirmations and connection health are restricted to **Teal / Pine** shades ([§3.3](#33-alarm-and-safety-semantics-10-reserved)).
+3. **Redundant Coding (WCAG 2.1 AA):** No critical safety or alarm state may be communicated solely by color. Every safety indicator combines **Shape + Icon + Color + Text** ([§6.2](#62-redundant-coding-matrix-for-permits-and-loto)).
+4. **Industrial Tactile Ergonomics:** Interactive elements on mobile devices and field tablets must respect the minimum touch area defined in [§2.2](#22-dimensions-of-controls-and-touch-areas) to support operation with safety gloves.
 
 ---
 
@@ -55,10 +55,10 @@ Spacing and sizing are governed by an **8px** base grid system (with a 4px sub-f
 | --dt-control-height-md              | 40px               | auto              | Desktop Web: Standard text inputs, selectors, and form buttons.                       |
 | --dt-control-height-lg              | 48px               | auto              | Mobile/Tablet: Standard height for all input fields (InputText, InputSelect).          |
 | --dt-control-height-xl              | 56px               | 100%              | Mobile: Primary footer action button (e.g., "Complete Work Order").            |
-| --dt-control-height-nav-step        | 44px               | 56px              | Industrial step navigation arrow button footprint ($56\times 44\text{px}$) for gloved hands; also binds `--dt-control-width-nav-step` ([SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)). |
-| --dt-control-height-nav-step-mobile | 42px               | 52px              | Smartphone: Compact step navigation button footprint ($52\times 42\text{px}$); also binds `--dt-control-width-nav-step-mobile`. |
-| --dt-control-size-checkbox          | 28px               | 28px              | Custom scope checklist tactile hit target for gloved field mechanics ([SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)). |
-| --dt-control-size-hud               | 36px               | 36px              | Circular cartographic compass indicator in spatial HUD ([SCR-VIS-033](screens/vis/SCR-VIS-033.md)). |
+| --dt-control-height-nav-step        | 44px               | 56px              | Step navigation button footprint ($56\times 44\text{px}$) for gloved hands; width generates `--dt-control-width-nav-step`. |
+| --dt-control-height-nav-step-mobile | 42px               | 52px              | Compact smartphone step navigation button footprint ($52\times 42\text{px}$); width generates `--dt-control-width-nav-step-mobile`. |
+| --dt-control-size-checkbox          | 28px               | 28px              | Visual circular check indicator footprint; on mobile/tablet touch rows, the enclosing interactive hit target MUST enforce `--dt-touch-target-mobile`. |
+| --dt-control-size-hud               | 36px               | 36px              | Circular cartographic compass indicator diameter in spatial HUD viewports. |
 
 ### 2.3. Responsive Breakpoints and Reference Frames
 
@@ -88,7 +88,7 @@ To guarantee predictability in responsive split-screen viewports, transactional 
 | --dt-layout-modal-width                  | --dt-layout-modal-width-tablet         | Responsive Semantic Base                                     | Semantic modal width variable; dynamically resolves to `--dt-layout-modal-width-desktop` on desktop workstations ($\ge 1920\text{px}$). |
 | --dt-layout-bottom-sheet-height-initial  | 45vh                                   | --dt-breakpoint-md ($768\text{px} - 1279\text{px}$)         | Natural initial resting height for tactile sliding bottom sheets on industrial tablet portrait viewports ([§6.3](#63-sliding-containers-pattern-bottom-sheets-and-drawers)). |
 | --dt-layout-bottom-sheet-height-expanded | 85vh                                   | --dt-breakpoint-md ($768\text{px} - 1279\text{px}$)         | Maximum expanded height ceiling for bottom sheets on discrete tap or upward drag. |
-| --dt-layout-bottom-sheet-peek-height     | 36px                                   | --dt-breakpoint-md ($768\text{px} - 1279\text{px}$)         | Minimized docked tab / peek trigger height when bottom sheet is collapsed. |
+| --dt-layout-bottom-sheet-peek-height     | 36px                                   | --dt-breakpoint-md ($768\text{px} - 1279\text{px}$)         | Minimized docked tab / peek trigger height for persistent safety drawers (e.g., LOTO) when collapsed; omitted on light-dismiss sheets. |
 | --dt-layout-form-max-width               | 1000px                                 | Global Form Container                                        | Maximum ergonomic reading measure and layout containment for maintenance execution forms ([SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)). |
 | --dt-layout-footer-height                | 72px                                   | Sticky Action Footers                                        | Pinned bottom finalization bar height on mobile/tablet execution forms. |
 | --dt-layout-footer-clearance             | 96px                                   | Sticky Action Footers                                        | Bottom scroll container clearance preventing sticky footer from occluding inputs at maximum scroll extents. |
@@ -101,43 +101,47 @@ To guarantee predictability in responsive split-screen viewports, transactional 
 
 ### 2.5. Spatial Navigation and Semantic Zoom Tokens (ANSI/ISA-101.01 Viewports)
 
-To eliminate fragile magic numbers and enforce deterministic progressive disclosure across 2D Digital Twin viewports ([SCR-VIS-008](screens/vis/SCR-VIS-008.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-VIS-033](screens/vis/SCR-VIS-033.md)), spatial scale multipliers normalize camera zoom to the facility plot plan (`1.0` = nominal operating `viewBox` width, `65%` of the site-fit `viewBox` width, dynamically calibrated against the SVG `CALIBRATION-VECTOR` and facility footprint):
+To eliminate fragile magic numbers and enforce deterministic progressive disclosure across 2D Digital Twin viewports ([SCR-VIS-008](screens/vis/SCR-VIS-008.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-VIS-033](screens/vis/SCR-VIS-033.md)), spatial scale multipliers normalize camera zoom to the facility plot plan (`1.0` = nominal operating `viewBox` width, `65%` of the site-fit `viewBox` width per [DT-UI-SVG-DOC-001 §11](DT-UI-SVG-DOC-001.md#11-spatial-metric-calibration)):
 
 | Zoom Token | Value | Target Viewport Scale Tier | Functional Justification |
 | :------------------------- | :---: | :--------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
-| --dt-zoom-scale-fit        | 0.65  | Level 1 Full-Site Overview Fit     | Default opening camera framing showing the entire legal property boundary (`L-CIVL-PROP`) centered inside the viewport.                        |
-| --dt-zoom-ramp-l2-start    | 0.95  | L2 Additive Ramp Entry             | Lower normalized zoom edge where additive L2 CAD layers (`pipe-sec`, `steel`, sub-corridors) initiate smoothstep opacity interpolation.        |
-| --dt-zoom-scale-l1-max     | 1.05  | Level 1 ↔ Level 2 Hard Swap Cut    | Hysteresis swap boundary transitioning L1 summary pills (`CMP-09`) into discrete L2 asset layers and PTW/LOTO overlays ([DT-UI-SVG-DOC-001 §10.2](DT-UI-SVG-DOC-001.md#102-pure-viewbox-camera-site-boundary-clamping-transition-rules)). |
+| --dt-zoom-scale-fit        | 0.65  | Level 1 Full-Site Overview Fit     | Default opening camera framing showing the full facility property boundary centered inside the viewport.                                       |
+| --dt-zoom-ramp-l2-start    | 0.95  | L2 Additive Ramp Entry             | Lower normalized zoom edge where additive L2 CAD layers initiate opacity interpolation.                                                        |
+| --dt-zoom-scale-l1-max     | 1.05  | Level 1 ↔ Level 2 Hard Swap Cut    | Hysteresis swap boundary transitioning L1 summary pills into discrete L2 asset layers and PTW/LOTO overlays ([DT-UI-SVG-DOC-001 §10](DT-UI-SVG-DOC-001.md#10-progressive-disclosure-viewport-kinematics)). |
 | --dt-zoom-ramp-l2-end      | 1.25  | L2 Additive Ramp Full Opacity      | Upper normalized edge where additive L2 CAD geometry reaches full operational opacity (`1.0`).                                                 |
 | --dt-zoom-scale-tactical   | 1.45  | Level 2 Tactical & ISA-5.1 Threshold | Default focal scale for automated equipment locating and progressive disclosure of primary ANSI/ISA-5.1 field instrument plates.               |
 | --dt-zoom-scale-l2-max     | 1.85  | Level 2 ↔ Level 3 Detail Threshold | Threshold disclosing Level 3 micro-equipment details, mechanical nozzles, check/bleed valves, underground fire ring, and ISA-5.1 loop tags.    |
 | --dt-zoom-ramp-l3-start    | 1.85  | L3 Additive Ramp Entry             | Lower normalized edge for additive L3 micro-CAD geometry and minor coordinate grid subdivisions.                                               |
 | --dt-zoom-ramp-l3-end      | 2.45  | L3 Additive Ramp Full Opacity      | Upper normalized edge where Level 3 micro-piping, flange stubs, and MCC feeder traces reach full operational opacity.                           |
-| --dt-cad-stroke-floor      | 0.42  | ISO 128 CAD Adaptive Stroke Floor  | Minimum stroke-width attenuation floor preventing sub-pixel vector collapse when zoomed out to site fit ([DT-UI-SVG-DOC-001 §9.2](DT-UI-SVG-DOC-001.md#92-iso-128-hierarchical-lineweights-zoom-adaptive-scaling)). |
+| --dt-cad-stroke-floor      | 0.42  | ISO 128 CAD Adaptive Stroke Floor  | Dimensionless minimum stroke-width attenuation multiplier consumed by [DT-UI-SVG-DOC-001 §9.2](DT-UI-SVG-DOC-001.md#92-iso-128-hierarchical-lineweights-zoom-adaptive-scaling). |
 
 ---
 
 ## 3. Color Tokens and Surfaces
-The palette is structured in two layers: **Primitive Tokens** (absolute palette values, **where the only declaration of HEX codes resides in the design document**) and **Semantic Tokens** dynamically assigned based on the operational lighting context (Dark Theme and Light Theme), which reference the primitive variables.
+The palette is structured in two layers: **Primitive Tokens** (absolute palette values, **where the only declaration of HEX codes resides in the design document**) and **Semantic Tokens** dynamically assigned based on the operational lighting context (**Dark Theme** and **Light Theme** in consistent column order), which reference the primitive variables.
+
+> **Alpha Notation:** Semantic entries using `--dt-primitive-* @ NN%` denote an opacity-modulated primitive that compiles to CSS `color-mix(in srgb, var(--dt-primitive-*) NN%, transparent)` and Penpot `rgba(...)`.
 
 ### 3.1. Primitive Palette Tokens
+*Ordered monotonically by perceived luminance within each color family (legacy numeric suffixes are retained for cross-specification and Penpot stability).*
+
 | Primitive Token | Hex Value | Family / Base Use |
 | ------------------------ | --------- | -------------------------------------------------------------------- |
-| --dt-primitive-gray-980  | #111827   | Near-black cool gray |
 | --dt-primitive-gray-950  | #11141A   | Deepest charcoal gray |
+| --dt-primitive-gray-980  | #111827   | Near-black cool gray |
 | --dt-primitive-gray-900  | #16191F   | Very dark neutral gray |
-| --dt-primitive-gray-850  | #1F2937   | Dark charcoal gray |
 | --dt-primitive-gray-800  | #1E222B   | Dark slate-neutral gray |
+| --dt-primitive-gray-850  | #1F2937   | Dark charcoal gray |
 | --dt-primitive-gray-700  | #2A2F3D   | Deep muted gray |
-| --dt-primitive-gray-650  | #3A4154   | Medium-dark cool gray |
-| --dt-primitive-gray-620  | #4B5563   | Medium charcoal gray |
 | --dt-primitive-gray-600  | #353B4D   | Elevated dark cool gray |
+| --dt-primitive-gray-650  | #3A4154   | Medium-dark cool gray |
 | --dt-primitive-gray-580  | #4A5263   | Muted dark gray |
-| --dt-primitive-gray-550  | #6B7280   | Mid neutral gray |
+| --dt-primitive-gray-620  | #4B5563   | Medium charcoal gray |
 | --dt-primitive-gray-500  | #5C667A   | Balanced mid-slate gray |
+| --dt-primitive-gray-550  | #6B7280   | Mid neutral gray |
 | --dt-primitive-gray-450  | #6E7A92   | Cool mid-light gray |
-| --dt-primitive-gray-420  | #8A98AA   | Soft muted blue-gray |
 | --dt-primitive-gray-400  | #7E8B9B   | Medium-light cool gray |
+| --dt-primitive-gray-420  | #8A98AA   | Soft muted blue-gray |
 | --dt-primitive-gray-380  | #9CA3AF   | Light neutral gray |
 | --dt-primitive-gray-350  | #AAB1BD   | Soft silver-gray |
 | --dt-primitive-gray-300  | #B8C0CC   | Light cool border gray |
@@ -150,8 +154,8 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-primitive-gray-10   | #FDFEFE   | Brightest off-white neutral |
 | --dt-primitive-slate-975 | #0A0E15   | Deepest midnight slate |
 | --dt-primitive-slate-950 | #0D1117   | Deep obsidian slate |
-| --dt-primitive-slate-925 | #131923   | Very dark basin slate |
 | --dt-primitive-slate-920 | #0F172A   | Deep ink slate |
+| --dt-primitive-slate-925 | #131923   | Very dark basin slate |
 | --dt-primitive-slate-900 | #18202C   | Dark cool slate |
 | --dt-primitive-slate-875 | #1E2736   | Dark elevated slate |
 | --dt-primitive-slate-800 | #222B3A   | Medium-dark structural slate |
@@ -166,9 +170,9 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-primitive-slate-250 | #CBD5E1   | Pale grid slate |
 | --dt-primitive-slate-200 | #CFD6DF   | Light concrete slate |
 | --dt-primitive-slate-140 | #E1E6EC   | Very light cool slate |
-| --dt-primitive-slate-100 | #F1F5F9   | Off-white cool slate |
 | --dt-primitive-slate-80  | #ECEFF3   | Soft off-white slate |
 | --dt-primitive-slate-60  | #F0F3F7   | Pale mist slate |
+| --dt-primitive-slate-100 | #F1F5F9   | Off-white cool slate |
 | --dt-primitive-slate-30  | #F7F9FB   | Ultra-light cool slate |
 | --dt-primitive-red-600   | #E63946   | High-salience industrial red |
 | --dt-primitive-amber-700 | #B45309   | Deep industrial amber |
@@ -207,21 +211,19 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-color-text-body             | --dt-primitive-gray-280     | --dt-primitive-gray-850     | Main text / Table values                                              |
 | --dt-color-text-primary          | --dt-primitive-gray-10      | --dt-primitive-gray-980     | Titles / Critical values                                              |
 
-> **Note:** Semantic color tokens for Moving Analog Indicators (`--dt-color-mai-*`) are defined exclusively in [§6.1.1 Dual-Theme Semantic Token Table for MAI](#611-dual-theme-semantic-token-table-for-mai) to preserve single-source-of-truth generation with zero duplicate CSS declarations.
-
 ### 3.3. Alarm and Safety Semantics (10% Reserved)
 
-| State / Severity                 | Color Token               | Value (Dark Theme)       | Value (Light Theme)      | Mandatory Symbol           |
-| -------------------------------- | ------------------------- | ------------------------ | ------------------------ | -------------------------- |
-| **Critical Alarm / LOTO Danger** | --dt-color-alarm-critical | --dt-primitive-red-600   | --dt-primitive-red-600   | Square / Octagon           |
-| **Warning / Approaching Limit**  | --dt-color-alarm-warning  | --dt-primitive-amber-400 | --dt-primitive-amber-600 | Triangle                   |
-| **Informational / Selection**    | --dt-color-state-info     | --dt-primitive-blue-450  | --dt-primitive-blue-600  | Circle / Rhombus           |
-| **Documentary Confirmation**     | --dt-color-state-success  | --dt-primitive-teal-400  | --dt-primitive-teal-700  | Checkmark ( $\checkmark$ ) |
-| **Disabled Element**             | --dt-color-state-disabled | --dt-primitive-gray-580  | --dt-primitive-gray-380  | Dotted border              |
+| State / Severity                 | Color Token               | Dark Theme (Mobile / Night) | Light Theme (Desktop / Day) | Mandatory Symbol           |
+| -------------------------------- | ------------------------- | --------------------------- | --------------------------- | -------------------------- |
+| **Critical Alarm / LOTO Danger** | --dt-color-alarm-critical | --dt-primitive-red-600      | --dt-primitive-red-600      | Square / Octagon           |
+| **Warning / Approaching Limit**  | --dt-color-alarm-warning  | --dt-primitive-amber-400    | --dt-primitive-amber-600    | Triangle                   |
+| **Informational / Selection**    | --dt-color-state-info     | --dt-primitive-blue-450     | --dt-primitive-blue-600     | Circle / Rhombus           |
+| **Documentary Confirmation**     | --dt-color-state-success  | --dt-primitive-teal-400     | --dt-primitive-teal-700     | Checkmark ( $\checkmark$ ) |
+| **Disabled Element**             | --dt-color-state-disabled | --dt-primitive-gray-580     | --dt-primitive-gray-380     | Dotted border              |
 
 ### 3.4. Spatial and Physical Material Tokens (Digital Twin Canvas)
 
-These tokens model the neutral HPHMI physical site engineering materials, monotonic Dark Theme depth ladder, cartographic HUD surfaces, and two-tone spatial marker channels for 2D Digital Twin viewports ([DT-UI-SVG-DOC-001](DT-UI-SVG-DOC-001.md)). Base `--dt-color-bg-canvas` and `--dt-color-text-muted` reside in §3.2 to guarantee zero duplicate token generation.
+These tokens model neutral HPHMI physical site materials, the monotonic Dark Theme depth ladder, translucent hazard/LOTO envelopes, and frosted cartographic HUD surfaces for 2D Digital Twin viewports ([DT-UI-SVG-DOC-001](DT-UI-SVG-DOC-001.md)).
 
 | Spatial Material Token         | Dark Theme (Mobile / Night)                                        | Light Theme (Desktop / Day)                                        | Physical Infrastructure / Canvas HUD Application                          |
 | :----------------------------- | :----------------------------------------------------------------- | :----------------------------------------------------------------- | :------------------------------------------------------------------------ |
@@ -235,15 +237,10 @@ These tokens model the neutral HPHMI physical site engineering materials, monoto
 | --dt-color-canvas-pipe-fire    | --dt-primitive-slate-600                                           | --dt-primitive-slate-550                                           | Dedicated fire-water ring mains, hydrant branches, and monitor spurs      |
 | --dt-color-canvas-grid         | --dt-primitive-gray-850                                            | --dt-primitive-slate-250                                           | Adaptive multi-scale coordinate grid inside legal site property           |
 | --dt-color-label-halo          | --dt-primitive-slate-950                                           | --dt-primitive-slate-80                                            | Dynamic vector text halo knock-out matching canvas ground                 |
-| --dt-color-site-veil           | --dt-primitive-slate-975                                           | --dt-primitive-slate-60                                            | Outside-property boundary fade target beyond `L-CIVL-PROP`                |
+| --dt-color-site-veil           | --dt-primitive-slate-975                                           | --dt-primitive-slate-60                                            | Outside-property boundary fade target beyond legal site perimeter         |
 | --dt-color-loto-isolated-path  | --dt-primitive-gray-450                                            | --dt-primitive-slate-550                                           | Confirmed isolated dashed LOTO boundary path                              |
 | --dt-color-marker-surface      | --dt-primitive-slate-875                                           | --dt-primitive-slate-30                                            | Opaque surface plate behind ISA-5.1 bubbles, SIMOPS cards, and L1 pills   |
 | --dt-color-marker-border       | --dt-primitive-slate-600                                           | --dt-primitive-slate-550                                           | Hairline neutral border framing floating spatial marker plates            |
-| --dt-color-icon-outline        | --dt-primitive-slate-100                                           | --dt-primitive-slate-920                                           | Two-tone spatial symbol perimeter outline (`--icon-outline`)              |
-| --dt-color-icon-fill-critical  | --dt-primitive-red-600                                             | --dt-primitive-red-600                                             | Two-tone critical / Hot Work / SIMOPS conflict interior (`--icon-fill`)   |
-| --dt-color-icon-fill-success   | --dt-primitive-teal-700                                            | --dt-primitive-teal-400                                            | Two-tone LOTO isolated / verified interior (`--icon-fill`)                |
-| --dt-color-icon-fill-warning   | --dt-primitive-amber-700                                           | --dt-primitive-amber-400                                           | Two-tone warning / Confined Space interior (`--icon-fill`)                |
-| --dt-color-icon-fill-info      | --dt-primitive-blue-600                                            | --dt-primitive-blue-380                                            | Two-tone informational / Cold Work / Heights interior (`--icon-fill`)     |
 | --dt-color-loto-disc           | --dt-primitive-slate-900 @ 85% | --dt-primitive-slate-30 @ 85%  | Translucent circular LOTO isolation disc fill                             |
 | --dt-color-state-info-fill     | --dt-primitive-blue-450 @ 16%  | --dt-primitive-blue-600 @ 10%  | Translucent informational / Cold Work envelope fill                       |
 | --dt-color-state-success-fill  | --dt-primitive-teal-400 @ 17%  | --dt-primitive-teal-700 @ 12%  | Translucent LOTO verified zone tint                                       |
@@ -260,7 +257,23 @@ These tokens model the neutral HPHMI physical site engineering materials, monoto
 | --dt-color-float-text          | --dt-primitive-slate-100                                           | --dt-primitive-slate-920                                           | Primary text inside frosted spatial HUD capsules                          |
 | --dt-color-float-muted         | --dt-primitive-slate-400                                           | --dt-primitive-slate-700                                           | Secondary label text inside frosted spatial HUD capsules                  |
 | --dt-color-float-hover         | --dt-primitive-slate-100 @ 11% | --dt-primitive-slate-920 @ 8%  | Subtle hover tint on frosted HUD buttons                                  |
-| --dt-color-float-kbd-bg        | --dt-primitive-slate-800 @ 72% | --dt-primitive-slate-200 @ 62% | Keyboard shortcut hint chip fill (`Space` / `Ctrl+K`)                     |
+| --dt-color-float-kbd-bg        | --dt-primitive-slate-800 @ 72% | --dt-primitive-slate-200 @ 62% | Keyboard shortcut hint chip fill                                          |
+
+### 3.5. Moving Analog Indicator (MAI) Semantic Tokens
+
+| MAI Graphic Element | Semantic Token | Dark Theme (Mobile / Night) | Light Theme (Desktop / Day) | HPHMI / ISA-101 Ergonomic Function |
+| --------------------------------------- | --------------------------------- | --------------------------- | --------------------------- | ------------------------------------------------------------------------------------ |
+| **Base Track**                          | --dt-color-mai-track              | --dt-primitive-gray-700     | --dt-primitive-gray-300     | Indicator perimeter background for calibrated instrument range.                      |
+| **Base Track Border**                   | --dt-color-mai-track-border       | --dt-primitive-gray-650     | --dt-primitive-gray-350     | Subtle outline defining absolute scale boundaries.                                   |
+| **Normal Operating Zone**               | --dt-color-mai-normal-zone        | --dt-primitive-blue-700     | --dt-primitive-blue-200     | Muted blue band for pre-attentive recognition of safe operating range.               |
+| **Normal Zone Border**                  | --dt-color-mai-normal-zone-border | --dt-primitive-blue-450     | --dt-primitive-blue-400     | Outline reinforcing contrast of the safe operating band.                             |
+| **Current Value Pointer**               | --dt-color-mai-pointer            | --dt-primitive-gray-10      | --dt-primitive-gray-980     | Moving circular pointer; preserves neutral shape and color across alarm crossings.   |
+| **Pointer Border**                      | --dt-color-mai-pointer-border     | --dt-primitive-gray-980     | --dt-primitive-gray-10      | High-contrast outline for visibility over the normal zone.                           |
+| **Text on Critical Alarm**              | --dt-color-alarm-text-critical    | --dt-primitive-gray-10      | --dt-primitive-gray-10      | High-contrast text on critical alarm badge ($4.6:1$ WCAG AA).                        |
+| **Text on Amber Warning**               | --dt-color-alarm-text-warning     | --dt-primitive-gray-900     | --dt-primitive-gray-10      | High-contrast text on amber warning badge ($5.36:1$ light, $8.5:1$ dark).            |
+| **Stale / Disabled Operating Zone**     | --dt-color-mai-stale-zone         | --dt-primitive-gray-600     | --dt-primitive-gray-280     | Muted slate zone indicating stale/inactive telemetry during signal loss.             |
+| **Stale Zone Border**                   | --dt-color-mai-stale-zone-border  | --dt-primitive-gray-450     | --dt-primitive-gray-420     | Subtle boundary outline for disabled instrument zone.                                |
+| **Interlock Limit**                     | --dt-color-mai-interlock          | --dt-primitive-gray-10      | --dt-primitive-gray-980     | Solid end-of-scale block indicating automatic safety trip (ESD).                     |
 
 
 ---
@@ -269,10 +282,10 @@ These tokens model the neutral HPHMI physical site engineering materials, monoto
 Typography is defined under a dual model: high-availability native fonts in the design engine (Google Fonts in Penpot) and comprehensive fallback stacks (*System Fallbacks*) for production web stylesheets.
 
 ### 4.1. Typographic Families
-| Typographic Role | Base Font (Penpot / Design) | Fallback Stack (CSS / Web) | Application Use |
-| :------------------ | :---------------------------- | :------------------------------------------------- | :------------------------------------------------ |
-| Primary Sans-Serif | Inter                         | Segoe UI, Inter, Roboto, -apple-system, sans-serif | Titles, labels, descriptions, and controls     |
-| Monospaced       | Roboto Mono                   | Cascadia Code, SF Mono, Consolas, monospace        | Equipment tags (P-101), hashes, IPs and timestamps |
+| Typographic Role | Base Font (Penpot / Design) | Fallback Stack (CSS / Web) | CSS Token | Application Use |
+| :------------------ | :---------------------------- | :------------------------------------------------- | :--------------------- | :------------------------------------------------ |
+| Primary Sans-Serif | Inter                         | Segoe UI, Inter, Roboto, -apple-system, sans-serif | `--dt-font-family-base` | Titles, labels, descriptions, and controls     |
+| Monospaced       | Roboto Mono                   | Cascadia Code, SF Mono, Consolas, monospace        | `--dt-font-family-mono` | Equipment tags (P-101), hashes, IPs and timestamps |
 
 ### 4.2. Typographic Scale
 | Typographic Token | Size (px) | Size (rem) | Line Height (px) | Weight (Font-Weight) | Standard Application Use |
@@ -299,12 +312,12 @@ To comply with the High-Performance HMI (ANSI/ISA-101.01 / Hollifield) philosoph
 3. **Floating Viewport Chrome & Overlays ($Z \ge 100$):** Soft ambient elevation shadows (`--dt-shadow-hud`, `--dt-shadow-glass`, `--dt-shadow-panel`) are normative. Floating frosted toolbars, docked lateral panels, and cartographic HUD instruments project subtle elevation shadows to cleanly decouple interactive controls from underlying CAD lines without harsh heavy borders.
 
 ### 5.2. Elevation Shadows
-| Token | Light Theme Value | Dark Theme Value | Component Application |
+| Token | Dark Theme Value | Light Theme Value | Component Application |
 | :------------------ | :------------------------------------------------------------------ | :------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------- |
-| `--dt-shadow-marker` | `0 1px 2px --dt-primitive-slate-920 @ 22%, 0 1px 1px --dt-primitive-slate-920 @ 10%` | `0 2px 3px --dt-primitive-slate-975 @ 50%, 0 1px 2px --dt-primitive-slate-975 @ 34%` | Floating SVG marker silhouettes ($Z \ge 50$): ISA-5.1 plates, LOTO discs, SIMOPS pins, L1 summary pills (prohibited on `<text>`). |
-| `--dt-shadow-hud`   | `0 1px 4px --dt-primitive-slate-920 @ 18%, 0 1px 2px --dt-primitive-slate-920 @ 8%`     | `0 2px 6px --dt-primitive-slate-975 @ 45%, 0 1px 2px --dt-primitive-slate-975 @ 35%`    | Floating top toolbar (`ViewportToolbar`), user profile button (`UserProfileButton`), compass and scale HUD (`CartographicHud`). |
-| `--dt-shadow-glass` | `0 1px 4px --dt-primitive-slate-920 @ 18%, 0 1px 2px --dt-primitive-slate-920 @ 8%, inset 0 1px 0 --dt-primitive-slate-30 @ 72%` | `0 2px 6px --dt-primitive-slate-975 @ 45%, 0 1px 2px --dt-primitive-slate-975 @ 35%, inset 0 1px 0 --dt-primitive-slate-100 @ 9%` | Frosted spatial HUD capsules, fan-out concurrency trays, and `Space` / `Ctrl+K` quick-search bar. |
-| `--dt-shadow-panel` | `-2px 0 8px --dt-primitive-slate-920 @ 12%, -1px 0 2px --dt-primitive-slate-920 @ 6%`  | `-3px 0 10px --dt-primitive-slate-975 @ 50%, -1px 0 3px --dt-primitive-slate-975 @ 30%` | Docked lateral inspection faceplate (`CMP-05`) separating cleanly from canvas without border lines. |
+| `--dt-shadow-marker` | `0 2px 3px --dt-primitive-slate-975 @ 50%, 0 1px 2px --dt-primitive-slate-975 @ 34%` | `0 1px 2px --dt-primitive-slate-920 @ 22%, 0 1px 1px --dt-primitive-slate-920 @ 10%` | Floating SVG marker silhouettes ($Z \ge 50$): ISA-5.1 plates, LOTO discs, SIMOPS pins, L1 summary pills (prohibited on `<text>`). |
+| `--dt-shadow-hud`   | `0 2px 6px --dt-primitive-slate-975 @ 45%, 0 1px 2px --dt-primitive-slate-975 @ 35%`    | `0 1px 4px --dt-primitive-slate-920 @ 18%, 0 1px 2px --dt-primitive-slate-920 @ 8%`     | Floating top toolbar, user profile button, compass and scale HUD. |
+| `--dt-shadow-glass` | `0 2px 6px --dt-primitive-slate-975 @ 45%, 0 1px 2px --dt-primitive-slate-975 @ 35%, inset 0 1px 0 --dt-primitive-slate-100 @ 9%` | `0 1px 4px --dt-primitive-slate-920 @ 18%, 0 1px 2px --dt-primitive-slate-920 @ 8%, inset 0 1px 0 --dt-primitive-slate-30 @ 72%` | Frosted spatial HUD capsules, fan-out concurrency trays, and quick-search bar. |
+| `--dt-shadow-panel` | `-3px 0 10px --dt-primitive-slate-975 @ 50%, -1px 0 3px --dt-primitive-slate-975 @ 30%` | `-2px 0 8px --dt-primitive-slate-920 @ 12%, -1px 0 2px --dt-primitive-slate-920 @ 6%`  | Docked lateral inspection faceplate separating cleanly from canvas without border lines. |
 
 ### 5.3. Border Radii
 | Token | Value (px) | Component Application |
@@ -336,89 +349,65 @@ To comply with the High-Performance HMI (ANSI/ISA-101.01 / Hollifield) philosoph
 ## 6. Industrial Visual Patterns and Redundant Coding
 
 ### 6.1. Moving Analog Indicator (MAI) Specification
-In compliance with ISA-101.01 and *The High Performance HMI Handbook* (Hollifield et al., Ch. 7), continuous process variables (pressure, temperature, flow, vibration) must not be presented solely as numeric digits. They must use the Moving Analog Indicator (MAI) pattern to allow rapid condition evaluation in under 2 seconds.
+In compliance with ISA-101.01 and *The High Performance HMI Handbook* (Hollifield et al., Ch. 7), continuous process variables (pressure, temperature, flow, vibration) must not be presented solely as numeric digits. They must use the Moving Analog Indicator (MAI) pattern to allow rapid condition evaluation in under 2 seconds. All semantic color tokens governing the MAI are declared in [§3.5](#35-moving-analog-indicator-mai-semantic-tokens) and [§3.3](#33-alarm-and-safety-semantics-10-reserved).
 
 #### Light Theme (Control Room / Desktop - 500 Lux)
 ![Moving Analog Indicator - Light Theme](assets/MAI-light.svg)
 #### Dark Theme (Field Operation / Tablet / Night)
 ![Moving Analog Indicator - Dark Theme](assets/MAI-dark.svg)
 
-#### 6.1.1. Dual-Theme Semantic Token Table for MAI
-To avoid direct coupling of hexadecimal codes and ensure compatibility between the Control Room (Light Theme) and Field Operation (Dark Theme), frontend interface components must consume the following token matrix:
-
-| MAI Graphic Element | Semantic CSS / C# Token | Light Theme (Desktop / Day) | Dark Theme (Mobile / Night) | HPHMI / ISA-101 Ergonomic Function                                                       |
-| ----------------------------------------------- | --------------------------------- | -------------------------- | --------------------------- | --------------------------------------------------------------------------------------- |
-| **Base Track**                          | --dt-color-mai-track              | --dt-primitive-gray-300    | --dt-primitive-gray-700     | Indicator perimeter background (Height $8\text{px}$, Radius $4\text{px}$).                 |
-| **Base Track Border**                         | --dt-color-mai-track-border       | --dt-primitive-gray-350    | --dt-primitive-gray-650     | Subtle outline (`1px`) to define the absolute limits of the instrument scale. |
-| **Normal Operating Zone**                    | --dt-color-mai-normal-zone        | --dt-primitive-blue-200    | --dt-primitive-blue-700     | **Light blue strip** for pre-attentive recognition of the safe range.                |
-| **Normal Zone Border**                        | --dt-color-mai-normal-zone-border | --dt-primitive-blue-400    | --dt-primitive-blue-450     | Outline (`0.5px` or `1px`) to improve the contrast of the safe blue block.            |
-| **Current Value Pointer**                     | --dt-color-mai-pointer            | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Moving circular pointer. **Maintains shape and neutral color.** Border `2px`.                 |
-| **Pointer Border**                           | --dt-color-mai-pointer-border     | --dt-primitive-gray-10       | --dt-primitive-gray-980     | High-contrast outline for visibility over the normal zone.                       |
-| **High Alarm Indicator (P1)**               | --dt-color-alarm-critical         | --dt-primitive-red-600     | --dt-primitive-red-600      | **Separate element (Method 3):** Red square + '1' appearing next to the limit.      |
-| **Text on Critical Alarm**                  | --dt-color-alarm-text-critical    | --dt-primitive-gray-10       | --dt-primitive-gray-10        | High contrast text on red square ($4.6:1$ WCAG AA).                          |
-| **Low Alarm / Warning Indicator (P2)** | --dt-color-alarm-warning          | --dt-primitive-amber-600   | --dt-primitive-amber-400    | **Separate element (Method 3):** Amber triangle + '2' (Adjusted WCAG AA $3.47:1$).    |
-| **Text on Amber Warning**               | --dt-color-alarm-text-warning     | --dt-primitive-gray-10       | --dt-primitive-gray-900     | High contrast text on Amber ($5.36:1$ on light, $8.5:1$ on dark).             |
-| **Stale / Disabled Operating Zone**     | --dt-color-mai-stale-zone         | --dt-primitive-gray-280    | --dt-primitive-gray-600     | Muted slate grayish-blue zone indicating stale/inactive telemetry during signal loss. |
-| **Stale Zone Border**                   | --dt-color-mai-stale-zone-border  | --dt-primitive-gray-420    | --dt-primitive-gray-450     | Subtle boundary outline for disabled instrument zone.                   |
-| **Interlock Limit**          | --dt-color-mai-interlock          | --dt-primitive-gray-980    | --dt-primitive-gray-10      | Solid block at the end indicating automatic safety trip.                 |
-
-#### 6.1.2. Dynamic Behavior and Alarm Rules
-1. **Background Track and Normal Zone:** The track covers $100\%$ of the instrument's calibrated scale. The Normal Operation Zone is rendered as a highlighted inner segment in light blue (`--dt-color-mai-normal-zone`).
-2. **Pointer Invariance:** The current value pointer does not alter its shape or neutral color when crossing alarm thresholds. This preserves the spatial reference point and avoids cognitive distortions.
+#### 6.1.1. Dynamic Behavior and Alarm Rules
+1. **Background Track and Normal Zone:** The track (`Height 8px`, `Radius 4px`) covers $100\%$ of the instrument's calibrated scale. The Normal Operation Zone is rendered as a highlighted inner segment in muted blue (`--dt-color-mai-normal-zone`).
+2. **Pointer Invariance:** The current value pointer (`--dt-color-mai-pointer`) does not alter its shape or neutral color when crossing alarm thresholds, preserving the spatial reference point.
 3. **Alarm Presentation (Hollifield Method 3):**
-    * **High Deviation (High / High-High):** When crossing the upper threshold, a **separate alarm element** appears adjacent to the scale at the point of infraction. A red square (`--dt-color-alarm-critical`) with priority number 1 for Critical Alarm is presented.
-    * **Low Deviation (Low / Low-Low):** When crossing the lower threshold, an **amber triangle** (`--dt-color-alarm-warning`) appears adjacent with priority number 2 for Warning.
+    * **High Deviation (High / High-High):** When crossing the upper threshold, a **separate alarm element** appears adjacent to the scale at the point of infraction: a red square (`--dt-color-alarm-critical`) with priority number `1`.
+    * **Low Deviation (Low / Low-Low):** When crossing the lower threshold, an **amber triangle** (`--dt-color-alarm-warning`) appears adjacent with priority number `2`.
 4. **Safety and Interlock Limits (Safety Interlock):** The ends of the scale that trigger automatic shutdowns (ESD) are marked with a solid rectangle (`--dt-color-mai-interlock`) at the corresponding end.
-5. **Stale Telemetry and Instrument Deactivation:** Upon loss of telemetry signal or device heartbeat timeout (Fail-Safe), the normal operating zone transmutates from vibrant light blue to a deactivated slate grayish-blue (`--dt-color-mai-stale-zone` / `--dt-color-mai-stale-zone-border`), visually conveying that the instrument is inactive/stale per ISO 11064 and [TR-011](../requirements/common/TR-011.md).
+5. **Stale Telemetry and Instrument Deactivation:** Upon loss of telemetry signal or device heartbeat timeout (Fail-Safe), the normal operating zone transitions to a deactivated slate grayish-blue (`--dt-color-mai-stale-zone` / `--dt-color-mai-stale-zone-border`), visually conveying that the instrument is inactive/stale per ISO 11064 and [TR-011](../requirements/common/TR-011.md).
 
 ### 6.2. Redundant Coding Matrix for Permits and LOTO
 
-| Safety Concept | Main Color / Token | Geometric Shape | Associated UI / Spatial Icons | Mandatory Text |
+| Safety Concept | Main Color / Token | Geometric Shape | Associated Icon | Mandatory Text |
 | ------------------------------------- | ------------------------- | ------------------------------------- | -------------------------- | ------------------- |
-| **Hot Work Permit**    | `--dt-color-alarm-critical` | Beveled Square / Octagon Badge | `#icon-hot-work` / `#sym-icon-ptw-hot` | HOT WORK |
-| **Electrical Permit**  | `--dt-color-alarm-critical` | Octagon | `#icon-electrical` / `#sym-icon-ptw-electrical` | ELECTRICAL |
-| **Heights Permit**      | `--dt-color-state-info`     | Triangle | `#icon-heights` / `#sym-icon-ptw-heights` | HEIGHTS |
-| **Cold Work Permit**   | `--dt-color-state-info`     | Hexagon | `#icon-cold-work` / `#sym-icon-ptw-cold` | COLD WORK |
-| **Confined Space**      | `--dt-color-alarm-warning`  | Rhombus (Diamond) | `#icon-confined-space` / `#sym-icon-ptw-confined` | CONFINED |
-| **Chemical Permit**    | `--dt-color-alarm-warning`  | Rhombus / Flask Badge | `#icon-chemical` / `#sym-icon-ptw-chemical` | CHEMICAL |
-| **Excavation Permit**  | `--dt-color-alarm-warning`  | Triangle | `#icon-warning` | EXCAVATION |
-| **SIMOPS Conflict (`A ∩ B`)** | `--dt-color-alarm-critical` | Octagon Alert + `45°` Hatch Lens | `#icon-warning` / `#sym-icon-alarm-critical` | SIMOPS CONFLICT |
-| **LOTO Point Locked (Safe)** | `--dt-color-state-success` | Double Slate Rim + Closed Padlock Disc | `#icon-loto-locked` / `#sym-icon-loto-isolated` | ISOLATED - 0 ENERGY |
-| **LOTO Point Energized (Danger)** | `--dt-color-alarm-critical` | Crimson Halo + Open Breaker / Closed Valve Disc | `#icon-loto-energized` / `#sym-icon-eloto-energized` / `#sym-icon-mloto-energized` | DANGER - ENERGIZED |
+| **Hot Work Permit** (`HOT_WORK`) | `--dt-color-alarm-critical` | Beveled Square / Octagon Badge | `#icon-hot-work` | HOT WORK |
+| **Electrical Permit** (`ELECTRICAL`) | `--dt-color-alarm-critical` | Octagon | `#icon-electrical` | ELECTRICAL |
+| **Work at Height Permit** (`WORK_AT_HEIGHT`) | `--dt-color-state-info` | Triangle | `#icon-heights` | WORK AT HEIGHT |
+| **Cold Work Permit** (`COLD_WORK`) | `--dt-color-state-info` | Hexagon | `#icon-cold-work` | COLD WORK |
+| **Confined Space Permit** (`CONFINED_SPACE`) | `--dt-color-alarm-warning` | Rhombus (Diamond) | `#icon-confined-space` | CONFINED SPACE |
+| **Chemical Permit** (`CHEMICAL`) | `--dt-color-alarm-warning` | Rhombus / Flask Badge | `#icon-chemical` | CHEMICAL |
+| **Excavation Permit** (`EXCAVATION`) | `--dt-color-alarm-warning` | Triangle | `#icon-warning` | EXCAVATION |
+| **SIMOPS Conflict (`A ∩ B`)** | `--dt-color-alarm-critical` | Octagon Alert + `45°` Hatch Lens | `#icon-warning` | SIMOPS CONFLICT |
+| **LOTO Point Locked (Safe)** | `--dt-color-state-success` | Double Slate Rim + Closed Padlock Disc | `#icon-loto-locked` | ISOLATED - 0 ENERGY |
+| **LOTO Point Energized (Danger)** | `--dt-color-alarm-critical` | Crimson Halo + Open Breaker / Closed Valve Disc | `#icon-loto-energized` | DANGER - ENERGIZED |
 | **Telemetry Loss (Fail-Safe)** | `--dt-color-alarm-warning` | Rhombus | `#icon-wifi-off` / `#icon-signal-lost` | SIGNAL LOST - STALE |
 
 ### 6.3. Sliding Containers Pattern (*Bottom Sheets* and *Drawers*)
-In compliance with the principle of **Controllability** (ISO 9241-110:2020, Clause 5.5) and to mitigate the low precision of capacitive sensors when operating with industrial gloves or in wet conditions, mobile sliding containers must follow these guidelines:
+In compliance with the principle of **Controllability** (ISO 9241-110:2020, Clause 5.5) and to mitigate low capacitive touch precision when operating with industrial gloves or in wet conditions, mobile sliding containers must follow these guidelines:
 
 1. **Exclusive Gesture Prohibition:** It is forbidden to condition the deployment, collapse, or closure of a container exclusively to continuous drag or swipe gestures (*swipe/drag*).
-2. **Dedicated Physical Trigger:** Every container must integrate an explicit interactive element (handle or touch header) whose touch area dimensions inherit the `--dt-touch-target-mobile` token.
+2. **Dedicated Physical Trigger:** Every container must integrate an explicit interactive element (handle or touch header) whose touch area dimensions inherit `--dt-touch-target-mobile`.
 3. **Discrete Switching:** A simple press (*tap*) on this element must sequentially toggle between the defined states for the component (Collapsed, Partial View, Expanded), guaranteeing operation without requiring fine motor skills.
-4. **Responsive Orientation Transition:** In tablet landscape (`--dt-breakpoint-lg`), sliding bottom sheets transition to fixed right-hand drawers sized by `--dt-layout-drawer-width`, preserving $\ge 70\%$ viewport allocation for the 2D spatial canvas.
 
 ### 6.4. Iconography and Redundant Symbology Standards
 
-To ensure compliance with WCAG 2.1 AA Redundant Coding and [ASR-001](../architecture/asr/DT-ARQ-ASR-001.md#1-offline-first-operation-and-partition-tolerance), application iconography is governed by a dual-profile vector standard:
+To ensure compliance with WCAG 2.1 AA Redundant Coding and [ASR-001](../architecture/asr/DT-ARQ-ASR-001.md#1-offline-first-operation-and-partition-tolerance), application iconography is governed by a unified vector sprite standard:
 
-#### 6.4.1. Profile A — Monochromatic UI Control Icons (`24 × 24`)
-* **Base ViewBox:** Strictly $24 \times 24\text{ px}$ (`viewBox="0 0 24 24"`) for toolbar buttons, cards, lists, and form controls (`#icon-*`).
+#### 6.4.1. Monochromatic UI & Spatial Icons (`24 × 24`)
+* **Base ViewBox:** Strictly $24 \times 24\text{ px}$ (`viewBox="0 0 24 24"`) for toolbar buttons, cards, lists, form controls, and spatial markers (`#icon-*`).
 * **Safe Drawing Area (Live Area):** $20 \times 20\text{ px}$ centered within the frame ($X=2\text{px}, Y=2\text{px}$ offset; mandatory $2\text{ px}$ perimeter padding).
 * **Stroke & Fill Geometry:** Base stroke width $2\text{ px}$ (`stroke-width="2"`), `stroke-linecap="round"`, `stroke-linejoin="round"`; `fill="none"` for outline controls or `fill="currentColor"` for solid UI glyphs.
 * **Theme Decoupling (`currentColor`):** Pure black or pure white hexes are prohibited; shapes bind `currentColor` to inherit CSS semantic tokens.
 
-#### 6.4.2. Profile B — Two-Tone Spatial Canvas Markers (`48 × 48`)
-* **Base ViewBox:** Strictly $48 \times 48\text{ px}$ (`viewBox="0 0 48 48"`, `fill-rule="evenodd"`, `clip-rule="evenodd"`) for cartographic PTW pins, LOTO isolation discs, criticality pills (`#sym-icon-crit-a`, `#sym-icon-crit-b`, `#sym-icon-crit-c`), isolation equipment glyphs (`#sym-icon-iso-valve`, `#sym-icon-iso-breaker`), and conflict alerts (`#sym-icon-alarm-critical`) rendered directly over the SVG plot plan (`17` canonical `#sym-icon-*` symbols).
-* **Dual Semantic Channels:** Every `#sym-icon-*` symbol separates its high-contrast perimeter contour (`--icon-outline`, resolving to `--dt-color-icon-outline`) from its interior domain fill (`--icon-fill`, resolving to `--dt-color-icon-fill-*` or `--dt-color-canvas-equip-shell`), guaranteeing crisp figure-ground contrast across both Light and Dark CAD themes with zero pure white or pure black fills.
-
-#### 6.4.3. Geometric Shape Calibration for Redundant Coding
-When symbols are encapsulated in the mandatory geometric containers defined in the Redundant Coding Matrix (§6.2), containers align across both UI badges ($20 \times 20\text{ px}$) and spatial canvas markers ($48 \times 48\text{ px}$ artboard):
+#### 6.4.2. Geometric Shape Calibration for Redundant Coding
+When symbols are encapsulated in the mandatory geometric containers defined in the Redundant Coding Matrix (§6.2), containers align across UI badges ($20 \times 20\text{ px}$) and spatial markers:
 * **Beveled Square / Octagon (Hot Work / Electrical / SIMOPS Critical):** Distinct cornered hazard containers enclosing flame, lightning, or exclamation silhouettes.
-* **Triangle (Heights / Excavation):** Upright equilateral container inscribed inside the safe live frame.
+* **Triangle (Work at Height / Excavation):** Upright equilateral container inscribed inside the safe live frame.
 * **Hexagon (Cold Work):** Regular 6-sided container enclosing maintenance tool silhouette.
 * **Rhombus (Confined Space / Chemical / Signal Lost):** $45^\circ$-rotated diamond container enclosing vessel-entry or flask silhouettes.
-* **Double-Rim Disc (LOTO Cutoff Node):** Circular disc (`--dt-color-loto-disc`) framed by neutral double slate boundary (`--dt-color-marker-border`) enclosing `#sym-icon-loto-isolated`, `#sym-icon-eloto-energized`, or `#sym-icon-mloto-energized`.
+* **Double-Rim Disc (LOTO Cutoff Node):** Circular disc (`--dt-color-loto-disc`) framed by neutral double slate boundary (`--dt-color-marker-border`) enclosing `#icon-loto-locked` or `#icon-loto-energized`.
 
-#### 6.4.4. Icon Sprite Distribution Contract
-* **Single Compiled Sprite:** All UI control icons (`24 × 24`, `currentColor`) and spatial canvas markers (`48 × 48`, `--icon-outline` / `--icon-fill`) are compiled into a single zero-dependency SVG `<symbol>` sprite sheet with authoring tool metadata stripped.
+#### 6.4.3. Icon Sprite Distribution Contract
+* **Single Compiled Sprite:** All UI and domain icons (`24 × 24`, `currentColor`) are compiled into a single zero-dependency SVG `<symbol>` sprite sheet (`ui-ux/assets/icons.svg`) with authoring tool metadata stripped.
 * **Runtime Delivery:** Interfaces reference compiled symbols declaratively via SVG `<use href="..."/>` without duplicating inline `<path>` payloads across components.
 
 ### 6.5. Status Badge & Counter Discipline (Anti-Badge-Inflation Principle)
@@ -445,7 +434,7 @@ To prevent peripheral ambiguity between non-interactive status indicators and cl
 | :--- | :--- | :--- |
 | **Corner Geometry** | **Full Capsule / Pill (`--dt-radius-full`, $9999\text{px}$)** or borderless flat indicator. Rectangular button corner radii (`--dt-radius-sm`, `--dt-radius-md`) are prohibited on row status badges. | **Structured Rectangular (`--dt-radius-sm` or `--dt-radius-md`, $4\text{px}-6\text{px}$)**. |
 | **Vertical Profile & Padding** | Compact, tight-fitting profile (`--dt-font-caption`, `--dt-space-1` vertical padding, `--dt-space-2` horizontal padding). | Ergonomic click target profile (`--dt-control-height-sm` minimum desktop height, `--dt-touch-target-mobile` on tablet/mobile, `--dt-font-body-md`). |
-| **Border & Surface Treatment** | Subtle translucent tint ($10\%-14\%$ opacity) on critical/warning bands; borderless or hairline muted outline on normal bands. | **3-Tier Action Hierarchy:**<br>1. *Primary Action Button:* Solid accent (`--dt-color-state-info`), high-contrast light text (`--dt-color-alarm-text-critical`), borderless. Strictly 1 primary trigger per view/modal.<br>2. *Secondary / Toolbar Button:* Borderless, soft low-contrast neutral surface (`--dt-color-surface-btn-secondary`), `--dt-color-text-primary`.<br>3. *Tertiary / Ghost Button:* Transparent surface, borderless, text/icon only. |
+| **Border & Surface Treatment** | Subtle translucent tint ($10\%-14\%$ opacity) on critical/warning bands; borderless or hairline muted outline on normal bands. | **3-Tier Action Hierarchy:**<br>1. *Primary Action Button:* Solid accent (`--dt-color-state-info`), high-contrast light text (`--dt-primitive-gray-10`), borderless. Strictly 1 primary trigger per view/modal.<br>2. *Secondary / Toolbar Button:* Borderless, soft low-contrast neutral surface (`--dt-color-surface-btn-secondary`), `--dt-color-text-primary`.<br>3. *Tertiary / Ghost Button:* Transparent surface, borderless, text/icon only. |
 | **Pointer & Hover Affordance** | `cursor: default`; `user-select: none`; zero hover elevation or border highlight. | `cursor: pointer`; explicit `:hover` surface elevation or subtle brightness shift, with tactile `:active` micro-scale ($0.98$). |
 
 ---
@@ -462,11 +451,11 @@ In compliance with ISO 9241-110 (Controllability) and ANSI/ISA-101.01 ergonomics
 #### 6.6.2. Tactile Pill Actions & Presets
 * **Geometry:** Full capsule curvature (`--dt-radius-full`), `--dt-control-height-md` standard height (compact presets scale with `--dt-space-4`).
 * **Usage:**
-  1. **Operational State Toggles:** Main timer triggers (`[Pause]` / `[Resume]`).
-  2. **Discrete Bumpers:** Quick interval adders (`[+15 min]`).
-  3. **Segmented Quick Access Presets:** Rapid budget selection pills (`2.0h`, `2.5h`, `3.0h`, `3.5h (Planned)`).
-  4. **Primary Execution CTAs:** Full-width bottom action bars (`[Log Time to Record]`).
-* **Active Selection Discipline:** Active quick-access presets MUST use monochromatic high-contrast tokens (`--dt-color-text-primary` background with inverted surface text), strictly reserving `--dt-color-state-info` for primary execution actions (`[Log Time to Record]`, `[Finalize Work Order]`).
+  1. **Operational State Toggles:** Binary execution toggles (e.g., timer start/pause controls).
+  2. **Discrete Bumpers:** Fixed-increment step adders (e.g., quick time or quantity increments).
+  3. **Segmented Quick Access Presets:** Rapid preset selection pills for planned durations or standard intervals.
+  4. **Primary Execution CTAs:** Full-width bottom action bars for form submission or workflow finalization.
+* **Active Selection Discipline:** Active quick-access presets MUST use monochromatic high-contrast tokens (`--dt-color-text-primary` background with inverted surface text), strictly reserving `--dt-color-state-info` for primary execution actions.
 
 ---
 
@@ -482,18 +471,18 @@ In enterprise CMMS/EAM systems, high-cardinality relational foreign keys (master
 5. **Governance & Safety Tag Visibility:** Blocking or hazardous master-data preconditions (e.g., missing physical battery limits on `EquipmentUnit`, zero stock on `SparePart`, `LOCKED`/`INACTIVE` state on `User`, `EXPIRED`/`REVOKED` state on `WorkPermit`) must remain explicitly tagged inside the lookup table using compliant semantic pills (`§6.5`) so planners can inspect or intentionally select an incomplete record to invoke remediation workflows.
 
 #### 6.7.2. Tier A Relational Lookup Catalog & Filter Criteria Matrix
-All Tier A entity pickers must bind server-side paginated search queries (`PageSize`, `SearchTerm`, plus the mandatory filter criteria below) instead of eagerly loading unconstrained entity lists:
+All Tier A entity pickers must bind server-side paginated search queries rather than eagerly loading unconstrained entity lists:
 
-| Tier A Entity | Canonical Persistence Table | Mandatory Filter Criteria & Search Attributes | Target Screens |
+| Tier A Domain Entity | Search Attributes | Mandatory Filter Criteria | Target Screens |
 | :--- | :--- | :--- | :--- |
-| **`EquipmentUnit`** (Principal Equipment, ISO L6) | `tax.equipment_units` | Text search (`TagNumber`, `SerialNumber`, `Model`, name); Filters: `FunctionalLocation` (Plant Area / L1–L5), `EquipmentClass`, `Criticality` tier ($1..10$), Operational/Lifecycle Status, Physical Battery Limits Readiness (`HasBoundaries`) | [SCR-MTTO-023](screens/mtto/SCR-MTTO-023.md) (Reference Spec), [SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md), [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md), [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md), [SCR-VIS-008](screens/vis/SCR-VIS-008.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-VIS-033](screens/vis/SCR-VIS-033.md), [SCR-INV-025](screens/inv/SCR-INV-025.md) |
-| **`FunctionalLocation`** (ISO L1–L5 Slot) | `tax.functional_locations` | Text search (`TagNumber`, `Name`); Filters: `HierarchyLevel` (L1–L5), Parent Branch, `Criticality` band ($1..10$), Slot Occupancy Status (Vacant vs. Occupied) | [SCR-INV-005](screens/inv/SCR-INV-005.md), [SCR-INV-025](screens/inv/SCR-INV-025.md), [SCR-VIS-008](screens/vis/SCR-VIS-008.md), [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md) |
-| **`SparePart`** (Stock & MRO Item) | `inv.spare_parts` | Text search (`Sku`, `Description`, `Manufacturer`, `CommodityCode`); Filters: Compatible `EquipmentClass`, `Warehouse`, Stock Availability (`OnHand - Reserved > 0`), `StockPolicy`, `Status = ACTIVE` | [SCR-INV-006](screens/inv/SCR-INV-006.md), [SCR-INV-031](screens/inv/SCR-INV-031.md), [SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md), [SCR-MTTO-023](screens/mtto/SCR-MTTO-023.md), [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md) |
-| **`Locator`** (Warehouse Storage Bin) | `inv.locators` | Text search (`Aisle`, `Rack`, `Shelf`, `Barcode`); Filters: Parent `Warehouse`, `IsActive = true`, Current Part Stock Allocation | [SCR-INV-006](screens/inv/SCR-INV-006.md), [SCR-INV-031](screens/inv/SCR-INV-031.md) |
-| **`WorkOrder` / `WorkRequest` / `WorkPermit`** | `mtto.work_orders`, `mtto.work_requests`, `vis.work_permits` | Text search (`PermitIdentifier`, Folio / Description); Filters: Target `EquipmentUnit`, Lifecycle Status, `MaintenanceMethod` / `PermitType`, Validity Window, `Criticality` | [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md), [SCR-INV-006](screens/inv/SCR-INV-006.md) |
-| **`User`** (Personnel / Assignee / Issuer) | `adm.users` | Text search (`FullName`, `Username`, `Email`); Filters: Assigned RBAC `Role` (`TECHNICIAN`, `PLANNER`, `SUPERVISOR`, `SAFETY_AUTHORITY`), Account Status (`ACTIVE` only) | [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-ADM-013](screens/adm/SCR-ADM-013.md), [SCR-ADM-014](screens/adm/SCR-ADM-014.md) |
-| **`IsolationPoint`** (LOTO Lockout Point) | `vis.isolation_points` | Text search (`IsolationTag`); Filters: Parent `EquipmentUnit`, `IsolationType` (Electrical, Mechanical, Chemical, Thermal, etc.), `IsVerified` attestation state | [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md) |
-| **`Supplier` & `EquipmentClass`** | `inv.suppliers`, `tax.equipment_classes` | Text search (`Name`, `ClassName`, `ManufacturerStandard`); Filters: Manufacturing Standard (`API 610`, `API 617`, `IEC 60034`) | [SCR-INV-005](screens/inv/SCR-INV-005.md), [SCR-INV-031](screens/inv/SCR-INV-031.md), [MTTO-030](../requirements/user-stories/mtto/MTTO-030.md) |
+| **`EquipmentUnit`** (Principal Equipment, ISO L6) | `TagNumber`, `SerialNumber`, `Model`, Name | `FunctionalLocation` (L1–L5), `EquipmentClass`, `Criticality` ($1..10$), Operational/Lifecycle Status, Battery Limits Readiness (`HasBoundaries`) | [SCR-MTTO-023](screens/mtto/SCR-MTTO-023.md), [SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md), [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md), [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md), [SCR-VIS-008](screens/vis/SCR-VIS-008.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-VIS-033](screens/vis/SCR-VIS-033.md), [SCR-INV-025](screens/inv/SCR-INV-025.md) |
+| **`FunctionalLocation`** (ISO L1–L5 Slot) | `TagNumber`, `Name` | `HierarchyLevel` (L1–L5), Parent Branch, `Criticality` ($1..10$), Slot Occupancy Status (Vacant vs. Occupied) | [SCR-INV-005](screens/inv/SCR-INV-005.md), [SCR-INV-025](screens/inv/SCR-INV-025.md), [SCR-VIS-008](screens/vis/SCR-VIS-008.md), [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md) |
+| **`SparePart`** (Stock & MRO Item) | `Sku`, `Description`, `Manufacturer`, `CommodityCode` | Compatible `EquipmentClass`, `Warehouse`, Stock Availability (`OnHand - Reserved > 0`), `StockPolicy`, `Status = ACTIVE` | [SCR-INV-006](screens/inv/SCR-INV-006.md), [SCR-INV-031](screens/inv/SCR-INV-031.md), [SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md), [SCR-MTTO-023](screens/mtto/SCR-MTTO-023.md), [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md) |
+| **`Locator`** (Warehouse Storage Bin) | `Aisle`, `Rack`, `Shelf`, `Barcode` | Parent `Warehouse`, `IsActive = true`, Current Part Stock Allocation | [SCR-INV-006](screens/inv/SCR-INV-006.md), [SCR-INV-031](screens/inv/SCR-INV-031.md) |
+| **`WorkOrder` / `WorkRequest` / `WorkPermit`** | `PermitIdentifier`, Folio, Description | Target `EquipmentUnit`, Lifecycle Status, `MaintenanceMethod` / `PermitType`, Validity Window, `Criticality` | [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md), [SCR-INV-006](screens/inv/SCR-INV-006.md) |
+| **`User`** (Personnel / Assignee / Issuer) | `FullName`, `Username`, `Email` | Assigned canonical RBAC `Role` ([DT-DM-DOC-001](../domain-models/class/DT-DM-DOC-001.md)), Account Status (`ACTIVE` only) | [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-ADM-013](screens/adm/SCR-ADM-013.md), [SCR-ADM-014](screens/adm/SCR-ADM-014.md) |
+| **`IsolationPoint`** (LOTO Lockout Point) | `IsolationTag` | Parent `EquipmentUnit`, `IsolationType`, `IsVerified` attestation state | [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md) |
+| **`Supplier` & `EquipmentClass`** | `Name`, `ClassName`, `ManufacturerStandard` | Manufacturing Standard (`API 610`, `API 617`, `IEC 60034`) | [SCR-INV-005](screens/inv/SCR-INV-005.md), [SCR-INV-031](screens/inv/SCR-INV-031.md), [MTTO-030](../requirements/user-stories/mtto/MTTO-030.md) |
 
 #### 6.7.3. Tier B Exemption Rule (Parent-Scoped & Bounded Cascading Selectors)
 Entities with naturally low cardinality scoped under a resolved Tier A parent aggregate ($\le 15$ candidate items in context) are explicitly exempted from L4 Lookup Modals and MUST remain fast inline cascading selectors or capsule toggles to avoid unnecessary modal fatigue:

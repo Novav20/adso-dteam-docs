@@ -79,7 +79,7 @@ status: Stable
    - **Architectural Scope:** Anchored at top-left viewport margin per [DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Triggers operator session and theme menu.
 
 4. **`CMP-04`: Isolation Cutoff Nodes & Directional Edge Beacons**
-   - **Visual Role:** Addressable translucent circular vector discs (`--dt-color-loto-disc` with double slate rim `--dt-color-marker-border`, `--dt-shadow-marker` silhouette elevation) positioned over physical energy cutoff points (`#sym-icon-loto-isolated`, `#sym-icon-eloto-energized`, `#sym-icon-mloto-energized`), paired with off-screen frosted directional edge beacons during Level 3 zoom inspection.
+   - **Visual Role:** Addressable translucent circular vector discs (`--dt-color-loto-disc` with double slate rim `--dt-color-marker-border`, `--dt-shadow-marker` silhouette elevation) positioned over physical energy cutoff points (`#icon-loto-locked`, `#icon-loto-energized`), paired with off-screen frosted directional edge beacons during Level 3 zoom inspection.
    - **Design Tokens:**
      - Disc Surface: `--dt-color-loto-disc`
      - Rim & Focus: `--dt-color-marker-border`, `--dt-color-border-focus`
@@ -89,7 +89,7 @@ status: Stable
      - Marker Elevation: `--dt-shadow-marker`
      - Stacking: `--dt-z-layer-markers`
      - Touch Target: `--dt-touch-target-mobile`
-   - **Architectural Scope:** Bound via `data-cutoff-id` and `data-equip-id` ([DT-UI-SVG-DOC-001 §7](../../DT-UI-SVG-DOC-001.md#7-lockout-tagout-loto-isolation-point-contract)) with 4-channel redundant spatial symbology ([DT-UI-DS-DOC-001 §6.4.2](../../DT-UI-DS-DOC-001.md#642-profile-b-two-tone-spatial-canvas-markers-48-48)). Screen-space clamping, obstacle collision avoidance, and edge beacon clustering in §5.2; bidirectional checklist synchronization in §5.3.
+   - **Architectural Scope:** Bound via `data-cutoff-id` and `data-equip-id` ([DT-UI-SVG-DOC-001 §7](../../DT-UI-SVG-DOC-001.md#7-lockout-tagout-loto-isolation-point-contract)) with 4-channel redundant spatial symbology ([DT-UI-DS-DOC-001 §6.4](../../DT-UI-DS-DOC-001.md#64-iconography-and-redundant-symbology-standards)). Screen-space clamping, obstacle collision avoidance, and edge beacon clustering in §5.2; bidirectional checklist synchronization in §5.3.
 
 5. **`CMP-05`: LOTO Isolation Drawer**
    - **Visual Role:** Adaptable contextual safety panel (docked lateral drawer in landscape/desktop; sliding bottom sheet in portrait) hosting the minimize (`>`) and close (`×`) controls, Equipment Unit tag badge, dynamic safety status pill, Work Order badge, SOP link, and subcomponents `CMP-06` through `CMP-11`.
@@ -182,7 +182,7 @@ status: Stable
 
 1. **Normal / Energized (Default Baseline)**
    - **Activation Condition:** Initial opening of LOTO mode for a scheduled Work Order prior to field cutoff.
-   - **Visual Modification:** Energy routes render as oblique `H/V + 45 deg` electrical paths and edge-anchored mechanical boundary segments in solid `--dt-color-alarm-critical`. Cutoff discs (`CMP-04`) display translucent `--dt-color-loto-disc` interiors with critical energized halos and `#sym-icon-eloto-energized` / `#sym-icon-mloto-energized`. Undocumented dotted halos around target equipment casings are prohibited. Sequential checklist `CMP-06` shows `0 / N LOCKED` with Step 1 active. Primary action control `CMP-09` is hard-disabled (`[#icon-loto-locked] Active Lock: Sequence Incomplete`). Status pill in `CMP-05` header displays `[HAZARDOUS ENERGY DETECTED]` in `--dt-color-alarm-critical`.
+   - **Visual Modification:** Energy routes render as oblique `H/V + 45 deg` electrical paths and edge-anchored mechanical boundary segments in solid `--dt-color-alarm-critical`. Cutoff discs (`CMP-04`) display translucent `--dt-color-loto-disc` interiors with critical energized halos and `#icon-loto-energized`. Undocumented dotted halos around target equipment casings are prohibited. Sequential checklist `CMP-06` shows `0 / N LOCKED` with Step 1 active. Primary action control `CMP-09` is hard-disabled (`[#icon-loto-locked] Active Lock: Sequence Incomplete`). Status pill in `CMP-05` header displays `[HAZARDOUS ENERGY DETECTED]` in `--dt-color-alarm-critical`.
 
 2. **Loading**
    - **Activation Condition:** Initial view load, asynchronous SVG layer parsing, or SignalR duplex WebSocket connection handshake in progress.
@@ -194,7 +194,7 @@ status: Stable
 
 4. **Field Cutoff in Progress**
    - **Activation Condition:** Technician applies physical padlocks and enters Tag IDs sequentially in `CMP-06`.
-   - **Visual Modification:** Confirmed energy branches transition from crimson energized vectors to dashed slate isolated paths (`--dt-color-loto-isolated-path`). Confirmed cutoff discs display `#sym-icon-loto-isolated` in Teal (`--dt-color-state-success`). Telemetry MAIs show pointers moving toward the zero-energy zone. `CMP-09` remains hard-disabled.
+   - **Visual Modification:** Confirmed energy branches transition from crimson energized vectors to dashed slate isolated paths (`--dt-color-loto-isolated-path`). Confirmed cutoff discs display `#icon-loto-locked` in Teal (`--dt-color-state-success`). Telemetry MAIs show pointers moving toward the zero-energy zone. `CMP-09` remains hard-disabled.
 
 5. **Active Energy Detected (`AF-001`)**
    - **Activation Condition:** Telemetry reports energy above safe threshold ($V > 0.0\text{ V}$ or $P > 0.5\text{ psig}$) after cutoff attempt or backfeed (`AF-001`, `FR-232`).
@@ -202,7 +202,7 @@ status: Stable
 
 6. **Zero Energy Verified (Pre-Start)**
    - **Activation Condition:** Telemetry confirms all points within safe zero thresholds ($0.0\text{ V}$, $\le 0.5\text{ psig}$) AND all checklist padlocks in `CMP-06` are validated.
-   - **Visual Modification:** All cutoff discs display `#sym-icon-loto-isolated` in Teal (`--dt-color-state-success`). Energy boundary lines render exclusively as isolated dashed slate vectors (`--dt-color-loto-isolated-path`). MAI pointers rest inside the safe zero-energy zone. Status pill in `CMP-05` header displays `[#icon-loto-locked TELEMETRY ZERO STATE · TRY-OUT REQUIRED]`. Try-Out card `CMP-08` becomes actionable (`--dt-color-border-focus`). `CMP-09` remains disabled until Try-Out signature submission.
+   - **Visual Modification:** All cutoff discs display `#icon-loto-locked` in Teal (`--dt-color-state-success`). Energy boundary lines render exclusively as isolated dashed slate vectors (`--dt-color-loto-isolated-path`). MAI pointers rest inside the safe zero-energy zone. Status pill in `CMP-05` header displays `[#icon-loto-locked TELEMETRY ZERO STATE · TRY-OUT REQUIRED]`. Try-Out card `CMP-08` becomes actionable (`--dt-color-border-focus`). `CMP-09` remains disabled until Try-Out signature submission.
 
 7. **Ready to Execute (Unlocked)**
    - **Activation Condition:** Zero Energy corroborated by telemetry + Checklist 100% complete + Physical Try-Out attested and cryptographically signed (`FR-230`).

@@ -4,21 +4,21 @@
  */
 :root {
   /* Primitive palette */
-  --dt-primitive-gray-980: #111827;
   --dt-primitive-gray-950: #11141A;
+  --dt-primitive-gray-980: #111827;
   --dt-primitive-gray-900: #16191F;
-  --dt-primitive-gray-850: #1F2937;
   --dt-primitive-gray-800: #1E222B;
+  --dt-primitive-gray-850: #1F2937;
   --dt-primitive-gray-700: #2A2F3D;
-  --dt-primitive-gray-650: #3A4154;
-  --dt-primitive-gray-620: #4B5563;
   --dt-primitive-gray-600: #353B4D;
+  --dt-primitive-gray-650: #3A4154;
   --dt-primitive-gray-580: #4A5263;
-  --dt-primitive-gray-550: #6B7280;
+  --dt-primitive-gray-620: #4B5563;
   --dt-primitive-gray-500: #5C667A;
+  --dt-primitive-gray-550: #6B7280;
   --dt-primitive-gray-450: #6E7A92;
-  --dt-primitive-gray-420: #8A98AA;
   --dt-primitive-gray-400: #7E8B9B;
+  --dt-primitive-gray-420: #8A98AA;
   --dt-primitive-gray-380: #9CA3AF;
   --dt-primitive-gray-350: #AAB1BD;
   --dt-primitive-gray-300: #B8C0CC;
@@ -31,8 +31,8 @@
   --dt-primitive-gray-10: #FDFEFE;
   --dt-primitive-slate-975: #0A0E15;
   --dt-primitive-slate-950: #0D1117;
-  --dt-primitive-slate-925: #131923;
   --dt-primitive-slate-920: #0F172A;
+  --dt-primitive-slate-925: #131923;
   --dt-primitive-slate-900: #18202C;
   --dt-primitive-slate-875: #1E2736;
   --dt-primitive-slate-800: #222B3A;
@@ -47,9 +47,9 @@
   --dt-primitive-slate-250: #CBD5E1;
   --dt-primitive-slate-200: #CFD6DF;
   --dt-primitive-slate-140: #E1E6EC;
-  --dt-primitive-slate-100: #F1F5F9;
   --dt-primitive-slate-80: #ECEFF3;
   --dt-primitive-slate-60: #F0F3F7;
+  --dt-primitive-slate-100: #F1F5F9;
   --dt-primitive-slate-30: #F7F9FB;
   --dt-primitive-red-600: #E63946;
   --dt-primitive-amber-700: #B45309;
@@ -182,9 +182,7 @@
   --dt-color-mai-normal-zone-border: var(--dt-primitive-blue-400);
   --dt-color-mai-pointer: var(--dt-primitive-gray-980);
   --dt-color-mai-pointer-border: var(--dt-primitive-gray-10);
-  --dt-color-alarm-critical: var(--dt-primitive-red-600);
   --dt-color-alarm-text-critical: var(--dt-primitive-gray-10);
-  --dt-color-alarm-warning: var(--dt-primitive-amber-600);
   --dt-color-alarm-text-warning: var(--dt-primitive-gray-10);
   --dt-color-mai-stale-zone: var(--dt-primitive-gray-280);
   --dt-color-mai-stale-zone-border: var(--dt-primitive-gray-420);
@@ -203,11 +201,6 @@
   --dt-color-loto-isolated-path: var(--dt-primitive-slate-550);
   --dt-color-marker-surface: var(--dt-primitive-slate-30);
   --dt-color-marker-border: var(--dt-primitive-slate-550);
-  --dt-color-icon-outline: var(--dt-primitive-slate-920);
-  --dt-color-icon-fill-critical: var(--dt-primitive-red-600);
-  --dt-color-icon-fill-success: var(--dt-primitive-teal-400);
-  --dt-color-icon-fill-warning: var(--dt-primitive-amber-400);
-  --dt-color-icon-fill-info: var(--dt-primitive-blue-380);
   --dt-color-loto-disc: color-mix(in srgb, var(--dt-primitive-slate-30) 85%, transparent);
   --dt-color-state-info-fill: color-mix(in srgb, var(--dt-primitive-blue-600) 10%, transparent);
   --dt-color-state-success-fill: color-mix(in srgb, var(--dt-primitive-teal-700) 12%, transparent);
@@ -225,6 +218,8 @@
   --dt-color-float-muted: var(--dt-primitive-slate-700);
   --dt-color-float-hover: color-mix(in srgb, var(--dt-primitive-slate-920) 8%, transparent);
   --dt-color-float-kbd-bg: color-mix(in srgb, var(--dt-primitive-slate-200) 62%, transparent);
+  --dt-color-alarm-critical: var(--dt-primitive-red-600);
+  --dt-color-alarm-warning: var(--dt-primitive-amber-600);
   --dt-color-state-info: var(--dt-primitive-blue-600);
   --dt-color-state-success: var(--dt-primitive-teal-700);
   --dt-color-state-disabled: var(--dt-primitive-gray-380);
@@ -256,9 +251,7 @@
   --dt-color-mai-normal-zone-border: var(--dt-primitive-blue-450);
   --dt-color-mai-pointer: var(--dt-primitive-gray-10);
   --dt-color-mai-pointer-border: var(--dt-primitive-gray-980);
-  --dt-color-alarm-critical: var(--dt-primitive-red-600);
   --dt-color-alarm-text-critical: var(--dt-primitive-gray-10);
-  --dt-color-alarm-warning: var(--dt-primitive-amber-400);
   --dt-color-alarm-text-warning: var(--dt-primitive-gray-900);
   --dt-color-mai-stale-zone: var(--dt-primitive-gray-600);
   --dt-color-mai-stale-zone-border: var(--dt-primitive-gray-450);
@@ -277,11 +270,6 @@
   --dt-color-loto-isolated-path: var(--dt-primitive-gray-450);
   --dt-color-marker-surface: var(--dt-primitive-slate-875);
   --dt-color-marker-border: var(--dt-primitive-slate-600);
-  --dt-color-icon-outline: var(--dt-primitive-slate-100);
-  --dt-color-icon-fill-critical: var(--dt-primitive-red-600);
-  --dt-color-icon-fill-success: var(--dt-primitive-teal-700);
-  --dt-color-icon-fill-warning: var(--dt-primitive-amber-700);
-  --dt-color-icon-fill-info: var(--dt-primitive-blue-600);
   --dt-color-loto-disc: color-mix(in srgb, var(--dt-primitive-slate-900) 85%, transparent);
   --dt-color-state-info-fill: color-mix(in srgb, var(--dt-primitive-blue-450) 16%, transparent);
   --dt-color-state-success-fill: color-mix(in srgb, var(--dt-primitive-teal-400) 17%, transparent);
@@ -299,6 +287,8 @@
   --dt-color-float-muted: var(--dt-primitive-slate-400);
   --dt-color-float-hover: color-mix(in srgb, var(--dt-primitive-slate-100) 11%, transparent);
   --dt-color-float-kbd-bg: color-mix(in srgb, var(--dt-primitive-slate-800) 72%, transparent);
+  --dt-color-alarm-critical: var(--dt-primitive-red-600);
+  --dt-color-alarm-warning: var(--dt-primitive-amber-400);
   --dt-color-state-info: var(--dt-primitive-blue-450);
   --dt-color-state-success: var(--dt-primitive-teal-400);
   --dt-color-state-disabled: var(--dt-primitive-gray-580);
