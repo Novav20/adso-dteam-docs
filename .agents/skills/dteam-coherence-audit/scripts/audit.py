@@ -77,15 +77,26 @@ APPROVED_COLOR_PALETTE: set[str] = {
     "#9CA3AF", "#4A5263",
     # MAI
     "#BAE6FD", "#0369A1",
+    # CAD Calibrado Spatial & Marker Primitives (DS v2.3)
+    "#0A0E15", "#0D1117", "#131923", "#18202C", "#1E2736", "#222B3A", "#2B3648",
+    "#607089", "#8B9BB2", "#94A3B8", "#F1F5F9",
+    "#0F172A", "#475569", "#526075", "#64748B", "#BCC5D1", "#CBD5E1", "#CFD6DF",
+    "#E1E6EC", "#ECEFF3", "#F0F3F7", "#F7F9FB",
+    "#B45309", "#60A5FA",
 }
 
 APPROVED_STANDARDS: set[str] = {
     "ISA-101", "ANSI/ISA-101", "ISA-101.01", "ANSI/ISA-101.01",
+    "ANSI/ISA-5.1", "ANSI/ISA-5.1-2009",
     "ISO 9241-110", "ISO 9241-210", "ISO 9241-110:2020", "ISO 9241-210:2019",
     "ISO 45001", "ISO 45001:2018",
     "ISO 14224", "ISO 14224:2016",
+    "ISO 128", "ISO 13567", "ISO 13567-1/2",
+    "IOGP 459", "API 2015", "API 650", "API 620", "API 2350",
+    "OSHA 1910.147", "OSHA 29 CFR 1910.147",
+    "NFPA 30", "NFPA 30:2024", "NFPA 497", "NFPA 497:2024", "NFPA 70E",
     "WCAG 2.1", "WCAG 2.1 AA", "WCAG 2.1 AAA",
-    "IEC 62443", "NFPA 70E",
+    "IEC 62443",
 }
 
 APPROVED_TECH: set[str] = {

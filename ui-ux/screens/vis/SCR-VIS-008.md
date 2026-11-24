@@ -12,8 +12,8 @@ user_stories:
   - "[[VIS-008]]"
 use_cases:
   - "[[UC-VIS-008]]"
-version: 2.1
-date: 2026-11-09
+version: 2.2
+date: 2026-11-24
 status: Stable
 ---
 
@@ -43,55 +43,60 @@ status: Stable
 > The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This inventory defines the canonical components present on the screen, their design tokens, and their architectural scope. Interaction rules and geometric algorithms are specified in Section 5; responsive container adaptations are governed by Section 8.
 
 1. **`CMP-01`: L1 Plot Plan Canvas**
-   - **Visual Role:** Macro plant SVG vector canvas rendering Functional Locations (ISO 14224 Levels 1 to 5) and Level 6 Equipment Units in a flat 2D neutral grayscale palette.
+   - **Visual Role:** Macro plant SVG vector canvas rendering Functional Locations (ISO 14224 Levels 1 to 5), `L-CIVL-PROP` site perimeter, `L-ELEC-HAZ` NFPA 497 hazardous envelopes (auto-enabled in SIMOPS mode), and Level 6 Equipment Units in the flat 2D `CAD Calibrado` neutral palette.
    - **Design Tokens:** 
 	   - Surface: `--dt-color-bg-canvas` 
 	   - Elevation: `--dt-z-canvas`
-   - **Architectural Scope:** Primary spatial viewport ([DT-UI-DS-DOC-001 §5.1](../../DT-UI-DS-DOC-001.md#51-hphmi-shadow-discipline-canvas-vs-hud-chrome-separation)). Supports middle-click desktop panning, single-finger touch dragging, and semantic zoom clustering. Detailed in §5.4.
+	   - Spatial Materials: `--dt-color-canvas-bund-floor`, `--dt-color-canvas-asphalt`, `--dt-color-canvas-concrete`, `--dt-color-canvas-equip-shell`, `--dt-color-canvas-pipe-proc`, `--dt-color-canvas-pipe-sec`
+   - **Architectural Scope:** Primary spatial viewport ([DT-UI-DS-DOC-001 §5.1](../../DT-UI-DS-DOC-001.md#51-hphmi-shadow-discipline-canvas-vs-hud-chrome-separation)). Uses pure SVG `viewBox` camera kinematics, `PAN_BOUNDS` center clamping, unified primary/middle-click desktop and single-finger tablet drag panning, and hybrid semantic zoom disclosure. Detailed in §5.4.
 
 2. **`CMP-02`: Viewport Toolbar & HUD Navigation Cluster**
-   - **Visual Role:** Centered floating capsule toolbar hosting an inline search input, level indicator, viewport controls, binary Work Permits layer toggle, and adjacent non-modal alert pills (`SIMOPS Conflict`, `Unmapped Permits`).
+   - **Visual Role:** Frosted floating capsule toolbar hosting quick intent search (`Space` / `Ctrl + K`), fixed-width semantic zoom level badge (`L1: Terminal` / `L2: Subsystem` / `L3: Equipment`), viewport controls, binary Work Permits layer toggle, and adjacent non-modal alert pills (`SIMOPS Conflict`, `Unmapped Permits`).
    - **Design Tokens:** 
-	   - Surface: `--dt-color-surface-card` 
-	   - Elevation: `--dt-shadow-hud` 
+	   - Surface: `--dt-color-float-bg` 
+	   - Border: `--dt-color-float-border`
+	   - Elevation: `--dt-shadow-glass` 
 	   - Radius: `--dt-radius-full`
 	   - Level Badge Width: `--dt-layout-toolbar-badge-width`
-   - **Architectural Scope:** Hosts quick search (`Search PTW or Equipment...`), fixed-width level indicator (`L1: Terminal` / `L2: Subsystem`), reset view (1:1), zoom controls (+ / −), binary Work Permits layer toggle (`[#icon-layers]`), and dynamic alert badges per [DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Adaptive condensation specified in §5.2.
+   - **Architectural Scope:** Hosts quick search (`Search PTW or Equipment...`), fixed-width level indicator, reset view, zoom controls (+ / -), binary Work Permits layer toggle (`#icon-layers`), and dynamic alert badges per [DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Adaptive condensation specified in §5.2.
 
 3. **`CMP-03`: User Profile Indicator**
    - **Visual Role:** Circular floating button displaying active operator initials and static session presence dot.
    - **Design Tokens:** 
-	   - Surface: `--dt-color-surface-card`
-	   - Elevation: `--dt-shadow-hud`
+	   - Surface: `--dt-color-float-bg`
+	   - Border: `--dt-color-float-border`
+	   - Elevation: `--dt-shadow-glass`
 	   - Radius: `--dt-radius-full`
 	   - Touch Target: `--dt-touch-target-mobile`
 	   - Session Dot: `--dt-color-state-success`
-   - **Architectural Scope:** Anchored at top-left viewport margin per [DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Triggers operator session and profile menu.
+   - **Architectural Scope:** Anchored at top-left viewport margin per [DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Triggers operator session and theme menu.
 
 4. **`CMP-04`: Functional Zone Polygon**
-   - **Visual Role:** Vector boundaries representing plant Functional Locations rendered in neutral grayscale.
+   - **Visual Role:** Vector boundaries representing plant Functional Locations and property containment envelopes (`L-CIVL-PROP`) rendered in neutral `CAD Calibrado` tones with zero-grain exterior SDF fade ([DT-UI-SVG-DOC-001 §9.4](../../DT-UI-SVG-DOC-001.md#94-adaptive-multi-scale-coordinate-grid-sdf-boundary-dissolve)).
    - **Design Tokens:** 
-	   - Border: `--dt-color-border-subtle`
-	   - Fill: transparent / neutral
-   - **Architectural Scope:** Anchors spatial hazard grouping and hosts zone cluster pills (`CMP-09`) at centroids during macro zoom ($Z < \text{--dt-zoom-scale-l1-max}$).
+	   - Border: `--dt-color-canvas-steel`
+	   - Fill: `--dt-color-canvas-bund-floor`
+   - **Architectural Scope:** Anchors spatial hazard grouping and hosts single macro zone summary pills (`CMP-09`) during Level 1 overview (`< --dt-zoom-scale-l1-max`).
 
-5. **`CMP-05`: PTW Overlay Badges**
-   - **Visual Role:** Floating vector capsule pills positioned over affected equipment units with semantic hazard dots and dynamic spatial hazard buffers.
+5. **`CMP-05`: PTW Overlay Markers & Shape-Aware Hazard Buffers**
+   - **Visual Role:** Floating two-tone vector spatial pins (`#sym-icon-ptw-*`, `48 × 48` Affinity profile with `--icon-fill` / `--icon-outline` and `--dt-shadow-marker` elevation) paired with shape-aware dynamic safety clearance buffers, multi-permit concurrency counter pills, and frosted fan-out trays.
    - **Design Tokens:** 
-	   - Surface: `--dt-color-surface-card`
-	   - Elevation: `--dt-shadow-hud`
-	   - Radius: `--dt-radius-full`
+	   - Surface: `--dt-color-marker-surface`
+	   - Frosted Tray Surface: `--dt-color-float-bg-strong`
+	   - Marker Outline & Border: `--dt-color-marker-border`, `--dt-color-border-subtle`
+	   - Elevation: `--dt-shadow-marker`, `--dt-shadow-glass`
 	   - Dynamic Buffers: `--dt-z-layer-ptw`
-   - **Architectural Scope:** Represents active authorized permits on the map. Applies mandatory 4-channel redundant coding per [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto). Interaction and collision detection rules in §5.1.
+	   - Marker Stacking: `--dt-z-layer-markers`
+   - **Architectural Scope:** Represents active authorized permits on the map using 4-channel redundant coding per [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) and [§6.4.2](../../DT-UI-DS-DOC-001.md#642-profile-b-two-tone-spatial-canvas-markers-48-48-affinity-set). Enforces IOGP 459 / API 2015 3-state (`A` / `R` / `X`) compatibility rules, union-only conflict intersection hatching, and concurrency fan-out clustering specified in §5.1.
 
 6. **`CMP-06`: Context Popover Card**
-   - **Visual Role:** Transient card displaying permit metadata, validity window, contractor, LOTO reference, and drill-down action.
+   - **Visual Role:** Transient frosted card displaying permit metadata, validity window, contractor, LOTO reference, SIMOPS joint countermeasures confirmation (for `R` state), and drill-down action.
    - **Design Tokens:** 
-	   - Surface: `--dt-color-surface-raised`
-	   - Border: `--dt-color-border-subtle`
-	   - Elevation: `--dt-shadow-panel`
+	   - Surface: `--dt-color-float-bg-strong`
+	   - Border: `--dt-color-float-border-strong`
+	   - Elevation: `--dt-shadow-glass`
 	   - Radius: `--dt-radius-lg`
-   - **Architectural Scope:** Deployed upon tapping `CMP-05`. Features a secondary action button (`[View Permit Details]`) for Level 3 drill-down per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons) and §5.5. Viewport collision flipping and light-dismiss rules in §5.4.
+   - **Architectural Scope:** Deployed upon tapping `CMP-05` or selecting an entry from a concurrency fan-out tray. Features a secondary action button (`[View Permit Details]`) for Level 3 drill-down per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons) and §5.5. Viewport collision flipping and light-dismiss rules in §5.4.
 
 7. **`CMP-07`: SIMOPS Integrity Panel**
    - **Visual Role:** Collapsible drawer displaying visualization failures and unmapped permits as flat rows separated by hairline dividers with dedicated resolution triggers (`#icon-location`).
@@ -104,27 +109,31 @@ status: Stable
 8. **`CMP-08`: Filter Chips Panel**
    - **Visual Role:** Discrete floating touch pills at screen bottom for toggling permit visibility, with hazard-tinted active states and elevated count capsules tracking mapped spatial permits.
    - **Design Tokens:** 
-	   - Surface: `--dt-color-surface-card`
-	   - Elevation: `--dt-shadow-hud`
+	   - Surface: `--dt-color-float-bg`
+	   - Border: `--dt-color-float-border`
+	   - Elevation: `--dt-shadow-glass`
 	   - Radius: `--dt-radius-full`
    - **Architectural Scope:** Direct-touch filter controls and permanent visual permit legend (excluding unmapped orphan permits per §5.2 and §6). Supports touch swiping and desktop `Shift + Wheel` horizontal scrolling. Interaction rules in §5.4.
 
-9. **`CMP-09`: Zone Cluster Pill**
-   - **Visual Role:** High-salience overview capsule pills rendered at Functional Location centroids consolidating tactical permit counts.
+9. **`CMP-09`: Programmatic L1 Zone Summary Pill**
+   - **Visual Role:** High-salience single macro summary pill programmatically computed per Functional Location centroid consolidating total active permits, SIMOPS conflict alerts, and dominant hazard status (`L1: Terminal`).
    - **Design Tokens:** 
 	   - Surface: `--dt-color-surface-card`
-	   - Elevation: `--dt-shadow-hud`
+	   - Marker Border: `--dt-color-marker-border`
+	   - Elevation: `--dt-shadow-marker`
 	   - Radius: `--dt-radius-full`
-   - **Architectural Scope:** Macro density aggregation ($Z < \text{--dt-zoom-scale-l1-max}$). Mutually exclusive with discrete badges (`CMP-05`). Tapping zooms into the target functional zone. Semantic zoom mechanics in §5.4.
+	   - Stacking: `--dt-z-layer-markers`
+   - **Architectural Scope:** Macro density aggregation (`Scale < --dt-zoom-scale-l1-max`) aggregated dynamically from relational catalog joins ([DT-UI-SVG-DOC-001 §10.2](../../DT-UI-SVG-DOC-001.md#102-pure-viewbox-camera-pan_bounds-transition-rules)). Cross-fades symmetrically with discrete markers (`CMP-05`). Tapping zooms smoothly into the target functional zone. Semantic zoom mechanics in §5.4.
 
 10. **`CMP-10`: Cartographic Compass & Metric Scale HUD**
-    - **Visual Role:** Fixed bottom-left spatial HUD combining a circular north-orientation compass indicator and a dynamic metric scale bar (e.g., `20 m`).
+    - **Visual Role:** Fixed bottom-left frosted spatial HUD combining a circular north-orientation compass indicator and an adaptive metric scale bar.
     - **Design Tokens:** 
-	    - Surface: `--dt-color-surface-card`
-	    - Elevation: `--dt-shadow-hud`
+	    - Surface: `--dt-color-float-bg`, `--dt-color-scale-bg`
+	    - Border: `--dt-color-float-border`
+	    - Elevation: `--dt-shadow-glass`
 	    - Compass Footprint: `--dt-control-size-hud`
-	    - Radius: `--dt-radius-full` (Compass)
-    - **Architectural Scope:** Decoupled HTML overlay anchored at the bottom-left margin per [DT-UI-DS-DOC-001 §2.2](../../DT-UI-DS-DOC-001.md#22-dimensions-of-controls-and-touch-areas) and [§5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Computes real-world meter intervals dynamically from the SVG `CALIBRATION-VECTOR` ([DT-UI-SVG-DOC-001 §11](../../DT-UI-SVG-DOC-001.md#11-spatial-metric-calibration)) and active viewport zoom scale.
+	    - Radius: `--dt-radius-full`
+    - **Architectural Scope:** Decoupled HTML overlay anchored at the bottom-left margin per [DT-UI-DS-DOC-001 §2.2](../../DT-UI-DS-DOC-001.md#22-dimensions-of-controls-and-touch-areas) and [§5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Computes adaptive grid and scale intervals dynamically from the SVG `CALIBRATION-VECTOR` ([DT-UI-SVG-DOC-001 §11](../../DT-UI-SVG-DOC-001.md#11-spatial-metric-calibration)) and active `viewBox` width.
 
 ---
 
@@ -140,19 +149,19 @@ status: Stable
 
 3. **Active PTW Layer**
    - **Activation Condition:** Activation of the "Work Permits" layer switch in `CMP-02` (`FR-182`).
-   - **Visual Modification:** Renders `CMP-09` cluster pills at $Z < \text{--dt-zoom-scale-l1-max}$, or discrete `CMP-05` badges with spatial hazard buffers at $\text{--dt-zoom-scale-l1-max} \le Z < \text{--dt-zoom-scale-l2-max}$. Layer button in `CMP-02` highlights with `--dt-color-state-info`.
+   - **Visual Modification:** Auto-enables the `L-ELEC-HAZ` NFPA 497 hazardous area envelope overlay alongside permits. Renders single `CMP-09` summary pills per Functional Location at normalized `Scale < --dt-zoom-scale-l1-max`, cross-fading smoothly to discrete `CMP-05` spatial pins with flat shape-aware clearance buffers (`A` / `R` / `X`) at `Scale >= --dt-zoom-scale-l1-max`. Layer button in `CMP-02` highlights with `--dt-color-state-info`.
 
-4. **Selected Permit (Popover Active)**
-   - **Activation Condition:** Tap / Click on `CMP-05` badge on the canvas (`FR-184`).
-   - **Visual Modification:** Target `CMP-05` badge highlights with informational halo (`--dt-color-state-info`). Card `CMP-06` deploys adjacent to badge, clamps inside viewport margins, and dismisses upon pan/zoom.
+4. **Selected Permit or Concurrent Fan-Out Active**
+   - **Activation Condition:** Tap or click on a `CMP-05` marker or a multi-permit concurrency pill (`FR-184`).
+   - **Visual Modification:** If a single permit occupies the target, `CMP-05` highlights with `--dt-color-state-info` and deploys `CMP-06` adjacent to the pin. If 2 or more permits share an asset or overlapping pin footprint, tapping the concurrency pill deploys a frosted fan-out tray (`--dt-color-float-bg-strong`, `--dt-shadow-glass`) listing each permit pill before opening `CMP-06`.
 
-5. **SIMOPS Spatial Conflict Active**
-   - **Activation Condition:** Automated Spatial Integrity Engine detects Euclidean distance $D_{AB} < R_A + R_B$ between incompatible permits per §5.1.
-   - **Visual Modification:** Overlapping hazard buffers render pulsing diagonal hatch pattern. Conflicting badges display an animated pulsing halo (`--dt-color-alarm-critical`). Viewport toolbar displays `[#icon-warning SIMOPS CONFLICT]` pill. Non-modal toast banner slides down at top edge detailing conflicting permits.
+5. **SIMOPS Spatial Conflict (`X` Incompatible) & Restricted Joint Co-Activity (`R`)**
+   - **Activation Condition:** Automated Spatial Integrity Engine evaluates the IOGP 459 / API 2015 3-state matrix across active permits (`A` Allowed, `R` Restricted with joint countermeasures, `X` Incompatible / Hard Conflict) and detects spatial overlap or shared-asset co-activity per §5.1.
+   - **Visual Modification:** Individual permit clearance zones retain flat unhatched translucent fills. Strictly inside the exact geometric intersection `A ∩ B` of an `X` incompatible pair (clipped to the overlapping region only), the canvas renders a red diagonal hatch pattern (`#sym-icon-alarm-critical` octagon badge at centroid) framed by a continuous perimeter stroke (`--dt-color-alarm-critical`). Toolbar `CMP-02` displays `[#icon-warning SIMOPS CONFLICT]`. Restricted (`R`) pairs render an amber warning triangle indicator; confirming joint safety controls elevates `R` to Authorized (`A`).
 
 6. **Expiring Soon Warning**
    - **Activation Condition:** System detects permit time window has $< 60\text{ min}$ remaining until `ValidTo`.
-   - **Visual Modification:** Target `CMP-05` badge displays amber pulsing border; status in `CMP-06` displays "EXPIRING SOON" in `--dt-color-alarm-warning`.
+   - **Visual Modification:** Target `CMP-05` marker displays an amber warning border; status in `CMP-06` displays "EXPIRING SOON" in `--dt-color-alarm-warning`.
 
 7. **Detected Orphanhood (SIMOPS Alert)**
    - **Activation Condition:** Approved permits detected lacking SVG `MeshMapping` (`FR-185`, `AF-001`).
@@ -169,26 +178,24 @@ status: Stable
 ### 5.1. Spatial Resolution, Proximity Engine, and Layer Rendering
 1. Upon loading the view, the system retrieves the vector layout representing the facility's Functional Locations (ISO 14224 Levels 1 to 5) via `GET /api/v1/visualization/plot-plans/{facilityCode}` ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)).
 2. When the Work Permits layer is active, the system queries all `WorkPermits` in the `APPROVED` lifecycle state via `GET /api/v1/safety/work-permits?status=APPROVED` and retrieves unmapped integrity anomalies via `GET /api/v1/safety/work-permits/orphans`. Spatial reassignment of an orphan permit's equipment mesh mapping (`FR-186`) dispatches `PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}` carrying both `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)).
-3. **Referential Resolution Path:**
-   $$\text{WorkPermit} \xrightarrow{\text{EquipmentUnitId}} \text{EquipmentUnit} \xrightarrow{\text{MeshMapping}} \text{SVG Coordinates / Centroid}$$
-   * If the Equipment Unit has an explicit `MeshMapping` node in the SVG, the `CMP-05` badge is centered over that equipment hotspot.
-   * If the Equipment Unit is mapped to a parent Functional Location without discrete geometry, the badge is placed in the designated zone cluster header (`CMP-04`).
-4. **Automated SIMOPS Proximity & Collision Detection Engine (ISO 45001 §8.1 / Endsley SA Level 3):**
-   * The spatial engine computes Euclidean distances between all active permit locations:
-     $$D_{AB} = \sqrt{(X_B - X_A)^2 + (Y_B - Y_A)^2}$$
-   * **Dynamic Spatial Hazard Buffers (`--dt-z-layer-ptw`):**
-     * **HOT_WORK:** $15\text{m}$ physical radius rendered as a semi-transparent circle (`--dt-color-alarm-critical` at $15\%$ opacity).
-     * **CONFINED_SPACE:** $13\text{m}$ safe clearance radius rendered as an amber semi-transparent circle (`--dt-color-alarm-warning` at $15\%$ opacity).
-     * **Other Types:** Configurable safe operational clearance buffer ($5\text{m}$ default).
-   * **Collision Trigger:** When $D_{AB} < R_A + R_B$, a SIMOPS conflict is automatically triggered:
-      * Overlapping intersection zone renders a high-contrast pulsing diagonal hatch pattern.
-      * Both affected `CMP-05` badges display an animated pulsing conflict halo in `--dt-color-alarm-critical`.
-      * `CMP-02` Toolbar activates a dedicated conflict pill: `[#icon-warning SIMOPS CONFLICT]`. Tapping the pill centers the viewport over the conflict zone midpoint and surfaces the non-modal SIMOPS conflict alert banner.
-      * An operational SIMOPS alert banner slides down non-modally at the top viewport edge: *"SIMOPS ALERT: Co-activity incompatibility between Hot Work (PTW-1042) and Confined Space (PTW-1043) in Tank Farm."*
+3. **Referential Resolution & Pin Anchoring Path:**
+   $$\text{WorkPermit} \xrightarrow{\text{EquipmentUnitId}} \text{EquipmentUnit} \xrightarrow{\text{MeshMapping}} \text{SVG Geometry / Pin Anchor}$$
+   * For large containment footprints (e.g., atmospheric storage tanks and wide process vessels), the two-tone `CMP-05` spatial pin anchors cleanly **inside** the equipment footprint without occluding roof instruments. For compact equipment units (e.g., centrifugal pumps, gate valves, compact manifolds), the pin anchors immediately **adjacent** to the symbol edge with a subtle leader tick so mechanical nozzles remain unobscured.
+   * When 2 or more active permits map to the same asset or pin footprint, `CMP-05` renders a unified concurrency counter pill (`2`, `3`, ...) next to the dominant hazard marker. Activating the pill opens a frosted radial/stacked fan-out tray (`--dt-color-float-bg-strong`, `--dt-shadow-glass`) to disambiguate individual permits without overlap.
+   * If an `EquipmentUnit` is mapped to a parent Functional Location without discrete geometry, the permit aggregates into the zone summary pill (`CMP-09`).
+4. **Automated SIMOPS 3-State Compatibility & Shape-Aware Proximity Engine (IOGP 459 / API 2015 / ISO 45001 §8.1):**
+   * **3-State Compatibility Matrix:** Every pair of active permits is evaluated against the deterministic matrix (`A` = Allowed, `R` = Restricted pending joint countermeasures confirmation, `X` = Incompatible Hard Conflict).
+   * **Shape-Aware Dynamic Spatial Hazard Buffers (`--dt-z-layer-ptw`):** Rather than uniform generic circles on linear assets, buffer geometry matches the industrial hazard footprint:
+     * **`HOT_WORK`:** $15\text{m}$ circular buffer around point sources or stadium-shaped corridor envelope along piping segments (`--dt-color-alarm-critical` flat translucent fill, unhatched outside intersections).
+     * **`CONFINED_SPACE`:** $13\text{m}$ circular clearance envelope or polygonal containment footprint (`--dt-color-alarm-warning` flat translucent fill).
+     * **`ELECTRICAL`, `WORK_AT_HEIGHT`, `EXCAVATION`, `CHEMICAL`, `COLD_WORK`:** Asset-envelope buffer or configurable operational corridor perimeter ($5\text{m}$ default).
+   * **Intersection-Only Conflict Hatching & Redundant Coding:** When two permits violate minimum separation or share a bounded envelope under `X` (Incompatible), the engine computes the exact geometric intersection `A ∩ B` using SVG clipping paths/masks. Diagonal red hatching renders **exclusively inside `A ∩ B`** surrounded by a continuous `--dt-color-alarm-critical` perimeter contour and a red octagon conflict badge (`#sym-icon-alarm-critical`) at the intersection centroid.
+   * **Restricted Co-Activity (`R`) Escalation:** Pairs classified `R` display an amber warning triangle indicator; toggling verified joint safety countermeasures in `CMP-06` promotes the pair operationally to Allowed (`A`).
+   * **SIMOPS Mode `L-ELEC-HAZ` Auto-Activation:** Entering SIMOPS supervision mode automatically activates the `L-ELEC-HAZ` NFPA 497 Zone 1 / Zone 2 classified electrical boundary layer alongside permit buffers so inspectors immediately detect Hot Work encroachments into hydrocarbon vapor envelopes.
 5. **Mandatory 4-Channel Redundant Coding Matrix (FR-183, TR-011, WCAG 2.1 AA):**
-   * To prevent single-channel color dependency and ensure pre-attentive salience, every `CMP-05` badge encodes its permit classification across four sensory channels (Color + Geometric Shape + Vector Icon + Alphanumeric Label) governed strictly by [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) and canonical permit vocabulary in [DT-DM-DOC-001 §4.34](../../../domain-models/class/DT-DM-DOC-001.md#434-workpermitpermittype).
-   * Spatial hazard buffers, collision halos, and hatch patterns render with click-through transparency to guarantee continuous pan drag gestures across permit zones.
-   * Badges render as floating capsule pills with `--dt-color-surface-card` fill, `--dt-shadow-hud` elevation, semantic hazard dot, mono permit tag, and tactile touch targets governed by `--dt-touch-target-mobile` for gloved field operation.
+   * To prevent single-channel color dependency and ensure pre-attentive salience, every `CMP-05` marker encodes its permit classification across four sensory channels (Color + Geometric Shape Silhouette + Two-Tone Affinity Vector Icon `#sym-icon-ptw-*` + Alphanumeric Label) governed strictly by [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto), [§6.4.2](../../DT-UI-DS-DOC-001.md#642-profile-b-two-tone-spatial-canvas-markers-48-48-affinity-set), and [DT-DM-DOC-001 §4.34](../../../domain-models/class/DT-DM-DOC-001.md#434-workpermitpermittype).
+   * Individual spatial hazard buffers, intersection hatch overlays, and conflict halos operate non-blocking for pointer traversal to guarantee uninterrupted canvas panning across active permit zones.
+   * Markers enforce screen-space clamped sizing (`26–36 px` equivalent in screen space) and `--dt-shadow-marker` silhouette elevation (`Z = 50`, never on `<text>`), while interactive hit areas obey `--dt-touch-target-mobile` for gloved field operation.
 
 ### 5.2. Integrity Panel Governance & Non-Modal Escalation (Orphan Detection — `AF-001`)
 1. If an approved `WorkPermit` references an `EquipmentUnitId` that has no geometric representation or spatial metadata in the loaded layout, the permit is classified as **Orphan**.
@@ -217,17 +224,17 @@ status: Stable
    * **`/hubs/telemetry` (`ITelemetryClient`):** Subscribes to `EmergencyEvacuationBroadcast(EvacuationAlertDto)` to escalate affected equipment zones immediately during life-safety re-energization alerts.
 2. **Operational Resilience (`AF-002`):** If the real-time link drops, the client transitions to the "Loss of Synchronization" diagnostic state without blocking canvas navigation, preserving the last known snapshot with explicit timestamp traceability (`NFR-194`).
 
-### 5.4. Dual Navigation, Tactile Controllability, and Semantic Zoom Clustering
-1. **Semantic Zoom Clustering (ANSI/ISA-101.01 §6.3.1 / Hollifield Ch. 8):** The viewport supports continuous pan/zoom governed by the canonical Design System tokens ([DT-UI-DS-DOC-001 §2.5](../../DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports)):
-   * **Scale $Z < \text{--dt-zoom-scale-l1-max}$ (Level 1 Plant Overview / COP):** Discrete equipment badges are **completely suppressed**. Functional Locations render consolidated **Zone Cluster Pills** (`CMP-09`) at centroids (e.g., `[#icon-warning Tank Farm \| 3 PTW]` when conflict-active or `[#icon-hot-work Pump House \| 2 PTW]` in normal state), preserving the 90/10 grayscale rule and preventing visual clutter (`NFR-190`).
-   * **Scale $\text{--dt-zoom-scale-l1-max} \le Z < \text{--dt-zoom-scale-l2-max}$ (Level 2 Process Area Layout):** Cluster pills are suppressed and expand into individual **Discrete Equipment Badges** (`CMP-05`) positioned over ISO 14224 Level 6 Equipment Units with dynamic spatial hazard buffers.
-   * **Scale $Z \ge \text{--dt-zoom-scale-l2-max}$ (Level 3 Equipment Detail Faceplate):** Micro tactical detail disclosing nozzles, valves, local instrument numbers, and active LOTO lock numbers.
-2. **Dual-Mode Canvas Pan Ergonomics:**
-   * **Desktop Workstations:** Continuous canvas panning strictly requires **middle-click (mouse wheel drag)** with pointer capture. Primary left-click is exclusively reserved for selecting equipment, toggling toolbar controls, and inspecting safety badges.
-   * **Touch Tablets:** Supports direct 1-finger canvas dragging with a strict **$4\text{px}$ movement threshold** to cleanly differentiate intentional pan gestures from stationary taps on equipment badges.
+### 5.4. Dual Navigation, Tactile Controllability, and Hybrid Semantic Zoom
+1. **Hybrid Semantic Zoom & Cross-Fade Disclosure (ANSI/ISA-101.01 §6.3.1 / Hollifield Ch. 8):** The viewport supports continuous pure-`viewBox` pan/zoom bounded by `PAN_BOUNDS` ([DT-UI-SVG-DOC-001 §10.2](../../DT-UI-SVG-DOC-001.md#102-pure-viewbox-camera-pan_bounds-transition-rules)) and governed by normalized Design System zoom tokens ([DT-UI-DS-DOC-001 §2.5](../../DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports)):
+   * **Level 1 Terminal Overview (`Scale < --dt-zoom-scale-l1-max`):** Discrete equipment permit pins (`CMP-05`) are suppressed. Each Functional Location renders a single programmatic **Zone Summary Pill** (`CMP-09`) at its zone centroid consolidating active permits and conflict counts (`NFR-190`).
+   * **Level 2 Area & SIMOPS Buffers (`--dt-zoom-scale-l1-max <= Scale < --dt-zoom-scale-l2-max`):** Zone summary pills cross-fade symmetrically with discrete **PTW Overlay Markers** (`CMP-05`), shape-aware hazard envelopes, concurrency pills, and `L-ELEC-HAZ` classified area boundaries, while `CAD Adaptativo` ISO 128 lineweights sharpen sleeperway piping and `L-FIRE-PROT` perimeter hydrants.
+   * **Level 3 Micro Equipment Detail (`Scale >= --dt-zoom-scale-l2-max`):** Micro tactical detail disclosing nozzles, root valves, screen-space clamped ANSI/ISA-5.1 instrument plates, underground fire-water ring mains outside road curbs, and active LOTO lock numbers.
+2. **Unified Drag-Threshold Canvas Pan Ergonomics:**
+   * **Desktop Workstations:** Supports continuous canvas panning on **both primary and middle mouse buttons** with active pointer capture using a unified **$> 4\text{px}$ movement threshold** ($\Delta d = \sqrt{\Delta x^2 + \Delta y^2} > 4\text{px}$). Stationary clicks ($\Delta d \le 4\text{px}$) trigger equipment or badge selection cleanly without accidental viewport shifts. Mouse wheel performs instant focal zooming around pointer $(cx, cy)$, while programmatic fly-to centering (`Space` / `Ctrl + K` search, conflict badge focus, L1 zone pill tap) executes smooth delta-time interpolation.
+   * **Touch Tablets:** Supports direct 1-finger canvas dragging with the identical **$4\text{px}$ movement threshold** to differentiate intentional pan gestures from stationary taps on equipment pins or zone pills.
 3. **Transient Popover Card Dismissal and Viewport Clamping (`CMP-06`):**
    * **Adaptive Viewport Clamping & Collision Flipping:** Dynamically calculates bounding box and flips leftward when colliding with the right viewport margin ($X + W > \text{Viewport}_W - \text{--dt-space-4}$); clamps vertically within safe boundaries ($[\text{--dt-layout-popover-top-clearance}, \text{Viewport}_H - H - \text{--dt-space-4}]$) respecting top toolbar clearance.
-   * **Transient Light-Dismiss:** Moving the canvas via pan drag or adjusting zoom immediately dismisses `CMP-06` to maintain unobstructed visual scanning. Ending a pan gesture immediately unblocks input handling so subsequent stationary clicks or taps on equipment badges deploy `CMP-06` without gesture-lock.
+   * **Transient Light-Dismiss:** Moving the canvas via pan drag or adjusting zoom immediately dismisses `CMP-06` and open concurrency fan-out trays to maintain unobstructed visual scanning. Ending a pan gesture immediately unblocks input handling so subsequent stationary clicks or taps on markers deploy `CMP-06` without gesture-lock.
    * **Secondary Action Trigger:** Features a label-only secondary action button (`[View Permit Details]`, borderless in light theme with subtle hairline framing in dark theme, without trailing chevron, per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons)) to initiate Level 3 inspection (§5.5).
 4. **Horizontal Filter Chips Ergonomics (`CMP-08`):**
    * Transparent horizontal container anchored at the bottom viewport margin hosting independently floating, borderless filter pills elevated with `--dt-shadow-hud`.
@@ -247,7 +254,7 @@ status: Stable
 
 * **Read-Only Supervisory Boundary (ISO 45001 §8.1):** `SCR-VIS-008` operates strictly as a passive spatial supervision and SIMOPS audit interface. It cannot issue equipment start/stop commands, alter process setpoints, or bypass LOTO interlocks ([DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)).
 * **Spatial Integrity Fail-Safe (`AF-001`):** Unmapped permits (`MeshMapping` status `UNMAPPED` or `SYNC_ERROR`) are strictly withheld from arbitrary canvas placement and excluded from mapped spatial filter counts (`CMP-08`) to prevent false spatial confidence during co-activity risk assessment (§5.2).
-* **HPHMI & Accessibility Governance ([TR-011](../../../requirements/common/TR-011.md)):** Visual salience, 4-channel redundant permit coding, semantic zoom decluttering, and Priority 4 diagnostic state segregation adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope), [§6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto), and the interaction mechanics in §4 and §5.
+* **HPHMI & Accessibility Governance ([TR-011](../../../requirements/common/TR-011.md)):** Visual salience, 4-channel redundant permit coding (`#sym-icon-ptw-*`), `CAD Calibrado` palette compliance, hybrid semantic zoom decluttering, and Priority 4 diagnostic state segregation adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope), [§3.4](../../DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas), [§6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto), and the interaction mechanics in §4 and §5.
 
 ---
 
@@ -260,9 +267,9 @@ Pages/
 └── GeneralPlantMapPage.razor                 # Root View (SCR-VIS-008)
     ├── PlotPlanCanvas2D.razor                # CMP-01: Macro SVG canvas with pan/zoom
     │   ├── FunctionalZonePolygon.razor       # CMP-04: Functional Location vector polygon
-    │   ├── ZoneClusterPill.razor             # CMP-09: Macro density aggregation pill (Z < --dt-zoom-scale-l1-max)
-    │   ├── PtwOverlayBadge.razor             # CMP-05: Redundant coding safety badge (Z >= --dt-zoom-scale-l1-max)
-    │   └── SimopsHazardBuffer.razor          # Dynamic spatial buffer circle & conflict hatch
+    │   ├── ZoneClusterPill.razor             # CMP-09: Programmatic L1 summary pill (Scale < l1-max)
+    │   ├── PtwOverlayBadge.razor             # CMP-05: Redundant coding marker & fan-out tray (Scale >= l1-max)
+    │   └── SimopsHazardBuffer.razor          # Shape-aware clearance buffer & clipped intersection hatch
     ├── ViewportToolbar.razor                 # CMP-02: Floating navigation & binary PTW layer bar
     ├── UserProfileButton.razor               # CMP-03: Top-left user profile indicator
     ├── PtwContextPopover.razor               # CMP-06: Compact permit popover card
@@ -552,14 +559,14 @@ public record PlantZoneDto
 ### 7.3. Client-Side DOM & Interop Bridge
 
 1. **SVG Viewport Navigation Interop (`ISvgViewportInterop`):**
-   * Encapsulates client-side coordinate transformations, pointer capture, middle-click panning, tactile drag thresholding ($4\text{px}$), and focal mouse-wheel matrix evaluation ([ADR-001](../../../architecture/adr/ADR-001.md)).
+   * Encapsulates pure `viewBox` coordinate transformations, `PAN_BOUNDS` center clamping, pointer capture, unified primary/middle-click desktop and tablet panning ($> 4\text{px}$ drag threshold), instant focal wheel zoom, smooth delta-time fly-to transitions, and `CAD Adaptativo` ISO 128 stroke scaling ([ADR-001](../../../architecture/adr/ADR-001.md)).
    * Maintains $\ge 30\text{ FPS}$ on tablets and $\ge 60\text{ FPS}$ on desktop consoles (`NFR-190`) without generating roundtrip network traffic.
 2. **SIMOPS Spatial & Proximity Engine (`ISimopsSpatialEngine`):**
-   * Computes Euclidean distance matrix ($D_{AB} < R_A + R_B$) and dynamic buffer geometries across active permits in client memory.
-   * Manages SVG layer rendering for hazard buffers and conflict diagonal hatching with click-through transparency.
+   * Evaluates the 3-state (`A` / `R` / `X`) compatibility matrix, computes shape-aware hazard buffer envelopes (circles, piping stadiums, containment footprints), and isolates diagonal red intersection hatching strictly inside exact `A ∩ B` clipped boundaries in client memory.
+   * Projects screen-space clamped marker scales and non-blocking pointer traversal across buffer polygons.
 3. **Semantic Event Dispatching:**
    * Hotspot groups in the SVG declare standardized data attributes (`data-tag="P-101"`, `data-permit-id="uuid"`).
-   * Direct clicks or taps on permit badges dispatch `OnPermitBadgeClicked(permitId)`. Taps on equipment geometry outside active badges dispatch `OnEquipmentSelected(tagNumber)`, invoking the [SCR-VIS-033](./SCR-VIS-033.md) Level 3 faceplate.
+   * Direct stationary clicks or taps ($\le 4\text{px}$) on permit markers dispatch `OnPermitBadgeClicked(permitId)` (or expand multi-permit concurrency trays). Taps on equipment geometry outside active markers dispatch `OnEquipmentSelected(tagNumber)`, invoking the [SCR-VIS-033](./SCR-VIS-033.md) Level 3 faceplate.
 
 ---
 
@@ -570,7 +577,7 @@ public record PlantZoneDto
   Floating pill toolbar `CMP-02` displays level badge (`L1: Terminal` / `L2: Subsystem`) and full alphanumeric orphan badge (`[#icon-warning 3 Unmapped]`).
   Filter chips panel `CMP-08` displays uncompressed risk chips (`HOT_WORK`, `CONFINED_SPACE`, etc.) along the bottom viewport edge, with cartographic HUD `CMP-10` anchored at the bottom-left margin.
   Non-modal integrity drawer `CMP-07` docks as a lateral right panel sized by `--dt-layout-drawer-width-desktop`.
-* **Ergonomic Rules:** Mouse wheel focal zoom; middle-click canvas pan; cursor tooltips enabled on hover; popover cards `CMP-06` clamp within viewport bounds; tapping empty canvas dismisses `CMP-07`.
+* **Ergonomic Rules:** Instant mouse wheel focal zoom; unified primary and middle-click canvas pan above the $4\text{px}$ drag threshold; cursor tooltips enabled on hover; popover cards `CMP-06` and concurrency fan-out trays clamp within viewport bounds; tapping empty canvas dismisses `CMP-07`.
 
 ### 8.2. Industrial Tablet Landscape (`--dt-breakpoint-lg`)
 * **Layout Organization:** Canvas `CMP-01` occupies full viewport.

@@ -13,8 +13,8 @@ user_stories:
   - "[[VIS-011]]"
 use_cases:
   - "[[UC-VIS-011]]"
-version: 2.1
-date: 2026-11-10
+version: 2.2
+date: 2026-11-24
 status: Stable
 ---
 
@@ -46,19 +46,21 @@ status: Stable
 > The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md) and [DT-UI-SVG-DOC-001](../../DT-UI-SVG-DOC-001.md). This inventory defines the canonical components present on the screen, their design tokens, and their architectural scope. Interaction rules and geometric algorithms are specified in Section 5; responsive container adaptations are governed by Section 8.
 
 1. **`CMP-01`: Canvas Viewport 2D & LOTO Layer**
-   - **Visual Role:** Interactive 2D vector plot plan canvas rendering dynamic LOTO energy paths and isolation boundaries over the target Equipment Unit (`data-equip-id`), applying Focal Island De-emphasis to dim non-isolated plant sectors.
+   - **Visual Role:** Interactive 2D vector plot plan canvas rendering dynamic LOTO energy routes (`H/V + 45 deg` oblique electrical MCC paths and edge-anchored mechanical boundary lines) over the target Equipment Unit (`data-equip-id`), applying SVG mask-based Focal Island De-emphasis to attenuate non-isolated plant sectors.
    - **Design Tokens:**
      - Surface: `--dt-color-bg-canvas`
      - Elevation: `--dt-z-canvas` (Base Canvas) / `--dt-z-layer-loto` (LOTO Route Overlay)
      - Energized Route: `--dt-color-alarm-critical`
-     - Isolated Route: `--dt-color-border-subtle`
-   - **Architectural Scope:** Strictly flat $Z = 0$ base vector layer ([DT-UI-DS-DOC-001 §5.1](../../DT-UI-DS-DOC-001.md#51-hphmi-shadow-discipline-canvas-vs-hud-chrome-separation)) with superimposed LOTO vector paths. Spatial kinematics, focal zoom, and clamping specified in §5.1 and §5.2.
+     - Isolated Route: `--dt-color-loto-isolated-path`
+     - Spatial Materials: `--dt-color-canvas-bund-floor`, `--dt-color-canvas-equip-shell`, `--dt-color-canvas-pipe-proc`
+   - **Architectural Scope:** Strictly flat $Z = 0$ base vector layer ([DT-UI-DS-DOC-001 §5.1](../../DT-UI-DS-DOC-001.md#51-hphmi-shadow-discipline-canvas-vs-hud-chrome-separation)) with superimposed LOTO vector paths and pure SVG mask-clipped de-emphasis. Spatial kinematics, full-circuit framing, `PAN_BOUNDS` clamping, and unified pan ergonomics specified in §5.1 and §5.2.
 
 2. **`CMP-02`: Viewport Toolbar**
-   - **Visual Role:** Centered floating capsule toolbar integrating inline equipment tag search, fixed-width hierarchical level indicator (`L3: LOTO Matrix`), view reset (`1:1`), zoom controls (`+` / `−`), and LOTO focal de-emphasis layer toggle (`[#icon-layers]`).
+   - **Visual Role:** Frosted floating capsule toolbar integrating inline equipment tag search (`Space` / `Ctrl + K`), fixed-width hierarchical level indicator (`L3: LOTO Matrix`), view reset, zoom controls (`+` / `-`), and LOTO focal de-emphasis layer toggle (`#icon-layers`).
    - **Design Tokens:**
-     - Surface: `--dt-color-surface-card`
-     - Elevation: `--dt-shadow-hud`
+     - Surface: `--dt-color-float-bg`
+     - Border: `--dt-color-float-border`
+     - Elevation: `--dt-shadow-glass`
      - Radius: `--dt-radius-full`
      - Stacking: `--dt-z-overlay-card`
      - Level Badge Width: `--dt-layout-toolbar-badge-width`
@@ -67,24 +69,27 @@ status: Stable
 3. **`CMP-03`: User Profile Button**
    - **Visual Role:** Circular floating operator session button anchored at the top-left viewport margin displaying active technician initials and a static session presence dot.
    - **Design Tokens:**
-     - Surface: `--dt-color-surface-card`
-     - Elevation: `--dt-shadow-hud`
+     - Surface: `--dt-color-float-bg`
+     - Border: `--dt-color-float-border`
+     - Elevation: `--dt-shadow-glass`
      - Radius: `--dt-radius-full`
      - Stacking: `--dt-z-overlay-card`
      - Touch Target: `--dt-touch-target-mobile`
      - Session Dot: `--dt-color-state-success`
    - **Architectural Scope:** Anchored at top-left viewport margin per [DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Triggers operator session and theme menu.
 
-4. **`CMP-04`: Isolation Cutoff Nodes**
-   - **Visual Role:** Addressable vector hotspots positioned over physical energy cutoff points (MCC breakers, block valves, spectacle blinds, atmospheric bleeds) with 4-channel redundant coding (`#icon-loto-locked` vs. `#icon-loto-energized`).
+4. **`CMP-04`: Isolation Cutoff Nodes & Directional Edge Beacons**
+   - **Visual Role:** Addressable translucent circular vector discs (`--dt-color-loto-disc` with double slate rim `--dt-color-marker-border`, `--dt-shadow-marker` silhouette elevation) positioned over physical energy cutoff points (`#sym-icon-loto-isolated`, `#sym-icon-eloto-energized`, `#sym-icon-mloto-energized`), paired with off-screen frosted directional edge beacons during Level 3 zoom inspection.
    - **Design Tokens:**
-     - Surface: `--dt-color-surface-card`
-     - Border: `--dt-color-border-subtle` / `--dt-color-border-focus` (Selected)
-     - Energized State: `--dt-color-alarm-critical`
-     - Isolated State: `--dt-color-state-success`
-     - Elevation: `--dt-z-layer-loto`
+     - Disc Surface: `--dt-color-loto-disc`
+     - Rim & Focus: `--dt-color-marker-border`, `--dt-color-border-focus`
+     - Energized Halo: `--dt-color-alarm-critical`
+     - Isolated State: `--dt-color-state-success`, `--dt-color-loto-isolated-path`
+     - Beacon Surface: `--dt-color-float-bg-strong`
+     - Marker Elevation: `--dt-shadow-marker`
+     - Stacking: `--dt-z-layer-markers`
      - Touch Target: `--dt-touch-target-mobile`
-   - **Architectural Scope:** Bound via `data-cutoff-id` and `data-equip-id` ([DT-UI-SVG-DOC-001 §7](../../DT-UI-SVG-DOC-001.md#7-lockout-tagout-loto-isolation-point-contract)). Touch disambiguation in §5.2; bidirectional checklist synchronization in §5.3.
+   - **Architectural Scope:** Bound via `data-cutoff-id` and `data-equip-id` ([DT-UI-SVG-DOC-001 §7](../../DT-UI-SVG-DOC-001.md#7-lockout-tagout-loto-isolation-point-contract)) with 4-channel redundant spatial symbology ([DT-UI-DS-DOC-001 §6.4.2](../../DT-UI-DS-DOC-001.md#642-profile-b-two-tone-spatial-canvas-markers-48-48-affinity-set)). Screen-space clamping, obstacle collision avoidance, and edge beacon clustering in §5.2; bidirectional checklist synchronization in §5.3.
 
 5. **`CMP-05`: LOTO Isolation Drawer**
    - **Visual Role:** Adaptable contextual safety panel (docked lateral drawer in landscape/desktop; sliding bottom sheet in portrait) hosting the minimize (`>`) and close (`×`) controls, Equipment Unit tag badge, dynamic safety status pill, Work Order badge, SOP link, and subcomponents `CMP-06` through `CMP-11`.
@@ -162,10 +167,11 @@ status: Stable
     - **Architectural Scope:** Completely locks out touchscreen and pointer input per ISO 11064-5 and triggers an acoustic sweep (`IEvacuationAudioInterop`). Detailed in §5.3.
 
 13. **`CMP-13`: Cartographic Compass & Metric Scale HUD**
-    - **Visual Role:** Fixed bottom-left spatial HUD combining a circular north-orientation compass indicator (`--dt-control-size-hud`) and a dynamic metric scale bar (e.g., `5 m`).
+    - **Visual Role:** Fixed bottom-left frosted spatial HUD combining a circular north-orientation compass indicator (`--dt-control-size-hud`) and a dynamic metric scale bar.
     - **Design Tokens:**
-      - Surface: `--dt-color-surface-card`
-      - Elevation: `--dt-shadow-hud`
+      - Surface: `--dt-color-float-bg`, `--dt-color-scale-bg`
+      - Border: `--dt-color-float-border`
+      - Elevation: `--dt-shadow-glass`
       - Compass Footprint: `--dt-control-size-hud`
       - Radius: `--dt-radius-full` (Compass)
     - **Architectural Scope:** Decoupled HTML overlay anchored at the bottom-left margin per [DT-UI-DS-DOC-001 §2.2](../../DT-UI-DS-DOC-001.md#22-dimensions-of-controls-and-touch-areas) and [§5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows), calibrated via SVG `CALIBRATION-VECTOR` ([DT-UI-SVG-DOC-001 §11](../../DT-UI-SVG-DOC-001.md#11-spatial-metric-calibration)).
@@ -176,27 +182,27 @@ status: Stable
 
 1. **Normal / Energized (Default Baseline)**
    - **Activation Condition:** Initial opening of LOTO mode for a scheduled Work Order prior to field cutoff.
-   - **Visual Modification:** Energy routes render solid red (`--dt-color-alarm-critical`). Cutoff nodes display `#icon-loto-energized`. Sequential checklist `CMP-06` shows `0 / N LOCKED` with Step 1 active. Primary action control `CMP-09` is hard-disabled (`[#icon-loto-locked] Active Lock: Sequence Incomplete`). Status pill in `CMP-05` header displays `[HAZARDOUS ENERGY DETECTED]` in `--dt-color-alarm-critical`.
+   - **Visual Modification:** Energy routes render as oblique `H/V + 45 deg` electrical paths and edge-anchored mechanical boundary segments in solid `--dt-color-alarm-critical`. Cutoff discs (`CMP-04`) display translucent `--dt-color-loto-disc` interiors with critical energized halos and `#sym-icon-eloto-energized` / `#sym-icon-mloto-energized`. Undocumented dotted halos around target equipment casings are prohibited. Sequential checklist `CMP-06` shows `0 / N LOCKED` with Step 1 active. Primary action control `CMP-09` is hard-disabled (`[#icon-loto-locked] Active Lock: Sequence Incomplete`). Status pill in `CMP-05` header displays `[HAZARDOUS ENERGY DETECTED]` in `--dt-color-alarm-critical`.
 
 2. **Loading**
    - **Activation Condition:** Initial view load, asynchronous SVG layer parsing, or SignalR duplex WebSocket connection handshake in progress.
    - **Visual Modification:** Canvas vector overlays and drawer content display animated skeleton shimmer (`--dt-color-surface-raised`). Telemetry MAIs render neutral placeholder tracks without pointers. Action controls remain disabled.
 
 3. **Selected Cutoff Node**
-   - **Activation Condition:** Technician taps or clicks a cutoff node (`CMP-04`) on the canvas or selects a step in `CMP-06`.
-   - **Visual Modification:** Selected cutoff node in `CMP-04` renders a high-contrast focus ring (`--dt-color-border-focus`). Corresponding checklist item in `CMP-06` and MAI card in `CMP-07` smoothly scroll into view with elevated background (`--dt-color-surface-raised`).
+   - **Activation Condition:** Technician taps or clicks a cutoff node (`CMP-04`), taps an off-screen directional edge beacon, or selects a step in `CMP-06`.
+   - **Visual Modification:** Target cutoff disc in `CMP-04` renders a high-contrast focus ring (`--dt-color-border-focus`), smoothly framing the node if off-screen. Corresponding checklist item in `CMP-06` and MAI card in `CMP-07` smoothly scroll into view with elevated background (`--dt-color-surface-raised`).
 
 4. **Field Cutoff in Progress**
    - **Activation Condition:** Technician applies physical padlocks and enters Tag IDs sequentially in `CMP-06`.
-   - **Visual Modification:** Confirmed energy branches transition to amber dashed (`--dt-color-alarm-warning`). Confirmed checklist steps display `#icon-loto-locked` in Teal (`--dt-color-state-success`). Telemetry MAIs show pointers moving toward the zero-energy zone. `CMP-09` remains hard-disabled.
+   - **Visual Modification:** Confirmed energy branches transition from crimson energized vectors to dashed slate isolated paths (`--dt-color-loto-isolated-path`). Confirmed cutoff discs display `#sym-icon-loto-isolated` in Teal (`--dt-color-state-success`). Telemetry MAIs show pointers moving toward the zero-energy zone. `CMP-09` remains hard-disabled.
 
 5. **Active Energy Detected (`AF-001`)**
    - **Activation Condition:** Telemetry reports energy above safe threshold ($V > 0.0\text{ V}$ or $P > 0.5\text{ psig}$) after cutoff attempt or backfeed (`AF-001`, `FR-232`).
-   - **Visual Modification:** Critical alert banner deploys across `CMP-05` header (`--dt-color-alarm-critical`). Offending cutoff node pulses with an animated critical halo (`--dt-color-alarm-critical`). Interlock marker on MAI scale bar highlights critical red (`--dt-color-mai-interlock`). `CMP-09` remains hard-disabled.
+   - **Visual Modification:** Critical alert banner deploys across `CMP-05` header (`--dt-color-alarm-critical`). Offending cutoff disc pulses with an animated critical halo (`--dt-color-alarm-critical`). Interlock marker on MAI scale bar highlights critical red (`--dt-color-mai-interlock`). `CMP-09` remains hard-disabled.
 
 6. **Zero Energy Verified (Pre-Start)**
    - **Activation Condition:** Telemetry confirms all points within safe zero thresholds ($0.0\text{ V}$, $\le 0.5\text{ psig}$) AND all checklist padlocks in `CMP-06` are validated.
-   - **Visual Modification:** All cutoff nodes display `#icon-loto-locked` in Teal (`--dt-color-state-success`). Energy boundary lines render in neutral slate dashed (`--dt-color-border-subtle`). MAI pointers rest inside the safe zero-energy zone. Status pill in `CMP-05` header displays `[#icon-loto-locked TELEMETRY ZERO STATE · TRY-OUT REQUIRED]`. Try-Out card `CMP-08` becomes actionable (`--dt-color-border-focus`). `CMP-09` remains disabled until Try-Out signature submission.
+   - **Visual Modification:** All cutoff discs display `#sym-icon-loto-isolated` in Teal (`--dt-color-state-success`). Energy boundary lines render exclusively as isolated dashed slate vectors (`--dt-color-loto-isolated-path`). MAI pointers rest inside the safe zero-energy zone. Status pill in `CMP-05` header displays `[#icon-loto-locked TELEMETRY ZERO STATE · TRY-OUT REQUIRED]`. Try-Out card `CMP-08` becomes actionable (`--dt-color-border-focus`). `CMP-09` remains disabled until Try-Out signature submission.
 
 7. **Ready to Execute (Unlocked)**
    - **Activation Condition:** Zero Energy corroborated by telemetry + Checklist 100% complete + Physical Try-Out attested and cryptographically signed (`FR-230`).
@@ -268,10 +274,11 @@ sequenceDiagram
     end
 ```
 
-1. **Initial View State & Unselected Baseline:**
-   * Upon activation from a Work Order or [SCR-VIS-033](./SCR-VIS-033.md), the canvas view centers the target Equipment Unit (`data-equip-id`) at baseline zoom factor $s = 1.0$.
-   * Non-isolated plant equipment elements have opacity attenuated to $0.25$ under Focal Island De-emphasis, preserving high-contrast visual focus exclusively on active cutoff nodes and isolated equipment.
-   * LOTO vector overlay path is rendered in solid red (`--dt-color-alarm-critical`), indicating active hazardous energy.
+1. **Initial Full-Circuit Framing & Pure SVG `<mask>` Focus+Context:**
+   * Upon activation from a Work Order or [SCR-VIS-033](./SCR-VIS-033.md), the viewport executes a smooth fly-to transition framing the **complete isolation circuit** (`target EquipmentUnit` plus all linked upstream MCC breakers and mechanical isolation cutoff nodes) centered within the unoccluded canvas workspace left of `CMP-05`.
+   * Under Focal Island De-emphasis, non-isolated plant equipment is attenuated cleanly outside a pure SVG `<mask>` aperture framing the target equipment and isolation zone while keeping full contrast exclusively inside the mask.
+   * Electrical energy routes trace oblique orthogonal-plus-45-degree (`H/V + 45 deg`) paths from the remote MCC breaker core to the motor terminal, while mechanical process isolation boundaries anchor strictly to the exterior shell boundary perimeter (`boxBorderPoint`, never cutting through tank interiors). Undocumented dotted perimeter halos around equipment casings are strictly prohibited.
+   * Cutoff discs (`CMP-04`) project screen-space clamped scales (`32–40 px`) with obstacle collision avoidance against ANSI/ISA-5.1 instrument plates.
    * Drawer `CMP-05` initializes in baseline state with checklist step 1 highlighted and Try-Out card disabled.
 
 2. **Data Subscriptions, API Idempotency & Cache Initialization:**
@@ -279,24 +286,20 @@ sequenceDiagram
    * Every mutating isolation command (`POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm`, `POST /api/v1/safety/loto-plans/{planId}/try-out`, and `POST /api/v1/maintenance/work-orders/{id}/start-execution`) mandates both `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guard offline-sync retries and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) so concurrent isolation updates fail deterministically with HTTP `409 Conflict`.
    * Queries local secure storage (`ISecureStorage` / `IOfflineStorage`) for an active `CryptographicOfflineLeaseDto` issued to the device (`TR-006`).
 
-### 5.2. Spatial Navigation & Tactile Mechanics
+### 5.2. Spatial Navigation, Edge Beacons & Tactile Mechanics
 
-1. **Desktop vs. Tablet Interaction Modality:**
-   * **Desktop Workstation:** Continuous canvas panning is activated exclusively via middle-mouse button drag with an active grabbing cursor. Mouse scroll wheel performs continuous focal zooming around pointer coordinate $(cx, cy)$.
-   * **Industrial Tablet:** Single-finger touch pan requires exceeding a tactile drag threshold of $4\text{px}$ ($\Delta d = \sqrt{\Delta x^2 + \Delta y^2} > 4\text{px}$). Gestures with $\Delta d \le 4\text{px}$ are treated as discrete taps, ensuring reliable selection of cutoff hotspot nodes (`CMP-04`) without unwanted canvas displacement.
+1. **Unified Drag-Threshold Pan Ergonomics (Desktop & Tablet):**
+   * **Desktop Workstation:** Supports continuous pure-`viewBox` panning on **both primary and middle mouse buttons** with active pointer capture using a unified **$> 4\text{px}$ movement threshold** ($\Delta d = \sqrt{\Delta x^2 + \Delta y^2} > 4\text{px}$). Stationary clicks ($\Delta d \le 4\text{px}$) trigger cutoff disc or equipment selection cleanly. Mouse wheel executes instant focal zooming around pointer $(cx, cy)$, while programmatic navigation (`CMP-06` step jump, edge beacon tap, view reset) interpolates smoothly via delta-time animation.
+   * **Industrial Tablet:** Single-finger touch pan applies the identical **$4\text{px}$ movement threshold** to differentiate intentional pan gestures from stationary taps on cutoff hotspot discs (`CMP-04`).
 
-2. **Viewport Coordinate Transformations & Zoom Mathematics:**
-   * The canvas zoom factor is bounded by $s \in [0.5, 4.0]$.
-   * When zooming toward focal point $(cx, cy)$ in client viewport coordinates, the new SVG `viewBox` origin is computed to preserve focal center:
-     $$\text{viewBox}_{\text{new}}.x = cx - \frac{cx - \text{viewBox}_{\text{old}}.x}{s_{\text{ratio}}}$$
-     $$\text{viewBox}_{\text{new}}.y = cy - \frac{cy - \text{viewBox}_{\text{old}}.y}{s_{\text{ratio}}}$$
-     where $s_{\text{ratio}} = \frac{s_{\text{new}}}{s_{\text{old}}}$, $s_{\text{new}} = \text{clamp}(s_{\text{old}} \cdot (1 + \Delta z), 0.5, 4.0)$.
+2. **Off-Screen Directional Edge Beacons (Level 3 Zoom Awareness):**
+   * When zooming deeply into the target unit (`Scale >= --dt-zoom-scale-l2-max`), upstream MCC breakers or distant isolation valves located outside the visible `viewBox` remain tracked via frosted directional edge beacons (`--dt-color-float-bg-strong`, `--dt-shadow-glass`) docked along the unoccluded viewport boundary edge (offset inward from `CMP-05` and HUD margins).
+   * Nearby off-screen nodes along the same edge cluster cleanly into directional badges (`<< 2 MCC`), showing aggregate energized/isolated status; tapping any beacon smoothly pans and frames that isolation node.
 
-3. **Bounding Box Clamping Invariants:**
-   * Canvas translation is strictly clamped within the calibrated operational bounds of the plant area, preventing the SVG geometry from panning into void:
-     $$X_{\text{min}} \le \text{viewBox}.x \le X_{\text{max}} - \text{viewBox}.w$$
-     $$Y_{\text{min}} \le \text{viewBox}.y \le Y_{\text{max}} - \text{viewBox}.h$$
-   * Operational bounding limits are dynamically derived from the calibrated SVG metadata (`viewBox` extents).
+3. **Pure `viewBox` Zoom & `PAN_BOUNDS` Center Clamping:**
+   * The normalized zoom range spans `--dt-zoom-scale-fit` to maximum tactical magnification ($15\times$ raw range) via pure `<svg>` `viewBox` updates with zero CSS scaling.
+   * When zooming toward focal point $(cx, cy)$ in viewport coordinates, the new SVG `viewBox` origin preserves the focal coordinate in double precision ([DT-UI-SVG-DOC-001 §10.2](../../DT-UI-SVG-DOC-001.md#102-pure-viewbox-camera-pan_bounds-transition-rules)).
+   * Translation is governed by `PAN_BOUNDS` center clamping so the viewport center $(cx, cy)$ stays within the calibrated `L-CIVL-PROP` facility bounding box, allowing any property corner to reach the viewport center without drifting into unbounded void.
 
 4. **Layout Shift Invariants & Dimension Enforcements:**
    * Toolbar `CMP-02`: Level indicator badge enforces a rigid fixed width (`--dt-layout-toolbar-badge-width`), preventing horizontal control jitter across zoom transitions.
@@ -775,10 +778,10 @@ public enum WorkOrderStatus
 ### 7.3. Client-Side DOM & Interop Bridge
 
 1. **SVG Viewport & LOTO Route Interop (`ILotoCanvasInterop`):**
-   * Manipulates SVG path stroke attributes (red solid for active hazardous energy vs. slate dashed for confirmed isolated lines) in real time without triggering full SVG re-parsing or DOM thrashing.
-   * Tracks PointerEvents for continuous panning and zooming, enforces the $4\text{px}$ tactile threshold filter, calculates focal zoom matrix transforms, and binds discrete tap toggling to the bottom sheet handle.
+   * Manipulates SVG path stroke attributes (crimson solid oblique `H/V + 45 deg` and edge-anchored paths for active hazardous energy vs. `--dt-color-loto-isolated-path` dashed paths for confirmed isolated lines) and pure `<mask>` Focal Island apertures in real time without triggering full SVG re-parsing.
+   * Tracks PointerEvents for pure `viewBox` panning (`PAN_BOUNDS` center clamping), unified primary/middle-click and tablet $4\text{px}$ drag thresholding, instant focal wheel zoom, smooth full-circuit fly-to transitions, and directional off-screen edge beacon projection.
 2. **Cutoff Node Hotspot Binding:**
-   * Standardized SVG data attribute binding (`data-cutoff-id`, `data-equip-id`). Disambiguates canvas middle-click dragging from discrete touch taps on cutoff nodes, dispatching node selection to highlight corresponding checklist steps in `CMP-06` and MAI cards in `CMP-07`.
+   * Standardized SVG data attribute binding (`data-cutoff-id`, `data-equip-id`). Disambiguates $> 4\text{px}$ pan drags from discrete stationary taps ($\le 4\text{px}$) on cutoff discs (`CMP-04`), enforces screen-space clamping (`32–40 px`) with ANSI/ISA-5.1 obstacle avoidance, and dispatches selection to highlight corresponding checklist steps in `CMP-06` and MAI cards in `CMP-07`.
 3. **Encrypted Offline Storage & Lease Interop (`IOfflineStorage`):**
    * Interfaces with client-side encrypted local storage (`TR-002`, `TR-006`, `TR-007`) for offline cryptographic lease evaluation (`ADR-006`) and immediate transactional outbox queuing of verification commands during network disconnections.
 4. **Emergency Evacuation Interop (`IEvacuationAudioInterop`):**
@@ -790,7 +793,7 @@ public enum WorkOrderStatus
 
 ### 8.1. Desktop Workstation (`--dt-breakpoint-xl`)
 * **Layout Organization:** Canvas `CMP-01` occupies the full viewport (`--dt-z-canvas`) with user profile indicator `CMP-03` anchored at top-left and cartographic HUD `CMP-13` anchored at bottom-left. LOTO Drawer `CMP-05` docks as a full-height lateral panel sized by `--dt-layout-drawer-width-desktop` (`--dt-z-drawer-sidebar`, `--dt-shadow-panel`) on the right flank. Viewport toolbar `CMP-02` centers over the unoccluded canvas workspace.
-* **Ergonomic Rules:** Mouse wheel focal zoom around pointer $(cx, cy)$; continuous middle-click pan; 2x2 grid presentation for the telemetry verification matrix (`CMP-07`).
+* **Ergonomic Rules:** Instant mouse wheel focal zoom around pointer $(cx, cy)$; unified primary and middle-click pan above the $4\text{px}$ drag threshold; smooth fly-to circuit/beacon framing; 2x2 grid presentation for the telemetry verification matrix (`CMP-07`).
 
 ### 8.2. Industrial Tablet Landscape (`--dt-breakpoint-lg`)
 * **Layout Organization:** Canvas `CMP-01` occupies the left workspace; LOTO Drawer `CMP-05` docks as a right-hand lateral panel sized by `--dt-layout-drawer-width-tablet`, strictly preserving $\ge 70\%$ canvas visibility per [DT-UI-DS-DOC-001 §2.4](../../DT-UI-DS-DOC-001.md#24-structural-layout-and-dimensional-tokens). Viewport toolbar `CMP-02` auto-centers over the viewable canvas area, with `CMP-13` anchored at bottom-left.

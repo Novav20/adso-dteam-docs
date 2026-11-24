@@ -12,16 +12,18 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 - [x] **SCR-VIS-033: Level 3 Equipment Task Faceplate**
   - [x] Responsive layout on Desktop ($1920\times 1080$), Tablet Landscape ($1280\times 800$), and Industrial Tablet Portrait ($800\times 1280$).
   - [x] Touch physics: upward drag height retention, snap hysteresis, Google Maps light-dismiss (zero peek tab), and discrete single-tap handle dismiss.
-  - [x] Canonical specification finalized and locked as Gold Standard Baseline: [`SCR-VIS-033.md`](ui-ux/screens/vis/SCR-VIS-033.md) (v2.2 Stable — `decimal` MAI precision, `TelemetrySignalType`/`TelemetryAlarmSeverity`, decoupled `OfflineModeBanner`/`TelemetryStaleBanner`, `TR-007` traceability).
+  - [x] Spatial Engine Calibration: `CAD Calibrado` palette (`--dt-color-canvas-*`), `CAD Adaptativo` ISO 128 hierarchical lineweights, pure `viewBox` `PAN_BOUNDS` clamping, unified `> 4px` primary/middle-click pan, hybrid LOD ramps, `Space` / `Ctrl + K` intent framing, L3 ISO 14224 spatial breadcrumb, and screen-space clamped ANSI/ISA-5.1 plates.
+  - [x] Canonical specification finalized and locked as Gold Standard Baseline: [`SCR-VIS-033.md`](ui-ux/screens/vis/SCR-VIS-033.md) (v2.3 Stable).
 
 - [x] **SCR-VIS-008: Level 1 General Plant Map with SIMOPS Layer**
-  - [x] Redundant coding for PTW pins (Color + Geometry + Icon + Label per ANSI/ISA-101).
-  - [x] Contextual popovers with viewport boundary clamping.
-  - [x] Modernize floating HUD elevation (`--dt-shadow-hud`), borderless discrete risk filters, and flat unmapped permits list: [`SCR-VIS-008.md`](ui-ux/screens/vis/SCR-VIS-008.md) (v2.1 Stable).
+  - [x] Redundant coding for PTW pins (`#sym-icon-ptw-*`, `48 × 48` two-tone Affinity profile, Color + Shape Silhouette + Icon + Label per ANSI/ISA-101).
+  - [x] IOGP 459 / API 2015 3-state SIMOPS matrix (`A` / `R` / `X`), shape-aware buffers with intersection-only diagonal hatching (`A ∩ B`), concurrency fan-out trays, auto-enabled `L-ELEC-HAZ`, programmatic L1 zone summary pills, and contextual popovers with viewport boundary clamping.
+  - [x] Modernized frosted HUD elevation (`--dt-shadow-glass`), unified `> 4px` pan ergonomics, borderless discrete risk filters, and flat unmapped permits list: [`SCR-VIS-008.md`](ui-ux/screens/vis/SCR-VIS-008.md) (v2.2 Stable).
 
 - [x] **SCR-VIS-011: LOTO Isolation Boundary Matrix**
   - [x] Cognitive Task Analysis (CTA): Physical Try-Out attestation primacy and negative interlock logic.
-  - [x] Canonical specification finalized and locked as Gold Standard Baseline: [`SCR-VIS-011.md`](ui-ux/screens/vis/SCR-VIS-011.md) (v2.1 Stable — Spatial Suite Complete, `CURRENT` signal type back-propagation, Hollifield MAI Method 3 zero-energy indicators, `CartographicHud.razor` CMP-13, 100% C# 14 / .NET 10 contracts).
+  - [x] Spatial Isolation Precision: Oblique `H/V + 45 deg` MCC electrical routes, edge-anchored mechanical boundary lines, translucent `--dt-color-loto-disc` cutoff discs (`#sym-icon-loto-isolated` / `#sym-icon-eloto-energized` / `#sym-icon-mloto-energized`), pure SVG `<mask>` Focal Island aperture, full-circuit initial framing, and inward-clustered off-screen directional edge beacons.
+  - [x] Canonical specification finalized and locked as Gold Standard Baseline: [`SCR-VIS-011.md`](ui-ux/screens/vis/SCR-VIS-011.md) (v2.2 Stable).
 
 ### Maintenance Management Screens (MTTO)
 - [x] **SCR-MTTO-002: Work Order Technical Closure**
@@ -88,21 +90,24 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Apply canonical `tokens.css` and `portal-shell.css` to portal workstation screens and preserve archetype-specific modal, canvas, and mobile layouts.
   - [x] Validate local `file:///` asset references, JavaScript syntax, HTML parsing, and `dev-wrapper.html` catalog integrity.
 
-- [ ] **Unified Spatial Application Shell (Single-Canvas Workspace)**
-  - [ ] Formalize single-canvas viewport contract across `SCR-VIS-008`, `SCR-VIS-033`, and `SCR-VIS-011` (drawer/overlay activation vs. standard browser page navigation).
-  - [ ] Evaluate focal spatial hierarchy / semantic zoom culling (Focal Island De-emphasis at L2/L3 thresholds).
+- [x] **Unified Spatial Application Shell & Dual Icon Profile**
+  - [x] Formalized single-canvas viewport kinematics, normalized zoom tokens (`--dt-zoom-scale-*`, `--dt-cad-stroke-floor`), `PAN_BOUNDS` clamping, and hybrid LOD cross-fades across `SCR-VIS-008`, `SCR-VIS-033`, and `SCR-VIS-011` ([`DT-UI-DS-DOC-001.md`](ui-ux/DT-UI-DS-DOC-001.md) v2.3, [`DT-UI-NAV-DOC-001.md`](ui-ux/DT-UI-NAV-DOC-001.md)).
+  - [x] Reconciled dual SVG icon profile: `24 × 24` monochromatic UI glyphs (`#icon-*`) + `48 × 48` two-tone Affinity spatial markers (`#sym-icon-*`) in [`ui-ux/assets/icons.svg`](ui-ux/assets/icons.svg) with WCAG 2.1 AA verification across `CAD Calibrado` surfaces.
 
-- [ ] **Vector Iconography Fill & Stroke Dynamic Contrast Audit (Deferred)**
-  - [ ] Audit filled vector paths (e.g., gear and package symbols) for contrast across dark/light themes.
+- [ ] **Known Spatial HMI & Product Backlog Gaps (MVP / Post-MVP Triage)**
+  - [ ] **`LIM-UI-002` (Telemetry Quality Token):** Introduce a dedicated Magenta ANSI/ISA-101 "Bad Quality" diagnostic token (`--dt-color-quality-bad`) in [`DT-UI-DS-DOC-001.md`](ui-ux/DT-UI-DS-DOC-001.md) §3.3 to decouple SCADA communication loss (`Priority 4` slate) from active sensor hardware/signal quality faults.
+  - [ ] **Gap 1 — Dedicated 2D Plot Plan MOC Ingestion & Piping Promotion:** Define an operational Management of Change (MOC) SVG upload, validation, and coordinate diff workflow in MVP/Phase 2 alongside progressive promotion of static piping corridors (`L-PIPE-PROC`) into discrete addressable `EquipmentUnit` records without disrupting base coordinates.
+  - [ ] **Gap 2 — HSEQ Role-Specific Map Layer Toggle Policy:** Formalize RBAC-governed map layer visibility toggles (`L-ELEC-HAZ`, `L-FIRE-PROT`, diagnostic overlays) outside engineering sandboxes across operational profiles (`HSEQ Inspector`, `Maintenance Supervisor`, `Maintenance Technician`).
+  - [ ] **`LIM-VIS-003` (Post-MVP — Multi-Plant & 3D Isometric Islands):** Multi-facility terminal switcher and WebGL/3D isometric facility island viewports scoped strictly for Post-MVP evolution.
 
 ---
 
 ## 📌 Phase 2: Ingestion Contracts & Digital Twin Spatial Tooling
 
-- [x] **DT-UI-SVG-DOC-001: SVG Ingestion Contract (Rev 2.0 Approved)**
-  - [x] Normative 7-layer standard (`L-CIVL-BOTM`, `L-MECH-EQPM`, `L-PIPE-PROC`, `L-INSP-INST`, `L-FIRE-PROT`, `L-ELEC-HAZ`, `L-ANNO-TEXT`).
-  - [x] ISO 14224 binding attributes (`data-func-loc`, `data-equip-id`, `data-status`).
-  - [x] MOC audit header metadata (`data-moc-id`, `data-rev-number`, `data-checksum-sha256`).
+- [x] **DT-UI-SVG-DOC-001: SVG Ingestion Contract (v2.3 Approved)**
+  - [x] Normative 7-layer standard (`L-CIVL-BOTM`, `L-CIVL-PROP`, `L-CIVL-PUBROAD`, `L-MECH-EQPM`, `L-PIPE-PROC`, `L-INSP-INST`, `L-FIRE-PROT`, `L-ELEC-HAZ`, `L-ANNO-TEXT`).
+  - [x] ISO 14224 binding attributes (`data-func-loc`, `data-equip-id`, `data-status`) and generalizable `CALIBRATION-VECTOR` (`data-nominal-span="0.65"`).
+  - [x] MOC audit header metadata (`data-moc-id`, `data-rev-number`, `data-checksum-sha256`), `$6,000$-node` operational target (`15,000` hard cap), ISO 128 4-tier `CAD Adaptativo`, dynamic `3.0 px` text halos, and spatial clearance Rules 4–6 (`DT-UI-SVG-DOC-001.md`).
 
 - [x] **Universal Markdown Relative Links Migration**
   - [x] 100% universal Markdown relative links across all specifications and architectural docs.

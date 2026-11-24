@@ -14,8 +14,8 @@ user_stories:
   - "[[VIS-033]]"
 use_cases:
   - "[[UC-VIS-033]]"
-version: 2.2
-date: 2026-11-10
+version: 2.3
+date: 2026-11-24
 status: Stable
 ---
 
@@ -64,41 +64,44 @@ status: Stable
 > The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md) and [DT-UI-SVG-DOC-001](../../DT-UI-SVG-DOC-001.md). This inventory defines the canonical components present on the screen, their design tokens, and their architectural scope. Interaction rules and geometric algorithms are specified in Section 5; responsive container adaptations are governed by Section 8.
 
 1. **`CMP-01`: Canvas Viewport 2D**
-   - **Visual Role:** Interactive 2D vector plot plan canvas rendering ISO 14224 Levels 1 to 5 Functional Locations and Level 6 Equipment Units in a flat neutral grayscale HPHMI palette.
+   - **Visual Role:** Interactive 2D vector plot plan canvas rendering ISO 14224 Levels 1 to 5 Functional Locations (`L-CIVL-PROP`, public perimeter roads, dike envelopes), `L-FIRE-PROT` (L2 perimeter hydrants, L3 underground ring outside curbs), and Level 6 Equipment Units in the flat 2D `CAD Calibrado` palette with `CAD Adaptativo` ISO 128 hierarchical lineweights and adaptive metric grid. Suppresses `L-ELEC-HAZ` NFPA 497 zones by default in inspection mode.
    - **Design Tokens:**
      - Surface: `--dt-color-bg-canvas`
      - Elevation: `--dt-z-canvas`
-     - Spatial Materials: `--dt-color-canvas-*` ([DT-UI-DS-DOC-001 §3.4](../../DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas))
-   - **Architectural Scope:** Strictly flat $Z = 0$ process graphics layer ([DT-UI-DS-DOC-001 §5.1](../../DT-UI-DS-DOC-001.md#51-hphmi-shadow-discipline-canvas-vs-hud-chrome-separation)). Supports desktop middle-click panning, tablet single-finger drag panning, coordinate-preserving focal zoom, and smooth tactical centering (`locateAssetOnMap`). Detailed in §5.2.
+     - Spatial Materials: `--dt-color-canvas-bund-floor`, `--dt-color-canvas-asphalt`, `--dt-color-canvas-concrete`, `--dt-color-canvas-equip-shell`, `--dt-color-canvas-pipe-proc`, `--dt-color-canvas-pipe-sec`, `--dt-color-canvas-steel`, `--dt-color-canvas-grid` ([DT-UI-DS-DOC-001 §3.4](../../DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas))
+   - **Architectural Scope:** Strictly flat $Z = 0$ process graphics layer ([DT-UI-DS-DOC-001 §5.1](../../DT-UI-DS-DOC-001.md#51-hphmi-shadow-discipline-canvas-vs-hud-chrome-separation)). Uses pure SVG `viewBox` camera kinematics, `PAN_BOUNDS` center clamping, unified primary/middle-click desktop and tablet drag panning, instant focal wheel zoom, smooth tactical centering (`locateAssetOnMap`), and hybrid semantic zoom ramps. Detailed in §5.2.
 
-2. **`CMP-02`: Viewport Toolbar**
-   - **Visual Role:** Centered floating capsule toolbar integrating `CMP-03` inline search, fixed-width semantic zoom level indicator (`L1: Terminal` / `L2: Subsystem` / `L3: Equipment`), view reset (`1:1`), zoom controls (`+` / `−`), and layer toggle (`[#icon-layers]`).
+2. **`CMP-02`: Viewport Toolbar & Spatial Breadcrumb**
+   - **Visual Role:** Frosted floating capsule toolbar integrating `CMP-03` intent search, fixed-width semantic zoom level badge (`L1: Terminal` / `L2: Subsystem` / `L3: Equipment`), interactive ISO 14224 spatial breadcrumb (`Terminal > Zone > Asset`) when zoomed to L3, view reset, zoom controls (`+` / `-`), and inspection layer toggle (`#icon-layers`).
    - **Design Tokens:**
-     - Surface: `--dt-color-surface-card`
-     - Elevation: `--dt-shadow-hud`
+     - Surface: `--dt-color-float-bg`
+     - Border: `--dt-color-float-border`
+     - Elevation: `--dt-shadow-glass`
      - Radius: `--dt-radius-full`
      - Stacking: `--dt-z-overlay-card`
      - Level Badge Width: `--dt-layout-toolbar-badge-width`
-     - Divider: `--dt-color-border-subtle`
-   - **Architectural Scope:** Elevated floating borderless HUD chrome ([DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows)) dynamically centering over unoccluded canvas width when `CMP-05` is deployed. Detailed in §5.2 and §8.
+   - **Architectural Scope:** Floating borderless frosted HUD chrome ([DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows)) dynamically centering over unoccluded canvas width when `CMP-05` is deployed. Detailed in §5.2 and §8.
 
-3. **`CMP-03`: Command Palette Trigger**
-   - **Visual Role:** Seamless borderless tag search input (`Ctrl + K` / `/`) embedded inside the left segment of `CMP-02` for fuzzy equipment tag lookup.
+3. **`CMP-03`: Command Palette & Intent Search Trigger**
+   - **Visual Role:** Seamless frosted tag/zone lookup (`Space` / `Ctrl + K` / `/`) embedded inside `CMP-02` for fuzzy lookup across zones, tanks, pumps, valves, and ISA loops with intent-aware target zoom framing.
    - **Design Tokens:**
-     - Surface: transparent (nested within `CMP-02` capsule)
-     - Text: `--dt-color-text-primary`, `--dt-color-text-muted`
-     - Border Focus: `--dt-color-border-focus`
+     - Surface: `--dt-color-float-bg-strong`, `--dt-color-float-kbd-bg`
+     - Text: `--dt-color-float-text`, `--dt-color-float-muted`
+     - Border Focus: `--dt-color-float-border-strong`
+     - Elevation: `--dt-shadow-glass`
      - Radius: `--dt-radius-full`
-   - **Architectural Scope:** Enables direct keyboard/touch tag lookup, triggering tactical canvas centering and `CMP-05` deployment (or entering `Pending Mapping` fallback per `AF-001`). Detailed in §5.2 and §7.2.2.
+   - **Architectural Scope:** Enables direct keyboard/touch lookup across hierarchy tiers, framing `L1` zones, `L2` tanks/medium skids, and `L3` pumps/valves/loops dynamically (`§5.2`), or entering `Pending Mapping` fallback (`AF-001`). Detailed in §5.2 and §7.2.2.
 
-4. **`CMP-04`: Equipment Hotspot**
-   - **Visual Role:** Addressable ISO 14224 Level 6 SVG equipment symbol linked by `data-tag` and `data-equip-id` ([DT-UI-SVG-DOC-001 §6](../../DT-UI-SVG-DOC-001.md#6-eam-telemetry-binding-identity-schema-iso-14224)).
+4. **`CMP-04`: Equipment Hotspot & ANSI/ISA-5.1 Instrument Plates**
+   - **Visual Role:** Addressable ISO 14224 Level 6 SVG equipment symbols linked by `data-tag` and `data-equip-id` ([DT-UI-SVG-DOC-001 §6](../../DT-UI-SVG-DOC-001.md#6-eam-telemetry-binding-identity-schema-iso-14224)) plus opaque screen-space clamped ANSI/ISA-5.1 circular/SIS boxed instrument plates disclosed from `--dt-zoom-scale-tactical`.
    - **Design Tokens:**
      - Base Shell: `--dt-color-canvas-equip-shell`
-     - Border: `--dt-color-border-subtle`
+     - Border & Plate Outline: `--dt-color-canvas-steel`, `--dt-color-marker-border`
+     - Plate Surface & Shadow: `--dt-color-surface-card`, `--dt-shadow-marker`
+     - Stacking: `--dt-z-layer-markers`
      - Selected Halo: `--dt-color-state-info`
      - Critical Alarm: `--dt-color-alarm-critical`
-   - **Architectural Scope:** Renders neutral outlines in normal steady-state, informational selection halo upon tap/click, and critical alarm border with redundant square symbol upon safety limit breaches or unplanned `DOWN` outage without active LOTO isolation (`AF-004`). Touch disambiguation in §5.2.
+   - **Architectural Scope:** Renders neutral outlines in normal steady-state, opaque instrument plates with dynamic screen-space priority collision decluttering (selected/hovered asset -> SIS critical loops -> BPCS loops) and zero live numeric readings on SVG ([DT-UI-SVG-DOC-001 §8](../../DT-UI-SVG-DOC-001.md#8-instrumentation-control-loops-ansiisa-51-2009)), informational selection halo upon tap/click, and critical alarm cues upon safety breaches or unplanned `DOWN` outages (`AF-004`). Touch disambiguation in §5.2.
 
 5. **`CMP-05`: Context Container**
    - **Visual Role:** Adaptable Level 3 Equipment Task Faceplate deploying as a docked full-height lateral drawer on desktop/landscape or an adaptive bottom sheet on portrait/mobile, hosting `CMP-06` through `CMP-10` inside a scrollable body with stable scrollbar gutter reservation.
@@ -160,8 +163,9 @@ status: Stable
 11. **`CMP-11`: User Profile Indicator**
     - **Visual Role:** Circular floating operator session button anchored at the top-left viewport margin displaying active user initials and a static presence dot.
     - **Design Tokens:**
-      - Surface: `--dt-color-surface-card`
-      - Elevation: `--dt-shadow-hud`
+      - Surface: `--dt-color-float-bg`
+      - Border: `--dt-color-float-border`
+      - Elevation: `--dt-shadow-glass`
       - Radius: `--dt-radius-full`
       - Stacking: `--dt-z-overlay-card`
       - Touch Target: `--dt-touch-target-mobile`
@@ -169,15 +173,16 @@ status: Stable
     - **Architectural Scope:** Anchored at top-left viewport margin per [DT-UI-DS-DOC-001 §5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Opens operator session and display theme settings.
 
 12. **`CMP-12`: Cartographic Compass & Metric Scale HUD**
-    - **Visual Role:** Decoupled bottom-left spatial HUD combining a circular north-orientation compass indicator (`--dt-control-size-hud`) and an adaptive metric scale bar (e.g., `10 m`).
+    - **Visual Role:** Decoupled bottom-left frosted spatial HUD combining a circular north-orientation compass indicator (`--dt-control-size-hud`) and an adaptive metric scale bar.
     - **Design Tokens:**
-      - Surface: `--dt-color-surface-card`
-      - Elevation: `--dt-shadow-hud`
+      - Surface: `--dt-color-float-bg`, `--dt-color-scale-bg`
+      - Border: `--dt-color-float-border`
+      - Elevation: `--dt-shadow-glass`
       - Compass Footprint: `--dt-control-size-hud`
       - Radius: `--dt-radius-full` (Compass), `--dt-radius-sm` (Scale pill)
       - North Needle Accent: `--dt-color-alarm-critical`
       - Scale Typography: `--dt-font-mono-data`
-    - **Architectural Scope:** Floating HTML overlay anchored at the bottom-left viewport margin per [DT-UI-DS-DOC-001 §2.2](../../DT-UI-DS-DOC-001.md#22-dimensions-of-controls-and-touch-areas) and [§5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Dynamically computes metric scale denominators from SVG `CALIBRATION-VECTOR` ([DT-UI-SVG-DOC-001 §11](../../DT-UI-SVG-DOC-001.md#11-spatial-metric-calibration)) and current zoom scale.
+    - **Architectural Scope:** Floating HTML overlay anchored at the bottom-left viewport margin per [DT-UI-DS-DOC-001 §2.2](../../DT-UI-DS-DOC-001.md#22-dimensions-of-controls-and-touch-areas) and [§5.2](../../DT-UI-DS-DOC-001.md#52-elevation-shadows). Dynamically computes metric scale denominators from SVG `CALIBRATION-VECTOR` ([DT-UI-SVG-DOC-001 §11](../../DT-UI-SVG-DOC-001.md#11-spatial-metric-calibration)) and active `viewBox` extents.
 
 ---
 
@@ -185,7 +190,7 @@ status: Stable
 
 1. **Normal (Default / Macro Supervisory)**
    - **Activation Condition:** Initial view load, explicit macro reset (`Reset View`), or dismissed faceplate without active equipment alarms or selection.
-   - **Visual Modification:** Canvas `CMP-01` renders Functional Locations and Equipment Units in neutral grayscale (`--dt-color-bg-canvas`) centered at macro Level 1 overview (`L1: Terminal`), no equipment hotspot is highlighted, and `CMP-05` resides fully closed off-screen with zero protruding triggers.
+   - **Visual Modification:** Canvas `CMP-01` renders Functional Locations and primary Equipment Units in neutral `CAD Calibrado` tones (`--dt-color-bg-canvas`) centered at normalized site-fit scale (`--dt-zoom-scale-fit`, `L1: Terminal`), `L-ELEC-HAZ` remains suppressed in inspection mode, no equipment hotspot is highlighted, and `CMP-05` resides fully closed off-screen with zero protruding triggers.
 
 2. **Loading**
    - **Activation Condition:** Initial Functional Location transition, asynchronous SVG schematic parsing, or SignalR channel handshake (`NFR-603`).
@@ -220,23 +225,25 @@ status: Stable
 ## 5. Interaction Rules and Data Flow
 
 ### 5.1. Initial Load
-1. The client retrieves the vector schematic corresponding to the target Functional Location via `GET /api/v1/visualization/plot-plans/{functionalLocationCode}` ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)) and renders `CMP-01` using neutral grayscale material tokens.
+1. The client retrieves the vector schematic corresponding to the target Functional Location via `GET /api/v1/visualization/plot-plans/{functionalLocationCode}` ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)) and renders `CMP-01` using neutral `CAD Calibrado` material tokens with `L-ELEC-HAZ` hidden by default in inspection mode.
 2. Interactive SVG equipment groups (`CMP-04`) are bidirectionally bound via `data-tag` and `data-equip-id` attributes to registered Level 6 `EquipmentUnit` records (`FR-599`). Selecting an equipment unit loads its Level 3 faceplate via `GET /api/v1/visualization/equipment-units/{tagNumber}/faceplate` and its active maintenance orders via `GET /api/v1/maintenance/work-orders?equipmentUnitId={id}&status=ACTIVE`.
-3. The viewport initializes centered on Level 1 macro overview (`L1: Terminal`) with pan limits clamped to calibrated SVG operational boundaries; no equipment hotspot is pre-selected unless an `InitialEquipmentTag` deep-link parameter is provided, and `CMP-05` starts closed off-screen without obstructing `CMP-12`.
+3. The viewport initializes centered on Level 1 macro overview (`--dt-zoom-scale-fit`, `L1: Terminal`) with `PAN_BOUNDS` center clamping tied to calibrated `L-CIVL-PROP` boundaries; no equipment hotspot is pre-selected unless an `InitialEquipmentTag` deep-link parameter is provided, and `CMP-05` starts closed off-screen without obstructing `CMP-12`.
 
 ### 5.2. Spatial Navigation and Mobile Ergonomics
-1. **Dual-Modality Continuous Panning:**
-   - **Desktop Workstation Modality:** Canvas dragging/panning is bound strictly to middle-click (mouse wheel press and drag) with active pointer capture. Primary left-click is reserved exclusively for selecting `CMP-04` equipment nodes and interacting with HUD controls, preventing accidental viewport displacements during tactical selection.
-   - **Industrial Tablet Tactile Modality:** Single-finger touch dragging across `CMP-01`. Enforces a mandatory $4\text{px}$ movement threshold before transitioning into an active pan state, cleanly disambiguating intentional dragging from stationary tap selections. Ephemeral popovers dismiss immediately upon initiating a canvas drag or zoom.
-2. **Coordinate-Preserving Focal Zoom:**
-   - Mouse wheel zooming (`wheel`) computes scale adjustments anchored around exact cursor coordinates $(cx, cy)$ on the canvas so the inspected feature remains stationary under the pointer. Viewport zoom controls (`+` / `−`) inside `CMP-02` scale relative to the unoccluded canvas center.
-   - Crossing semantic zoom thresholds (`--dt-zoom-scale-l1-max` and `--dt-zoom-scale-l2-max`) updates progressive disclosure visibility layers seamlessly without abrupt popping ([DT-UI-SVG-DOC-001 §10](../../DT-UI-SVG-DOC-001.md#10-progressive-disclosure-viewport-kinematics)).
-3. **Smooth Equipment Centering (`locateAssetOnMap`):**
-   - Selecting an equipment tag via `CMP-03` or pressing `[Locate]` in `CMP-09` animates pan and zoom to `--dt-zoom-scale-tactical` ([DT-UI-DS-DOC-001 §2.5](../../DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports)), centering the asset centroid $(X, Y)$ within the unoccluded canvas area. In desktop and landscape orientations with `CMP-05` deployed, the target shifts leftward by $50\%$ of the active drawer width to avoid occlusion and highlights `CMP-04` with `--dt-color-state-info`.
+1. **Unified Drag-Threshold Continuous Panning (Desktop & Tablet):**
+   - **Desktop Workstation Modality:** Supports continuous pure-`viewBox` panning on **both primary and middle mouse buttons** with active pointer capture using a unified **$> 4\text{px}$ movement threshold** ($\Delta d = \sqrt{\Delta x^2 + \Delta y^2} > 4\text{px}$). Stationary clicks ($\Delta d \le 4\text{px}$) cleanly select `CMP-04` equipment nodes or interact with HUD controls without accidental viewport displacement.
+   - **Industrial Tablet Tactile Modality:** Single-finger touch dragging across `CMP-01` using the identical **$4\text{px}$ movement threshold**, disambiguating panning from stationary tap selections. Ephemeral popovers dismiss immediately upon initiating a canvas drag or zoom.
+   - **`PAN_BOUNDS` Center Clamping:** Constrains the camera center coordinate $(cx, cy)$ within the `L-CIVL-PROP` site bounding box ([DT-UI-SVG-DOC-001 §10.2](../../DT-UI-SVG-DOC-001.md#102-pure-viewbox-camera-pan_bounds-transition-rules)), allowing any property corner to reach screen center without drifting into unbounded empty void.
+2. **Instant Focal Wheel Zoom, Hybrid LOD & ISA-5.1 Decluttering:**
+   - Mouse wheel zooming (`wheel`) executes instant double-precision `viewBox` scaling anchored around cursor coordinates $(cx, cy)$ with zero inertia lag. Viewport zoom controls (`+` / `-`) inside `CMP-02` scale smoothly relative to the unoccluded canvas center.
+   - Crossing normalized semantic zoom thresholds ([DT-UI-DS-DOC-001 §2.5](../../DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports)) applies `180 ms` hybrid cross-fades (L1 zone pills vs. L2 markers), smoothstep additive piping/grid ramps, and `CAD Adaptativo` ISO 128 stroke scaling ([DT-UI-SVG-DOC-001 §9.2](../../DT-UI-SVG-DOC-001.md#92-iso-128-hierarchical-lineweights-cad-adaptativo), [§10](../../DT-UI-SVG-DOC-001.md#10-progressive-disclosure-viewport-kinematics)).
+   - From `--dt-zoom-scale-tactical` upward, opaque screen-space clamped ANSI/ISA-5.1 plates (`36–46 px`, zero live numeric readings on SVG) disclose with dynamic collision culling prioritized as: selected/hovered asset instruments $\to$ SIS safety-critical loops $\to$ BPCS loops. `L-FIRE-PROT` discloses L2 perimeter hydrants above road curbs and L3 underground fire-water ring mains outside roadway curbs.
+3. **Intent-Driven Search Framing (`Space` / `Ctrl + K`) & `locateAssetOnMap`:**
+   - Activating `CMP-03` (`Space` / `Ctrl + K` / `/`), pressing `[Locate]` in `CMP-09`, or selecting an interactive **L3 ISO 14224 spatial breadcrumb** step (`Terminal > Zone > Asset`) inside `CMP-02` triggers smooth delta-time fly-to framing calibrated to target scale: `L1` functional zones frame at overview fit, `L2` tanks and medium skids frame around `--dt-zoom-scale-tactical`, and `L3` centrifugal pumps, valves, and ISA loops frame at `--dt-zoom-scale-l2-max` or higher. In desktop and landscape orientations with `CMP-05` deployed, the target shifts leftward by $50\%$ of the active drawer width to avoid occlusion and highlights `CMP-04` with `--dt-color-state-info`.
 4. **Decoupled Viewport & Zero Layout Shift:**
    - `CMP-01` operates as a full-viewport background layer. Opening, resizing, or dismissing `CMP-05` executes as an overlaid container that never resizes or re-renders the underlying SVG plot plan, preventing DOM thrashing and layout shift.
    - The scrollable body inside `CMP-05` preserves permanent lateral scrollbar gutter reservation so vertical scrollbar activation during height adjustments never shifts internal telemetry rows or buttons horizontally.
-5. **Tactile Controllability & Surface Hierarchy:** All interactive triggers across `CMP-02`, `CMP-05`, `CMP-09`, `CMP-10`, and `CMP-11` enforce minimum touch target ergonomics governed by `--dt-touch-target-mobile`, while floating HUD chrome projects `--dt-shadow-hud` and docked drawers project `--dt-shadow-panel`.
+5. **Tactile Controllability & Surface Hierarchy:** All interactive triggers across `CMP-02`, `CMP-05`, `CMP-09`, `CMP-10`, and `CMP-11` enforce minimum touch target ergonomics governed by `--dt-touch-target-mobile`, while floating HUD chrome projects `--dt-shadow-glass` / `--dt-shadow-hud` and docked drawers project `--dt-shadow-panel`.
 6. **Responsive Breakpoint Delegation:** Container dimensions, drawer widths (`--dt-layout-drawer-width-desktop` / `--dt-layout-drawer-width-tablet`), and responsive orientation switches follow Section 8, [DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers), and [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md).
 7. **Spatial Selection & Drawer Dismiss Lifecycle (Google Maps Model):**
    - Clicking the dismiss button (`×`) in `CMP-06` or clicking/tapping empty canvas smoothly translates `CMP-05` off-screen while preserving the active selection halo on `CMP-04`.
@@ -251,7 +258,7 @@ status: Stable
    - **Discrete Tap Dismiss:** A single tap on the capsule drag handle immediately dismisses the bottom sheet off-screen without requiring fine motor drag skill ([DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)). Tapping the highlighted `CMP-04` node on `CMP-01` re-opens `CMP-05`.
 9. **Cartographic HUD Dynamic Synchronization (`CMP-12`):**
    - Fixed at the bottom-left viewport margin (`--dt-z-overlay-card`), rendering circular Plant North compass (`--dt-control-size-hud`, `--dt-radius-full`) above an adaptive metric scale bar.
-   - Dynamically computes real-world meters per screen pixel against SVG `CALIBRATION-VECTOR` ([DT-UI-SVG-DOC-001 §11](../../DT-UI-SVG-DOC-001.md#11-spatial-metric-calibration)), rounding smoothly to intuitive metric intervals ($2\text{m}, 5\text{m}, 10\text{m}, 20\text{m}, 25\text{m}, 50\text{m}, 100\text{m}$) during continuous pan/zoom.
+   - Dynamically computes real-world meters per screen pixel against SVG `CALIBRATION-VECTOR` ([DT-UI-SVG-DOC-001 §11](../../DT-UI-SVG-DOC-001.md#11-spatial-metric-calibration)), rounding smoothly to intuitive metric intervals ($2\text{m}, 5\text{m}, 10\text{m}, 20\text{m}, 25\text{m}, 50\text{m}, 100\text{m}$) while maintaining $\ge 72\text{ px}$ major grid spacing during continuous pan/zoom.
 10. **Toolbar Level Badge Fixed Width Invariant (`CMP-02`):**
     - The hierarchical level indicator inside `CMP-02` enforces a strict fixed width of `--dt-layout-toolbar-badge-width` so transitions across `L1: Terminal`, `L2: Subsystem`, and `L3: Equipment` never cause horizontal button jitter.
 
@@ -279,8 +286,8 @@ status: Stable
 
 * **Read-Only Supervisory Boundary (ISO 45001 §8.1):** `SCR-VIS-033` provides passive spatial inspection and diagnostic telemetry awareness. It cannot issue plant start/stop commands, alter control loops, or bypass LOTO safety interlocks ([DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)).
 * **Spatial Integrity Fail-Safe (`AF-001`):** Equipment records in `UNMAPPED` or `SYNC_ERROR` states are strictly barred from arbitrary fallback coordinate placement (such as $(0, 0)$) and disable `[Locate]` triggers to avoid false spatial confidence (§4, §5.4).
-* **Cartographic Telemetry Offloading (L2 vs. L3 Separation):** The 2D vector canvas retains only equipment geometry and ISA tag callouts ([DT-UI-SVG-DOC-001 §8](../../DT-UI-SVG-DOC-001.md#8-instrumentation-control-loops-ansiisa-51-2009)), offloading continuous numerical readings and alarm bands to `CMP-07` MAI bars to prevent plot plan clutter on high-density equipment skids.
-* **HPHMI & Priority 4 Diagnostic Governance ([TR-011](../../../requirements/common/TR-011.md)):** Neutral 90/10 grayscale baseline, elimination of green for normal running equipment, Hollifield Method 3 MAI alarm boundaries, and mandatory slate Priority 4 differentiation for stale/disconnected timestamps adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope), [§6.1](../../DT-UI-DS-DOC-001.md#61-moving-analog-indicator-mai-specification), and [§6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto).
+* **Cartographic Telemetry Offloading & Priority Decluttering (L2 vs. L3 Separation):** The 2D vector canvas retains only equipment geometry, dynamic `3.0 px` text halos, and opaque screen-space clamped ANSI/ISA-5.1 instrument plates with priority collision culling ([DT-UI-SVG-DOC-001 §8](../../DT-UI-SVG-DOC-001.md#8-instrumentation-control-loops-ansiisa-51-2009), [§9.3](../../DT-UI-SVG-DOC-001.md#93-dynamic-screen-space-text-halos-anti-drop-shadow-rule)), offloading continuous numerical readings and alarm bands strictly to `CMP-07` MAI bars to prevent plot plan clutter on high-density equipment skids.
+* **HPHMI & Priority 4 Diagnostic Governance ([TR-011](../../../requirements/common/TR-011.md)):** `CAD Calibrado` neutral baseline ([DT-UI-DS-DOC-001 §3.4](../../DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas)), elimination of green for normal running equipment, Hollifield Method 3 MAI alarm boundaries, and mandatory slate Priority 4 differentiation for stale/disconnected timestamps adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope), [§6.1](../../DT-UI-DS-DOC-001.md#61-moving-analog-indicator-mai-specification), and [§6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto).
 
 ---
 
@@ -675,21 +682,21 @@ public enum TelemetryAlarmSeverity
 ### 7.3. Client-Side DOM & Interop Bridge
 
 1. **SVG Viewport Navigation Interop (`ISvgViewportInterop`):**
-   * Encapsulates client-side coordinate transformations, pointer capture, middle-click panning, tactile drag thresholding ($4\text{px}$), and focal mouse-wheel matrix evaluation ([ADR-001](../../../architecture/adr/ADR-001.md)).
-   * Executes smooth animated centering (`locateAssetOnMap`) to target equipment centroids $(X, Y)$ with lateral drawer offset compensation, eliminating SignalR roundtrip latency and avoiding network saturation.
+   * Encapsulates pure `viewBox` coordinate transformations, `PAN_BOUNDS` center clamping, pointer capture, unified primary/middle-click desktop and tablet panning ($> 4\text{px}$ drag threshold), instant focal wheel zoom, `CAD Adaptativo` ISO 128 stroke scaling, dynamic `3.0 px` text halos, and screen-space ISA-5.1 plate priority collision culling ([ADR-001](../../../architecture/adr/ADR-001.md)).
+   * Executes smooth delta-time animated centering (`locateAssetOnMap`, intent search framing, and L3 ISO 14224 breadcrumb navigation) to target centroids $(X, Y)$ with lateral drawer offset compensation, eliminating SignalR roundtrip latency.
 2. **Context Drawer Touch Gesture Interop (`IDrawerGestureInterop`):**
    * Manages pointer capture on the upper tactile drag handle, continuous height dragging (between `--dt-layout-bottom-sheet-height-initial` and `--dt-layout-bottom-sheet-height-expanded`), hysteresis snap thresholds, and discrete single-tap dismiss.
 3. **Semantic Selection:**
    * Hotspots in the SVG declare standardized data attributes (`data-equip-id`, `data-tag`, `data-func-loc`) matching ISO 14224 Level 6 Equipment Unit metadata ([DT-UI-SVG-DOC-001 §6](../../DT-UI-SVG-DOC-001.md#6-eam-telemetry-binding-identity-schema-iso-14224)).
-   * Stationary taps/clicks on an SVG node dispatch `OnEquipmentSelected(tagNumber)`; drags exceeding the $4\text{px}$ tactile threshold suppress accidental asset selection, and clicks on empty canvas trigger `OnEmptyCanvasClicked` to close `CMP-05` cleanly.
+   * Stationary taps/clicks ($\le 4\text{px}$) on an SVG node dispatch `OnEquipmentSelected(tagNumber)`; drags exceeding the $4\text{px}$ tactile threshold pan the viewport cleanly while suppressing accidental asset selection, and clicks on empty canvas trigger `OnEmptyCanvasClicked` to close `CMP-05` cleanly.
 
 ---
 
 ## 8. Layout and Responsive Adaptability
 
 ### 8.1. Desktop Workstation (`--dt-breakpoint-xl`)
-* **Layout Organization:** Canvas `CMP-01` occupies full viewport (`--dt-z-canvas`). Floating pill toolbar `CMP-02` displays inline search `CMP-03`, fixed-width level badge (`--dt-layout-toolbar-badge-width`), and viewer controls (`--dt-z-overlay-card`). User profile button `CMP-11` anchors at top-left, and cartographic HUD `CMP-12` anchors at bottom-left. Context container `CMP-05` docks as a full-height lateral drawer on the right flank sized by `--dt-layout-drawer-width-desktop` (`--dt-z-drawer-sidebar`, `--dt-shadow-panel`), hosting `CMP-09` in a 2x2 action grid below a hairline footer divider.
-* **Ergonomic Rules:** Mouse wheel focal zoom around cursor $(cx, cy)$; middle-click canvas panning; `locateAssetOnMap` shifts centering leftward by $50\%$ of active drawer width when `CMP-05` is deployed (§5.2); clicking `'×'` or empty canvas dismisses `CMP-05` while preserving the hotspot halo.
+* **Layout Organization:** Canvas `CMP-01` occupies full viewport (`--dt-z-canvas`). Floating frosted toolbar `CMP-02` displays inline search `CMP-03`, fixed-width level badge (`--dt-layout-toolbar-badge-width`), L3 ISO 14224 spatial breadcrumb when magnified, and viewer controls (`--dt-z-overlay-card`). User profile button `CMP-11` anchors at top-left, and cartographic HUD `CMP-12` anchors at bottom-left. Context container `CMP-05` docks as a full-height lateral drawer on the right flank sized by `--dt-layout-drawer-width-desktop` (`--dt-z-drawer-sidebar`, `--dt-shadow-panel`), hosting `CMP-09` in a 2x2 action grid below a hairline footer divider.
+* **Ergonomic Rules:** Instant mouse wheel focal zoom around cursor $(cx, cy)$; unified primary and middle-click canvas panning above the $4\text{px}$ drag threshold; `locateAssetOnMap` shifts centering leftward by $50\%$ of active drawer width when `CMP-05` is deployed (§5.2); clicking `'×'` or empty canvas dismisses `CMP-05` while preserving the hotspot halo.
 
 ### 8.2. Industrial Tablet Landscape (`--dt-breakpoint-lg`)
 * **Layout Organization:** Canvas `CMP-01` occupies left workspace; `CMP-05` docks as a right-hand lateral panel sized by `--dt-layout-drawer-width-tablet` (`--dt-z-drawer-sidebar`, `--dt-shadow-panel`), strictly preserving $\ge 70\%$ canvas visibility per [DT-UI-DS-DOC-001 §2.4](../../DT-UI-DS-DOC-001.md#24-structural-layout-and-dimensional-tokens). Toolbar `CMP-02` dynamically centers over the remaining unoccluded canvas width and compacts the inline search input when `CMP-05` is open. `CMP-09` arranges in a 2x2 action grid.

@@ -210,18 +210,48 @@
       "$type": "dimension",
       "$description": ""
     },
+    "zoom-scale-fit": {
+      "$value": "0.65",
+      "$type": "number",
+      "$description": ""
+    },
+    "zoom-ramp-l2-start": {
+      "$value": "0.95",
+      "$type": "number",
+      "$description": ""
+    },
     "zoom-scale-l1-max": {
-      "$value": "1.15",
+      "$value": "1.05",
+      "$type": "number",
+      "$description": ""
+    },
+    "zoom-ramp-l2-end": {
+      "$value": "1.25",
       "$type": "number",
       "$description": ""
     },
     "zoom-scale-tactical": {
-      "$value": "1.35",
+      "$value": "1.45",
       "$type": "number",
       "$description": ""
     },
     "zoom-scale-l2-max": {
-      "$value": "2.30",
+      "$value": "1.85",
+      "$type": "number",
+      "$description": ""
+    },
+    "zoom-ramp-l3-start": {
+      "$value": "1.85",
+      "$type": "number",
+      "$description": ""
+    },
+    "zoom-ramp-l3-end": {
+      "$value": "2.45",
+      "$type": "number",
+      "$description": ""
+    },
+    "cad-stroke-floor": {
+      "$value": "0.42",
       "$type": "number",
       "$description": ""
     },
@@ -492,8 +522,123 @@
       "$type": "color",
       "$description": ""
     },
+    "slate-975": {
+      "$value": "#0A0E15",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-950": {
+      "$value": "#0D1117",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-925": {
+      "$value": "#131923",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-920": {
+      "$value": "#0F172A",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-900": {
+      "$value": "#18202C",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-875": {
+      "$value": "#1E2736",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-800": {
+      "$value": "#222B3A",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-750": {
+      "$value": "#2B3648",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-700": {
+      "$value": "#475569",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-620": {
+      "$value": "#526075",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-600": {
+      "$value": "#607089",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-550": {
+      "$value": "#64748B",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-430": {
+      "$value": "#8B9BB2",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-400": {
+      "$value": "#94A3B8",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-300": {
+      "$value": "#BCC5D1",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-250": {
+      "$value": "#CBD5E1",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-200": {
+      "$value": "#CFD6DF",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-140": {
+      "$value": "#E1E6EC",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-100": {
+      "$value": "#F1F5F9",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-80": {
+      "$value": "#ECEFF3",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-60": {
+      "$value": "#F0F3F7",
+      "$type": "color",
+      "$description": ""
+    },
+    "slate-30": {
+      "$value": "#F7F9FB",
+      "$type": "color",
+      "$description": ""
+    },
     "red-600": {
       "$value": "#E63946",
+      "$type": "color",
+      "$description": ""
+    },
+    "amber-700": {
+      "$value": "#B45309",
       "$type": "color",
       "$description": ""
     },
@@ -532,6 +677,11 @@
       "$type": "color",
       "$description": ""
     },
+    "blue-380": {
+      "$value": "#60A5FA",
+      "$type": "color",
+      "$description": ""
+    },
     "blue-200": {
       "$value": "#BAE6FD",
       "$type": "color",
@@ -555,7 +705,7 @@
   },
   "Semantic-Dark": {
     "bg-canvas": {
-      "$value": "{gray-900}",
+      "$value": "{slate-950}",
       "$type": "color",
       "$description": ""
     },
@@ -610,7 +760,7 @@
       "$description": ""
     },
     "text-muted": {
-      "$value": "{gray-420}",
+      "$value": "{slate-430}",
       "$type": "color",
       "$description": ""
     },
@@ -689,38 +839,183 @@
       "$type": "color",
       "$description": ""
     },
+    "canvas-bund-floor": {
+      "$value": "{slate-925}",
+      "$type": "color",
+      "$description": ""
+    },
     "canvas-asphalt": {
-      "$value": "{gray-800}",
+      "$value": "{slate-900}",
       "$type": "color",
       "$description": ""
     },
     "canvas-concrete": {
-      "$value": "{gray-700}",
-      "$type": "color",
-      "$description": ""
-    },
-    "canvas-steel": {
-      "$value": "{gray-500}",
-      "$type": "color",
-      "$description": ""
-    },
-    "canvas-bund-floor": {
-      "$value": "{gray-900}",
+      "$value": "{slate-800}",
       "$type": "color",
       "$description": ""
     },
     "canvas-equip-shell": {
-      "$value": "{gray-800}",
+      "$value": "{slate-750}",
+      "$type": "color",
+      "$description": ""
+    },
+    "canvas-steel": {
+      "$value": "{slate-600}",
+      "$type": "color",
+      "$description": ""
+    },
+    "canvas-pipe-sec": {
+      "$value": "{slate-400}",
       "$type": "color",
       "$description": ""
     },
     "canvas-pipe-proc": {
-      "$value": "{gray-10}",
+      "$value": "{slate-100}",
       "$type": "color",
       "$description": ""
     },
     "canvas-pipe-fire": {
-      "$value": "{gray-500}",
+      "$value": "{slate-600}",
+      "$type": "color",
+      "$description": ""
+    },
+    "canvas-grid": {
+      "$value": "{gray-850}",
+      "$type": "color",
+      "$description": ""
+    },
+    "label-halo": {
+      "$value": "{slate-950}",
+      "$type": "color",
+      "$description": ""
+    },
+    "site-veil": {
+      "$value": "{slate-975}",
+      "$type": "color",
+      "$description": ""
+    },
+    "loto-isolated-path": {
+      "$value": "{gray-450}",
+      "$type": "color",
+      "$description": ""
+    },
+    "marker-surface": {
+      "$value": "{slate-875}",
+      "$type": "color",
+      "$description": ""
+    },
+    "marker-border": {
+      "$value": "{slate-600}",
+      "$type": "color",
+      "$description": ""
+    },
+    "icon-outline": {
+      "$value": "{slate-100}",
+      "$type": "color",
+      "$description": ""
+    },
+    "icon-fill-critical": {
+      "$value": "{red-600}",
+      "$type": "color",
+      "$description": ""
+    },
+    "icon-fill-success": {
+      "$value": "{teal-700}",
+      "$type": "color",
+      "$description": ""
+    },
+    "icon-fill-warning": {
+      "$value": "{amber-700}",
+      "$type": "color",
+      "$description": ""
+    },
+    "icon-fill-info": {
+      "$value": "{blue-600}",
+      "$type": "color",
+      "$description": ""
+    },
+    "loto-disc": {
+      "$value": "rgba(22, 30, 46, 0.85)",
+      "$type": "color",
+      "$description": ""
+    },
+    "state-info-fill": {
+      "$value": "rgba(72, 129, 164, 0.16)",
+      "$type": "color",
+      "$description": ""
+    },
+    "state-success-fill": {
+      "$value": "rgba(42, 157, 143, 0.17)",
+      "$type": "color",
+      "$description": ""
+    },
+    "alarm-critical-fill": {
+      "$value": "rgba(230, 57, 70, 0.15)",
+      "$type": "color",
+      "$description": ""
+    },
+    "alarm-warning-fill": {
+      "$value": "rgba(244, 162, 97, 0.16)",
+      "$type": "color",
+      "$description": ""
+    },
+    "conflict-fill": {
+      "$value": "rgba(230, 57, 70, 0.25)",
+      "$type": "color",
+      "$description": ""
+    },
+    "ruler-bg": {
+      "$value": "rgba(13, 17, 23, 0.46)",
+      "$type": "color",
+      "$description": ""
+    },
+    "ruler-border": {
+      "$value": "rgba(96, 112, 137, 0.34)",
+      "$type": "color",
+      "$description": ""
+    },
+    "scale-bg": {
+      "$value": "rgba(17, 24, 39, 0.42)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-bg": {
+      "$value": "rgba(17, 24, 39, 0.40)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-bg-strong": {
+      "$value": "rgba(17, 24, 39, 0.52)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-border": {
+      "$value": "rgba(148, 163, 184, 0.28)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-border-strong": {
+      "$value": "rgba(148, 163, 184, 0.42)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-text": {
+      "$value": "{slate-100}",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-muted": {
+      "$value": "{slate-400}",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-hover": {
+      "$value": "rgba(241, 245, 249, 0.11)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-kbd-bg": {
+      "$value": "rgba(34, 43, 58, 0.72)",
       "$type": "color",
       "$description": ""
     },
@@ -739,8 +1034,18 @@
       "$type": "color",
       "$description": ""
     },
+    "shadow-marker": {
+      "$value": "0 2px 3px rgba(0, 0, 0, 0.50), 0 1px 2px rgba(0, 0, 0, 0.34)",
+      "$type": "boxShadow",
+      "$description": ""
+    },
     "shadow-hud": {
       "$value": "0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35)",
+      "$type": "boxShadow",
+      "$description": ""
+    },
+    "shadow-glass": {
+      "$value": "0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(241, 245, 249, 0.09)",
       "$type": "boxShadow",
       "$description": ""
     },
@@ -752,7 +1057,7 @@
   },
   "Semantic-Light": {
     "bg-canvas": {
-      "$value": "{gray-200}",
+      "$value": "{slate-80}",
       "$type": "color",
       "$description": ""
     },
@@ -807,7 +1112,7 @@
       "$description": ""
     },
     "text-muted": {
-      "$value": "{gray-620}",
+      "$value": "{slate-620}",
       "$type": "color",
       "$description": ""
     },
@@ -821,38 +1126,183 @@
       "$type": "color",
       "$description": ""
     },
+    "canvas-bund-floor": {
+      "$value": "{slate-140}",
+      "$type": "color",
+      "$description": ""
+    },
     "canvas-asphalt": {
-      "$value": "{gray-280}",
+      "$value": "{slate-300}",
       "$type": "color",
       "$description": ""
     },
     "canvas-concrete": {
-      "$value": "{gray-200}",
-      "$type": "color",
-      "$description": ""
-    },
-    "canvas-steel": {
-      "$value": "{gray-500}",
-      "$type": "color",
-      "$description": ""
-    },
-    "canvas-bund-floor": {
-      "$value": "{gray-100}",
+      "$value": "{slate-200}",
       "$type": "color",
       "$description": ""
     },
     "canvas-equip-shell": {
-      "$value": "{gray-30}",
+      "$value": "{slate-30}",
+      "$type": "color",
+      "$description": ""
+    },
+    "canvas-steel": {
+      "$value": "{slate-550}",
+      "$type": "color",
+      "$description": ""
+    },
+    "canvas-pipe-sec": {
+      "$value": "{slate-700}",
       "$type": "color",
       "$description": ""
     },
     "canvas-pipe-proc": {
-      "$value": "{gray-850}",
+      "$value": "{slate-920}",
       "$type": "color",
       "$description": ""
     },
     "canvas-pipe-fire": {
-      "$value": "{gray-500}",
+      "$value": "{slate-550}",
+      "$type": "color",
+      "$description": ""
+    },
+    "canvas-grid": {
+      "$value": "{slate-250}",
+      "$type": "color",
+      "$description": ""
+    },
+    "label-halo": {
+      "$value": "{slate-80}",
+      "$type": "color",
+      "$description": ""
+    },
+    "site-veil": {
+      "$value": "{slate-60}",
+      "$type": "color",
+      "$description": ""
+    },
+    "loto-isolated-path": {
+      "$value": "{slate-550}",
+      "$type": "color",
+      "$description": ""
+    },
+    "marker-surface": {
+      "$value": "{slate-30}",
+      "$type": "color",
+      "$description": ""
+    },
+    "marker-border": {
+      "$value": "{slate-550}",
+      "$type": "color",
+      "$description": ""
+    },
+    "icon-outline": {
+      "$value": "{slate-920}",
+      "$type": "color",
+      "$description": ""
+    },
+    "icon-fill-critical": {
+      "$value": "{red-600}",
+      "$type": "color",
+      "$description": ""
+    },
+    "icon-fill-success": {
+      "$value": "{teal-400}",
+      "$type": "color",
+      "$description": ""
+    },
+    "icon-fill-warning": {
+      "$value": "{amber-400}",
+      "$type": "color",
+      "$description": ""
+    },
+    "icon-fill-info": {
+      "$value": "{blue-380}",
+      "$type": "color",
+      "$description": ""
+    },
+    "loto-disc": {
+      "$value": "rgba(247, 249, 251, 0.85)",
+      "$type": "color",
+      "$description": ""
+    },
+    "state-info-fill": {
+      "$value": "rgba(37, 99, 235, 0.10)",
+      "$type": "color",
+      "$description": ""
+    },
+    "state-success-fill": {
+      "$value": "rgba(11, 133, 122, 0.12)",
+      "$type": "color",
+      "$description": ""
+    },
+    "alarm-critical-fill": {
+      "$value": "rgba(230, 57, 70, 0.11)",
+      "$type": "color",
+      "$description": ""
+    },
+    "alarm-warning-fill": {
+      "$value": "rgba(172, 94, 4, 0.12)",
+      "$type": "color",
+      "$description": ""
+    },
+    "conflict-fill": {
+      "$value": "rgba(230, 57, 70, 0.22)",
+      "$type": "color",
+      "$description": ""
+    },
+    "ruler-bg": {
+      "$value": "rgba(247, 249, 251, 0.42)",
+      "$type": "color",
+      "$description": ""
+    },
+    "ruler-border": {
+      "$value": "rgba(100, 116, 139, 0.28)",
+      "$type": "color",
+      "$description": ""
+    },
+    "scale-bg": {
+      "$value": "rgba(247, 249, 251, 0.38)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-bg": {
+      "$value": "rgba(247, 249, 251, 0.36)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-bg-strong": {
+      "$value": "rgba(247, 249, 251, 0.46)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-border": {
+      "$value": "rgba(100, 116, 139, 0.32)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-border-strong": {
+      "$value": "rgba(71, 85, 105, 0.44)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-text": {
+      "$value": "{slate-920}",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-muted": {
+      "$value": "{slate-700}",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-hover": {
+      "$value": "rgba(15, 23, 42, 0.08)",
+      "$type": "color",
+      "$description": ""
+    },
+    "float-kbd-bg": {
+      "$value": "rgba(207, 214, 223, 0.62)",
       "$type": "color",
       "$description": ""
     },
@@ -881,8 +1331,18 @@
       "$type": "color",
       "$description": ""
     },
+    "shadow-marker": {
+      "$value": "0 1px 2px rgba(15, 23, 42, 0.22), 0 1px 1px rgba(15, 23, 42, 0.10)",
+      "$type": "boxShadow",
+      "$description": ""
+    },
     "shadow-hud": {
       "$value": "0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.08)",
+      "$type": "boxShadow",
+      "$description": ""
+    },
+    "shadow-glass": {
+      "$value": "0 1px 4px rgba(15, 23, 42, 0.18), 0 1px 2px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(247, 249, 251, 0.72)",
       "$type": "boxShadow",
       "$description": ""
     },

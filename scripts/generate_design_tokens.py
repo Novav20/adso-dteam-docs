@@ -357,7 +357,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
                     val, "dimension"
                 )
     for row in zoom:
-        if row and row[0].startswith("--dt-zoom-"):
+        if row and (row[0].startswith("--dt-zoom-") or row[0].startswith("--dt-cad-")):
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
                 css_value(row[1]), "number"
             )
