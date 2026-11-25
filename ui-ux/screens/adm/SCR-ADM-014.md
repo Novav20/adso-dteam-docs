@@ -355,6 +355,9 @@ public UserStatus? InitialStatusFilter { get; set; }
 
 [Parameter, SupplyParameterFromQuery(Name = "userId")]
 public Guid? InitialSelectedUserId { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "roleId")]
+public Guid? RoleId { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-13`)

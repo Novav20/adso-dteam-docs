@@ -381,7 +381,7 @@ Pages/Inventory/
 #### 7.2.1. `EquipmentMasterDataCardPage.razor` (Root View)
 
 ```csharp
-[Parameter]
+[Parameter, SupplyParameterFromQuery(Name = "equipId")]
 public Guid? EquipmentUnitId { get; set; }
 
 [Parameter, SupplyParameterFromQuery(Name = "locId")]
@@ -389,6 +389,12 @@ public Guid? PreselectedFunctionalLocationId { get; set; }
 
 [Parameter, SupplyParameterFromQuery(Name = "mode")]
 public MasterCardMode InitialMode { get; set; } = MasterCardMode.INSPECT;
+
+[Parameter, SupplyParameterFromQuery(Name = "status")]
+public EquipmentLifecycleStatus? InitialStatusFilter { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "returnUrl")]
+public string? ReturnUrl { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameters (`CMP-01` to `CMP-13`)

@@ -303,8 +303,11 @@ Pages/Maintenance/
 #### 7.2.1. `CreatePreventivePlanPage.razor` (Root View)
 
 ```csharp
-[Parameter]
+[Parameter, SupplyParameterFromQuery(Name = "equipId")]
 public Guid? PreselectedEquipmentUnitId { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "band")]
+public string? RimeBand { get; set; }
 
 [Parameter]
 public string? PreselectedTagNumber { get; set; }

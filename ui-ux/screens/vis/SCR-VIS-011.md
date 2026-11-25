@@ -390,14 +390,14 @@ Pages/
 
 #### 7.2.1. `LotoIsolationMatrixPage.razor` (Root View)
 ```csharp
-[Parameter]
+[Parameter, SupplyParameterFromQuery(Name = "workOrderId")]
 public Guid? WorkOrderId { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "equipId")]
+public Guid? EquipmentUnitId { get; set; }
 
 [Parameter]
 public string? WorkOrderNumber { get; set; }
-
-[Parameter]
-public string? EquipmentUnitTag { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-13`)

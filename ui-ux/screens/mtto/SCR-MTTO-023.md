@@ -357,7 +357,7 @@ Pages/Maintenance/
 #### 7.2.1. `CreatePredictivePlanPage.razor` (Root View)
 
 ```csharp
-[Parameter]
+[Parameter, SupplyParameterFromQuery(Name = "equipId")]
 public Guid? PreselectedEquipmentUnitId { get; set; }
 
 [Parameter]

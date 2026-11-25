@@ -360,8 +360,11 @@ Pages/Maintenance/
 #### 7.2.1. `AssetBoundaryLimitsPage.razor` (Root View)
 
 ```csharp
-[Parameter]
-public required Guid EquipmentUnitId { get; set; }
+[Parameter, SupplyParameterFromQuery(Name = "equipId")]
+public Guid? EquipmentUnitId { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "loc")]
+public string? FunctionalLocationTag { get; set; }
 
 [Parameter, SupplyParameterFromQuery(Name = "mode")]
 public BoundaryViewMode InitialMode { get; set; } = BoundaryViewMode.READ_ONLY;

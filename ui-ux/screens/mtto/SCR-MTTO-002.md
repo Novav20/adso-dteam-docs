@@ -350,10 +350,10 @@ Pages/
 #### 7.2.1. `MobileWorkOrderClosingPage.razor` (Root View)
 
 ```csharp
-[Parameter]
-public required Guid WorkOrderId { get; set; }
+[Parameter, SupplyParameterFromQuery(Name = "workOrderId")]
+public Guid? WorkOrderId { get; set; }
 
-[Parameter, SupplyParameterFromQuery]
+[Parameter, SupplyParameterFromQuery(Name = "returnUrl")]
 public string? ReturnUrl { get; set; }
 ```
 

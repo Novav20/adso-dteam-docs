@@ -316,8 +316,11 @@ Pages/
 [Parameter]
 public string? FunctionalLocationCode { get; set; }
 
-[Parameter]
+[Parameter, SupplyParameterFromQuery(Name = "tag")]
 public string? InitialEquipmentTag { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "level")]
+public string? Level { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-12`)

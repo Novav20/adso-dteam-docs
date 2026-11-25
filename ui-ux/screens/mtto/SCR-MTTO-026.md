@@ -373,6 +373,12 @@ public string? SelectedFunctionalLocationTag { get; set; }
 
 [Parameter, SupplyParameterFromQuery(Name = "band")]
 public string? InitialBandFilter { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "equipId")]
+public Guid? EquipmentUnitId { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "returnUrl")]
+public string? ReturnUrl { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` – `CMP-13`)
