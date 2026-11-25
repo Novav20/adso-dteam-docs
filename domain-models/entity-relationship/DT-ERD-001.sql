@@ -29,19 +29,19 @@ CREATE TABLE IF NOT EXISTS tax.equipment_units (
     model                          VARCHAR(120) NOT NULL,
     purchase_date                  DATE NOT NULL,
     rejection_reason               VARCHAR(255),
-    boundary_start                 VARCHAR(150) NOT NULL,
-    boundary_end                   VARCHAR(150) NOT NULL,
+    boundary_start                 VARCHAR(150),
+    boundary_end                   VARCHAR(150),
     acquisition_date               DATE NOT NULL,
     installation_date              DATE,
     operation_start_date           DATE,
-    operating_hours                BIGINT NOT NULL DEFAULT 0,
-    surveillance_hours             BIGINT NOT NULL DEFAULT 0,
+    operating_hours                DECIMAL(12,2) NOT NULL DEFAULT 0,
+    surveillance_hours             DECIMAL(12,2) NOT NULL DEFAULT 0,
     disposal_date                  DATE,
     disposal_reason                VARCHAR(255),
     operational_status             VARCHAR(20) NOT NULL,
     lifecycle_status               VARCHAR(20) NOT NULL,
     maintenance_status             VARCHAR(30) NOT NULL,
-    health_status                  VARCHAR(30),
+    health_status                  VARCHAR(30) NOT NULL DEFAULT 'UNDETERMINED',
     is_sce                         BOOLEAN NOT NULL DEFAULT FALSE,
     functional_location_id         UUID,
     equipment_class_id             UUID NOT NULL,
@@ -460,6 +460,8 @@ CREATE TABLE IF NOT EXISTS adm.auth_tokens (
     token_hash                     VARCHAR(255) NOT NULL,
     expires_at                     TIMESTAMPTZ NOT NULL,
     is_revoked                     BOOLEAN NOT NULL DEFAULT FALSE,
+    is_used                        BOOLEAN NOT NULL DEFAULT FALSE,
+    used_at                        TIMESTAMPTZ,
     purpose                        VARCHAR(30) NOT NULL,
 
     CONSTRAINT uq_auth_tokens_token_hash UNIQUE (token_hash),
@@ -540,7 +542,7 @@ CREATE TABLE IF NOT EXISTS adm.audit_retention_partitions (
     period_start                   DATE NOT NULL,
     period_end                     DATE NOT NULL,
     record_count                   BIGINT NOT NULL DEFAULT 0,
-    partition_anchor_hash          VARCHAR(64) NOT NULL,
+    partition_anchor_hash          VARCHAR(64),
     is_cold_archived               BOOLEAN NOT NULL DEFAULT FALSE,
     integrity_status               VARCHAR(30) NOT NULL DEFAULT 'VERIFIED_INTACT',
     sealed_at                      TIMESTAMPTZ,
@@ -801,7 +803,7 @@ ALTER TABLE vis.work_permits
 
 ALTER TABLE adm.audit_logs
     ADD CONSTRAINT fk_audit_logs_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
-    ON DELETE SET NULL ON UPDATE CASCADE;
+    ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ALTER TABLE adm.auth_tokens
     ADD CONSTRAINT fk_auth_tokens_user FOREIGN KEY (user_id) REFERENCES adm.users (id)

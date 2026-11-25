@@ -55,19 +55,19 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | model | VARCHAR(120) | NOT NULL | | - | Asset type identification. |
 | purchase_date | DATE | NOT NULL | | - | Procurement chronology. |
 | rejection_reason | VARCHAR(255) | NULL | | NULL | Only present when commissioning is rejected. |
-| boundary_start | VARCHAR(150) | NOT NULL | | - | Starting point of the boundary definition. |
-| boundary_end | VARCHAR(150) | NOT NULL | | - | Ending point of the boundary definition. |
+| boundary_start | VARCHAR(150) | NULL | | NULL | Starting point of the boundary definition (validated as required at `Activate()` / `DefineBoundaries()`). |
+| boundary_end | VARCHAR(150) | NULL | | NULL | Ending point of the boundary definition (validated as required at `Activate()` / `DefineBoundaries()`). |
 | acquisition_date | DATE | NOT NULL | | - | Asset acquisition traceability. |
 | installation_date | DATE | NULL | | NULL | Installation may be pending. |
 | operation_start_date | DATE | NULL | | NULL | Operational start may be pending. |
-| operating_hours | BIGINT | NOT NULL | | 0 | Reliability and usage tracking. |
-| surveillance_hours | BIGINT | NOT NULL | | 0 | Surveillance/standby time for accurate failure calculation (ISO 14224). |
+| operating_hours | DECIMAL(12,2) | NOT NULL | | 0 | Reliability and usage tracking. |
+| surveillance_hours | DECIMAL(12,2) | NOT NULL | | 0 | Surveillance/standby time for accurate failure calculation (ISO 14224). |
 | disposal_date | DATE | NULL | | NULL | End-of-life record for liability traceability (ISO 55000). |
 | disposal_reason | VARCHAR(255) | NULL | | NULL | Reason for asset retirement or decommissioning. |
 | operational_status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled operational status vocabulary. |
 | lifecycle_status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled lifecycle vocabulary. |
 | maintenance_status | VARCHAR(30) | NOT NULL | CHECK | - | Controlled maintenance status vocabulary. |
-| health_status | VARCHAR(30) | NULL | CHECK | NULL | Controlled overall health status vocabulary (ISO 13374-4). |
+| health_status | VARCHAR(30) | NOT NULL | CHECK | 'UNDETERMINED' | Controlled overall health status vocabulary (ISO 13374-4). |
 | is_sce | BOOLEAN | NOT NULL | | FALSE | Safety Critical Element indicator. |
 | functional_location_id | UUID | NULL | FK, UNIQUE | NULL | Foreign key to the related table. |
 | equipment_class_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
@@ -433,7 +433,9 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | user_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
 | token_hash | VARCHAR(255) | NOT NULL | UNIQUE | - | Cryptographic representation of the token. |
 | expires_at | TIMESTAMPTZ | NOT NULL | | - | UTC temporal validity limit. |
-| is_revoked | BOOLEAN | NOT NULL | | FALSE | Pre-expiration manual revocation flag. |
+| is_revoked | BOOLEAN | NOT NULL | | FALSE | Pre-expiration manual revocation flag (`Revoke()`). |
+| is_used | BOOLEAN | NOT NULL | | FALSE | Single-use token consumption flag (`MarkAsUsed()`, distinct from `Revoke()`). |
+| used_at | TIMESTAMPTZ | NULL | | NULL | UTC timestamp recorded when a single-use token is consumed via `MarkAsUsed()`. |
 | purpose | VARCHAR(30) | NOT NULL | CHECK | - | Controlled token purpose (ACCESS, SESSION_REFRESH, REGISTRATION, PASSWORD_RESET, OFFLINE_LOTO_LEASE). |
 
 #### 3.5.3 role_permissions
@@ -504,7 +506,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | period_start | DATE | NOT NULL | | - | Inclusive UTC start date of the quarterly retention window (FR-358). |
 | period_end | DATE | NOT NULL | | - | Inclusive UTC end date of the quarterly retention window (FR-358). |
 | record_count | BIGINT | NOT NULL | | 0 | Total immutable audit records sealed inside the retention partition. |
-| partition_anchor_hash | VARCHAR(64) | NOT NULL | | - | Final SHA-256 `integrity_hash` anchoring continuity across archived partition boundaries (ADR-003, FR-350). |
+| partition_anchor_hash | VARCHAR(64) | NULL | | NULL | Final SHA-256 `integrity_hash` anchoring continuity across archived partition boundaries (`NULL` while `is_cold_archived = FALSE`; ADR-003, FR-350). |
 | is_cold_archived | BOOLEAN | NOT NULL | | FALSE | Flag indicating whether the quarterly partition is sealed in 7-year cold storage (FR-350, FR-358). |
 | integrity_status | VARCHAR(30) | NOT NULL | CHECK | 'VERIFIED_INTACT' | Controlled partition integrity status vocabulary (DT-DM-DOC-001 §4.43). |
 | sealed_at | TIMESTAMPTZ | NULL | | NULL | UTC timestamp when the partition was sealed for cold archival (`NULL` while hot/active). |
@@ -562,7 +564,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | users | 1 : 0..N | auth_tokens | authenticated with | CASCADE | CASCADE |
 | users | 1 : 0..N | work_order_assignments| assigned to | CASCADE | CASCADE |
 | work_orders | 1 : 0..N | work_order_assignments| assigns personnel | CASCADE | CASCADE |
-| users | 1 : 0..N | audit_logs | generates | SET NULL | CASCADE |
+| users | 1 : 0..N | audit_logs | generates | RESTRICT | RESTRICT |
 
 ## 5. Data Type Correspondence Matrix (Standard SQL vs. PostgreSQL)
 
