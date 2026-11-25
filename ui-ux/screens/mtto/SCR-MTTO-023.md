@@ -788,8 +788,8 @@ public record CbmWorkOrderPreviewDto
 public record CreateCbmPlanCommand
 {
     public required Guid EquipmentUnitId { get; init; }
-    public required Guid SubunitId { get; init; }
-    public required Guid MaintainableItemId { get; init; }
+    public Guid? SubunitId { get; init; }
+    public Guid? MaintainableItemId { get; init; }
     public required string MonitoredSignalTag { get; init; }
     public required TelemetrySignalType MonitoredSignalType { get; init; }
     public required decimal IntervalValue { get; init; }

@@ -558,7 +558,7 @@ public record EquipmentHeaderDto
     public required string SerialNumber { get; init; }
     public required string EquipmentClass { get; init; }
     public required string Description { get; init; }
-    public required int CriticalityIndex { get; init; } // 1..10 per FunctionalLocation criticality index (DT-DM-DOC-001 §4.5)
+    public int? CriticalityIndex { get; init; } // 1..10 per FunctionalLocation criticality index (DT-DM-DOC-001 §4.5)
     public required EquipmentOperationalStatus OperationalStatus { get; init; }
     public required MeshMappingStatus MappingStatus { get; init; }
 }

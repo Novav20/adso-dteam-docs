@@ -781,7 +781,7 @@ public record FunctionalLocationOptionDto
     public required string TagNumber { get; init; }
     public required string Name { get; init; }
     public int? Criticality { get; init; }
-    public required EnvironmentalExposureLevel EnvironmentalExposure { get; init; }
+    public EnvironmentalExposureLevel? EnvironmentalExposure { get; init; }
     public short HierarchyLevel { get; init; }
     public bool IsCurrentlyOccupied { get; init; }
     public string? MountedEquipmentSerialNumber { get; init; }
@@ -830,7 +830,10 @@ public record EquipmentUnitMasterCardDto
     public required EquipmentOperationalStatus OperationalStatus { get; init; }
     public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
     public required EquipmentMaintenanceStatus MaintenanceStatus { get; init; }
-    public required EquipmentHealthStatus HealthStatus { get; init; }
+    /// <summary>
+    /// Defaults to <see cref="EquipmentHealthStatus.UNDETERMINED"/> when unassessed (null health status in persistence).
+    /// </summary>
+    public EquipmentHealthStatus HealthStatus { get; init; } = EquipmentHealthStatus.UNDETERMINED;
     public bool IsSce { get; init; }
     public int ConfiguredIsolationPointCount { get; init; }
     public Guid? FunctionalLocationId { get; init; }

@@ -776,7 +776,7 @@ public record RegisterInventoryTransactionCommand
     public bool IsUnusedMaterialReturn { get; init; }
     public required Guid SparePartId { get; init; }
     public required Guid WarehouseId { get; init; }
-    public required Guid LocatorId { get; init; }
+    public Guid? LocatorId { get; init; }
     public Guid? WorkOrderId { get; init; }
     public string? SerialNumber { get; init; }
     public required decimal Quantity { get; init; }
@@ -798,7 +798,7 @@ public record InventoryTransactionVoucherDto
     public required string Sku { get; init; }
     public required string SparePartDescription { get; init; }
     public required string WarehouseName { get; init; }
-    public required string LocatorCode { get; init; }
+    public string? LocatorCode { get; init; }
     public required decimal Quantity { get; init; }
     public required StandardUnitOfMeasure UnitOfMeasure { get; init; }
     public required decimal UnitCost { get; init; }

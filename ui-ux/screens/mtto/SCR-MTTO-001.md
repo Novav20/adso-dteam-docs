@@ -660,8 +660,8 @@ public record CalendarWorkOrderPreviewDto
 public record CreateMaintenancePlanCommand
 {
     public required Guid EquipmentUnitId { get; init; }
-    public required Guid SubunitId { get; init; }
-    public required Guid MaintainableItemId { get; init; }
+    public Guid? SubunitId { get; init; }
+    public Guid? MaintainableItemId { get; init; }
     public required int IntervalValue { get; init; }
     public required CalendarIntervalUnit IntervalUnit { get; init; }
     public required decimal EstimatedLaborHours { get; init; }
@@ -675,9 +675,9 @@ public record MaintenancePlanSummaryDto
 {
     public required Guid PlanId { get; init; }
     public required string EquipmentTag { get; init; }
-    public required string MaintainableItemName { get; init; }
+    public string? MaintainableItemName { get; init; }
     public required string FrequencyDescription { get; init; }
-    public required DateOnly NextWorkOrderDate { get; init; }
+    public DateOnly? NextWorkOrderDate { get; init; }
     public required MaintenancePlanStatus Status { get; init; }
     public required Guid InitialWorkOrderId { get; init; }
     public required int RimeScore { get; init; }

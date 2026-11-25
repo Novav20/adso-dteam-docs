@@ -575,10 +575,10 @@ public record BacklogItemDto
     public required Guid Id { get; init; }
     public required Guid WorkRequestId { get; init; }
     public required Guid EquipmentUnitId { get; init; }
-    public required Guid FunctionalLocationId { get; init; }
+    public Guid? FunctionalLocationId { get; init; }
     public required string WorkRequestNumber { get; init; }
     public required string Description { get; init; }
-    public required string FunctionalLocationTag { get; init; }
+    public string? FunctionalLocationTag { get; init; }
     public required string FunctionalLocationName { get; init; }
     public required string EquipmentTag { get; init; }
     public required string EquipmentSerialNumber { get; init; }
@@ -650,7 +650,7 @@ public record RimeCalculationBreakdownDto
 {
     public required Guid WorkRequestId { get; init; }
     public required string ActiveStrategyName { get; init; }
-    public required int AssetCriticality { get; init; }
+    public int? AssetCriticality { get; init; }
     public required int WorkClassWeight { get; init; }
     public required int RawScore { get; init; }
     public required int FinalScore { get; init; }

@@ -628,7 +628,7 @@ public record LotoIsolationPlanDto
     public required string TargetEquipmentTag { get; init; }
     public required string TargetEquipmentDescription { get; init; }
     public required string FunctionalLocationName { get; init; }
-    public required WorkPermitStatus LinkedPermitStatus { get; init; }
+    public WorkPermitStatus? LinkedPermitStatus { get; init; }
     public required string StandardOperatingProcedureCode { get; init; }
     public required string StandardOperatingProcedureUrl { get; init; }
     public IReadOnlyList<string> RequiredPpeCodes { get; init; } = [];

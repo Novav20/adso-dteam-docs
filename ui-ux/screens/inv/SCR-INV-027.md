@@ -696,7 +696,7 @@ public record FunctionalLocationTreeNodeDto
     public required string FullPathTag { get; init; }
     public int? Criticality { get; init; }
     public string? GeographicLocation { get; init; }
-    public required EnvironmentalExposureLevel EnvironmentalExposure { get; init; }
+    public EnvironmentalExposureLevel? EnvironmentalExposure { get; init; }
     public required int ChildLocationsCount { get; init; }
     public required int MaxSubtreeDepth { get; init; }
     public MountedEquipmentSummaryDto? MountedEquipment { get; init; }

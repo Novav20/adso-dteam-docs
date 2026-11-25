@@ -667,7 +667,8 @@ public record WorkOrderClosingContextDto
     public required Guid EquipmentClassId { get; init; }
     public required string EquipmentTag { get; init; }
     public required string EquipmentName { get; init; }
-    public required string FunctionalLocation { get; init; }
+    public Guid? FunctionalLocationId { get; init; }
+    public string? FunctionalLocationTag { get; init; }
     public required WorkOrderStatus CurrentStatus { get; init; }
     public required IsolationStatus LotoIsolationStatus { get; init; }
     public required decimal EstimatedHours { get; init; }

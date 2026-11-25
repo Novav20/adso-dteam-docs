@@ -457,7 +457,7 @@ public record InstalledAssetDetailsDto
     public required Guid EquipmentClassId { get; init; }
     public required string EquipmentClassName { get; init; }
     public required long OperatingHours { get; init; }
-    public required DateOnly InstallationDate { get; init; }
+    public DateOnly? InstallationDate { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 
