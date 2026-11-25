@@ -69,11 +69,61 @@ DEFAULT_UI_SYMBOLS = {
     "icon-chevron-up": """
       <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" fill="currentColor"/>
     """,
+    "icon-user": """
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+    """,
+    "icon-plus": """
+      <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    """,
+    "icon-shield": """
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    """,
+    "icon-key": """
+      <circle cx="7.5" cy="15.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M21 2l-9.6 9.6M15.5 7.5l3 3L22 7l-3-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    """,
+    "icon-sliders": """
+      <line x1="4" y1="21" x2="4" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="10" x2="4" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="12" y1="21" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="8" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="20" y1="21" x2="20" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="20" y1="12" x2="20" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="1" y1="14" x2="7" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="16" x2="23" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    """,
+    "icon-history": """
+      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="3 3 3 8 8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="12 7 12 12 15 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    """,
+    "icon-printer": """
+      <polyline points="6 9 6 2 18 2 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="6" y="14" width="12" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    """,
+    "icon-calendar": """
+      <rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
+    """,
+    "icon-clock": """
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+      <polyline points="12 7 12 12 15 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    """,
+    "icon-edit": """
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    """,
+    "icon-wifi": """
+      <path d="M5 12.55a11 11 0 0 1 14.08 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M1.42 9a16 16 0 0 1 21.16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="20" r="1" fill="currentColor"/>
+    """,
 }
 
 
-def clean_xml_element(elem: ET.Element) -> None:
-    """Strip editor-specific namespaces, attributes, and hidden display styles."""
+def clean_xml_element(elem: ET.Element, two_tone: bool = False) -> None:
+    """Strip editor-specific namespaces, attributes, and normalize ink/surface colors."""
     attribs_to_remove = [
         k for k in elem.attrib
         if k.startswith("{") or k.startswith("sodipodi:") or k.startswith("inkscape:")
@@ -81,44 +131,75 @@ def clean_xml_element(elem: ET.Element) -> None:
     for attr in attribs_to_remove:
         elem.attrib.pop(attr, None)
 
+    ink_val = "var(--icon-outline, currentColor)" if two_tone else "currentColor"
+
     if "style" in elem.attrib:
         style = elem.attrib["style"]
         style = re.sub(r"display\s*:\s*[^;]+;?", "", style).strip()
-        style = re.sub(r"fill\s*:\s*(?:#000000|#000|black);?", "fill: currentColor;", style)
-        style = re.sub(r"stroke\s*:\s*(?:#000000|#000|black);?", "stroke: currentColor;", style)
+        style = re.sub(
+            r"fill\s*:\s*(?:#000000|#000|black|rgb\(\s*[01]\s*,\s*[01]\s*,\s*[01]\s*\))\s*;?",
+            f"fill: {ink_val};",
+            style,
+        )
+        style = re.sub(
+            r"stroke\s*:\s*(?:#000000|#000|black|rgb\(\s*[01]\s*,\s*[01]\s*,\s*[01]\s*\))\s*;?",
+            f"stroke: {ink_val};",
+            style,
+        )
+        if two_tone:
+            style = re.sub(
+                r"fill\s*:\s*(?:#ffffff|#fff|white|rgb\(\s*25[45]\s*,\s*25[45]\s*,\s*25[45]\s*\))\s*;?",
+                "fill: var(--icon-fill, var(--dt-color-surface-card));",
+                style,
+            )
         if style:
             elem.attrib["style"] = style
         else:
             elem.attrib.pop("style", None)
 
-    if elem.attrib.get("fill") in ("#000000", "#000", "black"):
-        elem.attrib["fill"] = "currentColor"
+    if elem.attrib.get("fill") in ("#000000", "#000", "black", "rgb(0,0,0)", "rgb(1,1,1)"):
+        elem.attrib["fill"] = ink_val
+    elif two_tone and elem.attrib.get("fill") in ("#ffffff", "#fff", "white", "rgb(254,254,254)", "rgb(255,255,255)"):
+        elem.attrib["fill"] = "var(--icon-fill, var(--dt-color-surface-card))"
 
-    if elem.attrib.get("stroke") in ("#000000", "#000", "black"):
-        elem.attrib["stroke"] = "currentColor"
+    if elem.attrib.get("stroke") in ("#000000", "#000", "black", "rgb(0,0,0)", "rgb(1,1,1)"):
+        elem.attrib["stroke"] = ink_val
 
-    # Default SVG shapes without explicit fill or stroke to currentColor (inherits parent CSS)
+    # Default SVG shapes without explicit fill or stroke to ink_val
     tag_clean = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
     if tag_clean in ("path", "polygon", "rect", "circle", "ellipse"):
         style_str = elem.attrib.get("style", "")
         has_fill = ("fill" in elem.attrib) or bool(re.search(r"(?<!-)\bfill\s*:", style_str))
         has_stroke = ("stroke" in elem.attrib) or bool(re.search(r"(?<!-)\bstroke\s*:", style_str))
         if not has_fill and not has_stroke:
-            elem.attrib["fill"] = "currentColor"
+            elem.attrib["fill"] = ink_val
 
     for child in elem:
-        clean_xml_element(child)
+        clean_xml_element(child, two_tone=two_tone)
 
 
-def build(source_dir: Path, target: Path, prototype_target: Path | None = None, prototype_data_js: Path | None = None) -> None:
+def build(
+    source_dir: Path,
+    target: Path,
+    prototype_target: Path | None = None,
+    prototype_data_js: Path | None = None,
+    overlay_dir: Path | None = None,
+    exclude_ids: set[str] | None = None,
+) -> None:
     if not source_dir.exists():
         raise FileNotFoundError(f"Source directory not found: {source_dir}")
+    if overlay_dir is not None and not overlay_dir.exists():
+        raise FileNotFoundError(f"Overlay directory not found: {overlay_dir}")
 
     extracted_symbols: dict[str, str] = {}
 
-    # Traverse all SVG files in source directory
+    # Traverse all SVG files in source directory (and optional overlay directory)
     svg_files = sorted(source_dir.glob("*.svg"))
     print(f"Scanning {source_dir} ({len(svg_files)} files found)...")
+    if overlay_dir is not None:
+        overlay_files = sorted(overlay_dir.glob("*.svg"))
+        print(f"Scanning overlay {overlay_dir} ({len(overlay_files)} files found)...")
+        svg_files.extend(overlay_files)
 
     for svg_path in svg_files:
         content = svg_path.read_text(encoding="utf-8")
@@ -147,9 +228,35 @@ def build(source_dir: Path, target: Path, prototype_target: Path | None = None, 
 
             if symbol_id:
                 explicit_vb = group.attrib.pop("data-viewbox", None) or group.attrib.pop("viewBox", None)
-                clean_xml_element(group)
-                group.attrib["id"] = symbol_id
-                viewbox = explicit_vb or root.attrib.get("viewBox", "0 0 24 24")
+                artboard_vb = None
+                for child in list(group):
+                    child_tag = child.tag.split("}")[-1] if "}" in child.tag else child.tag
+                    if child_tag == "rect" and child.attrib.get("x", "0") == "0" and child.attrib.get("y", "0") == "0":
+                        w = child.attrib.get("width")
+                        h = child.attrib.get("height")
+                        style_val = child.attrib.get("style", "")
+                        if w and h and ("fill:none" in style_val.replace(" ", "") or child.attrib.get("fill") == "none"):
+                            artboard_vb = f"0 0 {w} {h}"
+                            group.remove(child)
+                            break
+
+                is_two_tone = bool(
+                    re.search(
+                        r"rgb\(\s*25[45]\s*,\s*25[45]\s*,\s*25[45]\s*\)|#ffffff|#fff\b|white",
+                        ET.tostring(group, encoding="unicode"),
+                        re.IGNORECASE,
+                    )
+                )
+                clean_xml_element(group, two_tone=is_two_tone)
+                group.attrib.pop("id", None)
+                if artboard_vb:
+                    if re.fullmatch(
+                        r"matrix\(\s*1\s*,\s*0\s*,\s*0\s*,\s*1\s*,[^)]+\)|translate\([^)]+\)",
+                        group.attrib.get("transform", "").strip(),
+                    ):
+                        group.attrib.pop("transform", None)
+
+                viewbox = explicit_vb or artboard_vb or root.attrib.get("viewBox", "0 0 24 24")
                 inner_xml = ET.tostring(group, encoding="unicode").strip()
                 extracted_symbols[symbol_id] = (
                     f'  <symbol id="{symbol_id}" viewBox="{viewbox}">\n    {inner_xml}\n  </symbol>'
@@ -175,6 +282,10 @@ def build(source_dir: Path, target: Path, prototype_target: Path | None = None, 
             extracted_symbols[symbol_id] = (
                 f'  <symbol id="{symbol_id}" viewBox="0 0 24 24">\n{inner_xml.strip()}\n  </symbol>'
             )
+
+    if exclude_ids:
+        for ex_id in exclude_ids:
+            extracted_symbols.pop(ex_id, None)
 
     # Compose final SVG sprite
     sprite_content = (
@@ -248,6 +359,8 @@ def build(source_dir: Path, target: Path, prototype_target: Path | None = None, 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-dir", type=Path, default=DEFAULT_SOURCE_DIR)
+    parser.add_argument("--overlay-dir", type=Path, default=None)
+    parser.add_argument("--exclude", type=str, default="", help="Comma-separated symbol IDs to exclude.")
     parser.add_argument("--target", type=Path, default=DEFAULT_TARGET)
     parser.add_argument("--prototype-target", type=Path, default=None)
     parser.add_argument("--prototype-data-js", type=Path, default=None)
@@ -264,11 +377,14 @@ def main() -> None:
         prototype_dir = args.target_prototype_dir.resolve()
         prototype_target = prototype_dir / "icons.svg"
         prototype_data_js = prototype_dir / "icons-data.js"
+    exclude_ids = {s.strip() for s in args.exclude.split(",") if s.strip()} if args.exclude else None
     build(
         args.source_dir.resolve(),
         args.target.resolve(),
         prototype_target.resolve() if prototype_target else None,
         prototype_data_js.resolve() if prototype_data_js else None,
+        args.overlay_dir.resolve() if args.overlay_dir else None,
+        exclude_ids=exclude_ids,
     )
 
 
