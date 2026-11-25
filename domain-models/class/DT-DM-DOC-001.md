@@ -244,6 +244,7 @@ This segregation allows for:
 | CALENDAR_TIME | The plan is driven by elapsed calendar time. | |
 | OPERATING_HOURS | The plan is driven by accumulated operating hours. | |
 | CYCLES | The plan is driven by cycles or starts. | |
+| SENSOR_THRESHOLD | The plan is driven by process signal thresholds, distance (`KILOMETERS`), or physical wear (`WEAR_DEPTH_MM`) telemetry (`MTTO-023`). | Condition-Based (ISO 13374) |
 
 #### 4.14 MaintenancePlan.intervalUnit
 

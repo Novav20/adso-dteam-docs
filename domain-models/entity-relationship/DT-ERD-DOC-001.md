@@ -138,7 +138,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Identity of the failure event. |
 | work_order_id | UUID | NOT NULL | FK | - | Foreign key to the related table. |
-| maintainable_item_id | UUID | NULL | FK | NULL | Foreign key to the related table. |
+| maintainable_item_id | UUID | NOT NULL | FK | - | Foreign key to the related table (mandatory ISO 14224 Level 8 failure target). |
 | failure_mode | VARCHAR(120) | NOT NULL | | - | ISO 14224 failure coding. |
 | failure_mechanism | VARCHAR(120) | NOT NULL | | - | ISO 14224 failure coding. |
 | failure_cause | VARCHAR(120) | NOT NULL | | - | ISO 14224 failure coding. |
@@ -492,9 +492,10 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
 | idempotency_key | VARCHAR(128) | NOT NULL | UNIQUE | - | Client-provided uniqueness token (ADR-007). |
-| tenant_id | UUID | NOT NULL | | - | Multi-tenant isolation boundary. |
 | request_hash | VARCHAR(64) | NOT NULL | | - | SHA-256 fingerprint to prevent payload mutation. |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled state of the transaction (PROCESSING, COMPLETED, FAILED). |
+| response_status_code | INT | NULL | | NULL | Cached HTTP status code replayed on duplicate requests during PostgreSQL idempotency fallback (ADR-007). |
+| response_payload | JSONB | NULL | | NULL | Cached JSON response payload replayed on duplicate requests during PostgreSQL idempotency fallback (ADR-007). |
 | created_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC timestamp indexed for scheduled batched 24-hour TTL purge on the unpartitioned table (ADR-007). |
 
 #### 3.5.9 audit_retention_partitions
@@ -518,6 +519,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | equipment_classes | 1 : 0..N | equipment_units | classifies | RESTRICT | CASCADE |
 | functional_locations| 1 : 0..N | functional_locations | contains (Self) | RESTRICT | CASCADE |
 | functional_locations| 1 : 0..N | equipment_units | installs | RESTRICT | CASCADE |
+| warehouses | 1 : 0..N | equipment_units | stores | SET NULL | CASCADE |
 | functional_locations | 1 : 0..N | asset_installations | tracked via | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | asset_installations | mounted at | CASCADE | CASCADE |
 | equipment_units | 1 : 0..N | subunits | broken down into | CASCADE | CASCADE |
@@ -539,6 +541,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | work_orders | 1 : 0..N | work_order_histories| audited via | CASCADE | CASCADE |
 | locators | 1 : 0..N | inventory_transactions| transacts | RESTRICT | CASCADE |
 | warehouses | 1 : 0..N | locators | contains | CASCADE | CASCADE |
+| warehouses | 1 : 0..N | inventory_transactions | records | RESTRICT | CASCADE |
 | spare_parts | 1 : 0..N | inventory_transactions| moves | RESTRICT | CASCADE |
 | work_orders | 1 : 0..N | inventory_transactions| consumes | SET NULL | CASCADE |
 | maintainable_items | 1 : 0..N | maintainable_item_spare_parts | repaired with | CASCADE | CASCADE |

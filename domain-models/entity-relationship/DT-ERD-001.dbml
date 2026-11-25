@@ -136,7 +136,7 @@ Table "mtto"."backlog_items" {
 Table "mtto"."failure_records" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identity of the failure event.']
   "work_order_id" "UUID" [not null, note: 'Foreign key to the related table.']
-  "maintainable_item_id" "UUID" [note: 'Foreign key to the related table.']
+  "maintainable_item_id" "UUID" [not null, note: 'Foreign key to the related table (mandatory ISO 14224 Level 8 failure target).']
   "failure_mode" "VARCHAR(120)" [not null, note: 'ISO 14224 failure coding.']
   "failure_mechanism" "VARCHAR(120)" [not null, note: 'ISO 14224 failure coding.']
   "failure_cause" "VARCHAR(120)" [not null, note: 'ISO 14224 failure coding.']
@@ -428,9 +428,10 @@ Table "adm"."work_order_assignments" {
 Table "adm"."idempotency_logs" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "idempotency_key" "VARCHAR(128)" [unique, not null, note: 'Client-provided uniqueness token (ADR-007).']
-  "tenant_id" "UUID" [not null, note: 'Multi-tenant isolation boundary.']
   "request_hash" "VARCHAR(64)" [not null, note: 'SHA-256 fingerprint to prevent payload mutation.']
   "status" "VARCHAR(20)" [not null, note: 'Controlled state of the transaction (PROCESSING, COMPLETED, FAILED).']
+  "response_status_code" "INT" [note: 'Cached HTTP status code replayed on duplicate requests during PostgreSQL idempotency fallback (ADR-007).']
+  "response_payload" "JSONB" [note: 'Cached JSON response payload replayed on duplicate requests during PostgreSQL idempotency fallback (ADR-007).']
   "created_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC timestamp indexed for scheduled batched 24-hour TTL purge on the unpartitioned table (ADR-007).']
 }
 
@@ -450,6 +451,7 @@ Table "adm"."audit_retention_partitions" {
 Ref: "tax"."equipment_classes"."id" < "tax"."equipment_units"."equipment_class_id" [delete: restrict, update: cascade]
 Ref: "tax"."functional_locations"."id" < "tax"."functional_locations"."parent_id" [delete: restrict, update: cascade]
 Ref: "tax"."functional_locations"."id" < "tax"."equipment_units"."functional_location_id" [delete: restrict, update: cascade]
+Ref: "inv"."warehouses"."id" < "tax"."equipment_units"."warehouse_id" [delete: set null, update: cascade]
 Ref: "tax"."functional_locations"."id" < "tax"."asset_installations"."functional_location_id" [delete: cascade, update: cascade]
 Ref: "tax"."equipment_units"."id" < "tax"."asset_installations"."equipment_unit_id" [delete: cascade, update: cascade]
 Ref: "tax"."equipment_units"."id" < "tax"."subunits"."equipment_unit_id" [delete: cascade, update: cascade]
@@ -471,6 +473,7 @@ Ref: "mtto"."failure_records"."id" < "mtto"."media_attachments"."failure_record_
 Ref: "mtto"."work_orders"."id" < "mtto"."work_order_histories"."work_order_id" [delete: cascade, update: cascade]
 Ref: "inv"."locators"."id" < "inv"."inventory_transactions"."locator_id" [delete: restrict, update: cascade]
 Ref: "inv"."warehouses"."id" < "inv"."locators"."warehouse_id" [delete: cascade, update: cascade]
+Ref: "inv"."warehouses"."id" < "inv"."inventory_transactions"."warehouse_id" [delete: restrict, update: cascade]
 Ref: "inv"."spare_parts"."id" < "inv"."inventory_transactions"."spare_part_id" [delete: restrict, update: cascade]
 Ref: "mtto"."work_orders"."id" < "inv"."inventory_transactions"."work_order_id" [delete: set null, update: cascade]
 Ref: "tax"."maintainable_items"."id" < "inv"."maintainable_item_spare_parts"."maintainable_item_id" [delete: cascade, update: cascade]

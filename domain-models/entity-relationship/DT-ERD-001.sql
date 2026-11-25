@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS mtto.backlog_items (
 CREATE TABLE IF NOT EXISTS mtto.failure_records (
     id                             UUID NOT NULL DEFAULT uuidv7(),
     work_order_id                  UUID NOT NULL,
-    maintainable_item_id           UUID,
+    maintainable_item_id           UUID NOT NULL,
     failure_mode                   VARCHAR(120) NOT NULL,
     failure_mechanism              VARCHAR(120) NOT NULL,
     failure_cause                  VARCHAR(120) NOT NULL,
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS mtto.maintenance_plans (
     status                         VARCHAR(20) NOT NULL,
 
     CONSTRAINT ck_maintenance_plans_maintenance_method CHECK (maintenance_method IN ('PREVENTIVE', 'PREDICTIVE', 'CONDITION_BASED')),
-    CONSTRAINT ck_maintenance_plans_frequency_type CHECK (frequency_type IN ('CALENDAR_TIME', 'OPERATING_HOURS', 'CYCLES')),
+    CONSTRAINT ck_maintenance_plans_frequency_type CHECK (frequency_type IN ('CALENDAR_TIME', 'OPERATING_HOURS', 'CYCLES', 'SENSOR_THRESHOLD')),
     CONSTRAINT ck_maintenance_plans_interval_unit CHECK (interval_unit IN ('DAYS', 'WEEKS', 'MONTHS', 'YEARS', 'OPERATING_HOURS', 'CYCLES', 'KILOMETERS', 'WEAR_DEPTH_MM')),
     CONSTRAINT ck_maintenance_plans_monitored_signal_type CHECK (monitored_signal_type IN ('TEMPERATURE', 'PRESSURE', 'VIBRATION', 'FLOW_RATE', 'VOLTAGE', 'CURRENT', 'RPM', 'OPERATING_HOURS', 'CYCLES')),
     CONSTRAINT ck_maintenance_plans_status CHECK (status IN ('DRAFT', 'ACTIVE', 'INACTIVE', 'ARCHIVED')),
@@ -526,9 +526,10 @@ CREATE TABLE IF NOT EXISTS adm.work_order_assignments (
 CREATE TABLE IF NOT EXISTS adm.idempotency_logs (
     id                             UUID NOT NULL DEFAULT uuidv7(),
     idempotency_key                VARCHAR(128) NOT NULL,
-    tenant_id                      UUID NOT NULL,
     request_hash                   VARCHAR(64) NOT NULL,
     status                         VARCHAR(20) NOT NULL,
+    response_status_code           INT,
+    response_payload               JSONB,
     created_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
 
     CONSTRAINT uq_idempotency_logs_idempotency_key UNIQUE (idempotency_key),
@@ -616,6 +617,7 @@ CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON adm.user_roles (user_id);
 CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON adm.user_roles (role_id);
 CREATE INDEX IF NOT EXISTS idx_work_order_assignments_work_order_id ON adm.work_order_assignments (work_order_id);
 CREATE INDEX IF NOT EXISTS idx_work_order_assignments_user_id ON adm.work_order_assignments (user_id);
+CREATE INDEX IF NOT EXISTS idx_idempotency_logs_response_payload ON adm.idempotency_logs USING GIN (response_payload jsonb_path_ops);
 
 -- ==========================================
 -- FOREIGN KEY CONSTRAINTS (CROSS-SCHEMA)
@@ -631,7 +633,7 @@ ALTER TABLE tax.equipment_units
 
 ALTER TABLE tax.equipment_units
     ADD CONSTRAINT fk_equipment_units_warehouse FOREIGN KEY (warehouse_id) REFERENCES inv.warehouses (id)
-    ON DELETE RESTRICT ON UPDATE CASCADE;
+    ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE tax.functional_locations
     ADD CONSTRAINT fk_functional_locations_parent FOREIGN KEY (parent_id) REFERENCES tax.functional_locations (id)
