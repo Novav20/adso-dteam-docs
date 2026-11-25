@@ -689,9 +689,11 @@ public record SimopsPermitSummaryDto
 
 /// <summary>
 /// Physical Try-Out attestation DTO; TelemetrySnapshot maps to the WorkOrderIsolation JSONB contract per DT-ERD-DOC-001 §6.6.
+/// IsolationPointId scopes ConcurrencyToken unambiguously to the (work_order_id, isolation_point_id) WorkOrderIsolation row.
 /// </summary>
 public record TryOutAttestationDto
 {
+    public required Guid IsolationPointId { get; init; }
     public required TryOutMethod Method { get; init; }
     public required string ObservedPhysicalReading { get; init; }
     public required string TechnicianSignatureHash { get; init; }

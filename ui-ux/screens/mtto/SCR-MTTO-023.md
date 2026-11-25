@@ -246,9 +246,9 @@ sequenceDiagram
 1. **Minimal API Endpoint Contract ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)):**
    * `GET /api/v1/taxonomy/equipment-units/lookup` — paginated Tier A equipment search accepting `EquipmentUnitLookupQueryDto` and returning `PagedLookupResultDto<EquipmentUnitLookupDto>`.
    * `GET /api/v1/taxonomy/equipment-units/{id}/boundaries` and `GET /api/v1/taxonomy/equipment-units/{id}/subunits` — verifies battery limits and hydrates cascading Level 7/8 taxonomy selectors.
-   * `GET /api/v1/telemetry/equipment-units/{id}/signals` — returns mapped `TelemetrySignalDto` streams with current baselines and `ETag: "{ConcurrencyToken}"`.
+   * `GET /api/v1/telemetry/equipment-units/{id}/signals` — returns mapped `TelemetrySignalDto` streams with current baselines.
    * `POST /api/v1/maintenance/plans/cbm` — dispatches `CreateCbmPlanCommand` with mandatory `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), returning HTTP 201 Created.
-   * `POST /api/v1/telemetry/signals/{id}/manual-readings` — dispatches `RecordManualReadingCommand` (`AF-003`) with mandatory `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` concurrency standard per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)), preventing duplicate monotonic counter violations on retry.
+   * `POST /api/v1/telemetry/signals/{id}/manual-readings` — dispatches `RecordManualReadingCommand` (`AF-003`) with mandatory `X-Idempotency-Key: {uuidv7}` (without `If-Match`, as `TelemetrySignal` (`telemetry_signals`) is an append-only hypertable exempt from PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)), preventing duplicate monotonic counter violations on retry.
 2. **Real-Time SignalR Contracts ([TR-010](../../../requirements/common/TR-010.md), [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)):**
    * Subscribes to `/hubs/telemetry` (`ITelemetryClient`) receiving `ReceiveTelemetryReading(TelemetryReadingDto)` and `CbmReadingRecorded(CbmTriggerEventDto)` for live baseline updates and monotonicity blocks (`AF-002`), while auto-instantiated CBM Work Orders broadcast `WorkOrderStatusChanged(WorkOrderTransitionEvent)` over `/hubs/operations` (`IOperationsClient`).
 
@@ -773,7 +773,6 @@ public record TelemetrySignalDto
     public required DateTimeOffset LastUpdatedUtc { get; init; }
     public required bool IsOnline { get; init; }
     public required bool IsSafetyCritical { get; init; }
-    public required uint ConcurrencyToken { get; init; }
 }
 
 public record CbmWorkOrderPreviewDto
@@ -811,7 +810,6 @@ public record RecordManualReadingCommand
     public required DateTimeOffset ReadingTimestampUtc { get; init; }
     public required Guid OperatorUserId { get; init; }
     public string? PhysicalGaugePhotoUrl { get; init; }
-    public required uint ConcurrencyToken { get; init; }
 }
 ```
 

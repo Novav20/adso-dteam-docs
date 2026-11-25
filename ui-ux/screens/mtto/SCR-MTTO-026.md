@@ -643,6 +643,9 @@ public record AdjustWorkClassCommand
     public required string TechnicalJustification { get; init; }
     public required Guid PlannerUserId { get; init; }
     public required string PreviousHash { get; init; }
+    /// <summary>
+    /// Binds to the <c>WorkRequest</c> (<c>work_requests</c>) <c>xmin</c> optimistic concurrency token while <c>BacklogItem</c> (<c>backlog_items</c>) is updated atomically as a derived projection.
+    /// </summary>
     public required uint ConcurrencyToken { get; init; }
 }
 

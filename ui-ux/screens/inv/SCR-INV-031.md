@@ -797,6 +797,10 @@ public record UpdateSparePartPolicyCommand
     public required Guid ManagerUserId { get; init; }
     public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
+    /// <summary>
+    /// Optional PostgreSQL <c>xmin</c> concurrency token for the <c>Supplier</c> (<c>suppliers</c>) row when supplier contact or warranty terms are modified alongside the spare part policy.
+    /// </summary>
+    public uint? SupplierConcurrencyToken { get; init; }
 }
 
 public record PartMasterAuditEntryDto

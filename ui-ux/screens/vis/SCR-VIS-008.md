@@ -177,7 +177,7 @@ status: Stable
 
 ### 5.1. Spatial Resolution, Proximity Engine, and Layer Rendering
 1. Upon loading the view, the system retrieves the vector layout representing the facility's Functional Locations (ISO 14224 Levels 1 to 5) via `GET /api/v1/visualization/plot-plans/{facilityCode}` ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)).
-2. When the Work Permits layer is active, the system queries all `WorkPermits` in the `APPROVED` lifecycle state via `GET /api/v1/safety/work-permits?status=APPROVED` and retrieves unmapped integrity anomalies via `GET /api/v1/safety/work-permits/orphans`. Spatial reassignment of an orphan permit's equipment mesh mapping (`FR-186`) dispatches `PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}` carrying both `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)).
+2. When the Work Permits layer is active, the system queries all `WorkPermits` in the `APPROVED` lifecycle state via `GET /api/v1/safety/work-permits?status=APPROVED` and retrieves unmapped integrity anomalies via `GET /api/v1/safety/work-permits/orphans`. Spatial reassignment of an orphan permit's equipment mesh mapping (`FR-186`) dispatches `PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}` (`UpsertMeshMappingCommand`) carrying `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), and includes `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) only when updating an existing `MeshMapping` (`mesh_mappings`) row (omitted when creating an initial mapping for an unmapped orphan asset).
 3. **Referential Resolution & Pin Anchoring Path:**
    $$\text{WorkPermit} \xrightarrow{\text{EquipmentUnitId}} \text{EquipmentUnit} \xrightarrow{\text{MeshMapping}} \text{SVG Geometry / Pin Anchor}$$
    * For large containment footprints (e.g., atmospheric storage tanks and wide process vessels), the two-tone `CMP-05` spatial pin anchors cleanly **inside** the equipment footprint without occluding roof instruments. For compact equipment units (e.g., centrifugal pumps, gate valves, compact manifolds), the pin anchors immediately **adjacent** to the symbol edge with a subtle leader tick so mechanical nozzles remain unobscured.
@@ -544,6 +544,21 @@ public record OrphanPermitDto
     public required uint ConcurrencyToken { get; init; }
 }
 
+/// <summary>
+/// Spatial mesh mapping upsert command for PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}.
+/// ConcurrencyToken is nullable because initial orphan mapping creates a new MeshMapping (mesh_mappings) row without If-Match;
+/// If-Match applies only when updating an existing mapping.
+/// </summary>
+public record UpsertMeshMappingCommand
+{
+    public required Guid EquipmentUnitId { get; init; }
+    public required double CoordinateX { get; init; }
+    public required double CoordinateY { get; init; }
+    public double? CoordinateZ { get; init; }
+    public string? MeshUuid { get; init; }
+    public uint? ConcurrencyToken { get; init; }
+}
+
 public record PlantPlotPlanDto
 {
     public required string FacilityCode { get; init; }
@@ -620,4 +635,4 @@ public record PlantZoneDto
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-06`, `CMP-07` | RBAC enforcement restricts permit layer inspection, orphan resolution, and L3 escalation to authorized roles (`HSEQ Inspector`, `Maintenance Supervisor`). |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-05`, `CMP-09` | Persistent real-time SignalR subscriptions on `/hubs/operations` (`PermitStatusChanged`) and `/hubs/telemetry` (`EmergencyEvacuationBroadcast`) update permit badges and cluster counts with $<1\text{s}$ publication latency and graceful polling fallback. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-05`, `CMP-09`, `CMP-10` | High-Performance HMI (ANSI/ISA-101): Neutral grayscale canvas (`--dt-color-bg-canvas`), reserving saturated tokens strictly for active permits and alarms. |
-| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-07` | Idempotency contract (`X-Idempotency-Key: {uuidv7}`) paired with PostgreSQL `xmin` optimistic concurrency (`If-Match`) on orphan permit mesh mapping reassignments (`PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}`). |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-07` | Idempotency contract (`X-Idempotency-Key: {uuidv7}`) paired with conditional PostgreSQL `xmin` optimistic concurrency (`If-Match` when updating an existing `MeshMapping` row; omitted on initial insert) for `UpsertMeshMappingCommand` (`PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}`). |
