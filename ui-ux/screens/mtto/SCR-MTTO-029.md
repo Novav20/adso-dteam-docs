@@ -861,6 +861,7 @@ public record MaintainableItemLookupQueryDto
 public record MaintainableItemLookupDto
 {
     public required Guid MaintainableItemId { get; init; }
+    public required Guid SubunitId { get; init; }
     public required string ComponentName { get; init; }
     public required string SubunitType { get; init; }
     public string? SparePartType { get; init; }

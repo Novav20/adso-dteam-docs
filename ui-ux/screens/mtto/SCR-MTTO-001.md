@@ -448,7 +448,7 @@ public EventCallback OnCancelModal { get; set; }
 
 // CMP-11: ProjectedWorkOrderCard.razor
 [Parameter]
-public required ProjectedWorkOrderPreviewDto ProjectedWorkOrder { get; set; }
+public required CalendarWorkOrderPreviewDto ProjectedWorkOrder { get; set; }
 
 [Parameter]
 public EventCallback OnVerifySparePartsRequested { get; set; }
@@ -533,6 +533,18 @@ public enum EquipmentLifecycleStatus
     DECOMMISSIONED
 }
 
+/// <summary>
+/// Controlled maintainable item health/lifecycle status vocabulary per DT-DM-DOC-001 §4.7.
+/// </summary>
+public enum MaintainableItemStatus
+{
+    OPERATIONAL,
+    DEGRADED,
+    FAILED,
+    UNDER_REPAIR,
+    REPLACED
+}
+
 public record PagedLookupResultDto<T>
 {
     public required IReadOnlyList<T> Items { get; init; }
@@ -583,10 +595,25 @@ public record MaintainableItemLookupDto
 {
     public required Guid MaintainableItemId { get; init; }
     public required Guid SubunitId { get; init; }
-    public required string ItemName { get; init; }
+    public required string ComponentName { get; init; }
+    public required string SubunitType { get; init; }
+    public string? SparePartType { get; init; }
+    public required MaintainableItemStatus Status { get; init; }
+    public Guid? AssignedEquipmentUnitId { get; init; }
+    public string? AssignedEquipmentTag { get; init; }
+    public IReadOnlyDictionary<string, string> DesignAttributes { get; init; } = new Dictionary<string, string>();
+    public IReadOnlyList<LinkedSparePartSummaryDto> LinkedSpareParts { get; init; } = [];
 }
 
-public record ProjectedWorkOrderPreviewDto
+public record LinkedSparePartSummaryDto
+{
+    public required Guid SparePartId { get; init; }
+    public required string Sku { get; init; }
+    public required string Description { get; init; }
+    public required string UnitOfMeasure { get; init; }
+}
+
+public record CalendarWorkOrderPreviewDto
 {
     public required string ProjectedWorkOrderNumber { get; init; }
     public required DateOnly ScheduledDate { get; init; }
