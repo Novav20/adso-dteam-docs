@@ -372,10 +372,16 @@ public string? PreselectedTagNumber { get; set; }
 public bool IsCollapsed { get; set; }
 
 [Parameter]
-public string ActiveRouteCode { get; set; } = "SCR-MTTO-023";
+public bool IsMobileDrawerOpen { get; set; }
+
+[Parameter]
+public string? ActiveRouteCode { get; set; } = "SCR-MTTO-023";
 
 [Parameter]
 public EventCallback<bool> OnCollapseToggled { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnMobileDrawerToggled { get; set; }
 
 // CMP-02: FormBreadcrumbHeader.razor
 [Parameter]
@@ -383,6 +389,9 @@ public required string OperatorBadgeCode { get; set; }
 
 [Parameter]
 public required string OperatorDisplayName { get; set; }
+
+[Parameter]
+public string? ActiveAssetTag { get; set; }
 
 [Parameter]
 public string? ActiveSignalTag { get; set; }
@@ -397,6 +406,15 @@ public MaintenancePlanStatus PlanStatus { get; set; } = MaintenancePlanStatus.DR
 public EventCallback OnBackToBacklogClicked { get; set; }
 
 // CMP-03: IsoHierarchyCascadingSelector.razor
+[Parameter]
+public IReadOnlyList<EquipmentUnitLookupDto>? AvailableEquipment { get; set; }
+
+[Parameter]
+public Guid? SelectedEquipmentUnitId { get; set; }
+
+[Parameter]
+public EventCallback<Guid?> SelectedEquipmentUnitIdChanged { get; set; }
+
 [Parameter]
 public EquipmentUnitLookupDto? SelectedEquipmentUnit { get; set; }
 

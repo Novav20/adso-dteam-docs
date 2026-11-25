@@ -349,10 +349,16 @@ public string? ReturnUrl { get; set; }
 public bool IsCollapsed { get; set; }
 
 [Parameter]
-public string ActiveRouteCode { get; set; } = "SCR-INV-031";
+public bool IsMobileDrawerOpen { get; set; }
+
+[Parameter]
+public string? ActiveRouteCode { get; set; } = "SCR-INV-031";
 
 [Parameter]
 public EventCallback<bool> OnCollapseToggled { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnMobileDrawerToggled { get; set; }
 
 // CMP-02: PartMasterHeaderBar.razor
 [Parameter]

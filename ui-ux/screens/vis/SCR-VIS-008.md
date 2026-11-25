@@ -390,16 +390,22 @@ public EventCallback<string?> OnSearchQueryChanged { get; set; }
 public double ZoomScale { get; set; } = 1.0;
 
 [Parameter]
-public bool IsPtwLayerActive { get; set; } = true;
+public bool? IsLayersActive { get; set; }
 
 [Parameter]
-public int SimopsConflictCount { get; set; }
+public EventCallback<bool> OnLayersToggled { get; set; }
 
 [Parameter]
-public int OrphanPermitsCount { get; set; }
+public bool? IsPtwLayerActive { get; set; }
 
 [Parameter]
-public bool IsIntegrityDrawerOpen { get; set; }
+public int? SimopsConflictCount { get; set; }
+
+[Parameter]
+public int? OrphanPermitsCount { get; set; }
+
+[Parameter]
+public bool? IsIntegrityDrawerOpen { get; set; }
 
 [Parameter]
 public EventCallback OnZoomInRequested { get; set; }

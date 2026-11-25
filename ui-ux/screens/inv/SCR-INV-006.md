@@ -362,7 +362,7 @@ public bool IsCollapsed { get; set; }
 public bool IsMobileDrawerOpen { get; set; }
 
 [Parameter]
-public string ActiveRouteCode { get; set; } = "SCR-INV-006";
+public string? ActiveRouteCode { get; set; } = "SCR-INV-006";
 
 [Parameter]
 public EventCallback<bool> OnCollapseToggled { get; set; }

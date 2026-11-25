@@ -408,10 +408,13 @@ public bool IsCollapsed { get; set; }
 public bool IsMobileDrawerOpen { get; set; }
 
 [Parameter]
-public string ActiveRouteCode { get; set; } = "SCR-INV-005";
+public string? ActiveRouteCode { get; set; } = "SCR-INV-005";
 
 [Parameter]
 public EventCallback<bool> OnCollapseToggled { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnMobileDrawerToggled { get; set; }
 
 // CMP-02: EquipmentMasterHeaderBar.razor
 [Parameter]

@@ -321,10 +321,16 @@ public string? PreselectedTagNumber { get; set; }
 public bool IsCollapsed { get; set; }
 
 [Parameter]
-public required string ActiveRouteCode { get; set; } = "SCR-MTTO-001";
+public bool IsMobileDrawerOpen { get; set; }
+
+[Parameter]
+public string? ActiveRouteCode { get; set; } = "SCR-MTTO-001";
 
 [Parameter]
 public EventCallback<bool> OnCollapseToggled { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnMobileDrawerToggled { get; set; }
 
 // CMP-02: FormBreadcrumbHeader.razor
 [Parameter]
@@ -337,6 +343,12 @@ public required string OperatorDisplayName { get; set; }
 public string? ActiveAssetTag { get; set; }
 
 [Parameter]
+public string? ActiveSignalTag { get; set; }
+
+[Parameter]
+public decimal? InitialTargetLimit { get; set; }
+
+[Parameter]
 public MaintenancePlanStatus PlanStatus { get; set; } = MaintenancePlanStatus.DRAFT;
 
 [Parameter]
@@ -344,19 +356,25 @@ public EventCallback OnBackToBacklogClicked { get; set; }
 
 // CMP-03: IsoHierarchyCascadingSelector.razor
 [Parameter]
-public required IReadOnlyList<EquipmentUnitLookupDto> AvailableEquipment { get; set; }
-
-[Parameter]
-public required IReadOnlyList<SubunitLookupDto> AvailableSubunits { get; set; }
-
-[Parameter]
-public required IReadOnlyList<MaintainableItemLookupDto> AvailableMaintainableItems { get; set; }
+public IReadOnlyList<EquipmentUnitLookupDto>? AvailableEquipment { get; set; }
 
 [Parameter]
 public Guid? SelectedEquipmentUnitId { get; set; }
 
 [Parameter]
 public EventCallback<Guid?> SelectedEquipmentUnitIdChanged { get; set; }
+
+[Parameter]
+public EquipmentUnitLookupDto? SelectedEquipmentUnit { get; set; }
+
+[Parameter]
+public EventCallback OnOpenEquipmentLookupModal { get; set; }
+
+[Parameter]
+public required IReadOnlyList<SubunitLookupDto> AvailableSubunits { get; set; }
+
+[Parameter]
+public required IReadOnlyList<MaintainableItemLookupDto> AvailableMaintainableItems { get; set; }
 
 [Parameter]
 public Guid? SelectedSubunitId { get; set; }
@@ -369,6 +387,15 @@ public Guid? SelectedMaintainableItemId { get; set; }
 
 [Parameter]
 public EventCallback<Guid?> SelectedMaintainableItemIdChanged { get; set; }
+
+[Parameter]
+public bool HasDefinedBoundaries { get; set; }
+
+[Parameter]
+public string? BoundaryDescription { get; set; }
+
+[Parameter]
+public EventCallback OnInspectBoundariesRequested { get; set; }
 
 // CMP-04: BoundaryComplianceBadge.razor
 [Parameter]

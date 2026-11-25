@@ -389,10 +389,16 @@ public string? ReturnUrl { get; set; }
 public bool IsCollapsed { get; set; }
 
 [Parameter]
-public string ActiveRouteCode { get; set; } = "SCR-MTTO-026";
+public bool IsMobileDrawerOpen { get; set; }
+
+[Parameter]
+public string? ActiveRouteCode { get; set; } = "SCR-MTTO-026";
 
 [Parameter]
 public EventCallback<bool> OnCollapseToggled { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnMobileDrawerToggled { get; set; }
 
 // CMP-02: BacklogHeaderBar.razor
 [Parameter]

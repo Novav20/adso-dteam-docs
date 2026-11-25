@@ -381,10 +381,13 @@ public bool IsCollapsed { get; set; }
 public bool IsMobileDrawerOpen { get; set; }
 
 [Parameter]
-public string ActiveRouteCode { get; set; } = "SCR-MTTO-029";
+public string? ActiveRouteCode { get; set; } = "SCR-MTTO-029";
 
 [Parameter]
 public EventCallback<bool> OnCollapseToggled { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnMobileDrawerToggled { get; set; }
 
 // CMP-02: BoundaryHeaderBar.razor
 [Parameter]

@@ -357,10 +357,13 @@ public bool IsCollapsed { get; set; }
 public bool IsMobileDrawerOpen { get; set; }
 
 [Parameter]
-public string ActiveRouteCode { get; set; } = "SCR-INV-027";
+public string? ActiveRouteCode { get; set; } = "SCR-INV-027";
 
 [Parameter]
 public EventCallback<bool> OnCollapseToggled { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnMobileDrawerToggled { get; set; }
 
 // CMP-02: FunctionalLocationHeaderBar.razor
 [Parameter]

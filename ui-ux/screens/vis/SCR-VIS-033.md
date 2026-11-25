@@ -331,25 +331,40 @@ public bool IsOfflineMode { get; set; }
 
 // CMP-01: CanvasViewport2D.razor
 [Parameter]
-public required string FunctionalLocationCode { get; set; }
-
-[Parameter]
 public required string SvgContent { get; set; }
 
 [Parameter]
-public IReadOnlyList<EquipmentHotspotDto> Hotspots { get; set; } = [];
+public double ZoomScale { get; set; } = 1.0;
+
+[Parameter]
+public string? FunctionalLocationCode { get; set; }
+
+[Parameter]
+public IReadOnlyList<EquipmentHotspotDto>? Hotspots { get; set; }
 
 [Parameter]
 public string? SelectedEquipmentTag { get; set; }
-
-[Parameter]
-public double ZoomScale { get; set; } = 1.0;
 
 [Parameter]
 public EventCallback<string> OnEquipmentSelected { get; set; }
 
 [Parameter]
 public EventCallback OnEmptyCanvasClicked { get; set; }
+
+[Parameter]
+public string? TargetEquipmentTag { get; set; }
+
+[Parameter]
+public IReadOnlyList<CutoffPointStatusDto>? CutoffPoints { get; set; }
+
+[Parameter]
+public string? SelectedCutoffNodeId { get; set; }
+
+[Parameter]
+public bool IsFocalDeemphasisActive { get; set; } = true;
+
+[Parameter]
+public EventCallback<string> OnCutoffNodeSelected { get; set; }
 
 // CMP-04: EquipmentHotspot.razor
 [Parameter]
@@ -363,13 +378,31 @@ public EventCallback<string> OnHotspotSelected { get; set; }
 
 // CMP-02: ViewportToolbar.razor
 [Parameter]
+public string? SearchQuery { get; set; }
+
+[Parameter]
+public EventCallback<string?> OnSearchQueryChanged { get; set; }
+
+[Parameter]
 public double ZoomScale { get; set; } = 1.0;
 
 [Parameter]
-public bool IsLayersActive { get; set; }
+public bool? IsLayersActive { get; set; }
 
 [Parameter]
-public EventCallback OnResetViewRequested { get; set; }
+public EventCallback<bool> OnLayersToggled { get; set; }
+
+[Parameter]
+public bool? IsPtwLayerActive { get; set; }
+
+[Parameter]
+public int? SimopsConflictCount { get; set; }
+
+[Parameter]
+public int? OrphanPermitsCount { get; set; }
+
+[Parameter]
+public bool? IsIntegrityDrawerOpen { get; set; }
 
 [Parameter]
 public EventCallback OnZoomInRequested { get; set; }
@@ -378,7 +411,16 @@ public EventCallback OnZoomInRequested { get; set; }
 public EventCallback OnZoomOutRequested { get; set; }
 
 [Parameter]
-public EventCallback<bool> OnLayersToggled { get; set; }
+public EventCallback OnResetViewRequested { get; set; }
+
+[Parameter]
+public EventCallback<bool> OnPtwLayerToggled { get; set; }
+
+[Parameter]
+public EventCallback OnSimopsConflictBadgeClicked { get; set; }
+
+[Parameter]
+public EventCallback OnOrphanBadgeClicked { get; set; }
 
 // CMP-03: CommandPaletteTrigger.razor
 [Parameter]
