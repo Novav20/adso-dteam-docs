@@ -552,7 +552,7 @@ public record ActiveWorkOrderSummaryDto
     public required Guid WorkOrderId { get; init; }
     public required string OrderNumber { get; init; }
     public required string Description { get; init; }
-    public required WorkOrderType OrderType { get; init; }
+    public required WorkOrderMaintenanceMethod OrderType { get; init; }
     public required WorkOrderStatus Status { get; init; }
     public required int RimePriorityScore { get; init; }
     public string? LinkedPtwNumber { get; init; }
@@ -624,7 +624,7 @@ public enum WorkPermitStatus
 /// <summary>
 /// Controlled work order maintenance methodology vocabulary per DT-DM-DOC-001 §4.22.
 /// </summary>
-public enum WorkOrderType
+public enum WorkOrderMaintenanceMethod
 {
     CORRECTIVE,
     PREVENTIVE,

@@ -609,6 +609,11 @@ public enum TelemetrySignalType
     CYCLES
 }
 
+/// <summary>
+/// Controlled maintenance plan methodology vocabulary per DT-DM-DOC-001 §4.15.
+/// When a CONDITION_BASED plan instantiates a WorkOrder, it maps to
+/// WorkOrderMaintenanceMethod.PREDICTIVE per WorkOrder.maintenanceMethod (DT-DM-DOC-001 §4.22).
+/// </summary>
 public enum MaintenanceMethod
 {
     PREVENTIVE,
