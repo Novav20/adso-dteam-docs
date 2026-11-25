@@ -722,6 +722,9 @@ public record MediaAttachmentDto
     public required DateTimeOffset UploadedAt { get; init; }
 }
 
+/// <summary>
+/// Technical closure command payload; AuditLog.previous_hash (audit_logs.previous_hash) is computed server-side pre-commit by AuditSaveChangesInterceptor (never client-supplied).
+/// </summary>
 public record SubmitTechnicalClosureCommand
 {
     public required Guid WorkOrderId { get; init; }
@@ -731,7 +734,6 @@ public record SubmitTechnicalClosureCommand
     public FailureRecordInputDto? FailureRecord { get; init; }
     public required IReadOnlyList<SparePartAllocationDto> ConsumedSpares { get; init; }
     public required IReadOnlyList<MediaAttachmentDto> EvidenceAttachments { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 ```

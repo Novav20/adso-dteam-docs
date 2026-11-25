@@ -239,16 +239,16 @@ To eliminate logical asset orphanhood, dismounting an equipment unit requires ex
 4. **Validation Guard:** If either destination status or holding warehouse is omitted, clicking `[Swap Rotable Asset]` applies WCAG 2.1 AA redundant coding (amber focus ring + warning icon `#icon-warning` + inline text label), blocking submission.
 
 #### 5.3.3. Cryptographic Audit Trail Chaining (TR-001)
-Upon confirmation, the client computes the candidate payload hash matching `ExecuteAssetSwapCommand` (§7.2.3):
-$$\text{PayloadHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{TechnicianUserId} \parallel \text{FunctionalLocationId} \parallel \text{DismountedAssetId} \parallel \text{DestinationStatus} \parallel \text{HoldingWarehouseId} \parallel \text{ReplacementAssetId} \parallel \text{JustifyingWorkOrderId} \parallel \text{TimestampUtc})$$
-The resulting cryptographic hash is bound to the transaction command payload, chained to `PreviousHash` to guarantee unalterable lifecycle traceability ([TR-001](../../../requirements/common/TR-001.md)).
+Upon confirmation, the client submits `ExecuteAssetSwapCommand` (§7.2.3) without a client-supplied `PreviousHash`. Inside the single-commit atomic transaction, `AuditSaveChangesInterceptor` resolves `audit_logs.previous_hash` server-side pre-commit and seals the immutable `IntegrityHash`:
+$$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash}_{\text{server}} \parallel \text{TechnicianUserId} \parallel \text{FunctionalLocationId} \parallel \text{DismountedAssetId} \parallel \text{DestinationStatus} \parallel \text{HoldingWarehouseId} \parallel \text{ReplacementAssetId} \parallel \text{JustifyingWorkOrderId} \parallel \text{TimestampUtc})$$
+Chaining `audit_logs.previous_hash` exclusively on the server eliminates client race conditions and guarantees unalterable lifecycle traceability ([TR-001](../../../requirements/common/TR-001.md)).
 
 #### 5.3.4. Atomic Asset Swap Command Dispatch (`CMP-09`, TR-001, TR-007, ADR-005, ADR-007)
 Upon pressing `[Swap Rotable Asset]`, the client dispatches an atomic substitution command against the backend API endpoint:
 `POST /api/v1/inventory/rotable-swaps`
 
 * **Client Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) guaranteeing exactly-once transaction processing during network reconnection retries, alongside `If-Match: "{DismountedConcurrencyToken}"` enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169).
-* **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) binding functional location, dismounted equipment ID and concurrency token, destination status enum, holding warehouse ID, replacement equipment ID and concurrency token, optional justifying work order reference, technician user ID, and previous cryptographic hash.
+* **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) binding functional location, dismounted equipment ID and concurrency token, destination status enum, holding warehouse ID, replacement equipment ID and concurrency token, optional justifying work order reference, and technician user ID (`audit_logs.previous_hash` is computed server-side pre-commit by `AuditSaveChangesInterceptor`).
 * **Backend Persistence Invariant:** The backend orchestrates `ExecuteAssetSwapCommand` within a single-commit atomic transaction ([ADR-005](../../../architecture/adr/ADR-005.md), `NFR-596`): verifying concurrency tokens on both dismounted and replacement units (returning HTTP 409 Conflict on stale state), unlinking the dismounted asset, updating destination status and warehouse holding state, mounting the replacement rotable unit, recording the chained cryptographic audit entry ([TR-001](../../../requirements/common/TR-001.md)), and broadcasting `AssetSwapCompleted(AssetSwapCompletedEvent)` over SignalR hub `/hubs/operations` (`IOperationsClient`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)). Returns HTTP 200 OK with `AssetSwapCompletedEvent`.
 * **Success Handling (HTTP 200 OK):** Transitions UI state to `Swap Completed (Success)`, renders checkmark animation, dispatches `OnSwapCompleted` callback with `AssetSwapCompletedEvent`, and dismisses modal after $1.5\text{s}$.
 * **Offline Outbox Fallback (TR-007, TR-002):** On network disconnection or HTTP 5xx timeout, the client serializes `ExecuteAssetSwapCommand` into local encrypted storage via `IOfflineStorage` ([TR-002](../../../requirements/common/TR-002.md)), assigns an offline lease token, displays the "Offline Queued" state (§4), and dismisses after $1.5\text{s}$. Background synchronization worker drains the queue upon reconnecting to plant Wi-Fi.
@@ -479,6 +479,9 @@ public record RotableSpareSummaryDto
     public required uint ConcurrencyToken { get; init; }
 }
 
+/// <summary>
+/// Atomic rotable asset swap command; audit_logs.previous_hash is computed server-side pre-commit by AuditSaveChangesInterceptor (never client-supplied).
+/// </summary>
 public record ExecuteAssetSwapCommand
 {
     public required Guid FunctionalLocationId { get; init; }
@@ -490,7 +493,6 @@ public record ExecuteAssetSwapCommand
     public required uint ReplacementConcurrencyToken { get; init; }
     public Guid? JustifyingWorkOrderId { get; init; }
     public required Guid TechnicianUserId { get; init; }
-    public required string PreviousHash { get; init; }
 }
 
 public record AssetSwapCompletedEvent

@@ -258,8 +258,8 @@ sequenceDiagram
     API-->>UI: Returns IdentityUniquenessResultDto (IsUnique = true)
     UI->>SoD: EvaluateRoleUnion(AssignedRoleIds, ActiveSodRules)
     SoD-->>UI: Returns SodEvaluationResultDto (IsCompliant = true, UnionSummary)
-    UI->>Crypto: ComputeSha256Digest(PreviousHash, ProvisionUserPayload)
-    Crypto-->>UI: Previews SHA-256 integrity seal
+    UI->>Crypto: ComputePayloadPreviewDigest(ProvisionUserPayload)
+    Crypto-->>UI: Previews SHA-256 payload digest (server AuditSaveChangesInterceptor chains previous_hash pre-commit)
     Admin->>UI: Clicks [Provision & Send Link]
     UI->>API: POST /api/v1/security/users (ProvisionUserAccountCommand + X-Idempotency-Key)
     API-->>UI: HTTP 201 Created (Issues REGISTRATION AuthToken & queues async email, NFR-270)
@@ -295,13 +295,13 @@ sequenceDiagram
 
 #### 5.3.2. Brute-Force Lockout, Soft-Delete & Immediate Token Revocation (`FR-250`, `FR-260`, `FR-262`–`FR-264`, `NFR-268`, `NFR-271`)
 1. **Brute-Force Defense & Login Telemetry (`FR-260`, `AC-ADM-014-77`, `NFR-268`, `NFR-271`):** Each failed login invokes `User.RecordFailedLogin()`. When `FailedLoginAttempts` reaches the configured threshold (`5`), `LockoutUntilUtc` advances by `15 min`, an `AuditActionType.SECURITY_ALERT` entry appends to the immutable audit trail, and an immediate alert email is dispatched asynchronously (`NFR-270`, `NFR-271`). Conversely, successful authentication invokes `User.RegisterSuccessfulLogin()`, updating `LastLoginAtUtc` and resetting `FailedLoginAttempts = 0` (`AC-ADM-014-77`) reflected in `CMP-05` and `CMP-08`.
-2. **Suspension, Soft-Delete & Token Revocation (`FR-262`, `FR-264`, `AF-001`):** Invoking `User.Deactivate(reason)` (`POST /api/v1/security/users/{id}/lifecycle`) sets `IsActive = false` and calls `AuthToken.Revoke()` across all active tokens belonging to that user (`ACCESS`, `SESSION_REFRESH`, `OFFLINE_LOTO_LEASE`), pushing `/hubs/security` `SessionRevoked(SessionRevocationEvent)` ([DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)) to terminate active client sessions within $< 2\text{s}$ (`TR-006-NFR-402`, `TR-010`) while preserving historical operational foreign keys across Work Permits, Work Order Assignments, and Audit Logs. Selective or bulk revocations from `CMP-08` execute via `POST /api/v1/security/users/{id}/tokens/revoke` (`RevokeUserTokensCommand`) carrying `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), `If-Match: "{ConcurrencyToken}"` ([DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)), and deterministic `AuditJustification` / `PreviousHash` sealing (`TR-001`, `ADR-003`).
+2. **Suspension, Soft-Delete & Token Revocation (`FR-262`, `FR-264`, `AF-001`):** Invoking `User.Deactivate(reason)` (`POST /api/v1/security/users/{id}/lifecycle`) sets `IsActive = false` and calls `AuthToken.Revoke()` across all active tokens belonging to that user (`ACCESS`, `SESSION_REFRESH`, `OFFLINE_LOTO_LEASE`), pushing `/hubs/security` `SessionRevoked(SessionRevocationEvent)` ([DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)) to terminate active client sessions within $< 2\text{s}$ (`TR-006-NFR-402`, `TR-010`) while preserving historical operational foreign keys across Work Permits, Work Order Assignments, and Audit Logs. Selective or bulk revocations from `CMP-08` execute via `POST /api/v1/security/users/{id}/tokens/revoke` (`RevokeUserTokensCommand`) carrying `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), `If-Match: "{ConcurrencyToken}"` ([DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)), and mandatory `AuditJustification`, while `AuditSaveChangesInterceptor` computes `audit_logs.previous_hash` and seals the hash chain server-side pre-commit (`TR-001`, `ADR-003`).
 3. **Audited Account Restoration & Pre-Activation Onboarding Guard (`FR-259`, `FR-263`, `AF-004`):** `[Restore Account]` (`User.Activate()`) is hard-disabled whenever `HasPendingRegistrationToken == true` so newly provisioned accounts cannot bypass first-access password setup via administrative activation (`FR-259`). For previously active suspended or locked accounts (`!HasPendingRegistrationToken`), invoking `User.Activate()` with a mandatory `AuditJustification`, `X-Idempotency-Key`, and `If-Match: "{ConcurrencyToken}"` sets `IsActive = true`, resets `FailedLoginAttempts = 0`, clears `LockoutUntilUtc = null`, and seals the justification inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
 4. **Root Administrator Account Guard (`FR-250`):** When inspecting or mutating the built-in `SEC-ROOT-01` account (`IsProtectedRootAccount == true`), administrative suspension (`User.Deactivate()`) and root-role unassignment (`User.RemoveRole()`) are strictly blocked in both `CMP-07` controls and server-side command validation.
 
 #### 5.3.3. Single-Use Password Reset & Credential Rotation Policy (`FR-261`, `FR-266`, `NFR-267`, `NFR-272`)
-1. **Single-Use Recovery (`FR-261`):** Triggering `[Issue Password Reset Link]` in `CMP-07` dispatches `POST /api/v1/security/users/{id}/password-reset` (`IssuePasswordResetCommand` with `X-Idempotency-Key` and `If-Match: "{ConcurrencyToken}"`, sealed with deterministic `AuditJustification` and `PreviousHash`), generating an `AuthToken` with `AuthTokenPurpose.PASSWORD_RESET` and strict temporal expiration (`NFR-269`). Replay attempts after `AuthToken.MarkAsUsed()` are rejected (`DT-DM-DOC-002 §6.4`).
-2. **Non-Reuse & Complexity Governance (`FR-266`, `NFR-272`):** `CMP-11` submits `PUT /api/v1/security/password-policy` (`UpdatePasswordSecurityPolicyCommand` carrying `X-Idempotency-Key`, `If-Match: "{ConcurrencyToken}"`, `AuditJustification` $\ge 15$ characters, and SHA-256 `PreviousHash` sealing under `TR-001` / `ADR-003`) to govern `User.UpdatePassword(newPasswordHash)` complexity thresholds and `PasswordHistoryNonReuseCount` non-reuse verification (`FR-266`).
+1. **Single-Use Recovery (`FR-261`):** Triggering `[Issue Password Reset Link]` in `CMP-07` dispatches `POST /api/v1/security/users/{id}/password-reset` (`IssuePasswordResetCommand` with `X-Idempotency-Key`, `If-Match: "{ConcurrencyToken}"`, and deterministic `AuditJustification`; `audit_logs.previous_hash` is resolved server-side pre-commit by `AuditSaveChangesInterceptor`), generating an `AuthToken` with `AuthTokenPurpose.PASSWORD_RESET` and strict temporal expiration (`NFR-269`). Replay attempts after `AuthToken.MarkAsUsed()` are rejected (`DT-DM-DOC-002 §6.4`).
+2. **Non-Reuse & Complexity Governance (`FR-266`, `NFR-272`):** `CMP-11` submits `PUT /api/v1/security/password-policy` (`UpdatePasswordSecurityPolicyCommand` carrying `X-Idempotency-Key`, `If-Match: "{ConcurrencyToken}"`, and `AuditJustification` $\ge 15$ characters; SHA-256 `audit_logs.previous_hash` chaining executes server-side pre-commit via `AuditSaveChangesInterceptor` under `TR-001` / `ADR-003`) to govern `User.UpdatePassword(newPasswordHash)` complexity thresholds and `PasswordHistoryNonReuseCount` non-reuse verification (`FR-266`).
 
 #### 5.3.4. Multi-Role Least-Privilege Union Consolidation & Cross-Role SoD (`FR-251`)
 1. **Effective Permission Union Formula:** When a non-root user $u$ is assigned a set of roles $R_u \neq \emptyset$, `ISodValidationEngine` computes the effective permission set deterministically in $< 50\text{ms}$:
@@ -812,6 +812,7 @@ public record PasswordSecurityPolicyDto
 
 /// <summary>
 /// User onboarding mutation payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// audit_logs.previous_hash is computed server-side pre-commit by AuditSaveChangesInterceptor (never client-supplied).
 /// </summary>
 public record ProvisionUserAccountCommand
 {
@@ -821,11 +822,11 @@ public record ProvisionUserAccountCommand
     public required IReadOnlySet<Guid> AssignedRoleIds { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
-    public required string PreviousHash { get; init; }
 }
 
 /// <summary>
 /// Multi-role assignment mutation payload validated against FR-251 Least-Privilege Union; AuditJustification persists inside AuditLog NewState JSONB per DT-ERD-DOC-001 §6.7.
+/// audit_logs.previous_hash is computed server-side pre-commit by AuditSaveChangesInterceptor.
 /// </summary>
 public record AssignUserRolesCommand
 {
@@ -833,12 +834,12 @@ public record AssignUserRolesCommand
     public required IReadOnlySet<Guid> AssignedRoleIds { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
 /// User lifecycle transition payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// audit_logs.previous_hash is computed server-side pre-commit by AuditSaveChangesInterceptor.
 /// </summary>
 public record ExecuteUserLifecycleTransitionCommand
 {
@@ -846,12 +847,12 @@ public record ExecuteUserLifecycleTransitionCommand
     public required UserLifecycleActionType ActionType { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
 /// Token revocation payload sealed into the immutable audit chain; deterministic AuditJustification is composed cleanly when invoked from CMP-08 single/bulk actions.
+/// audit_logs.previous_hash is computed server-side pre-commit by AuditSaveChangesInterceptor.
 /// </summary>
 public record RevokeUserTokensCommand
 {
@@ -859,31 +860,30 @@ public record RevokeUserTokensCommand
     public Guid? TokenId { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
 /// Single-use PASSWORD_RESET dispatch payload sealed into the immutable audit chain; deterministic AuditJustification is composed cleanly when invoked from CMP-07.
+/// audit_logs.previous_hash is computed server-side pre-commit by AuditSaveChangesInterceptor.
 /// </summary>
 public record IssuePasswordResetCommand
 {
     public required Guid TargetUserId { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 
 /// <summary>
 /// NIST SP 800-63B password and brute-force lockout policy mutation payload; AuditJustification persists inside AuditLog NewState JSONB per DT-ERD-DOC-001 §6.7.
+/// audit_logs.previous_hash is computed server-side pre-commit by AuditSaveChangesInterceptor.
 /// </summary>
 public record UpdatePasswordSecurityPolicyCommand
 {
     public required PasswordSecurityPolicyDto Policy { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 

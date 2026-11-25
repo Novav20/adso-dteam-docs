@@ -254,8 +254,8 @@ sequenceDiagram
     UI->>API: GET /api/v1/inventory/spare-parts/{id}/availability?warehouseId={wh} (< 200 ms, NFR-133)
     API-->>UI: Returns SparePartAvailabilityDto (OnHand: 4, Reserved: 2, Available: 2)
     WM->>UI: Selects ISSUE, links WO-2026-0842, enters Quantity = 1.0000
-    UI->>Crypto: ComputeSha256Digest(PreviousHash, MovementPayload)
-    Crypto-->>UI: Previews SHA-256 integrity seal
+    UI->>Crypto: ComputePayloadPreviewDigest(MovementPayload)
+    Crypto-->>UI: Previews client payload digest (server AuditSaveChangesInterceptor chains previous_hash pre-commit)
     WM->>UI: Clicks [Confirm and Generate Receipt]
     UI->>API: POST /api/v1/inventory/transactions (RegisterInventoryTransactionCommand + X-Idempotency-Key + If-Match)
     API-->>UI: HTTP 201 Created (InventoryTransactionVoucherDto + updated ETag / ConcurrencyToken)
@@ -769,6 +769,7 @@ public record KardexTransactionRowDto
 
 /// <summary>
 /// Inventory movement registration payload; reconciliation Reason persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// Note: AuditLog.previous_hash (audit_logs.previous_hash) is resolved and chained server-side pre-commit by AuditSaveChangesInterceptor (never client-supplied).
 /// </summary>
 public record RegisterInventoryTransactionCommand
 {
@@ -784,7 +785,6 @@ public record RegisterInventoryTransactionCommand
     public required decimal TransactionUnitCost { get; init; }
     public required string Reason { get; init; }
     public required Guid OperatorUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 

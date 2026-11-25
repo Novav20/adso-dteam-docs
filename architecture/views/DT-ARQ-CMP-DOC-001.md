@@ -32,7 +32,7 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **loto_watchdog** | LOTO Safety Watchdog | Component | C# Background Service | Real-time verification of Zero Energy thresholds on the mobile client. |
 | **object_storage** | Azure Blob Storage | External System | Storage Account | Binary evidence persistence for ISO 14224 photographs. |
 | **web_admin** | Web Admin Portal | Client Application | Blazor Web App | HSEQ supervision, planning, and dashboards. |
-| **idempotency_filter** | Idempotency Filter | Driving Adapter | IActionFilter | Intercepts mutating requests with the canonical `X-Idempotency-Key` header; prevents reprocessing critical transitions resent after reconnection (TR-007, ADR-007). |
+| **idempotency_filter** | Idempotency Filter | Driving Adapter | IEndpointFilter | Intercepts Minimal API mutating requests with the canonical `X-Idempotency-Key` header; prevents reprocessing critical transitions resent after reconnection (TR-007, ADR-007). |
 | **idempotency_repo** | Idempotency Repository | Secondary Port (Out) | IIdempotencyRepository | Abstracts relational persistence of the IdempotencyLog to join the Domain's Unit of Work (ADR-007). |
 | **media_repo** | Media Repository | Secondary Port (Out) | IMediaRepository | Manages SAS token issuance for external evidence storage (ADR-008). |
 | **api_controllers** | REST API Controllers | Driving Adapter | Minimal APIs | Exposes HTTPS `/api/v1/...` endpoints; enforces optimistic concurrency control using PostgreSQL `xmin` mapped to EF Core `ConcurrencyToken` (`ETag` / `If-Match`, `DT-ARQ-DB-DOC-001 §3.12`). |
@@ -156,13 +156,13 @@ To prevent event-name drift across Blazor Web App and .NET MAUI Blazor Hybrid cl
 | Hub Endpoint | Typed Client Interface | Canonical Server-to-Client Event Signature | Authorized Subscribers & Consuming Screens |
 | :--- | :--- | :--- | :--- |
 | **`/hubs/telemetry`** | `ITelemetryClient` | `ReceiveTelemetryReading(TelemetryReadingDto reading)` | `SCR-VIS-033`, `SCR-VIS-011`, `SCR-MTTO-023` (live sensor updates & Zero Energy monitoring). |
-| **`/hubs/telemetry`** | `ITelemetryClient` | `EmergencyEvacuationBroadcast(EvacuationAlertDto alert)` | `SCR-VIS-008`, `SCR-VIS-011`, `SCR-VIS-033` (plant-wide red priority alert & fail-safe interrupt). |
+| **`/hubs/telemetry`** | `ITelemetryClient` | `EmergencyEvacuationBroadcast(EvacuationAlertDto alert)` | `SCR-VIS-008`, `SCR-VIS-011`, `SCR-VIS-033`, `SCR-MTTO-002` (plant-wide red priority alert & fail-safe interrupt). |
 | **`/hubs/telemetry`** | `ITelemetryClient` | `CbmReadingRecorded(CbmTriggerEventDto triggerEvent)` | `SCR-MTTO-023` (live condition-based trigger recalculation & counter tamper alerts). |
-| **`/hubs/telemetry`** | `ITelemetryClient` | `LotoHeartbeatAck(DateTimeOffset utcTimestamp)` | `SCR-VIS-011`, `loto_watchdog` (2-second cadence; 30-second Grace Window before fail-safe lockout). |
+| **`/hubs/telemetry`** | `ITelemetryClient` | `LotoHeartbeatAck(DateTimeOffset utcTimestamp)` | `SCR-VIS-011`, `SCR-MTTO-002`, `loto_watchdog` (2-second cadence; 30-second Grace Window before fail-safe lockout). |
 | **`/hubs/security`** | `ISecuritySessionClient` | `PermissionsUpdated(RolePermissionsUpdatedEvent evt)` | `SCR-ADM-013`, `SCR-ADM-014`, all authenticated Blazor sessions (real-time RBAC matrix cache refresh). |
 | **`/hubs/security`** | `ISecuritySessionClient` | `SessionRevoked(SessionRevocationEvent evt)` | `SCR-ADM-014`, all active sessions for revoked/locked user (immediate forced logout & local cache wipe). |
 | **`/hubs/operations`** | `IOperationsClient` | `PermitStatusChanged(WorkPermitStatusEvent evt)` | `SCR-VIS-008`, `SCR-VIS-011` (unified PTW lifecycle transitions: `APPROVED`, `REVOKED`, `CLOSED`, `EXPIRING_SOON`). |
-| **`/hubs/operations`** | `IOperationsClient` | `WorkOrderStatusChanged(WorkOrderTransitionEvent evt)` | `SCR-MTTO-026`, `SCR-MTTO-002`, `SCR-VIS-033` (RIME backlog board refresh and work-order FSM sync). |
+| **`/hubs/operations`** | `IOperationsClient` | `WorkOrderStatusChanged(WorkOrderTransitionEvent evt)` | `SCR-MTTO-026`, `SCR-MTTO-002`, `SCR-VIS-011`, `SCR-VIS-033` (RIME backlog board refresh and work-order FSM sync). |
 | **`/hubs/operations`** | `IOperationsClient` | `AssetSwapCompleted(AssetSwapCompletedEvent evt)` | `SCR-INV-025`, `SCR-INV-005`, `SCR-VIS-033` (rotable slot re-mount notification across connected viewports). |
 
 ---
