@@ -30,7 +30,7 @@ Allows creating and scheduling recurrent preventive maintenance plans based excl
    - Technical description of task scope.
 3. The Planner selects the asset "Pump P-101", links the subunit "Sealing System" and the item "Mechanical Seal", defines a frequency of "12 weeks", estimates "4.0 Man-Hours" of mechanical specialty and enters the technical description.
 4. The System evaluates the configured asset criticality and assigns the Work Class "Preventive Maintenance" (Weight 6) to calculate the initial RIME prioritization score ($Score = \text{Criticality} \times 6$).
-   - If the criticality is high (greater than 8) and the entered time interval is greater than 8 weeks:
+   - If the criticality is high ($\text{Criticality} \ge 8$) and the entered time interval is greater than 8 weeks:
    - The System displays an optimization warning: "For high criticality assets, it is recommended to schedule preventive plans with intervals less than or equal to 8 weeks. Do you want to proceed with the current frequency?"
    - The Planner confirms the 12-week frequency by entering a technical justification or adjusts it to 8 weeks.
 5. The Planner confirms the creation of the preventive plan.

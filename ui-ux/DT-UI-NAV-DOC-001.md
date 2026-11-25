@@ -218,7 +218,7 @@ In compliance with the **ISO 45001 (Clause 8.1)** standard and the **[ASR-002](.
 
 ```mermaid
 flowchart TD
-    StartLOTO["Transition Towards Order Execution<br/>(SCR-MTTO-002)"] --> CheckLOTO["Verify LOTO Safety Preconditions:<br/>1. WorkPermit == APPROVED<br/>2. IsolationStatus == VERIFIED_ZERO_ENERGY<br/>3. Energy Telemetry == 0.0"]
+    StartLOTO["Transition Towards Order Execution<br/>(SCR-MTTO-002)"] --> CheckLOTO["Verify LOTO Safety Preconditions:<br/>1. WorkPermit == APPROVED<br/>2. IsolationStatus == VERIFIED_ZERO_ENERGY<br/>3. Energy Telemetry: V == 0.0 V, P <= 0.5 psig"]
     CheckLOTO --> LOTOValid{"Are All Conditions Met?"}
     LOTOValid -- "Yes" --> AllowRoute["Allow Routing to SCR-MTTO-002"]
     LOTOValid -- "No" --> FailSafeModal["Activate Critical Lockout Modal<br/>(--dt-z-modal-fail-safe: 1500)<br/>[Intervention Blocked by LOTO]"]
@@ -228,5 +228,5 @@ flowchart TD
 * **Lockout Conditions:**
   1. Associated Work Permit status other than `APPROVED`.
   2. Presence of unverified isolation cutoff points in the active LOTO Isolation Plan.
-  3. Real-time telemetry reading above zero or expiration of the **30-second Grace Window** without receiving a 2-second heartbeat acknowledgment (`LotoHeartbeatAck` over `/hubs/telemetry`, per [DT-ARQ-DEP-DOC-001 §4](../architecture/views/DT-ARQ-DEP-DOC-001.md#4-perimeter-security-mechanism-loto-watchdog-fail-safe)) in the absence of a validated Cryptographic Offline LOTO Lease ([ADR-006](../architecture/adr/ADR-006.md)).
+  3. Real-time telemetry reading above safe zero-energy thresholds ($V > 0.0\text{ V}$ or $P > 0.5\text{ psig}$; safe window requires $V == 0.0\text{ V}$ and $P \le 0.5\text{ psig}$) or expiration of the **30-second Grace Window** without receiving a 2-second heartbeat acknowledgment (`LotoHeartbeatAck` over `/hubs/telemetry`, per [DT-ARQ-DEP-DOC-001 §4](../architecture/views/DT-ARQ-DEP-DOC-001.md#4-perimeter-security-mechanism-loto-watchdog-fail-safe)) in the absence of a validated Cryptographic Offline LOTO Lease ([ADR-006](../architecture/adr/ADR-006.md)).
 * **Screen Behavior:** Interrupts navigation and deploys a red blocking modal overlay (`--dt-color-alarm-critical`) at the maximum stacking level (`--dt-z-modal-fail-safe` = `1500`). This window is **non-dismissible**; it cannot be closed or bypassed via gestures or keyboard until the field safety conditions are physically rectified and verified by the system.

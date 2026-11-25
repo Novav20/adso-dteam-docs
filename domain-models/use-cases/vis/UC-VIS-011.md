@@ -33,7 +33,7 @@ Governs the life-critical safety verification workflow required before physical 
    3. Submits their digital signature hash confirming physical absence of tension or pressure.
 6. The System requests a telemetry verification snapshot across boundary sensors at all isolation cutoff points.
 7. The System evaluates the Negative Interlock Principle ([TR-011](../../../requirements/common/TR-011.md)):
-   1. Telemetry acts strictly as a negative interlock (veto mechanism). If sensors detect zero residual energy ($V < 1.0\text{ V}$, $P < 0.1\text{ psig}$), the veto is lifted.
+   1. Telemetry acts strictly as a negative interlock (veto mechanism). If sensors confirm zero residual energy ($V == 0.0\text{ V}$, $P \le 0.5\text{ psig}$), the veto is lifted.
    2. The System unlocks the asymmetric "Start Work" control only when all preconditions are conjunctively satisfied: all physical padlocks verified, Try-Out attestation digitally signed, telemetry veto lifted, and associated Work Permit confirmed in `APPROVED` status.
 8. The Technician engages the asymmetric slider control to confirm work commencement.
 9. The System executes the execution transition within a single atomic transactional boundary ([TR-001](../../../requirements/common/TR-001.md)):

@@ -156,7 +156,7 @@ status: Stable
    - **Visual Modification:** Skeleton shimmer on form fields and spares table (`--dt-color-surface-raised`). Taxonomy dropdowns show animated loading indicator while hydrating local SQLite cache. Controls locked.
 
 3. **Taxonomy Incomplete / Missing Fields (AF-001)**
-   - **Activation Condition:** Technician attempts to finalize or navigates away while any of the 7 mandatory ISO fields or downtime is empty.
+   - **Activation Condition:** When `WorkOrder.maintenanceMethod == CORRECTIVE` (or failure reporting is explicitly enabled) and the technician attempts to finalize or navigates away while any of the 7 mandatory ISO fields or downtime is empty.
    - **Visual Modification:** Missing mandatory taxonomy selectors highlighted with dynamic asterisk (`*`). Sequential stepper `CMP-06` highlights the active next step with a neutral pulse indicator while keeping downstream dropdowns locked (`disabled`) per ISO 14224 causal hierarchy. Action button `CMP-09` remains disabled.
 
 4. **Evidence Capturing & Hashing**
@@ -172,8 +172,8 @@ status: Stable
    - **Visual Modification:** Zero layout shift (CLS = 0). Header telemetry chip updates to `OFFLINE · [HH:MM]`, `[1 PENDING SYNC]` amber badge illuminates, and `[DE-ENERGIZED EQUIPMENT]` capsule is automatically hidden to avoid false certainty of unverified live telemetry. Local SQLCipher cache active.
 
 7. **Ready to Finalize (Unlocked)**
-   - **Activation Condition:** All 7 ISO 14224 fields selected + Downtime specified + Photo evidence captured with valid hash + Checklist attested + Positive Actual Labor Hours logged.
-   - **Visual Modification:** `CMP-06` sequential 7-node stepper marks all 7 circular nodes as completed (`#icon-check`) with completed connecting links, updating the Tab 3 header badge to `[7/7]` (and Tab 1 to full completion ratio). All media attachments display validated cryptographic seal. Action button `CMP-09` `[Finalize Work Order]` unlocks in primary action styling (`--dt-color-state-info`, `--dt-primitive-gray-10` text per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons) and [§6.6.2](../../DT-UI-DS-DOC-001.md#662-tactile-pill-actions-presets)).
+   - **Activation Condition:** Quality gates satisfied: (when `WorkOrder.maintenanceMethod == CORRECTIVE` or a failure is explicitly reported, all 7 ISO 14224 fields selected + Downtime specified; for routine `PREVENTIVE` work orders with no failure reported, ISO 14224 failure coding is optional) + Photo evidence captured with valid hash + Checklist attested + Positive Actual Labor Hours logged.
+   - **Visual Modification:** When taxonomy is required or entered, `CMP-06` sequential 7-node stepper marks all 7 circular nodes as completed (`#icon-check`) with completed connecting links, updating the Tab 3 header badge to `[7/7]` (or displays optional/not-applicable completion for routine `PREVENTIVE` orders without a reported failure). All media attachments display validated cryptographic seal. Action button `CMP-09` `[Finalize Work Order]` unlocks in primary action styling (`--dt-color-state-info`, `--dt-primitive-gray-10` text per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons) and [§6.6.2](../../DT-UI-DS-DOC-001.md#662-tactile-pill-actions-presets)).
 
 8. **Technical Closure Complete**
    - **Activation Condition:** Technician confirms `[Finalize Work Order]`. System commits atomic transaction.
@@ -272,10 +272,11 @@ sequenceDiagram
 * The primary action button `CMP-09` `[Finalize Work Order]` is governed by the asymmetric Boolean lock:
   $$\text{CanFinalize} = \mathcal{T}_{\text{complete}} \land \mathcal{E}_{\text{valid}} \land \mathcal{W}_{\text{valid}}$$
   where:
-  $$\mathcal{T}_{\text{complete}} = (\text{Item} \ne \varnothing) \land (\text{Mode} \ne \varnothing) \land (\text{Mech} \ne \varnothing) \land (\text{Cause} \ne \varnothing) \land (\text{Method} \ne \varnothing) \land (\text{Condition} \ne \varnothing) \land (\text{Impact} \ne \varnothing) \land (\text{Downtime} \ge 0.0)$$
+  $$\text{RequiresFailureTaxonomy} = (\text{WorkOrder.maintenanceMethod} == \text{CORRECTIVE}) \lor \text{FailureReported}$$
+  $$\mathcal{T}_{\text{complete}} = \neg \text{RequiresFailureTaxonomy} \lor \big((\text{Item} \ne \varnothing) \land (\text{Mode} \ne \varnothing) \land (\text{Mech} \ne \varnothing) \land (\text{Cause} \ne \varnothing) \land (\text{Method} \ne \varnothing) \land (\text{Condition} \ne \varnothing) \land (\text{Impact} \ne \varnothing) \land (\text{Downtime} \ge 0.0)\big)$$
   $$\mathcal{E}_{\text{valid}} = (\text{MediaAttachmentCount} \ge 1) \land (\forall e \in \text{Attachments}, e.\text{SHA256HashVerified} == \text{true})$$
   $$\mathcal{W}_{\text{valid}} = (\text{ActualLaborHours} > 0.0) \land (\text{AllChecklistItemsChecked} == \text{true})$$
-* Any false term renders the button `disabled` with dynamic visual indicator (`*`) on omitted fields (`AF-001`).
+* Routine `PREVENTIVE` work orders (as well as `PREDICTIVE` or `IMPROVEMENT` orders) where no failure is explicitly reported (`RequiresFailureTaxonomy == false`) satisfy $\mathcal{T}_{\text{complete}} = \text{true}$ automatically and can finalize without fabricating ISO 14224 failure codes. When `RequiresFailureTaxonomy == true`, any missing taxonomy tier or invalid downtime renders the button `disabled` with dynamic visual indicator (`*`) on omitted fields (`AF-001`).
 
 #### 5.3.3. Multi-Evidence Photographic Capture & Cryptographic Hashing Pipeline (`CMP-07`, `TR-003`)
 * Supports an array of $0..N$ attachments (`List<MediaAttachmentDto>` per [DT-ERD-DOC-001 §3.2.4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#324-media_attachments)):
@@ -290,8 +291,8 @@ sequenceDiagram
 * Upon pressing `[Finalize Work Order]`, the application dispatches an atomic technical closure command (`SubmitTechnicalClosureCommand`) against the backend API endpoint `POST /api/v1/maintenance/work-orders/{id}/technical-closure`.
 * **Client Command Contract:**
   * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries, plus `If-Match: "{ConcurrencyToken}"` enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169).
-  * **Command Payload:** Serializes `FailureRecordInputDto` (7-tier ISO 14224 classifications, downtime, technician notes), `ActualLaborHours`, `ConcurrencyToken`, and `IReadOnlyList<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
-  * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (concurrency verification, failure record insertion, Work Order status update to `COMPLETE`, history logging, cryptographic audit chaining, and `/hubs/operations` `WorkOrderStatusChanged` broadcast) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
+  * **Command Payload:** Serializes optional/conditional `FailureRecordInputDto?` (mandatory 7-tier ISO 14224 classifications, downtime, and technician notes when `WorkOrder.maintenanceMethod == CORRECTIVE` or a failure is explicitly reported; `null` for routine `PREVENTIVE` closure with no failure), `ActualLaborHours`, `ConcurrencyToken`, and `IReadOnlyList<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
+  * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (concurrency verification, conditional failure record insertion when `FailureRecord` is supplied/required, Work Order status update to `COMPLETE`, history logging, cryptographic audit chaining, and `/hubs/operations` `WorkOrderStatusChanged` broadcast) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
   * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates downstream to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
   * **Failure / Disconnected Handling:** On network timeout or HTTP 5xx error, transitions to the Zero-Shift Offline Outbox Protocol (§5.3.5, [TR-007](../../../requirements/common/TR-007.md)).
 
@@ -670,6 +671,7 @@ public record WorkOrderClosingContextDto
     public Guid? FunctionalLocationId { get; init; }
     public string? FunctionalLocationTag { get; init; }
     public required WorkOrderStatus CurrentStatus { get; init; }
+    public required WorkOrderMaintenanceMethod MaintenanceMethod { get; init; }
     public required IsolationStatus LotoIsolationStatus { get; init; }
     public required decimal EstimatedHours { get; init; }
     public decimal? ActualLaborHours { get; init; }
@@ -726,7 +728,7 @@ public record SubmitTechnicalClosureCommand
     public required Guid TechnicianId { get; init; }
     public required decimal ActualLaborHours { get; init; }
     public required IReadOnlyList<ScopeTaskItemDto> ScopeChecklist { get; init; }
-    public required FailureRecordInputDto FailureRecord { get; init; }
+    public FailureRecordInputDto? FailureRecord { get; init; }
     public required IReadOnlyList<SparePartAllocationDto> ConsumedSpares { get; init; }
     public required IReadOnlyList<MediaAttachmentDto> EvidenceAttachments { get; init; }
     public required string PreviousHash { get; init; }
@@ -767,8 +769,8 @@ public record SubmitTechnicalClosureCommand
 | Requirement | Addressed in Component | Verification & Implementation Mechanism |
 | :--- | :--- | :--- |
 | [FR-010](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-03`, `CMP-09` | Registration of actual labor duration and Wrench Time tracking from mobile interface. |
-| [FR-011](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-05` | Mandatory 7-tier classification strictly using ISO 14224 maintainable item catalog and failure record entities. |
-| [FR-012](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-06`, `CMP-09` | **ISO 14224 Hard Lock:** Hard-disables finalization button until all mandatory taxonomy fields and downtime are complete. |
+| [FR-011](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-05` | Conditional 7-tier classification (mandatory when `WorkOrder.maintenanceMethod == CORRECTIVE` or a failure is explicitly reported) strictly using ISO 14224 maintainable item catalog and failure record entities. |
+| [FR-012](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-06`, `CMP-09` | **ISO 14224 Hard Lock:** Hard-disables finalization button until all mandatory taxonomy fields and downtime are complete whenever failure classification is required (`CORRECTIVE` or reported failure). |
 | [FR-013](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-07` | Multimedia photographic attachment capture, preview thumbnail generation, and persistent linkage to media attachment records. |
 | [FR-014](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-09` | Atomic transition of Work Order state to `COMPLETE` and dispatch of domain event notification to Reliability Engineer. |
 | [NFR-015](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-09` | Offline-First persistence using encrypted SQLCipher local storage with crash-resilient transactional journaling. |
