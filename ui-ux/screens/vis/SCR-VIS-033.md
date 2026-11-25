@@ -441,7 +441,7 @@ public EventCallback OnCloseRequested { get; set; }
 public required SafetyContextSummaryDto SafetyContext { get; set; }
 
 [Parameter]
-public required OperationalStatus OperationalStatus { get; set; }
+public required EquipmentOperationalStatus OperationalStatus { get; set; }
 
 // Priority 4 Telemetry Diagnostic Slot: TelemetryStaleBanner.razor (AF-002)
 [Parameter]
@@ -492,7 +492,7 @@ public record EquipmentHotspotDto
     public required Guid EquipmentId { get; init; }
     public required string TagNumber { get; init; }
     public required string FunctionalLocationCode { get; init; }
-    public required OperationalStatus OperationalStatus { get; init; }
+    public required EquipmentOperationalStatus OperationalStatus { get; init; }
     public bool HasActiveAlarm { get; init; }
     public bool IsCriticalAlarm { get; init; }
 }
@@ -514,7 +514,7 @@ public record EquipmentHeaderDto
     public required string EquipmentClass { get; init; }
     public required string Description { get; init; }
     public required int CriticalityIndex { get; init; } // 1..10 per FunctionalLocation criticality index (DT-DM-DOC-001 §4.5)
-    public required OperationalStatus OperationalStatus { get; init; }
+    public required EquipmentOperationalStatus OperationalStatus { get; init; }
     public required MeshMappingStatus MappingStatus { get; init; }
 }
 
@@ -563,13 +563,13 @@ public record ActiveWorkOrderSummaryDto
 }
 
 /// <summary>
-/// Controlled equipment operational availability vocabulary per DT-DM-DOC-001 §4.4.
+/// Controlled equipment operational status vocabulary per DT-DM-DOC-001 §4.4.
 /// </summary>
-public enum OperationalStatus
+public enum EquipmentOperationalStatus
 {
     UP,
-    STANDBY,
-    DOWN
+    DOWN,
+    STANDBY
 }
 
 /// <summary>

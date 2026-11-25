@@ -297,7 +297,7 @@ sequenceDiagram
 2. **Governing P&ID Engineering Metadata (`FR-102`):** The governing P&ID drawing identifier (`PidReferenceCode`, e.g., *"PID-TFA-1045-REV3"*) is captured alongside the boundary limits as structured engineering boundary metadata persisted within the asset's boundary revision payload and technical `DesignAttributes` ([DT-ERD-DOC-001 §6.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#61-taxmaintainable_itemsdesign_attributes)) without altering the core relational schema.
 
 #### 5.3.2. Tier A Equipment Lookup, Sub-Tree Structuring & Exclusivity (`NFR-093`, `NFR-094`, `NFR-099`, `AF-001`, `TR-008`)
-1. **Enterprise Equipment Lookup ([DT-UI-DS-DOC-001 §6.7](../../DT-UI-DS-DOC-001.md#67-relational-entity-lookup-modal-pattern-lov-list-of-values)):** Opening `EquipmentLookupModal` dispatches paged queries (`EquipmentUnitLookupQueryDto`) supporting multi-criteria filtering (`SearchTerm`, `FunctionalLocationId`, `EquipmentClassId`, `MinCriticality`, `MaxCriticality`, `HasBoundariesFilter`) and rendering `--dt-layout-table-row-height` rows with explicit boundary readiness status (`HasBoundaries`).
+1. **Enterprise Equipment Lookup ([DT-UI-DS-DOC-001 §6.7](../../DT-UI-DS-DOC-001.md#67-relational-entity-lookup-modal-pattern-lov-list-of-values)):** Opening `EquipmentLookupModal` dispatches paged queries (`EquipmentUnitLookupQueryDto`) to `GET /api/v1/taxonomy/equipment-units/lookup` returning `PagedLookupResultDto<EquipmentUnitLookupDto>`, supporting multi-criteria filtering (`SearchTerm`, `FunctionalLocationId`, `EquipmentClassId`, `MinCriticality`, `MaxCriticality`, `HasBoundariesFilter`) and rendering `--dt-layout-table-row-height` rows with explicit boundary readiness status (`HasBoundaries`).
 2. **Dynamic Subunit & Maintainable Item Composition (`1 : 1..N`):**
    * `CMP-06` enables creating structured `Subunit` nodes (`SubunitType` + `Name`) and opening a searchable `MaintainableItem` linker (`MaintainableItemLookupQueryDto`) displaying part family, Annex A summary, and live catalog occupancy (`Available` vs `Bound to [Tag]`).
    * Every Level 8 `MaintainableItem` must be nested under a parent Level 7 `Subunit` belonging to the Level 6 `EquipmentUnit`:
@@ -839,7 +839,7 @@ public record EquipmentUnitLookupDto
     public required string Model { get; init; }
     public string? FunctionalLocationTag { get; init; }
     public required string EquipmentClassName { get; init; }
-    public required int Criticality { get; init; }
+    public int? Criticality { get; init; }
     public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
     public int MappedSignalCount { get; init; }
     public required bool HasBoundaries { get; init; }

@@ -201,8 +201,8 @@ sequenceDiagram
     participant MTTO as Maintenance Planning Service (mtto)
 
     Planner->>UI: Accesses "Create Preventive Plan"
-    UI->>TAX: GET /api/v1/taxonomy/equipment-units/lookup
-    TAX-->>UI: Returns active equipment catalog
+    UI->>TAX: GET /api/v1/taxonomy/equipment-units/lookup (EquipmentUnitLookupQueryDto)
+    TAX-->>UI: Returns PagedLookupResultDto<EquipmentUnitLookupDto>
     Planner->>UI: Selects Equipment Unit (P-0101A)
     UI->>TAX: GET /api/v1/taxonomy/equipment-units/{id}/boundaries (MTTO-029)
     alt Boundaries Configured
@@ -223,7 +223,7 @@ sequenceDiagram
 ```
 
 1. **Minimal API Endpoint Contract ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)):**
-   * `GET /api/v1/taxonomy/equipment-units/lookup` — retrieves active Level 6 `EquipmentUnitLookupDto` catalog entries.
+   * `GET /api/v1/taxonomy/equipment-units/lookup` — paginated Level 6 equipment lookup accepting `EquipmentUnitLookupQueryDto` and returning `PagedLookupResultDto<EquipmentUnitLookupDto>`.
    * `GET /api/v1/taxonomy/equipment-units/{id}/boundaries` — verifies physical battery limits (`BoundaryStart`, `BoundaryEnd`).
    * `GET /api/v1/taxonomy/equipment-units/{id}/subunits` — loads cascading Level 7 Subunits and Level 8 Maintainable Items (`FR-001`).
    * `POST /api/v1/maintenance/plans` — dispatches `CreateMaintenancePlanCommand` with mandatory `X-Idempotency-Key: {uuidv7}` header ([ADR-007](../../../architecture/adr/ADR-007.md)), returning HTTP 201 Created with `MaintenancePlanSummaryDto` and `ETag: "{ConcurrencyToken}"` (PostgreSQL `xmin` concurrency standard per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)). Subsequent edits to existing plans use `PUT /api/v1/maintenance/plans/{id}` with `X-Idempotency-Key` and `If-Match: "{ConcurrencyToken}"`.
@@ -522,16 +522,54 @@ public enum WorkOrderStatus
     CLOSED
 }
 
+/// <summary>
+/// Controlled equipment lifecycle vocabulary per DT-DM-DOC-001 §4.2.
+/// </summary>
+public enum EquipmentLifecycleStatus
+{
+    IN_STORAGE,
+    INSTALLED,
+    COMMISSIONING,
+    DECOMMISSIONED
+}
+
+public record PagedLookupResultDto<T>
+{
+    public required IReadOnlyList<T> Items { get; init; }
+    public required int TotalCount { get; init; }
+    public required int PageNumber { get; init; }
+    public required int PageSize { get; init; }
+}
+
+public record EquipmentUnitLookupQueryDto
+{
+    public string? SearchTerm { get; init; }
+    public Guid? FunctionalLocationId { get; init; }
+    public Guid? EquipmentClassId { get; init; }
+    public int? MinCriticality { get; init; }
+    public int? MaxCriticality { get; init; }
+    public bool? HasBoundariesFilter { get; init; }
+    public int PageNumber { get; init; } = 1;
+    public int PageSize { get; init; } = 25;
+}
+
 public record EquipmentUnitLookupDto
 {
     public required Guid EquipmentUnitId { get; init; }
     public required string TagNumber { get; init; }
     public required string Name { get; init; }
+    public required string SerialNumber { get; init; }
+    public required string Model { get; init; }
+    public string? FunctionalLocationTag { get; init; }
     public required string EquipmentClassName { get; init; }
-    public required int Criticality { get; init; }
-    public bool HasBoundaries { get; init; }
+    public int? Criticality { get; init; }
+    public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
+    public int MappedSignalCount { get; init; }
+    public required bool HasBoundaries { get; init; }
     public string? BoundaryStart { get; init; }
     public string? BoundaryEnd { get; init; }
+    public required int SubunitCount { get; init; }
+    public required int MaintainableItemCount { get; init; }
 }
 
 public record SubunitLookupDto

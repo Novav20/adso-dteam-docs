@@ -225,7 +225,7 @@ sequenceDiagram
     Engineer->>UI: Accesses "Create Condition-Based Plan"
     Engineer->>LOV: Opens Equipment Lookup Modal (CMP-03 Search Trigger)
     LOV->>TAX: GET /api/v1/taxonomy/equipment-units/lookup (EquipmentUnitLookupQueryDto)
-    TAX-->>LOV: Returns paged EquipmentUnitLookupDto matches
+    TAX-->>LOV: Returns PagedLookupResultDto<EquipmentUnitLookupDto>
     Engineer->>LOV: Selects Equipment Unit (Compressor C-201)
     LOV-->>UI: Closes modal & binds SelectedEquipmentUnitId (C-201)
     UI->>TAX: GET /api/v1/taxonomy/equipment-units/{id}/boundaries & /subunits
@@ -244,7 +244,7 @@ sequenceDiagram
 ```
 
 1. **Minimal API Endpoint Contract ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)):**
-   * `GET /api/v1/taxonomy/equipment-units/lookup` — paginated Tier A equipment search (`EquipmentUnitLookupQueryDto`).
+   * `GET /api/v1/taxonomy/equipment-units/lookup` — paginated Tier A equipment search accepting `EquipmentUnitLookupQueryDto` and returning `PagedLookupResultDto<EquipmentUnitLookupDto>`.
    * `GET /api/v1/taxonomy/equipment-units/{id}/boundaries` and `GET /api/v1/taxonomy/equipment-units/{id}/subunits` — verifies battery limits and hydrates cascading Level 7/8 taxonomy selectors.
    * `GET /api/v1/telemetry/equipment-units/{id}/signals` — returns mapped `TelemetrySignalDto` streams with current baselines and `ETag: "{ConcurrencyToken}"`.
    * `POST /api/v1/maintenance/plans/cbm` — dispatches `CreateCbmPlanCommand` with mandatory `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), returning HTTP 201 Created.
@@ -647,6 +647,25 @@ public enum WorkOrderStatus
     CLOSED
 }
 
+/// <summary>
+/// Controlled equipment lifecycle vocabulary per DT-DM-DOC-001 §4.2.
+/// </summary>
+public enum EquipmentLifecycleStatus
+{
+    IN_STORAGE,
+    INSTALLED,
+    COMMISSIONING,
+    DECOMMISSIONED
+}
+
+public record PagedLookupResultDto<T>
+{
+    public required IReadOnlyList<T> Items { get; init; }
+    public required int TotalCount { get; init; }
+    public required int PageNumber { get; init; }
+    public required int PageSize { get; init; }
+}
+
 public record EquipmentUnitLookupQueryDto
 {
     public string? SearchTerm { get; init; }
@@ -665,13 +684,17 @@ public record EquipmentUnitLookupDto
     public required string TagNumber { get; init; }
     public required string Name { get; init; }
     public required string SerialNumber { get; init; }
-    public required string FunctionalLocationTag { get; init; }
+    public required string Model { get; init; }
+    public string? FunctionalLocationTag { get; init; }
     public required string EquipmentClassName { get; init; }
-    public required int Criticality { get; init; }
+    public int? Criticality { get; init; }
+    public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
     public int MappedSignalCount { get; init; }
-    public bool HasBoundaries { get; init; }
+    public required bool HasBoundaries { get; init; }
     public string? BoundaryStart { get; init; }
     public string? BoundaryEnd { get; init; }
+    public required int SubunitCount { get; init; }
+    public required int MaintainableItemCount { get; init; }
 }
 
 public record SubunitLookupDto
