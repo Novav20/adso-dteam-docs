@@ -89,7 +89,7 @@ This segregation allows for:
 | Warehouse | Aggregate Root | Represents a stock location boundary with capacity rules. | ISO 55000 resource planning guidance |
 | Locator | Entity | Physical storage subdivision (Aisle/Rack/Bin) belonging to a Warehouse. | Warehouse Management best practice |
 | Supplier | Aggregate Root | Owns procurement identity, commercial context, and warranty logic. | ISO 9000 documented information |
-| MeshMapping | Entity | Graphical projection of the Sidecar pattern that uniquely links geometry (SVG or 3D mesh) with Level 6 (EquipmentUnit). Levels 7 and 8 do not possess individual geometric coordinates on the general blueprint. | ISO 9000 data vs. information separation |
+| MeshMapping | Entity | Canonical spatial mapping of the Sidecar pattern that uniquely links an asset's active spatial representation with Level 6 (EquipmentUnit). Levels 7 and 8 do not possess individual spatial coordinates on the general facility layout. | ISO 9000 data vs. information separation |
 | TelemetrySignal | Entity | Raw measurement record with a timestamp used for traceability and safety analytics. | ISO 9000 monitoring and measurement |
 | WorkPermit | Aggregate Root | Safety authorization boundary that validates the execution of specific work orders in the field. | ISO 55000 competence and LOTO guidance |
 | IsolationPoint | Entity | Permanent lockout point belonging to an EquipmentUnit, required to be isolated during work orders. | ISO 55000 LOTO guidance; ISO 14224 governance |
@@ -419,8 +419,8 @@ This segregation allows for:
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
-| MAPPED | The asset is correctly linked to its 3D representation in the twin. | Digital Linking |
-| UNMAPPED | The asset's 3D mesh is missing or unpositioned. | Incomplete Twin |
+| MAPPED | The asset is correctly linked to its active spatial representation in the twin. | Digital Linking |
+| UNMAPPED | The asset's spatial representation is missing or unpositioned. | Incomplete Twin |
 | SYNC_ERROR | Consistency or loading error between the graphics engine and the DB. | Synchronization Error |
 
 #### 4.30 TelemetrySignal.signalType
@@ -441,7 +441,7 @@ This segregation allows for:
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
-| VISIBLE | Layer actively displayed in the 3D viewer. | Rendered State |
+| VISIBLE | Layer actively displayed in the spatial viewer. | Rendered State |
 | HIDDEN | Layer temporarily hidden. | Rendered State |
 | GHOSTED | Layer visible with transparency to reveal interiors. | Rendered State |
 

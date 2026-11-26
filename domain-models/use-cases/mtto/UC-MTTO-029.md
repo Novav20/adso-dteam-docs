@@ -17,11 +17,11 @@ Guarantees taxonomic consistency and strict physical scoping of industrial machi
 
 ## 2. Preconditions
 * The Actor is authenticated in the platform with the `Reliability Engineer` or `Maintenance Planner` role for boundary configuration, or with `Maintenance Technician` or `Auditor` roles for read-only consultation ([TR-006](../../../requirements/common/TR-006.md)).
-* The target Equipment Unit (ISO 14224 Level 6) exists in the master catalog in `COMMISSIONING` lifecycle status awaiting boundary formalization prior to operational activation, or in `INSTALLED` or `IN_STORAGE` lifecycle status undergoing an audited boundary refinement ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)).
+* The target Equipment Unit (ISO 14224 Level 6) exists in the master catalog in `COMMISSIONING` lifecycle status awaiting boundary formalization prior to operational activation, or in `INSTALLED` or `IN_STORAGE` lifecycle status undergoing an audited boundary refinement ([UC-INV-005](../inv/UC-INV-005.md)).
 * Standardized ISO 14224 Equipment Class definitions, Subunit classifications, and Maintainable Item catalogs are registered in the master taxonomy.
 
 ## 3. Main Flow
-1. The Reliability Engineer accesses the Asset Boundary Limits Card ([SCR-MTTO-029](../../../ui-ux/screens/mtto/SCR-MTTO-029.md)) directly from the Equipment Master Data Card ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)) or switches to another Equipment Unit via the enterprise equipment lookup filter ([FR-091](../../../requirements/user-stories/mtto/MTTO-029.md#functional-requirements-fr)), entering configuration mode.
+1. The Reliability Engineer initiates Asset Boundary Limits configuration directly from the Equipment Unit Master Record ([UC-INV-005](../inv/UC-INV-005.md)) or selects another Equipment Unit via the enterprise equipment lookup filter ([FR-091](../../../requirements/user-stories/mtto/MTTO-029.md#functional-requirements-fr)), entering configuration mode.
 2. The System presents the boundary configuration workspace, displaying the equipment's current commissioning readiness status and requiring the following technical definitions ([FR-092](../../../requirements/user-stories/mtto/MTTO-029.md#functional-requirements-fr), [FR-096](../../../requirements/user-stories/mtto/MTTO-029.md#functional-requirements-fr), [FR-102](../../../requirements/user-stories/mtto/MTTO-029.md#functional-requirements-fr)):
    * Technical description of the initial physical boundary (upstream suction flange, inlet nozzle, or power supply interface).
    * Technical description of the final physical boundary (downstream discharge flange, outlet header, or motor load terminal interface).
@@ -32,7 +32,7 @@ Guarantees taxonomic consistency and strict physical scoping of industrial machi
 4. The System executes an automated uniqueness and hierarchical integrity verification in under 1 second ([TR-008](../../../requirements/common/TR-008.md), [NFR-093](../../../requirements/user-stories/mtto/MTTO-029.md#non-functional-requirements-nfr), [NFR-094](../../../requirements/user-stories/mtto/MTTO-029.md#non-functional-requirements-nfr), [NFR-099](../../../requirements/user-stories/mtto/MTTO-029.md#non-functional-requirements-nfr), [NFR-100](../../../requirements/user-stories/mtto/MTTO-029.md#non-functional-requirements-nfr)):
    * Verifies that none of the selected Level 8 Maintainable Items are currently assigned to the physical boundaries of another Equipment Unit in the catalog.
    * Verifies that all parent-child relationships (Equipment Unit $\to$ Subunit $\to$ Maintainable Item) remain coherently structured without orphaned nodes or taxonomic mismatches ([NFR-103](../../../requirements/user-stories/mtto/MTTO-029.md#non-functional-requirements-nfr)).
-5. The System confirms that the physical boundaries and component hierarchy are free of ownership collisions and previews the candidate SHA-256 cryptographic integrity seal alongside the updated 2D boundary envelope schematic.
+5. The System confirms that the physical boundaries and component hierarchy are free of ownership collisions and previews the candidate SHA-256 cryptographic integrity seal alongside the updated spatial boundary envelope.
 6. The Engineer confirms saving the boundary configuration.
 7. Within a single atomic transactional boundary ([NFR-095](../../../requirements/user-stories/mtto/MTTO-029.md#non-functional-requirements-nfr)), the System:
    * Persists the initial and final physical battery limits, Subunit definitions, Maintainable Item associations, and P&ID boundary metadata on the Equipment Unit master hierarchy.
@@ -54,8 +54,8 @@ During boundary configuration in step 3 of the Main Flow, if the client experien
 
 ### AF-003: Read-Only Boundary Consultation on Field Mobile Terminal
 When a Maintenance Technician inspects an Equipment Unit's battery limits in the field from an industrial tablet ([NFR-097](../../../requirements/user-stories/mtto/MTTO-029.md#non-functional-requirements-nfr), [TR-007](../../../requirements/common/TR-007.md)):
-1. The Technician opens the Asset Boundary Limits Card ([SCR-MTTO-029](../../../ui-ux/screens/mtto/SCR-MTTO-029.md)) from the mobile navigation drawer or Equipment Master Data Card.
-2. The System presents the governing P&ID reference, upstream and downstream physical boundary descriptions, the 2D boundary envelope schematic, and the expandable Subunit and Maintainable Item hierarchy (with bottom-sheet detail inspection on portrait viewports) strictly in read-only consultation mode, suppressing all editing controls.
+1. The Technician opens the Asset Boundary Limits record in a mobile operational session or from the Equipment Unit Master Record ([UC-INV-005](../inv/UC-INV-005.md)).
+2. The System presents the governing P&ID reference, upstream and downstream physical boundary descriptions, the spatial boundary envelope, and the expandable Subunit and Maintainable Item hierarchy strictly in read-only consultation mode, suppressing all editing controls.
 
 ### AF-004: Incomplete Mandatory Boundary Definition or Audit Justification
 In step 6 of the Main Flow, if the Engineer attempts to commit the configuration while the initial boundary, final boundary, at least one Subunit with a linked Maintainable Item, or the mandatory technical audit justification is missing ([FR-096](../../../requirements/user-stories/mtto/MTTO-029.md#functional-requirements-fr)):
@@ -64,7 +64,7 @@ In step 6 of the Main Flow, if the Engineer attempts to commit the configuration
 
 ## 5. Postconditions
 * The Equipment Unit (ISO 14224 Level 6) has its initial and final physical battery limits, governing P&ID boundary metadata, Subunits (Level 7), and Maintainable Items (Level 8) atomically persisted and verified free of cross-equipment ownership collisions.
-* The physical boundary precondition of the Equipment Unit commissioning gate ([FR-096](../../../requirements/user-stories/mtto/MTTO-029.md#functional-requirements-fr)) is satisfied, enabling subsequent operational activation in [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md) and preventive or condition-based scheduling in [SCR-MTTO-001](../../../ui-ux/screens/mtto/SCR-MTTO-001.md) and [SCR-MTTO-023](../../../ui-ux/screens/mtto/SCR-MTTO-023.md).
+* The physical boundary precondition of the Equipment Unit commissioning gate ([FR-096](../../../requirements/user-stories/mtto/MTTO-029.md#functional-requirements-fr)) is satisfied, enabling subsequent operational activation ([UC-INV-007](../inv/UC-INV-007.md)) and preventive or condition-based scheduling ([UC-MTTO-001](UC-MTTO-001.md), [UC-MTTO-023](UC-MTTO-023.md)).
 * All structural boundary adjustments are permanently recorded in the chronological engineering audit history with an unbroken SHA-256 cryptographic hash chain ([FR-098](../../../requirements/user-stories/mtto/MTTO-029.md#functional-requirements-fr), [TR-001](../../../requirements/common/TR-001.md)).
 
 ## 6. Associated Requirements
@@ -94,3 +94,4 @@ In step 6 of the Main Flow, if the Engineer attempts to commit the configuration
 * **Architectural Decision Records:**
   * [ADR-003](../../../architecture/adr/ADR-003.md): Tamper-evident cryptographic SHA-256 hash chaining for audit logs.
   * [ADR-005](../../../architecture/adr/ADR-005.md): Sequential UUIDv7 identifier generation for taxonomic entities.
+* **Related Screens:** [SCR-MTTO-029](../../../ui-ux/screens/mtto/SCR-MTTO-029.md), [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md), [SCR-MTTO-001](../../../ui-ux/screens/mtto/SCR-MTTO-001.md), [SCR-MTTO-023](../../../ui-ux/screens/mtto/SCR-MTTO-023.md)

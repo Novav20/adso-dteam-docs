@@ -11,7 +11,7 @@ secondary_actors:
 # UC-INV-007: Validate and Activate Master Asset (Commissioning)
 
 ## 1. Description
-Validates and formally approves the technical inclusion of a physical asset (Equipment Unit, Level 6) into the operational ecosystem. It enforces strict completeness checks (Commissioning Gate), ensuring that critical parameters such as LOTO procedures, physical boundaries, and design attributes are fully documented before the asset is exposed to the Maintenance (MTTO) and Digital Twin (VIS) modules. In the MVP user interface, this workflow is hosted as an embedded **Commissioning Gate Mode** inside [`SCR-INV-005`](../../../ui-ux/screens/inv/SCR-INV-005.md).
+Validates and formally approves the technical inclusion of a physical asset (Equipment Unit, Level 6) into the operational ecosystem. It enforces strict completeness checks (Commissioning Gate), ensuring that critical parameters such as LOTO procedures, physical boundaries, and design attributes are fully documented before the asset is exposed to the Maintenance (MTTO) and Digital Twin (VIS) modules.
 
 ## 2. Preconditions
 * The Reviewer is authenticated in the system with the `"Reliability Engineer"` or `"Maintenance Supervisor"` role ([TR-006](../../../requirements/common/TR-006.md)); `"Project Engineer"` self-approval of preliminary records is prohibited under Segregation of Duties.
@@ -73,4 +73,4 @@ In step 7, if the System detects that mandatory fields or security configuration
   * [NFR-147](../../../requirements/user-stories/inv/INV-007.md#non-functional-requirements-nfr): Non-blocking notification dispatch for commissioning review outcomes.
 * **Transversal Requirements:** [TR-001](../../../requirements/common/TR-001.md), [TR-005](../../../requirements/common/TR-005.md), [TR-006](../../../requirements/common/TR-006.md), [TR-008](../../../requirements/common/TR-008.md), [TR-011](../../../requirements/common/TR-011.md)
 * **Architectural Decision Records:** [ADR-003](../../../architecture/adr/ADR-003.md), [ADR-005](../../../architecture/adr/ADR-005.md), [ADR-007](../../../architecture/adr/ADR-007.md), [ADR-010](../../../architecture/adr/ADR-010.md)
-* **Host UI Specification:** [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md) (Commissioning Gate Mode)
+* **Related Screens:** [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md) (Commissioning Gate Mode)

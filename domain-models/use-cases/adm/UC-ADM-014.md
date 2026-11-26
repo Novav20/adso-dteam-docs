@@ -16,12 +16,12 @@ secondary_actors:
 Governs the end-to-end lifecycle of platform user accounts (onboarding provisioning, multi-role assignment under Least-Privilege Union consolidation, Root Administrator protection, brute-force lockout defense, temporary suspension, audited restoration of previously activated accounts, logical soft-deletion, and single-use token password recovery) in compliance with ISO/IEC 27001:2022 Annex A.5.16–A.5.18, ISO 55001 Clause 7.2, and NIST SP 800-63B. It preserves historical referential integrity across Work Orders, LOTO attestations, and audit logs by enforcing logical deactivation (`INACTIVE`) and immediate session token revocation while strictly prohibiting physical account deletion.
 
 ## 2. Preconditions
-* The Actor is authenticated in the web portal with the `System Administrator` role for identity lifecycle mutations, or `Auditor` role for user status and login activity inspection ([TR-006](../../../requirements/common/TR-006.md)).
-* Note on Offline Access Guard: In accordance with the global navigation offline guard ([DT-UI-NAV-DOC-001 §6.1](../../../ui-ux/DT-UI-NAV-DOC-001.md#61-offline-operation-guard)), centralized identity administration requires live server connectivity and is blocked during disconnected field operation.
-* The RBAC role catalog ([SCR-ADM-013](../../../ui-ux/screens/adm/SCR-ADM-013.md)), including the immutable built-in Root Administrator role (`FR-250`) and configurable password complexity policies ([NFR-272](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr)), is initialized.
+* The Actor is authenticated in the platform with the `System Administrator` role for identity lifecycle mutations, or `Auditor` role for user status and login activity inspection ([TR-006](../../../requirements/common/TR-006.md)).
+* Note on Offline Access Guard: Centralized identity administration requires live server connectivity and is prohibited during disconnected field operation.
+* The RBAC role catalog ([UC-ADM-013](UC-ADM-013.md)), including the immutable built-in Root Administrator role (`FR-250`) and configurable password complexity policies ([NFR-272](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr)), is initialized.
 
 ## 3. Main Flow
-1. The System Administrator accesses the User Management interface ([SCR-ADM-014](../../../ui-ux/screens/adm/SCR-ADM-014.md)), which displays the administrative control dashboard of all platform users, their lifecycle status (`ACTIVE`, `INACTIVE`, or `LOCKED`), assigned roles, and recent authentication activity ([FR-265](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr), [NFR-268](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr)).
+1. The System Administrator opens the User Management workspace, which presents the administrative control summary of all platform users, their lifecycle status (`ACTIVE`, `INACTIVE`, or `LOCKED`), assigned roles, and recent authentication activity ([FR-265](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr), [NFR-268](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr)).
 2. The Administrator selects the action to provision a new user account ([FR-258](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr)).
 3. The System presents the identity provisioning form requiring the unique Username (operator badge code), Full Name, institutional Email address, and one or more authorized RBAC Roles.
 4. The Administrator enters the corporate identity attributes, assigns the appropriate operational roles, and enters an onboarding justification.
@@ -34,7 +34,7 @@ Governs the end-to-end lifecycle of platform user accounts (onboarding provision
    * Asynchronously dispatches the onboarding activation link to the user's institutional email ([FR-258](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr), [NFR-270](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr)).
 8. The newly provisioned user opens the activation link via an accessible interface compatible with assistive technologies ([NFR-273](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr)) and establishes a personal password complying with the configured NIST SP 800-63B complexity rules ([FR-259](../../../requirements/user-stories/adm/ADM-014.md#functional-requirements-fr), [NFR-272](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr)).
 9. The System verifies the password policy, hashes and salts the credential ([NFR-267](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr)), marks the single-use registration token as consumed, transitions the account status to `ACTIVE`, and logs the activation in the audit trail ([TR-001](../../../requirements/common/TR-001.md)). When activated users subsequently authenticate with valid credentials, the System records the latest login timestamp, clears transient failed-attempt counters, and redirects to their role-authorized workspace ([TR-006](../../../requirements/common/TR-006.md), [NFR-268](../../../requirements/user-stories/adm/ADM-014.md#non-functional-requirements-nfr)).
-10. From the identity console, the Administrator or Auditor may transition directly to the Roles and Permissions Matrix ([SCR-ADM-013](../../../ui-ux/screens/adm/SCR-ADM-013.md)) to edit role privileges or to the Immutable Audit Log Viewer ([SCR-ADM-032](../../../ui-ux/screens/adm/SCR-ADM-032.md)) to inspect identity forensic events.
+10. From the identity console, the Administrator or Auditor may transition directly to Role-Based Access Control ([UC-ADM-013](UC-ADM-013.md)) to edit role privileges or to Cryptographic Audit Trail inspection ([UC-ADM-032](UC-ADM-032.md)) to inspect identity forensic events.
 
 ## 4. Alternate Flows
 
@@ -75,12 +75,12 @@ In step 5, if the entered Username or institutional Email matches an existing ac
 
 ### AF-007: Root Administrator Account Protection
 If an Administrator selects or attempts to suspend, soft-delete, or strip the Root Administrator role from the protected built-in Root Administrator account ([FR-250](../../../requirements/user-stories/adm/ADM-013.md#functional-requirements-fr)):
-1. The System hard-locks account suspension controls and root role assignment toggles for that account.
+1. The System locks account suspension and root role assignment controls for that account.
 2. The System displays a root-account protection notice indicating that the administrative root account cannot be deactivated or stripped of system privileges, preventing unrecoverable administrative lockout.
 
 ### AF-008: Unauthorized Route or Governance Access Rejection
-At any point, if an authenticated user lacking identity governance authorization attempts direct URL navigation or restricted action execution ([TR-006](../../../requirements/common/TR-006.md)):
-1. The System rejects the request prior to loading protected identity directory records and presents an access-denied (`403 Forbidden`) view.
+At any point, if an authenticated user lacking identity governance authorization attempts direct access to restricted routes or action execution ([TR-006](../../../requirements/common/TR-006.md)):
+1. The System rejects the request prior to loading protected identity directory records and presents an access-denied (`403 Forbidden`) response.
 2. The System appends an immutable security alert entry to the SHA-256 audit trail identifying the actor, timestamp, and attempted restricted target ([TR-001](../../../requirements/common/TR-001.md)).
 
 ## 5. Postconditions
@@ -120,3 +120,4 @@ At any point, if an authenticated user lacking identity governance authorization
 * **Architectural Decision Records:**
   * [ADR-003](../../../architecture/adr/ADR-003.md): Tamper-evident cryptographic SHA-256 hash chaining for audit logs.
   * [ADR-005](../../../architecture/adr/ADR-005.md): Sequential UUIDv7 primary key generation for user and token entities.
+* **Related Screens:** [SCR-ADM-014](../../../ui-ux/screens/adm/SCR-ADM-014.md), [SCR-ADM-013](../../../ui-ux/screens/adm/SCR-ADM-013.md), [SCR-ADM-032](../../../ui-ux/screens/adm/SCR-ADM-032.md)

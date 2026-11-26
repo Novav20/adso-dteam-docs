@@ -17,11 +17,11 @@ Executes, reconciles, and audits all physical and logical movements of spare par
 
 ## 2. Preconditions
 * The Actor is authenticated in the platform with the `Warehouse Manager` role for registering inventory movements, or `Maintenance Planner`, `Maintenance Technician`, and `Auditor` roles for Kardex history consultation and reconciliation ([TR-006](../../../requirements/common/TR-006.md)).
-* The target Spare Part (identified by its Stock Keeping Unit, SKU), Warehouse, and physical storage Locator (aisle, rack, and shelf bin) are registered in the master catalog ([SCR-INV-031](../../../ui-ux/screens/inv/SCR-INV-031.md)).
+* The target Spare Part (identified by its Stock Keeping Unit, SKU), Warehouse, and physical storage Locator (aisle, rack, and shelf bin) are registered in the master catalog ([UC-INV-031](UC-INV-031.md)).
 * For material issues or unused material returns, the target Work Order exists in an active execution or pre-closure lifecycle state (`SCHEDULED`, `IN_PROGRESS`, or `COMPLETE`).
 
 ## 3. Main Flow
-1. The Warehouse Manager accesses the Movements and Kardex History interface ([SCR-INV-006](../../../ui-ux/screens/inv/SCR-INV-006.md)) directly from the Inventory menu or via drill-down from the Equipment Master Data Card ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)), viewing the chronological movement ledger and multi-criteria filtering controls ([FR-130](../../../requirements/user-stories/inv/INV-006.md#functional-requirements-fr)).
+1. The Warehouse Manager accesses the Movements and Kardex History workflow directly or via drill-down from an Equipment Unit master record ([UC-INV-005](UC-INV-005.md)), viewing the chronological movement ledger and multi-criteria filtering controls ([FR-130](../../../requirements/user-stories/inv/INV-006.md#functional-requirements-fr)).
 2. The Warehouse Manager selects the action to register a new inventory movement.
 3. The System presents the transactional movement form supporting inbound receipts (`RECEIPT` per [FR-125](../../../requirements/user-stories/inv/INV-006.md#functional-requirements-fr)), Work Order consumption issues (`ISSUE` per [FR-127](../../../requirements/user-stories/inv/INV-006.md#functional-requirements-fr)), unused material returns (`RECEIPT` with Work Order cost reversal per [FR-128](../../../requirements/user-stories/inv/INV-006.md#functional-requirements-fr)), and physical count reconciliations (`ADJUSTMENT`).
 4. The Manager selects the movement classification (`ISSUE` for Work Order consumption), scans or selects the Spare Part SKU and physical Warehouse Locator bin, and links the target Work Order reference.
@@ -48,7 +48,7 @@ In step 7, if the requested issue quantity exceeds the net available stock in th
 ### AF-002: Replenishment Threshold or Capacity Limit Alert
 In step 9, if the updated physical stock on hand reaches or falls below the Spare Part's configured Reorder Point, or if an inbound receipt causes stock to exceed Maximum Capacity ([FR-129](../../../requirements/user-stories/inv/INV-006.md#functional-requirements-fr)):
 1. The System completes the atomic Kardex movement and immediately triggers a stock policy alert (`BELOW_REORDER_POINT` or `EXCEEDS_MAX_CAPACITY`).
-2. The System displays a non-modal replenishment warning in the Kardex summary strip and footer slot, and dispatches an automated replenishment notification to procurement and planning personnel ([FR-129](../../../requirements/user-stories/inv/INV-006.md#functional-requirements-fr)).
+2. The System displays a non-blocking replenishment warning in the Kardex summary and dispatches an automated replenishment notification to procurement and planning personnel ([FR-129](../../../requirements/user-stories/inv/INV-006.md#functional-requirements-fr)).
 3. The workflow continues to step 10.
 
 ### AF-003: Physical Count Discrepancy Adjustment or Unused Material Return
@@ -95,3 +95,4 @@ In step 8, if the warehouse terminal experiences a temporary connectivity loss w
   * [ADR-003](../../../architecture/adr/ADR-003.md): Tamper-evident cryptographic SHA-256 hash chaining for audit logs.
   * [ADR-005](../../../architecture/adr/ADR-005.md): Sequential UUIDv7 identifier generation for inventory transactions.
   * [ADR-007](../../../architecture/adr/ADR-007.md): Idempotent command processing via client-generated idempotency keys.
+* **Related Screens:** [SCR-INV-006](../../../ui-ux/screens/inv/SCR-INV-006.md), [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md), [SCR-INV-031](../../../ui-ux/screens/inv/SCR-INV-031.md)

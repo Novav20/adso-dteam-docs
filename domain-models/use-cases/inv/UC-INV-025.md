@@ -17,13 +17,13 @@ Executes the physical and functional replacement of a serialized equipment unit 
 
 ## 2. Preconditions
 * The Actor is authenticated in the system with role `Maintenance Technician`, `Maintenance Supervisor`, or `Warehouse Manager` ([TR-006](../../../requirements/common/TR-006.md)).
-* The Actor accesses the contextual modal dialog ([SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md)) from an active Work Order ([SCR-MTTO-002](../../../ui-ux/screens/mtto/SCR-MTTO-002.md) via "Rotate Dismounted Equipment") or from the Functional Location Detail view ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md) via "Physical Replacement").
+* The Actor initiates the Asset Swap workflow from an active Work Order ([UC-MTTO-002](../mtto/UC-MTTO-002.md)) or from a Functional Location / Equipment Unit master record ([UC-INV-005](UC-INV-005.md)).
 * The target Functional Location is active, governed by an approved Work Permit, and currently has a physically mounted equipment unit.
 * When executed within a field Work Order context, mechanical and electrical isolation is verified (active LOTO locks confirmed and telemetry signals indicate zero residual energy per [ASR-002](../../../architecture/asr/DT-ARQ-ASR-001.md)).
 * A compatible replacement equipment unit exists in warehouse inventory in `IN_STORAGE` lifecycle status and `OPERATIONAL` maintenance status ([FR-593](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr)).
 
 ## 3. Main Flow
-1. The Technician invokes the "Asset Swap" operation from the caller screen.
+1. The Technician invokes the Asset Swap operation from the active operational context.
 2. The System displays the asset swap form populated with the target Functional Location tag and the details of the currently mounted equipment unit (Serial Number, Manufacturer, Model, Operating Hours, Installation Date).
 3. The Technician selects the post-dismount destination status (`IN_REPAIR` for technical workshop overhaul, `IN_STORAGE` for serviceable warehouse spare pool, or `DAMAGED` for reliability triage/quarantine prior to decommissioning) and specifies the receiving warehouse or workshop identifier.
 4. The Technician selects the replacement equipment unit from the rotable catalog or scans its physical barcode/NFC tag using the mobile device reader.
@@ -38,7 +38,7 @@ Executes the physical and functional replacement of a serialized equipment unit 
     1. Closes the active installation timeline record for the dismounted equipment unit and opens a new installation record for the replacement unit to preserve continuous MTBF reliability tracking.
     2. Posts the warehouse inventory ledger movements: records a stock receipt movement for the dismounted unit entering the destination warehouse/workshop, and a stock issue movement for the replacement unit exiting warehouse stock.
     3. Records the structural audit transaction capturing the immutable cryptographic hash, previous state, new state, user ID, and justifying Work Order ([FR-595](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr)).
-11. The System displays a success confirmation, closes the contextual modal dialog, and returns the Technician to the caller screen ([SCR-MTTO-002](../../../ui-ux/screens/mtto/SCR-MTTO-002.md) or [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)) with the updated mounted equipment serial number reflected in the active session.
+11. The System displays a success confirmation and returns control to the invoking operational context ([UC-MTTO-002](../mtto/UC-MTTO-002.md) or [UC-INV-005](UC-INV-005.md)) with the updated mounted equipment serial number reflected in the active session.
 
 ## 4. Alternate Flows
 
@@ -57,7 +57,7 @@ In step 8, if the Technician attempts to confirm the swap without selecting the 
 ### AF-003: Safety Interlock Violation / Unverified Energy Isolation
 In step 1 or step 8, if the swap is triggered within a Work Order context and plant telemetry indicates active electrical current/fluid pressure, or if required LOTO isolation points are not formally attested and locked:
 1. The System activates the safety interlock, hard-disabling the execution action.
-2. The System displays an emergency safety banner: *"Operational Safety Interlock: Equipment cannot be mechanically uncoupled while energy isolation remains unverified. Confirm zero energy state before proceeding."*
+2. The System presents a non-dismissible safety interlock alert: *"Operational Safety Interlock: Equipment cannot be mechanically uncoupled while energy isolation remains unverified. Confirm zero energy state before proceeding."*
 3. The flow is aborted.
 
 ### AF-004: Offline Network Partition & Command Outbox Enqueuing
@@ -65,7 +65,7 @@ In step 1, if the mobile device is operating in a disconnected plant zone withou
 1. The System displays the offline indicator ("OFFLINE · LOCALLY QUEUED").
 2. The Technician executes steps 1 through 8 normally using local encrypted storage ([TR-002](../../../requirements/common/TR-002.md)).
 3. In step 10, the System generates client-side unique identifiers ([ADR-005](../../../architecture/adr/ADR-005.md)), persists the transaction locally, and enqueues the command payload into the local offline synchronization queue ([ADR-006](../../../architecture/adr/ADR-006.md)).
-4. The modal presents a local confirmation notice and returns to the caller screen with an incremented pending synchronization counter.
+4. The System presents a local confirmation notice and returns to the invoking workflow with an incremented pending synchronization count.
 5. Upon network recovery, the background synchronization service automatically dispatches the enqueued transaction to the central application service using the idempotency key to guarantee single-commit execution.
 
 ## 5. Postconditions
@@ -74,10 +74,11 @@ In step 1, if the mobile device is operating in a disconnected plant zone withou
 * The equipment installation timeline is updated atomically, closing the prior service interval and opening the new active period for accurate MTBF calculations.
 * The warehouse inventory ledger records the corresponding issue and receipt movements with exact serial numbers and movement reasons.
 * An immutable audit log entry is recorded with the chained SHA-256 cryptographic hash.
-* The contextual modal dialog closes and returns control to the parent caller screen with refreshed serial references.
+* Control returns to the invoking operational context with refreshed mounted equipment serial references.
 
 ## 6. Associated Requirements
 * **Functional Requirements:** [FR-591](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr), [FR-592](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr), [FR-593](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr), [FR-594](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr), [FR-595](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr)
 * **Non-Functional Requirements:** [NFR-596](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr), [NFR-597](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr)
 * **Transversal Requirements:** [TR-001](../../../requirements/common/TR-001.md), [TR-002](../../../requirements/common/TR-002.md), [TR-006](../../../requirements/common/TR-006.md), [TR-007](../../../requirements/common/TR-007.md), [TR-008](../../../requirements/common/TR-008.md)
 * **Architectural Decisions:** [ADR-005](../../../architecture/adr/ADR-005.md), [ADR-006](../../../architecture/adr/ADR-006.md)
+* **Related Screens:** [SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md), [SCR-MTTO-002](../../../ui-ux/screens/mtto/SCR-MTTO-002.md), [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)

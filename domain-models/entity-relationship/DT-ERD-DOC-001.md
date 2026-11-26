@@ -519,14 +519,14 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
 | --- | --- | --- | --- | --- | --- |
 | id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the singleton policy record (PK). |
-| min_length | INT | NOT NULL | | 12 | Minimum required password length enforced under NIST SP 800-63B (`FR-259`, `NFR-272`). |
+| min_length | INT | NOT NULL | CHECK | 12 | Minimum required password length enforced under NIST SP 800-63B (`FR-259`, `NFR-272`). |
 | require_uppercase | BOOLEAN | NOT NULL | | TRUE | Requires at least one uppercase alphabetical character (`NFR-272`). |
 | require_digit | BOOLEAN | NOT NULL | | TRUE | Requires at least one numeric digit (`NFR-272`). |
 | require_special_char | BOOLEAN | NOT NULL | | TRUE | Requires at least one special symbol (`NFR-272`). |
-| max_age_days | INT | NOT NULL | | 90 | Maximum credential validity window in days triggering periodic password rotation (`FR-266`). |
-| history_non_reuse_count | INT | NOT NULL | | 5 | Number of prior credential hashes blocked from reuse (`FR-266`, `NFR-272`). |
-| lockout_threshold | INT | NOT NULL | | 5 | Maximum consecutive failed login attempts before brute-force lockout (`FR-260`). |
-| lockout_duration_minutes | INT | NOT NULL | | 15 | Duration in minutes for temporary account lockout (`FR-260`). |
+| max_age_days | INT | NOT NULL | CHECK | 90 | Maximum credential validity window in days triggering periodic password rotation (`FR-266`). |
+| history_non_reuse_count | INT | NOT NULL | CHECK | 5 | Number of prior credential hashes blocked from reuse (`FR-266`, `NFR-272`). |
+| lockout_threshold | INT | NOT NULL | CHECK | 5 | Maximum consecutive failed login attempts before brute-force lockout (`FR-260`). |
+| lockout_duration_minutes | INT | NOT NULL | CHECK | 15 | Duration in minutes for temporary account lockout (`FR-260`). |
 | updated_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC timestamp of last policy update; singleton configuration aggregate guarded by PostgreSQL `xmin` optimistic concurrency (`PUT /api/v1/security/password-policy`). |
 
 #### 3.5.11 user_password_histories
