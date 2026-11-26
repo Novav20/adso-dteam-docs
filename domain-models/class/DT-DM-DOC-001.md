@@ -564,11 +564,36 @@ This segregation allows for:
 | VERIFYING_IN_PROGRESS | Asynchronous cryptographic anchor verification is executing on the partition segment. | Forensic Integrity Check (`FR-351`) |
 | TAMPER_BREACH_DETECTED | Cryptographic anchor mismatch or missing chained link detected within the partition window. | Tamper Quarantine (`TR-003-NFR-377`) |
 
-## 5. Physical Mapping and Data Dictionary
+## 5. Domain Safety & Segregation of Duties (SoD) Constants
+
+This section serves as the canonical Single Source of Truth (SSoT) for domain-level Segregation of Duties rules and deterministic safety thresholds referenced across screen contracts, RBAC validation engines, and safety interlocks.
+
+### 5.1. Segregation of Duties (SoD) Matrix Rules (`TR-006`)
+
+Let $P_r \subseteq \text{RbacModule} \times \text{RbacAction}$ denote the permissions assigned to a role $r$, and let $P_{\text{effective}}(u) = \bigcup_{r \in R_u} P_r$ denote the multi-role permission union for user $u$ ([TR-006](../../requirements/common/TR-006.md#functional-requirements-fr)). Both single-role configuration (`Role.ValidateSoD()`) and user role assignment (`ISodValidationEngine`) unconditionally block any assignment matching a prohibited pair in $\mathcal{C}_{\text{SoD}}$ and record `AuditActionType.SECURITY_ALERT` on bypass attempts:
+
+| Rule Code | Prohibited Permission Pair | Domain Governance Rationale |
+| :--- | :--- | :--- |
+| **`SOD-SAF-01`** | `(SAFETY, CREATE/EXECUTE)` $\land$ `(SAFETY, APPROVE)` | **LOTO & Permit Self-Approval:** Prevents field executors or project engineers from autonomously approving their own high-risk Work Permits, Commissioning Gate releases, or LOTO overrides (`ISO 45001 §8.1`). |
+| **`SOD-INV-01`** | `(INVENTORY, CREATE/EXECUTE)` $\land$ `(INVENTORY, APPROVE/AUDIT)` | **Inventory Fraud Prevention:** Separates warehouse movement execution from supervisory stock write-off approval and independent financial reconciliation (`ISO 55001`). |
+| **`SOD-MTTO-01`** | `(MAINTENANCE, EXECUTE)` $\land$ `(MAINTENANCE, APPROVE)` | **Work Order Closure Governance:** Enforces strict separation between field technical completion (`COMPLETE`) and supervisory administrative closure (`CLOSED`). |
+| **`SOD-SYS-01`** | `(SYSTEM, CREATE/EDIT/DELETE)` $\land$ `(SYSTEM, AUDIT)` | **Audit Trail Independence (Non-Root Roles):** Separates IAM user/role administration from forensic WORM audit inspection and tamper verification (`ISO 27001 A.5.3`). |
+
+### 5.2. Operational Safety & Spatial Clearance Thresholds
+
+| Domain Mechanism | Parameter / Hazard Class | Canonical Threshold | Safety Invariant & Normative Basis |
+| :--- | :--- | :--- | :--- |
+| **Zero-Energy Verification** | Electrical Voltage (`V`) | `0.0 V` | `MeasuredValue > 0.0 V` triggers fail-safe negative interlock lock and evacuation broadcast (`OSHA 1910.147 §(d)(6)`). |
+| **Zero-Energy Verification** | Process Pressure (`P`) | `0.5 psig` | `MeasuredValue > 0.5 psig` blocks LOTO Zero-Energy confirmation and mechanical decoupling (`ISO 45001 §8.1`). |
+| **SIMOPS Clearance Radius** | `HOT_WORK` | `15 m` | Dynamic circular/corridor clearance radius around point or linear ignition sources (`IOGP 459 / API 2015`). |
+| **SIMOPS Clearance Radius** | `CONFINED_SPACE` | `13 m` | Dynamic containment clearance radius around confined-space permit zones (`IOGP 459 / API 2015`). |
+| **SIMOPS Clearance Radius** | Default (`ELECTRICAL`, `WORK_AT_HEIGHT`, `EXCAVATION`, `CHEMICAL`, `COLD_WORK`) | `5 m` | Default asset-envelope operational perimeter when specialized high-radius zones do not apply. |
+
+## 6. Physical Mapping and Data Dictionary
 
 For details on the physical mapping, relational schema, and `JSONB` payload contracts, see [DT-ERD-DOC-001](../entity-relationship/DT-ERD-DOC-001.md) and its Single Source of Truth in [DT-ERD-DOC-001 §6](../entity-relationship/DT-ERD-DOC-001.md#6-jsonb-payload-contracts).
 
-## 6. Final Notes
+## 7. Final Notes
 
 - The domain model must remain the business source of truth until the physical ERD is generated.
 - Controlled vocabularies that are stable and of low cardinality can be enforced via CHECK constraints.

@@ -195,3 +195,113 @@ The 8 typed SignalR event records (`LotoHeartbeatAck` emits a scalar `DateTimeOf
 2. **Idempotency & Optimistic Concurrency Headers:** Every mutating `POST`/`PUT`/`PATCH`/`DELETE` command MUST include `X-Idempotency-Key` (`ADR-007`), whereas read-only query/validation `POST` routes (such as `POST /api/v1/taxonomy/maintainable-items/validate-exclusivity` and `POST /api/v1/security/audit-logs/query`) are exempt from `idempotency_filter`. Every update or state-transition on a mutable entity MUST enforce PostgreSQL `xmin` optimistic concurrency via `ETag` / `If-Match` headers and `uint ConcurrencyToken` (`DT-ARQ-DB-DOC-001 §3.12`).
 3. **Numeric Precision Boundary:** All domain, telemetry, engineering, financial, and inventory quantities MUST use C# `decimal` (mapped to PostgreSQL `DECIMAL`). IEEE-754 `double` is strictly permitted only in non-persisted 2D/3D SVG presentation viewport DTOs/view-models (`SCR-VIS-008`, `SCR-VIS-011`, `SCR-VIS-033`) for screen pan/zoom transforms, pixel coordinates, and cartographic scale factors (`DT-ARQ-DB-DOC-001 §2`).
 
+### 6.1. Canonical REST Endpoint Catalog
+
+The catalog below consolidates all **72 normalized Minimal API endpoints** (**74 verbatim `VERB /api/v1/...` route references** across the 16 `SCR-*.md` screen contracts, accounting for the optional `?from={isoDate}&to={isoDate}` query parameters on `commissioning-report` and the `?serial={sn}` / `?serial={serialNumber}` parameter alias on `verify-uniqueness`) grouped by bounded context:
+
+#### 6.1.1. `taxonomy` Context (21 Normalized / 23 Verbatim Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `POST /api/v1/taxonomy/functional-locations` | `CreateFunctionalLocationCommand` $\to$ `FunctionalLocationCreatedEvent` | `X-Idempotency-Key` | `SCR-INV-027` |
+| `GET /api/v1/taxonomy/functional-locations/tree` | `FunctionalLocationTreeResponseDto` | Read-only (`GET`) | `SCR-INV-027` |
+| `GET /api/v1/taxonomy/functional-locations/verify-tag?tag={tag}` | `TagUniquenessResultDto` | Read-only (`GET`) | `SCR-INV-027` |
+| `PUT /api/v1/taxonomy/functional-locations/{id}` | `UpdateFunctionalLocationCommand` $\to$ `FunctionalLocationTreeNodeDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-027` |
+| `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` | `ReorganizeFunctionalLocationCommand` $\to$ `FunctionalLocationTreeNodeDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-027` |
+| `DELETE /api/v1/taxonomy/functional-locations/{id}` | `TaxonomyAuditEntryDto` / `204 No Content` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-027` |
+| `GET /api/v1/taxonomy/functional-locations/export` | `TaxonomyExportFormat` (`CSV` / `JSON` stream) | Read-only (`GET`) | `SCR-INV-027` |
+| `GET /api/v1/taxonomy/functional-locations/{locId}/installed-asset` | `InstalledAssetDetailsDto` | Read-only (`GET`) | `SCR-INV-025` |
+| `POST /api/v1/taxonomy/equipment-units` | `RegisterEquipmentUnitCommand` $\to$ `EquipmentUnitMasterCardDto` | `X-Idempotency-Key` | `SCR-INV-005` |
+| `GET /api/v1/taxonomy/equipment-units/{id}` | `EquipmentUnitMasterCardDto` | Read-only (`GET`) | `SCR-INV-005` |
+| `PUT /api/v1/taxonomy/equipment-units/{id}` | `UpdateEquipmentMasterRecordCommand` $\to$ `EquipmentUnitMasterCardDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-005` |
+| `GET /api/v1/taxonomy/equipment-units/lookup` | `EquipmentUnitLookupQueryDto` $\to$ `PagedLookupResultDto<EquipmentUnitLookupDto>` | Read-only (`GET`) | `SCR-MTTO-001`, `SCR-MTTO-023`, `SCR-MTTO-029` |
+| `GET /api/v1/taxonomy/equipment-units/verify-uniqueness?serial={serialNumber}` (alias `?serial={sn}`) | `SerialUniquenessResultDto` | Read-only (`GET`) | `SCR-INV-005` |
+| `GET /api/v1/taxonomy/equipment-units/pending-commissioning` | `IReadOnlyList<PendingCommissioningItemDto>` | Read-only (`GET`) | `SCR-INV-005` |
+| `POST /api/v1/taxonomy/equipment-units/{id}/commission` | `CommissionEquipmentUnitCommand` $\to$ `EquipmentUnitMasterCardDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-005` |
+| `POST /api/v1/taxonomy/equipment-units/{id}/reject-commissioning` | `RejectEquipmentCommissioningCommand` $\to$ `EquipmentUnitMasterCardDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-005` |
+| `GET /api/v1/taxonomy/equipment-units/commissioning-report` (`?from={isoDate}&to={isoDate}`) | Structured `CSV` / `JSON` compliance report | Read-only (`GET`) | `SCR-INV-005` |
+| `GET /api/v1/taxonomy/equipment-units/{id}/boundaries` | `EquipmentBoundaryCardDto` | Read-only (`GET`) | `SCR-MTTO-001`, `SCR-MTTO-023`, `SCR-MTTO-029` |
+| `PUT /api/v1/taxonomy/equipment-units/{id}/boundaries` | `SaveEquipmentBoundariesCommand` $\to$ `EquipmentBoundaryCardDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-MTTO-029` |
+| `GET /api/v1/taxonomy/equipment-units/{id}/subunits` | `IReadOnlyList<SubunitLookupDto>` / `SubunitNodeDto` | Read-only (`GET`) | `SCR-MTTO-001`, `SCR-MTTO-023` |
+| `POST /api/v1/taxonomy/maintainable-items/validate-exclusivity` | `MaintainableItemLookupQueryDto` $\to$ `ComponentExclusivityValidationResultDto` | Exempt (`POST` read-only validation) | `SCR-MTTO-029` |
+
+#### 6.1.2. `maintenance` Context (13 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `POST /api/v1/maintenance/plans` | `CreateMaintenancePlanCommand` $\to$ `MaintenancePlanSummaryDto` | `X-Idempotency-Key` | `SCR-MTTO-001` |
+| `PUT /api/v1/maintenance/plans/{id}` | `UpdateMaintenancePlanCommand` $\to$ `MaintenancePlanSummaryDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-MTTO-001` |
+| `POST /api/v1/maintenance/plans/cbm` | `CreateCbmPlanCommand` $\to$ `CbmTriggerEventDto` | `X-Idempotency-Key` | `SCR-MTTO-023` |
+| `GET /api/v1/maintenance/backlog-items?status=NEW` | `IReadOnlyList<BacklogItemDto>` (`BacklogSummaryMetricsDto`) | Read-only (`GET`) | `SCR-MTTO-026` |
+| `POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class` | `AdjustWorkClassCommand` $\to$ `BacklogItemDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-MTTO-026` |
+| `POST /api/v1/maintenance/backlog-items/{id}/notify-reliability` | `DispatchReliabilityNotificationCommand` | `X-Idempotency-Key` | `SCR-MTTO-026` |
+| `POST /api/v1/maintenance/backlog-items/weekly-distribution` | `ConfirmWeeklyDistributionCommand` | `X-Idempotency-Key` | `SCR-MTTO-026` |
+| `GET /api/v1/maintenance/backlog-items/export` | `BacklogExportFormat` (`CSV` / `JSON` stream) | Read-only (`GET`) | `SCR-MTTO-026` |
+| `GET /api/v1/maintenance/work-orders?equipmentUnitId={id}&status=ACTIVE` | `IReadOnlyList<ActiveWorkOrderSummaryDto>` | Read-only (`GET`) | `SCR-VIS-033` |
+| `GET /api/v1/maintenance/work-orders/{id}/closing-context` | `WorkOrderClosingContextDto` | Read-only (`GET`) | `SCR-MTTO-002` |
+| `POST /api/v1/maintenance/work-orders/{id}/start-execution` | `StartWorkOrderExecutionCommand` $\to$ `WorkOrderTransitionEvent` | `X-Idempotency-Key` + `SELECT ... FOR UPDATE NOWAIT` (online) / `CryptographicOfflineLeaseDto` (offline) | `SCR-VIS-011`, `SCR-MTTO-002` |
+| `POST /api/v1/maintenance/work-orders/{id}/media-upload-sas` | `RequestMediaUploadSasCommand` $\to$ `MediaUploadSasResponseDto` | Valet Key SAS issuance ([ADR-008](../adr/ADR-008.md)) | `SCR-MTTO-002` |
+| `POST /api/v1/maintenance/work-orders/{id}/technical-closure` | `SubmitTechnicalClosureCommand` $\to$ `WorkOrderTransitionEvent` | `X-Idempotency-Key` + `If-Match` (`xmin` online; omitted on offline FIFO replay per [ADR-006](../adr/ADR-006.md)) | `SCR-MTTO-002` |
+
+#### 6.1.3. `inventory` Context (9 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `GET /api/v1/inventory/spare-parts?page=1&pageSize=100` | `IReadOnlyList<SparePartMasterItemDto>` (`PartMasterSummaryMetricsDto`) | Read-only (`GET`) | `SCR-INV-031` |
+| `GET /api/v1/inventory/spare-parts/verify-sku?sku={sku}` | `SkuUniquenessResultDto` | Read-only (`GET`) | `SCR-INV-031` |
+| `POST /api/v1/inventory/spare-parts` | `RegisterSparePartCommand` $\to$ `SparePartMasterItemDto` | `X-Idempotency-Key` | `SCR-INV-031` |
+| `PUT /api/v1/inventory/spare-parts/{id}/policy` | `UpdateSparePartPolicyCommand` $\to$ `SparePartMasterItemDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-031` |
+| `GET /api/v1/inventory/spare-parts/rotables` | `IReadOnlyList<RotableSpareSummaryDto>` | Read-only (`GET`) | `SCR-INV-025` |
+| `GET /api/v1/inventory/spare-parts/{id}/availability?warehouseId={wh}` | `SparePartAvailabilityDto` | Read-only (`GET`) | `SCR-INV-006` |
+| `GET /api/v1/inventory/kardex?equipmentUnitId={id}&sparePartId={partId}` | `KardexSummaryMetricsDto` + `IReadOnlyList<KardexTransactionRowDto>` | Read-only (`GET`) | `SCR-INV-006` |
+| `POST /api/v1/inventory/transactions` | `RegisterInventoryTransactionCommand` $\to$ `InventoryTransactionVoucherDto` | `X-Idempotency-Key` + `If-Match` (`xmin` online; omitted on offline FIFO replay) | `SCR-INV-006` |
+| `POST /api/v1/inventory/rotable-swaps` | `ExecuteAssetSwapCommand` $\to$ `AssetSwapCompletedEvent` | `X-Idempotency-Key` + `If-Match` (`xmin` dual-unit online; omitted on offline replay) | `SCR-INV-025` |
+
+#### 6.1.4. `safety` Context (7 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `GET /api/v1/safety/work-permits?status=APPROVED` | `IReadOnlyList<PtwOverlayDto>` | Read-only (`GET`) | `SCR-VIS-008` |
+| `GET /api/v1/safety/work-permits/orphans` | `IReadOnlyList<OrphanPermitDto>` | Read-only (`GET`) | `SCR-VIS-008` |
+| `GET /api/v1/safety/loto-plans/work-orders/{workOrderId}` | `LotoIsolationPlanDto` | Read-only (`GET`) | `SCR-VIS-011` |
+| `POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease` | `CryptographicOfflineLeaseDto` | `X-Idempotency-Key` | `SCR-VIS-011` |
+| `POST /api/v1/safety/loto-plans/{workOrderId}/cutoffs/{isolationPointId}/confirm` | `ConfirmCutoffStepRequestDto` $\to$ `CutoffPointStatusDto` | `X-Idempotency-Key` + `SELECT ... FOR UPDATE NOWAIT` (online) / `CryptographicOfflineLeaseDto` (offline) | `SCR-VIS-011` |
+| `POST /api/v1/safety/loto-plans/{workOrderId}/try-out` | `TryOutAttestationDto` $\to$ `LotoIsolationPlanDto` | `X-Idempotency-Key` + `SELECT ... FOR UPDATE NOWAIT` (online) / `CryptographicOfflineLeaseDto` (offline) | `SCR-VIS-011` |
+| `POST /api/v1/safety/loto-plans/{workOrderId}/supervisor-override` | `SupervisorLotoOverrideCommand` $\to$ `LotoIsolationPlanDto` | `X-Idempotency-Key` | `SCR-VIS-011` |
+
+#### 6.1.5. `visualization` Context (4 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `GET /api/v1/visualization/plot-plans/{facilityCode}` | `PlantPlotPlanDto` | Read-only (`GET`) | `SCR-VIS-008` |
+| `GET /api/v1/visualization/plot-plans/{functionalLocationCode}` | `PlantPlotPlanDto` | Read-only (`GET`) | `SCR-VIS-033` |
+| `GET /api/v1/visualization/equipment-units/{tagNumber}/faceplate` | `EquipmentFaceplateDto` | Read-only (`GET`) | `SCR-VIS-033` |
+| `PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}` | `UpsertMeshMappingCommand` | `X-Idempotency-Key` + conditional `If-Match` (`xmin` on update; omitted on create) | `SCR-VIS-008` |
+
+#### 6.1.6. `telemetry` Context (2 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `GET /api/v1/telemetry/equipment-units/{id}/signals` | `IReadOnlyList<TelemetrySignalDto>` | Read-only (`GET`) | `SCR-MTTO-023` |
+| `POST /api/v1/telemetry/signals/{id}/manual-readings` | `RecordManualReadingCommand` $\to$ `CbmTriggerEventDto` | `X-Idempotency-Key` (no `If-Match`; append-only hypertable) | `SCR-MTTO-023` |
+
+#### 6.1.7. `security` Context (16 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `GET /api/v1/security/roles/matrix` | `RoleMatrixDetailDto` + `RbacSummaryMetricsDto` | Read-only (`GET`) | `SCR-ADM-013` |
+| `GET /api/v1/security/roles/export` | RBAC matrix & SoD export (`CSV` / `JSON`) | Read-only (`GET`) | `SCR-ADM-013` |
+| `POST /api/v1/security/roles` | `CreateCustomRoleCommand` $\to$ `RoleSummaryDto` | `X-Idempotency-Key` | `SCR-ADM-013` |
+| `PUT /api/v1/security/roles/{id}/permissions` | `UpdateRolePermissionsCommand` $\to$ `RoleMatrixDetailDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-013` |
+| `POST /api/v1/security/roles/{id}/deactivate` | `DeactivateCustomRoleCommand` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-013` |
+| `GET /api/v1/security/users` | `UserDirectoryMetricsDto` + `IReadOnlyList<UserDirectoryRowDto>` | Read-only (`GET`) | `SCR-ADM-014` |
+| `GET /api/v1/security/users/verify-identity?username={u}&email={e}` | `IdentityUniquenessResultDto` | Read-only (`GET`) | `SCR-ADM-014` |
+| `POST /api/v1/security/users` | `ProvisionUserAccountCommand` $\to$ `UserDetailProfileDto` | `X-Idempotency-Key` | `SCR-ADM-014` |
+| `PUT /api/v1/security/users/{id}/roles` | `AssignUserRolesCommand` $\to$ `RoleUnionEvaluationDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-014` |
+| `POST /api/v1/security/users/{id}/lifecycle` | `ExecuteUserLifecycleTransitionCommand` $\to$ `UserDetailProfileDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-014` |
+| `POST /api/v1/security/users/{id}/password-reset` | `IssuePasswordResetCommand` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-014` |
+| `POST /api/v1/security/users/{id}/tokens/revoke` | `RevokeUserTokensCommand` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-014` |
+| `PUT /api/v1/security/password-policy` | `UpdatePasswordSecurityPolicyCommand` $\to$ `PasswordSecurityPolicyDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-014` |
+| `GET /api/v1/security/audit-logs` | `AuditLogWorkspaceDto` | Read-only (`GET`; logs `QUERY` Meta-Audit) | `SCR-ADM-032` |
+| `POST /api/v1/security/audit-logs/query` | `AuditLogQueryFilterDto` $\to$ `IReadOnlyList<AuditLogEntryDto>` | Exempt (`POST` read-only GIN `@>` query; logs `QUERY` Meta-Audit) | `SCR-ADM-032` |
+| `POST /api/v1/security/audit-logs/report-tamper-breach` | `ChainTamperBreachDetailsDto` | `X-Idempotency-Key` | `SCR-ADM-032` |
