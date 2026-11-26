@@ -306,7 +306,7 @@ flowchart TD
    * `ManualCounterValue` (`decimal`): Must be $\ge V_{\text{historical}}$.
    * `ReadingTimestampUtc` (`DateTimeOffset`): Must be $\le \text{CurrentUtc}$.
    * `OperatorUserId` (`Guid`): Authenticated operator identity required.
-   * `PhysicalGaugePhotoUrl` (`string?`): Optional verification gauge photograph reference.
+   * `PhysicalGaugePhotoUrl` (`string?`): Optional verification gauge photograph reference (persists to `MediaAttachment` / `media_attachments` only when linked to a `WorkOrder`).
 3. Validation errors render inline inside `CMP-11` (`--dt-color-alarm-critical`), prohibiting native browser dialogs. Upon valid submission, the baseline updates and triggers `AF-001` automatically if the reading meets or exceeds `InitialTargetLimit`.
 
 #### 5.3.3. Physical Boundaries Validation (`AF-004` & `MTTO-029`)
@@ -739,6 +739,9 @@ public record SubunitLookupDto
     public required string SubunitName { get; init; }
 }
 
+/// <summary>
+/// Level 8 Maintainable Item lookup projection scoped under its mandatory parent <c>Subunit</c> (<c>subunit_id NOT NULL</c> per DT-ERD-001.sql).
+/// </summary>
 public record MaintainableItemLookupDto
 {
     public required Guid MaintainableItemId { get; init; }
@@ -747,7 +750,7 @@ public record MaintainableItemLookupDto
     public required string SubunitType { get; init; }
     public string? SparePartType { get; init; }
     public required MaintainableItemStatus Status { get; init; }
-    public Guid? AssignedEquipmentUnitId { get; init; }
+    public required Guid AssignedEquipmentUnitId { get; init; }
     public string? AssignedEquipmentTag { get; init; }
     public IReadOnlyDictionary<string, string> DesignAttributes { get; init; } = new Dictionary<string, string>();
     public IReadOnlyList<LinkedSparePartSummaryDto> LinkedSpareParts { get; init; } = [];
@@ -761,6 +764,14 @@ public record LinkedSparePartSummaryDto
     public required string UnitOfMeasure { get; init; }
 }
 
+/// <summary>
+/// Mapped telemetry stream projection for CBM plan scheduling.
+/// Calibrated MAI/sensor metadata (<see cref="SignalTag"/>, <see cref="SignalName"/>, along with calibrated
+/// operating/trip bounds <c>ScaleMin</c>, <c>ScaleMax</c>, <c>NormalMin</c>, <c>NormalMax</c>,
+/// <c>SafeZeroThreshold</c>, <c>TripLow</c>, <c>TripHigh</c>, and <c>SensorHealthCode</c> when projected to MAI views)
+/// is projected from <c>MaintainableItem</c> <c>design_attributes</c> (JSONB per DT-ERD-DOC-001 §6.1) joined with raw
+/// time-series readings persisted in <c>TelemetrySignal</c> (<c>telemetry_signals</c>).
+/// </summary>
 public record TelemetrySignalDto
 {
     public required Guid SignalId { get; init; }
@@ -784,6 +795,12 @@ public record CbmWorkOrderPreviewDto
     public required int RimeScore { get; init; }
 }
 
+/// <summary>
+/// Command to create an active condition-based <c>MaintenancePlan</c>.
+/// <see cref="MonitoredSignalTag"/> and <see cref="MonitoredSignalType"/> bind to calibrated sensor metadata
+/// projected from <c>MaintainableItem</c> <c>design_attributes</c> (JSONB per DT-ERD-DOC-001 §6.1) joined with
+/// raw readings persisted in <c>TelemetrySignal</c> (<c>telemetry_signals</c>).
+/// </summary>
 public record CreateCbmPlanCommand
 {
     public required Guid EquipmentUnitId { get; init; }
@@ -801,6 +818,12 @@ public record CreateCbmPlanCommand
     public required Guid PlannerUserId { get; init; }
 }
 
+/// <summary>
+/// Contingency manual counter reading command (AF-003).
+/// <see cref="MonitoredSignalTag"/> and <see cref="MonitoredSignalType"/> correlate with calibrated sensor metadata
+/// projected from <c>MaintainableItem</c> <c>design_attributes</c> (JSONB) joined with raw counter readings in
+/// <c>TelemetrySignal</c> (<c>telemetry_signals</c>).
+/// </summary>
 public record RecordManualReadingCommand
 {
     public required Guid EquipmentUnitId { get; init; }
@@ -809,6 +832,7 @@ public record RecordManualReadingCommand
     public required decimal ManualCounterValue { get; init; }
     public required DateTimeOffset ReadingTimestampUtc { get; init; }
     public required Guid OperatorUserId { get; init; }
+    /// <summary>Optional field gauge evidence reference; relational media persistence (<c>MediaAttachment</c> / <c>media_attachments</c>) persists only when linked to a <c>WorkOrder</c>.</summary>
     public string? PhysicalGaugePhotoUrl { get; init; }
 }
 ```

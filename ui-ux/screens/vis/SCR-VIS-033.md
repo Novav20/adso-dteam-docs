@@ -570,6 +570,15 @@ public record EquipmentHeaderDto
     public required MeshMappingStatus MappingStatus { get; init; }
 }
 
+/// <summary>
+/// Moving Analog Indicator (MAI) projection for CMP-07.
+/// Calibrated display and trip metadata (<see cref="VariableCode"/> / <c>SignalTag</c>,
+/// <see cref="VariableName"/> / <c>SignalName</c>, <see cref="ScaleMin"/>, <see cref="ScaleMax"/>,
+/// <see cref="NormalMin"/>, <see cref="NormalMax"/>, <see cref="TripLow"/>, <see cref="TripHigh"/>,
+/// and companion LOTO/health thresholds <c>SafeZeroThreshold</c> / <c>SensorHealthCode</c>) is projected from
+/// <c>MaintainableItem</c> <c>design_attributes</c> (JSONB per DT-ERD-DOC-001 §6.1) joined with raw readings
+/// persisted in <c>TelemetrySignal</c> (<c>telemetry_signals</c>).
+/// </summary>
 public record MovingAnalogIndicatorDto
 {
     public required string VariableCode { get; init; }

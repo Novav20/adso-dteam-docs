@@ -202,7 +202,7 @@ status: Stable
    - **Visual Modification:** `BoundaryStart`, `BoundaryEnd`, and `PidReferenceCode` in `CMP-04` transition cleanly to soft-surface inputs (`--dt-color-border-panel`, `--dt-radius-md`) with `CLS = 0`. `CMP-06` enables `[+ Add Subunit]` and `[+ Link Component]` Level 4 modal triggers plus per-row unlink buttons (`#icon-trash`). Footer `CMP-12` switches to commit mode hosting validation slot `CMP-11`, mandatory `AuditJustification` input, `[Cancel]`, and `[Save Boundary Definition]`.
 4. **Component Search & Subunit Creation L4 Modals Active (`CLS = 0`)**
    - **Activation Condition:** Engineer clicks `[+ Add Subunit]` or `[+ Link Component]` inside `CMP-06` during Configuration Mode, or clicks `[View Full Schematic]` in `CMP-04` / `CMP-05`.
-   - **Visual Modification:** Dedicated Level 4 modal (`AddSubunitModal`, `LinkMaintainableItemModal`, or `BoundaryDiagramModal`) opens over `--dt-color-surface-overlay` without shifting the underlying Subassembly tree (`CLS = 0`), presenting either a structured Subunit form (Subunit Classification + Name), a searchable Maintainable Item catalog filter (`MaintainableItemLookupQueryDto`) displaying each candidate's live occupancy (`Available` vs `Bound to [Tag]`), or an enlarged 2D boundary envelope schematic.
+   - **Visual Modification:** Dedicated Level 4 modal (`AddSubunitModal`, `LinkMaintainableItemModal`, or `BoundaryDiagramModal`) opens over `--dt-color-surface-overlay` without shifting the underlying Subassembly tree (`CLS = 0`), presenting either a structured Subunit form (Subunit Classification + Name), a searchable Subunit-scoped Maintainable Item catalog filter (`MaintainableItemLookupQueryDto`) displaying each item's owning parent Equipment Unit (`Bound to [Tag]`), or an enlarged 2D boundary envelope schematic.
 5. **Loading / Validating Hierarchy**
    - **Activation Condition:** Initial unit hydration or catalog-wide component exclusivity check (`NFR-099`, `NFR-100`).
    - **Visual Modification:** Skeleton shimmer (`--dt-color-surface-raised`) across `CMP-04`–`CMP-07`; commit CTA disabled (`--dt-color-state-disabled`).
@@ -294,14 +294,15 @@ sequenceDiagram
 
 #### 5.3.1. Physical Battery Limits & P&ID Metadata Alignment (`FR-092`, `FR-096`, `FR-102`)
 1. **Mandatory Boundary Pair (`FR-092`, `FR-096`):** Formalizing boundaries invokes `EquipmentUnit.DefineBoundaries(boundaryStart, boundaryEnd)` ([DT-DM-DOC-002 §2.2](../../../domain-models/class/DT-DM-DOC-002.md#22-equipmentunit-aggregate-root)), requiring non-empty technical specifications for both `BoundaryStart` (up to $150$ characters, e.g., *"DN200 ANSI 300# suction flange downstream of isolation valve MOV-0101A"*) and `BoundaryEnd` (up to $150$ characters, e.g., *"DN150 ANSI 600# discharge flange and MCC-02 feeder breaker M-0101A load terminals"*).
-2. **Governing P&ID Engineering Metadata (`FR-102`):** The governing P&ID drawing identifier (`PidReferenceCode`, e.g., *"PID-TFA-1045-REV3"*) is captured alongside the boundary limits as structured engineering boundary metadata persisted within the asset's boundary revision payload and technical `DesignAttributes` ([DT-ERD-DOC-001 §6.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#61-taxmaintainable_itemsdesign_attributes)) without altering the core relational schema.
+2. **Governing P&ID Engineering Metadata (`FR-102`):** The governing P&ID drawing identifier (`PidReferenceCode`, e.g., *"PID-TFA-1045-REV3"*) is captured alongside the boundary limits as structured engineering boundary metadata persisted inside `MaintainableItem` `design_attributes` (JSONB key `pid_reference_code` per [DT-ERD-DOC-001 §6.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#61-taxmaintainable_itemsdesign_attributes)) and `SpatialMetadata` (`spatial_metadata`) rather than a dedicated column on `EquipmentUnit` (`equipment_units`).
 
 #### 5.3.2. Tier A Equipment Lookup, Sub-Tree Structuring & Exclusivity (`NFR-093`, `NFR-094`, `NFR-099`, `AF-001`, `TR-008`)
 1. **Enterprise Equipment Lookup ([DT-UI-DS-DOC-001 §6.7](../../DT-UI-DS-DOC-001.md#67-relational-entity-lookup-modal-pattern-lov-list-of-values)):** Opening `EquipmentLookupModal` dispatches paged queries (`EquipmentUnitLookupQueryDto`) to `GET /api/v1/taxonomy/equipment-units/lookup` returning `PagedLookupResultDto<EquipmentUnitLookupDto>`, supporting multi-criteria filtering (`SearchTerm`, `FunctionalLocationId`, `EquipmentClassId`, `MinCriticality`, `MaxCriticality`, `HasBoundariesFilter`) and rendering `--dt-layout-table-row-height` rows with explicit boundary readiness status (`HasBoundaries`).
 2. **Dynamic Subunit & Maintainable Item Composition (`1 : 1..N`):**
-   * `CMP-06` enables creating structured `Subunit` nodes (`SubunitType` + `Name`) and opening a searchable `MaintainableItem` linker (`MaintainableItemLookupQueryDto`) displaying part family, Annex A summary, and live catalog occupancy (`Available` vs `Bound to [Tag]`).
-   * Every Level 8 `MaintainableItem` must be nested under a parent Level 7 `Subunit` belonging to the Level 6 `EquipmentUnit`:
+   * `MaintainableItem` (`maintainable_items.subunit_id`) is `NOT NULL` (`DT-ERD-001.sql`): there is no unassigned `MaintainableItem` pool—every Level 8 `MaintainableItem` is always created and managed strictly under a parent Level 7 `Subunit` (`SubunitId`) belonging to an owning Level 6 `EquipmentUnit` (`AssignedEquipmentUnitId` is always a non-null `Guid`):
      $$\text{EquipmentUnit (L6)} \xrightarrow{1:N} \text{Subunit (L7)} \xrightarrow{1:N} \text{MaintainableItem (L8)}$$
+   * `CMP-06` enables creating structured `Subunit` nodes (`SubunitType` + `Name`) and registering or inspecting `MaintainableItem` entries under the selected `Subunit` via `MaintainableItemLookupQueryDto`, displaying part family, Annex A `DesignAttributes`, and the owning unit (`Bound to [Tag]`) to prevent unauthorized cross-unit reassignment (`AF-001`).
+   * **P&ID Metadata Persistence (`FR-102`):** Within the sub-tree decomposition, `PidReferenceCode` is persisted inside `MaintainableItem` `design_attributes` (JSONB key `pid_reference_code` per [DT-ERD-DOC-001 §6.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#61-taxmaintainable_itemsdesign_attributes)) and `SpatialMetadata` (`spatial_metadata`) rather than a dedicated column on `EquipmentUnit` (`equipment_units`).
 3. **Single-Asset Component Exclusivity (`NFR-093`, `TR-008-FR-414`, `AF-001`):** A `MaintainableItem` instance cannot belong to two `EquipmentUnits` simultaneously:
    $$\forall m \in \text{MaintainableItems}, \quad |\text{EquipmentUnits}(m)| \le 1$$
    When a candidate item is linked or validated, the system executes asynchronous uniqueness verification in $< 1\text{s}$ (`NFR-099`). Any conflict triggers State 7 (`AF-001`), highlighting the row with `--dt-color-alarm-critical` and `#icon-ban`, displaying the owning unit tag, and hard-disabling `[Save Boundary Definition]`.
@@ -855,15 +856,25 @@ public record EquipmentUnitLookupDto
     public required int MaintainableItemCount { get; init; }
 }
 
+/// <summary>
+/// Paged query for Subunit-scoped Maintainable Items. Because <c>maintainable_items.subunit_id</c> is <c>NOT NULL</c>
+/// (DT-ERD-001.sql), items are always created and managed under a parent <c>Subunit</c> (never an unassigned pool).
+/// </summary>
 public record MaintainableItemLookupQueryDto
 {
     public string? SearchTerm { get; init; }
     public string? SparePartType { get; init; }
-    public bool OnlyUnassigned { get; init; }
+    public Guid? EquipmentUnitId { get; init; }
+    public Guid? SubunitId { get; init; }
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 25;
 }
 
+/// <summary>
+/// Level 8 Maintainable Item lookup projection. Because <c>maintainable_items.subunit_id</c> is <c>NOT NULL</c>
+/// (DT-ERD-001.sql) and <c>subunits.equipment_unit_id</c> is <c>NOT NULL</c>, every item always belongs to a parent
+/// <c>Subunit</c> and owning <c>EquipmentUnit</c> (<see cref="AssignedEquipmentUnitId"/> is non-null).
+/// </summary>
 public record MaintainableItemLookupDto
 {
     public required Guid MaintainableItemId { get; init; }
@@ -872,7 +883,7 @@ public record MaintainableItemLookupDto
     public required string SubunitType { get; init; }
     public string? SparePartType { get; init; }
     public required MaintainableItemStatus Status { get; init; }
-    public Guid? AssignedEquipmentUnitId { get; init; }
+    public required Guid AssignedEquipmentUnitId { get; init; }
     public string? AssignedEquipmentTag { get; init; }
     public IReadOnlyDictionary<string, string> DesignAttributes { get; init; } = new Dictionary<string, string>();
     public IReadOnlyList<LinkedSparePartSummaryDto> LinkedSpareParts { get; init; } = [];
@@ -881,6 +892,7 @@ public record MaintainableItemLookupDto
 public record EquipmentBoundaryCardDto
 {
     public required EquipmentBoundaryHeaderDto Header { get; init; }
+    /// <summary>Persisted inside <c>MaintainableItem</c> <c>design_attributes</c> (JSONB key <c>pid_reference_code</c> per DT-ERD-DOC-001 §6.1) / <c>SpatialMetadata</c> (<c>spatial_metadata</c>), not as a dedicated column on <c>EquipmentUnit</c> (<c>equipment_units</c>).</summary>
     public string? PidReferenceCode { get; init; }
     public required string BoundaryStart { get; init; }
     public required string BoundaryEnd { get; init; }
@@ -992,10 +1004,12 @@ public record BoundaryAuditEntryDto
 
 /// <summary>
 /// Boundary & sub-tree configuration commit payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// <see cref="PidReferenceCode"/> persists inside <c>MaintainableItem</c> <c>design_attributes</c> (JSONB per DT-ERD-DOC-001 §6.1) / <c>SpatialMetadata</c> (<c>spatial_metadata</c>), not on <c>EquipmentUnit</c> (<c>equipment_units</c>).
 /// </summary>
 public record SaveEquipmentBoundariesCommand
 {
     public required Guid EquipmentUnitId { get; init; }
+    /// <summary>Persisted inside <c>MaintainableItem</c> <c>design_attributes</c> (JSONB key <c>pid_reference_code</c> per DT-ERD-DOC-001 §6.1) / <c>SpatialMetadata</c> (<c>spatial_metadata</c>), not as a dedicated column on <c>EquipmentUnit</c> (<c>equipment_units</c>).</summary>
     public string? PidReferenceCode { get; init; }
     public required string BoundaryStart { get; init; }
     public required string BoundaryEnd { get; init; }

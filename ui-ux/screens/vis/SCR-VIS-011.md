@@ -257,11 +257,11 @@ sequenceDiagram
     end
     
     Tech->>UI: Inputs Padlock Tag IDs sequentially into CMP-06
-    UI->>API: POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm (ConfirmCutoffStepRequestDto + X-Idempotency-Key)
+    UI->>API: POST /api/v1/safety/loto-plans/{workOrderId}/cutoffs/{isolationPointId}/confirm (ConfirmCutoffStepRequestDto + X-Idempotency-Key)
     API-->>UI: Isolation step confirmed under SELECT ... FOR UPDATE NOWAIT
     
     Tech->>UI: Selects verification method, enters reading, signs Try-Out (CMP-08)
-    UI->>API: POST /api/v1/safety/loto-plans/{planId}/try-out (TryOutAttestationDto + X-Idempotency-Key)
+    UI->>API: POST /api/v1/safety/loto-plans/{workOrderId}/try-out (TryOutAttestationDto + X-Idempotency-Key)
     API-->>UI: Attestation & hardware-bound signature registered (TR-001 audit logged)
     
     alt Hazardous Energy Detected (> threshold) or Unapproved Permit (AF-001 / AF-004)
@@ -293,7 +293,7 @@ sequenceDiagram
 
 2. **Data Subscriptions, API Idempotency & Concurrency/Lease Protocol:**
    * Establishes real-time duplex WebSocket streams per [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010): `/hubs/telemetry` (`ITelemetryClient`: `ReceiveTelemetryReading`, `LotoHeartbeatAck` on a mandatory **2-second heartbeat cadence**, `EmergencyEvacuationBroadcast`) and `/hubs/operations` (`IOperationsClient`: `PermitStatusChanged`, `WorkOrderStatusChanged`).
-   * Every mutating isolation and execution command (`POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm`, `POST /api/v1/safety/loto-plans/{planId}/try-out`, `POST /api/v1/maintenance/work-orders/{id}/start-execution`, and `POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease`) mandates `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee idempotent execution across retries.
+   * Every mutating isolation and execution command (`POST /api/v1/safety/loto-plans/{workOrderId}/cutoffs/{isolationPointId}/confirm`, `POST /api/v1/safety/loto-plans/{workOrderId}/try-out`, `POST /api/v1/maintenance/work-orders/{id}/start-execution`, and `POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease`) mandates `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee idempotent execution across retries.
    * **Online Pessimistic Locking (`SELECT ... FOR UPDATE NOWAIT`):** Rather than client-supplied `If-Match` / PostgreSQL `xmin` optimistic concurrency on `confirm`, `try-out`, and `start-execution`, online submissions enforce server-side pessimistic locking (`SELECT ... FOR UPDATE NOWAIT`) on the isolation record per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006), aborting immediately as an indeterminate-safety lock conflict if concurrently locked by telemetry ingestion.
    * **Offline Lease Delegation (`ADR-006`):** Prior to entering disconnected field zones, the client requests a bounded lease via `POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease`, persisting the signed `CryptographicOfflineLeaseDto` (`LeaseToken`, `WorkOrderId`, `IssuedToUserId`, `ExpiresAtUtc`, `MaxTtlMinutes = 60`, `HmacSignature`) in local secure storage (`ISecureStorage` / `IOfflineStorage`, `TR-006`), bounded to a **60-minute max TTL** validated against the **hardware monotonic clock**. Offline commands execute against the active lease and replay with `CryptographicOfflineLeaseDto` (`LeaseToken`) + `X-Idempotency-Key` upon reconnection.
 
@@ -325,7 +325,7 @@ sequenceDiagram
    * Checklist `CMP-06` enforces strict thermodynamic and procedural sequencing:
      $$\text{Electrical Cutoff} \longrightarrow \text{Mechanical Upstream Isolation} \longrightarrow \text{Mechanical Downstream Isolation} \longrightarrow \text{Bleed / Venting}$$
    * Physical Padlock Tag IDs must conform to configured facility nomenclature (e.g., regex mask `^PAD-[A-Z0-9]{4,8}$`) or be captured directly via NFC / 2D barcode scan.
-   * Step $N+1$ cannot be confirmed until Step $N$ is marked and verified. Upon step verification, the client dispatches `ConfirmCutoffStepRequestDto` (§7.2.3, encapsulating `SequenceOrder`, `IsolationPointId`, and `AppliedPadlockTagId`) with `X-Idempotency-Key` to `POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm` (locked online via `SELECT ... FOR UPDATE NOWAIT` per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)).
+   * Step $N+1$ cannot be confirmed until Step $N$ is marked and verified. Upon step verification, the client dispatches `ConfirmCutoffStepRequestDto` (§7.2.3, encapsulating `SequenceOrder`, `IsolationPointId`, and `AppliedPadlockTagId`) with `X-Idempotency-Key` to `POST /api/v1/safety/loto-plans/{workOrderId}/cutoffs/{isolationPointId}/confirm` (locked online via `SELECT ... FOR UPDATE NOWAIT` per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)).
 
 2. **Moving Analog Indicator (MAI) Zero-Energy Verification (`CMP-07`):**
    * Continuous telemetry variables ($V, I, P, Q$) are rendered using Moving Analog Indicators (MAI) per [DT-UI-DS-DOC-001 §6.1](../../DT-UI-DS-DOC-001.md#61-moving-analog-indicator-mai-specification) and ISA-101.
@@ -343,7 +343,7 @@ sequenceDiagram
    * Upon attestation submission, the client captures:
      * Cryptographic attestation token: Digital signature generated via the device's hardware-bound security module (`TR-006`, `ADR-006`), binding technician identity, timestamp, and verification payload without exposing raw private keys in client memory.
      * Telemetry verification snapshot: Structured payload capturing instantaneous sensor values across all cutoff points at attestation time per [DT-ERD-DOC-001 §6.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#66-viswork_order_isolationstelemetry_snapshot).
-   * Encapsulated into `TryOutAttestationDto` (§7.2.3, containing `IsolationPointId`, `Method`, `ObservedPhysicalReading`, `TechnicianSignatureHash`, `TelemetrySnapshot`, and `AttestedAtUtc`) and dispatched with `X-Idempotency-Key` to `POST /api/v1/safety/loto-plans/{planId}/try-out`. The application service acquires a pessimistic `SELECT ... FOR UPDATE NOWAIT` lock online ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)), updates isolation state, and appends an immutable audit record with SHA-256 hash chaining (`TR-001`).
+   * Encapsulated into `TryOutAttestationDto` (§7.2.3, containing `IsolationPointId`, `Method`, `ObservedPhysicalReading`, `TechnicianSignatureHash`, `TelemetrySnapshot`, and `AttestedAtUtc`) and dispatched with `X-Idempotency-Key` to `POST /api/v1/safety/loto-plans/{workOrderId}/try-out`. The application service acquires a pessimistic `SELECT ... FOR UPDATE NOWAIT` lock online ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)), updates isolation state, and appends an immutable audit record with SHA-256 hash chaining (`TR-001`).
 
 4. **Active Safety Interlock Logic (`NFR-229`, `FR-230`, `AF-004`):**
    * Work initiation button `CMP-09` `[Start Work]` reflects the server-authoritative safety gate. The backend application service permits work execution strictly when the following Boolean invariant evaluates to true:
@@ -660,9 +660,14 @@ public string EngineeringUnit { get; set; } = string.Empty;
 
 #### 7.2.3. Data Transfer Objects (DTOs)
 ```csharp
+/// <summary>
+/// Work-order-scoped LOTO isolation matrix projection keyed on <see cref="WorkOrderId"/>
+/// (corresponding to the <c>(work_order_id, isolation_point_id)</c> composite primary key of <c>WorkOrderIsolation</c>).
+/// <see cref="StandardOperatingProcedureCode"/>, <see cref="StandardOperatingProcedureUrl"/>, and
+/// <see cref="RequiredPpeCodes"/> are projected/derived from the linked <c>WorkPermit</c> and LOTO isolation template metadata.
+/// </summary>
 public record LotoIsolationPlanDto
 {
-    public required Guid PlanId { get; init; }
     public required Guid WorkOrderId { get; init; }
     public required string WorkOrderNumber { get; init; }
     public required WorkOrderStatus WorkOrderStatus { get; init; }
@@ -671,8 +676,11 @@ public record LotoIsolationPlanDto
     public required string TargetEquipmentDescription { get; init; }
     public required string FunctionalLocationName { get; init; }
     public WorkPermitStatus? LinkedPermitStatus { get; init; }
+    /// <summary>Projected from the linked <c>WorkPermit</c> / LOTO isolation template metadata.</summary>
     public required string StandardOperatingProcedureCode { get; init; }
+    /// <summary>Projected from the linked <c>WorkPermit</c> / LOTO isolation template metadata.</summary>
     public required string StandardOperatingProcedureUrl { get; init; }
+    /// <summary>Projected from the linked <c>WorkPermit</c> / LOTO isolation template metadata.</summary>
     public IReadOnlyList<string> RequiredPpeCodes { get; init; } = [];
     public IReadOnlyList<CutoffPointStatusDto> CutoffPoints { get; init; } = [];
     public IReadOnlyList<ChecklistStepDto> ChecklistSteps { get; init; } = [];
@@ -680,6 +688,13 @@ public record LotoIsolationPlanDto
     public required uint ConcurrencyToken { get; init; }
 }
 
+/// <summary>
+/// Isolation cutoff node and live MAI telemetry projection.
+/// Calibrated range and threshold metadata (<see cref="VariableName"/>, <see cref="ScaleMin"/>, <see cref="ScaleMax"/>,
+/// <see cref="SafeZeroThreshold"/>, <see cref="TripThreshold"/>, <see cref="SensorHealthCode"/>) is projected from
+/// <c>MaintainableItem</c> <c>design_attributes</c> (JSONB per DT-ERD-DOC-001 §6.1) joined with raw readings in
+/// <c>TelemetrySignal</c> (<c>telemetry_signals</c>).
+/// </summary>
 public record CutoffPointStatusDto
 {
     public required Guid IsolationPointId { get; init; }
@@ -701,12 +716,20 @@ public record CutoffPointStatusDto
     public required DateTimeOffset LastReadingUtc { get; init; }
 }
 
+/// <summary>
+/// Sequential physical lockout checklist item keyed by <see cref="IsolationPointId"/> under the parent <c>WorkOrder</c>.
+/// <see cref="SequenceOrder"/>, <see cref="ActionDescription"/>, and <see cref="ExpectedPadlockTagId"/> are
+/// projected/derived from the linked <c>WorkPermit</c> and LOTO isolation template metadata.
+/// </summary>
 public record ChecklistStepDto
 {
+    /// <summary>Derived from the linked <c>WorkPermit</c> / LOTO isolation template metadata.</summary>
     public required int SequenceOrder { get; init; }
     public required Guid IsolationPointId { get; init; }
     public required string CutoffNodeId { get; init; }
+    /// <summary>Derived from the linked <c>WorkPermit</c> / LOTO isolation template metadata.</summary>
     public required string ActionDescription { get; init; }
+    /// <summary>Derived from the linked <c>WorkPermit</c> / LOTO isolation template metadata.</summary>
     public required string ExpectedPadlockTagId { get; init; }
     public string? AppliedPadlockTagId { get; init; }
     public bool IsVerified { get; init; }
@@ -769,7 +792,6 @@ public record CryptographicOfflineLeaseDto
 public record StartWorkOrderExecutionCommand
 {
     public required Guid WorkOrderId { get; init; }
-    public required Guid LotoPlanId { get; init; }
     public required Guid TechnicianUserId { get; init; }
     public string? OfflineLeaseToken { get; init; }
     public required DateTimeOffset RequestedAtUtc { get; init; }
