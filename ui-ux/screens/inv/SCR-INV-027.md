@@ -289,16 +289,16 @@ sequenceDiagram
 
 #### 5.3.2. Tree Reorganization & Recursive Cycle Prevention (`FR-162`, `NFR-167`, `NFR-168`, `AF-002`)
 1. **Cycle Detection Invariant (`NFR-167`, `TR-008-NFR-417`):** When moving node $u$ to candidate parent $v$ in modal `CMP-08` (`FunctionalLocation.ReorganizeTree(newParentId)`), the system validates in $< 1\text{s}$ using a recursive ancestor check that $v$ is not $u$ and $v \notin \text{Descendants}(u)$, and that moving $u$'s subtree preserves valid level depth ($\text{MaxDepth}(u) + \text{Level}(v) \le 5$).
-2. **Atomic Subtree Re-Parenting (`NFR-168`):** Upon confirmation with mandatory `AuditJustification` ($\ge 15$ characters), the backend updates hierarchy links, recalculates materialized/recursive paths, and seals the justification and state diff inside the SHA-256 `AuditLog` JSONB envelope per [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) within a single ACID transaction.
+2. **Atomic Subtree Re-Parenting (`NFR-168`):** Upon confirmation with mandatory `AuditJustification` ($\ge 15$ characters), the client dispatches `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` carrying `ReorganizeFunctionalLocationCommand`, `X-Idempotency-Key: {uuidv7}`, and `If-Match: "{ConcurrencyToken}"`. The backend updates hierarchy links, recalculates materialized/recursive paths, and seals the justification and state diff inside the SHA-256 `AuditLog` JSONB envelope per [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) within a single ACID transaction.
 
 #### 5.3.3. Dependency-Gated Node Deletion (`FR-163`, `AF-003`)
-1. Invoking `FunctionalLocation.RemoveChild(childId)` ([DT-DM-DOC-002 §2](../../../domain-models/class/DT-DM-DOC-002.md#2-layer-1-asset-taxonomy-iso-14224)) evaluates the deletion guard:
+1. Invoking `FunctionalLocation.RemoveChild(childId)` ([DT-DM-DOC-002 §2](../../../domain-models/class/DT-DM-DOC-002.md#2-layer-1-asset-taxonomy-iso-14224)) evaluates the deletion guard before dispatching `DELETE /api/v1/taxonomy/functional-locations/{id}` (carrying `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"`):
    $$\text{CanDelete}(u) \iff (\text{ChildLocationsCount}(u) == 0) \land (\text{MountedEquipmentUnitId}(u) == \varnothing)$$
 2. If either condition is false, `CMP-09` blocks deletion (`ON DELETE RESTRICT` per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)) and directs the user to relocate child nodes or execute a Rotable Asset Swap ([SCR-INV-025](SCR-INV-025.md)).
 
 #### 5.3.4. Concurrency Isolation & Architecture Export (`FR-165`, `NFR-169`, `AF-004`)
-1. **Optimistic Concurrency Guard (`NFR-169`, `AF-004`):** Every mutation command carries the node's PostgreSQL `xmin`-backed `ConcurrencyToken` (`If-Match: "{ConcurrencyToken}"` header per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) and `X-Idempotency-Key`. Concurrent modifications by another engineer return HTTP 409 Conflict, triggering State 7 (`AF-004`) and refreshing the affected branch without silent data loss.
-2. **Taxonomic Architecture Export (`FR-165`):** Clicking `[Export]` in `CMP-02` opens the export menu (`CSV` / `JSON`), downloading the full or filtered hierarchy including ISO level paths, criticality indices, environmental exposures, and mounted equipment serial numbers.
+1. **Optimistic Concurrency Guard (`NFR-169`, `AF-004`):** Every mutation endpoint—metadata updates via `PUT /api/v1/taxonomy/functional-locations/{id}` (`UpdateFunctionalLocationCommand`), subtree reorganizations via `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` (`ReorganizeFunctionalLocationCommand`), and dependency-gated deletions via `DELETE /api/v1/taxonomy/functional-locations/{id}`—carries the node's PostgreSQL `xmin`-backed `ConcurrencyToken` (`If-Match: "{ConcurrencyToken}"` header per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) and `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)). Concurrent modifications by another engineer return HTTP 409 Conflict, triggering State 7 (`AF-004`) and refreshing the affected branch without silent data loss.
+2. **Taxonomic Architecture Export (`FR-165`):** Clicking `[Export]` in `CMP-02` calls `GET /api/v1/taxonomy/functional-locations/export` (`CSV` / `JSON` via `TaxonomyExportFormat`), downloading the full or filtered hierarchy including ISO level paths, criticality indices, environmental exposures, and mounted equipment serial numbers.
 
 ---
 
@@ -762,6 +762,20 @@ public record CreateFunctionalLocationCommand
     public required string AuditJustification { get; init; }
     public required Guid EngineerUserId { get; init; }
     public required string PreviousHash { get; init; }
+}
+
+public record UpdateFunctionalLocationCommand
+{
+    public required Guid FunctionalLocationId { get; init; }
+    public required string TagNumber { get; init; }
+    public required string Name { get; init; }
+    public string? Description { get; init; }
+    public int? Criticality { get; init; }
+    public string? GeographicLocation { get; init; }
+    public EnvironmentalExposureLevel? EnvironmentalExposure { get; init; }
+    public required uint ConcurrencyToken { get; init; }
+    public required string AuditJustification { get; init; }
+    public required Guid EngineerUserId { get; init; }
 }
 
 public record ReorganizeFunctionalLocationCommand

@@ -53,6 +53,8 @@ TableGroup adm {
   "adm"."work_order_assignments"
   "adm"."idempotency_logs"
   "adm"."audit_retention_partitions"
+  "adm"."password_policies"
+  "adm"."user_password_histories"
 }
 
 Table "tax"."equipment_classes" {
@@ -447,6 +449,26 @@ Table "adm"."audit_retention_partitions" {
   "sealed_at" "TIMESTAMPTZ" [note: 'UTC timestamp when the partition was sealed for cold archival (`NULL` while hot/active).']
 }
 
+Table "adm"."password_policies" {
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the singleton policy record (PK).']
+  "min_length" "INT" [not null, default: `12`, note: 'Minimum required password length enforced under NIST SP 800-63B (`FR-259`, `NFR-272`).']
+  "require_uppercase" "BOOLEAN" [not null, default: true, note: 'Requires at least one uppercase alphabetical character (`NFR-272`).']
+  "require_digit" "BOOLEAN" [not null, default: true, note: 'Requires at least one numeric digit (`NFR-272`).']
+  "require_special_char" "BOOLEAN" [not null, default: true, note: 'Requires at least one special symbol (`NFR-272`).']
+  "max_age_days" "INT" [not null, default: `90`, note: 'Maximum credential validity window in days triggering periodic password rotation (`FR-266`).']
+  "history_non_reuse_count" "INT" [not null, default: `5`, note: 'Number of prior credential hashes blocked from reuse (`FR-266`, `NFR-272`).']
+  "lockout_threshold" "INT" [not null, default: `5`, note: 'Maximum consecutive failed login attempts before brute-force lockout (`FR-260`).']
+  "lockout_duration_minutes" "INT" [not null, default: `15`, note: 'Duration in minutes for temporary account lockout (`FR-260`).']
+  "updated_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC timestamp of last policy update; singleton configuration aggregate guarded by PostgreSQL `xmin` optimistic concurrency (`PUT /api/v1/security/password-policy`).']
+}
+
+Table "adm"."user_password_histories" {
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
+  "user_id" "UUID" [not null, note: 'Foreign key to `adm.users(id)` (`ON DELETE CASCADE`) enforcing password non-reuse (`FR-266`).']
+  "password_hash" "VARCHAR(255)" [not null, note: 'Salted cryptographic digest (`Argon2id`) of historical credential retained to prevent password reuse (`FR-266`, `NFR-267`).']
+  "created_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC timestamp when the rotated credential hash was recorded.']
+}
+
 // --- RELATIONSHIPS ---
 Ref: "tax"."equipment_classes"."id" < "tax"."equipment_units"."equipment_class_id" [delete: restrict, update: cascade]
 Ref: "tax"."functional_locations"."id" < "tax"."functional_locations"."parent_id" [delete: restrict, update: cascade]
@@ -500,3 +522,4 @@ Ref: "adm"."users"."id" < "adm"."auth_tokens"."user_id" [delete: cascade, update
 Ref: "adm"."users"."id" < "adm"."work_order_assignments"."user_id" [delete: cascade, update: cascade]
 Ref: "mtto"."work_orders"."id" < "adm"."work_order_assignments"."work_order_id" [delete: cascade, update: cascade]
 Ref: "adm"."users"."id" < "adm"."audit_logs"."user_id" [delete: restrict, update: restrict]
+Ref: "adm"."users"."id" < "adm"."user_password_histories"."user_id" [delete: cascade, update: cascade]

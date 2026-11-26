@@ -671,6 +671,20 @@ public record CreateMaintenancePlanCommand
     public required Guid PlannerUserId { get; init; }
 }
 
+public record UpdateMaintenancePlanCommand
+{
+    public required Guid PlanId { get; init; }
+    public required int IntervalValue { get; init; }
+    public required CalendarIntervalUnit IntervalUnit { get; init; }
+    public required decimal EstimatedLaborHours { get; init; }
+    public required IReadOnlyList<MaintenanceCraft> RequiredCrafts { get; init; }
+    public required string TechnicalDescription { get; init; }
+    public string? CadenceOverrideJustification { get; init; }
+    public required MaintenancePlanStatus Status { get; init; }
+    public required Guid PlannerUserId { get; init; }
+    public required uint ConcurrencyToken { get; init; }
+}
+
 public record MaintenancePlanSummaryDto
 {
     public required Guid PlanId { get; init; }

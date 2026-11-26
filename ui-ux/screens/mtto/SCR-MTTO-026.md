@@ -308,7 +308,7 @@ To prevent unconfigured equipment criticality from artificially burying a critic
 1. **Fail-Safe Trigger:** When a work request references an equipment unit whose `AssetCriticality` is unconfigured in the master catalog.
 2. **Pessimistic Floor Assignment:** The system overrides the multiplicative calculation and assigns a **minimum floor score of 75** (placing the item in the *Schedule / High Category* band), regardless of how low the selected Work Class weight is.
 3. **Visual Highlighting:** The request row renders with an amber warning indicator in the criticality column (`Unconfigured / Floor: 75`), and the top header notification button (`CMP-02`) displays an active warning badge without shifting the vertical layout of the data grid.
-4. **Reliability Notification (`CMP-06`):** Clicking the header notification badge opens the Criticality Governance Dialog (`CMP-06`). From this dialog, the Planner can either click *"Filter Affected Request"* to isolate the unconfigured equipment row in the grid or click *"Dispatch Reliability Notification"* to send an automated governance task to the Reliability Engineer responsible for populating the asset's technical sheet.
+4. **Reliability Notification (`CMP-06`):** Clicking the header notification badge opens the Criticality Governance Dialog (`CMP-06`). From this dialog, the Planner can either click *"Filter Affected Request"* to isolate the unconfigured equipment row in the grid or click *"Dispatch Reliability Notification"* to call `POST /api/v1/maintenance/backlog-items/{id}/notify-reliability` (`DispatchReliabilityNotificationCommand` carrying `X-Idempotency-Key: {uuidv7}`), dispatching an automated governance task to the Reliability Engineer responsible for populating the asset's technical sheet.
 
 ---
 
@@ -324,8 +324,8 @@ To prevent unconfigured equipment criticality from artificially burying a critic
 
 #### 5.3.4. Workload Distribution Confirmation & Export (FR-069)
 
-1. **Workload Confirmation ([UC-MTTO-026 §3](../../../domain-models/use-cases/mtto/UC-MTTO-026.md#3-main-flow)):** The bottom bar `CMP-12` tracks the cumulative estimated wrench hours of selected backlog items against the weekly team capacity. Clicking "Confirm Weekly Distribution" approves the selected items for scheduling, updating their status to `APPROVED` and transitioning authorized requests to Preventive Scheduling ([SCR-MTTO-001](SCR-MTTO-001.md)) or Predictive Scheduling ([SCR-MTTO-023](SCR-MTTO-023.md)).
-2. **Data Portability ([FR-069](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)):** Clicking the unified "Export Data" dropdown menu in `CMP-12` generates structured export packages (`CSV` or `JSON` for the full view or current selection) containing all prioritized metadata, factor breakdowns, asset serial numbers, and material availability flags for external reporting.
+1. **Workload Confirmation ([UC-MTTO-026 §3](../../../domain-models/use-cases/mtto/UC-MTTO-026.md#3-main-flow)):** The bottom bar `CMP-12` tracks the cumulative estimated wrench hours of selected backlog items against the weekly team capacity. Clicking "Confirm Weekly Distribution" dispatches `POST /api/v1/maintenance/backlog-items/weekly-distribution` (`ConfirmWeeklyDistributionCommand` carrying `X-Idempotency-Key: {uuidv7}`), approving the selected items for scheduling, updating their status to `BacklogItemStatus.READY`, and transitioning authorized requests to Preventive Scheduling ([SCR-MTTO-001](SCR-MTTO-001.md)) or Predictive Scheduling ([SCR-MTTO-023](SCR-MTTO-023.md)).
+2. **Data Portability ([FR-069](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)):** Clicking the unified "Export Data" dropdown menu in `CMP-12` calls `GET /api/v1/maintenance/backlog-items/export` (`BacklogExportFormat`: `CSV` or `JSON` for the full view or current selection), generating structured export packages containing all prioritized metadata, factor breakdowns, asset serial numbers, and material availability flags for external reporting.
 
 ---
 
@@ -647,6 +647,23 @@ public record AdjustWorkClassCommand
     /// Binds to the <c>WorkRequest</c> (<c>work_requests</c>) <c>xmin</c> optimistic concurrency token while <c>BacklogItem</c> (<c>backlog_items</c>) is updated atomically as a derived projection.
     /// </summary>
     public required uint ConcurrencyToken { get; init; }
+}
+
+public record ConfirmWeeklyDistributionCommand
+{
+    public required IReadOnlyList<Guid> BacklogItemIds { get; init; }
+    public required decimal PlannedWrenchHours { get; init; }
+    public required decimal WeeklyCapacityHours { get; init; }
+    public required Guid PlannerUserId { get; init; }
+}
+
+public record DispatchReliabilityNotificationCommand
+{
+    public required Guid BacklogItemId { get; init; }
+    public required Guid EquipmentUnitId { get; init; }
+    public required string EquipmentTag { get; init; }
+    public required Guid PlannerUserId { get; init; }
+    public string? Notes { get; init; }
 }
 
 public record RimeCalculationBreakdownDto

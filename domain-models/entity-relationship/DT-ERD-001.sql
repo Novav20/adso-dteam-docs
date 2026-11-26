@@ -553,6 +553,30 @@ CREATE TABLE IF NOT EXISTS adm.audit_retention_partitions (
     CONSTRAINT pk_audit_retention_partitions PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS adm.password_policies (
+    id                             UUID NOT NULL DEFAULT uuidv7(),
+    min_length                     INT NOT NULL DEFAULT 12,
+    require_uppercase              BOOLEAN NOT NULL DEFAULT TRUE,
+    require_digit                  BOOLEAN NOT NULL DEFAULT TRUE,
+    require_special_char           BOOLEAN NOT NULL DEFAULT TRUE,
+    max_age_days                   INT NOT NULL DEFAULT 90,
+    history_non_reuse_count        INT NOT NULL DEFAULT 5,
+    lockout_threshold              INT NOT NULL DEFAULT 5,
+    lockout_duration_minutes       INT NOT NULL DEFAULT 15,
+    updated_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+
+    CONSTRAINT pk_password_policies PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS adm.user_password_histories (
+    id                             UUID NOT NULL DEFAULT uuidv7(),
+    user_id                        UUID NOT NULL,
+    password_hash                  VARCHAR(255) NOT NULL,
+    created_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+
+    CONSTRAINT pk_user_password_histories PRIMARY KEY (id)
+);
+
 -- ==========================================
 -- INDEXES (AUTO-GENERATED HEURISTICS)
 -- ==========================================
@@ -618,6 +642,7 @@ CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON adm.user_roles (role_id);
 CREATE INDEX IF NOT EXISTS idx_work_order_assignments_work_order_id ON adm.work_order_assignments (work_order_id);
 CREATE INDEX IF NOT EXISTS idx_work_order_assignments_user_id ON adm.work_order_assignments (user_id);
 CREATE INDEX IF NOT EXISTS idx_idempotency_logs_response_payload ON adm.idempotency_logs USING GIN (response_payload jsonb_path_ops);
+CREATE INDEX IF NOT EXISTS idx_user_password_histories_user_id ON adm.user_password_histories (user_id);
 
 -- ==========================================
 -- FOREIGN KEY CONSTRAINTS (CROSS-SCHEMA)
@@ -829,6 +854,10 @@ ALTER TABLE adm.work_order_assignments
 
 ALTER TABLE adm.work_order_assignments
     ADD CONSTRAINT fk_work_order_assignments_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE adm.user_password_histories
+    ADD CONSTRAINT fk_user_password_histories_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
     ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- =============================================================================

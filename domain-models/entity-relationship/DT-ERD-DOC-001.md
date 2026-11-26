@@ -512,6 +512,32 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | integrity_status | VARCHAR(30) | NOT NULL | CHECK | 'VERIFIED_INTACT' | Controlled partition integrity status vocabulary (DT-DM-DOC-001 §4.43). |
 | sealed_at | TIMESTAMPTZ | NULL | | NULL | UTC timestamp when the partition was sealed for cold archival (`NULL` while hot/active). |
 
+#### 3.5.10 password_policies
+
+> Singleton security configuration table supporting PostgreSQL `xmin` optimistic concurrency (`PUT /api/v1/security/password-policy`, `NFR-272`).
+
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
+| --- | --- | --- | --- | --- | --- |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the singleton policy record (PK). |
+| min_length | INT | NOT NULL | | 12 | Minimum required password length enforced under NIST SP 800-63B (`FR-259`, `NFR-272`). |
+| require_uppercase | BOOLEAN | NOT NULL | | TRUE | Requires at least one uppercase alphabetical character (`NFR-272`). |
+| require_digit | BOOLEAN | NOT NULL | | TRUE | Requires at least one numeric digit (`NFR-272`). |
+| require_special_char | BOOLEAN | NOT NULL | | TRUE | Requires at least one special symbol (`NFR-272`). |
+| max_age_days | INT | NOT NULL | | 90 | Maximum credential validity window in days triggering periodic password rotation (`FR-266`). |
+| history_non_reuse_count | INT | NOT NULL | | 5 | Number of prior credential hashes blocked from reuse (`FR-266`, `NFR-272`). |
+| lockout_threshold | INT | NOT NULL | | 5 | Maximum consecutive failed login attempts before brute-force lockout (`FR-260`). |
+| lockout_duration_minutes | INT | NOT NULL | | 15 | Duration in minutes for temporary account lockout (`FR-260`). |
+| updated_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC timestamp of last policy update; singleton configuration aggregate guarded by PostgreSQL `xmin` optimistic concurrency (`PUT /api/v1/security/password-policy`). |
+
+#### 3.5.11 user_password_histories
+
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
+| --- | --- | --- | --- | --- | --- |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| user_id | UUID | NOT NULL | FK | - | Foreign key to `adm.users(id)` (`ON DELETE CASCADE`) enforcing password non-reuse (`FR-266`). |
+| password_hash | VARCHAR(255) | NOT NULL | | - | Salted cryptographic digest (`Argon2id`) of historical credential retained to prevent password reuse (`FR-266`, `NFR-267`). |
+| created_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC timestamp when the rotated credential hash was recorded. |
+
 ## 4. Referential Relationships and Cascading (FKs)
 
 | Parent Table | Cardinality | Child Table | Verb / Meaning | ON DELETE | ON UPDATE |
@@ -568,6 +594,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | users | 1 : 0..N | work_order_assignments| assigned to | CASCADE | CASCADE |
 | work_orders | 1 : 0..N | work_order_assignments| assigns personnel | CASCADE | CASCADE |
 | users | 1 : 0..N | audit_logs | generates | RESTRICT | RESTRICT |
+| users | 1 : 0..N | user_password_histories | retains password history | CASCADE | CASCADE |
 
 ## 5. Data Type Correspondence Matrix (Standard SQL vs. PostgreSQL)
 
