@@ -505,10 +505,10 @@ public required RimePriorityBand Band { get; set; }
 
 // MaterialAvailabilityIndicator.razor
 [Parameter]
-public required decimal EstimatedWrenchHours { get; set; }
+public decimal? EstimatedWrenchHours { get; set; }
 
 [Parameter]
-public required MaterialAvailabilityStatus MaterialStatus { get; set; }
+public string? MaterialStatus { get; set; }
 
 // CMP-13: BacklogWorkspaceDock.razor
 [Parameter]
@@ -570,6 +570,12 @@ public EventCallback<BacklogExportFormat> OnExportRequested { get; set; }
 #### 7.2.3. Data Transfer Objects (DTOs) & Commands
 
 ```csharp
+/// <summary>
+/// RIME backlog row projection. <see cref="MaintainableItemName"/>, <see cref="EstimatedWrenchHours"/>,
+/// <see cref="EstimatedCost"/>, and <see cref="MaterialStatus"/> are derived via LEFT JOIN from the linked
+/// <c>WorkOrder</c>, <c>MaintenancePlan</c>, and <c>MaterialRequirement</c> records when present, and are
+/// <c>null</c> for unpromoted <c>NEW</c> <c>WorkRequest</c> entries.
+/// </summary>
 public record BacklogItemDto
 {
     public required Guid Id { get; init; }
@@ -583,15 +589,15 @@ public record BacklogItemDto
     public required string EquipmentTag { get; init; }
     public required string EquipmentSerialNumber { get; init; }
     public required string EquipmentClass { get; init; }
-    public required string MaintainableItemName { get; init; }
+    public string? MaintainableItemName { get; init; }
     public required WorkClassCode WorkClass { get; init; }
     public int? AssetCriticality { get; init; }
     public required int PriorityScore { get; init; }
     public required RimePriorityBand PriorityBand { get; init; }
     public bool IsFailSafeApplied { get; init; }
-    public required decimal EstimatedWrenchHours { get; init; }
-    public required decimal EstimatedCost { get; init; }
-    public required MaterialAvailabilityStatus MaterialStatus { get; init; }
+    public decimal? EstimatedWrenchHours { get; init; }
+    public decimal? EstimatedCost { get; init; }
+    public string? MaterialStatus { get; init; }
     public required DateTimeOffset RequestDate { get; init; }
     public required BacklogItemStatus Status { get; init; }
     public required uint ConcurrencyToken { get; init; }
@@ -718,6 +724,7 @@ public enum WorkClassCode
 
 /// <summary>
 /// Consolidated warehouse spare part availability status for backlog planning.
+/// Defines the canonical string literals populated in <see cref="BacklogItemDto.MaterialStatus"/> when non-null.
 /// </summary>
 public enum MaterialAvailabilityStatus
 {

@@ -734,7 +734,6 @@ public record SparePartMasterItemDto
     public required SupplierDetailsDto Supplier { get; init; }
     public Guid? EquipmentClassId { get; init; }
     public string? EquipmentClassName { get; init; }
-    public required int VersionNumber { get; init; }
     public required string LatestIntegrityHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }

@@ -709,7 +709,8 @@ public record WorkOrderClosingContextDto
     public required WorkOrderStatus CurrentStatus { get; init; }
     public required WorkOrderMaintenanceMethod MaintenanceMethod { get; init; }
     public required IsolationStatus LotoIsolationStatus { get; init; }
-    public required decimal EstimatedHours { get; init; }
+    /// <summary>Derived from <c>MaintenancePlan</c> (<c>estimated_labor_hours</c>) when <c>maintenance_plan_id</c> is present; <c>null</c> for corrective work orders.</summary>
+    public decimal? EstimatedHours { get; init; }
     public decimal? ActualLaborHours { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
@@ -745,7 +746,8 @@ public record SparePartAllocationDto
     public required string UnitOfMeasure { get; init; }
     public required decimal PlannedQuantity { get; init; }
     public decimal ActualQuantity { get; set; }
-    public required string WarehouseLocation { get; init; }
+    /// <summary>Derived from dispatched <c>InventoryTransaction</c> / <c>Locator</c> records when issued; <c>null</c> while only reserved.</summary>
+    public string? WarehouseLocation { get; init; }
 }
 
 /// <summary>

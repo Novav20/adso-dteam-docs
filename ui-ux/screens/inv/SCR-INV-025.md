@@ -460,7 +460,6 @@ public enum EquipmentMaintenanceStatus
 public record WarehouseLookupDto
 {
     public required Guid WarehouseId { get; init; }
-    public required string WarehouseCode { get; init; }
     public required string WarehouseName { get; init; }
 }
 
