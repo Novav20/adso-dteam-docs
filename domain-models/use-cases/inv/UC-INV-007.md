@@ -4,7 +4,8 @@ name: Validate and Activate Master Asset (Commissioning)
 module: inv
 user_story: INV-007
 primary_actor: Reliability Engineer
-secondary_actors: []
+secondary_actors:
+  - Maintenance Supervisor
 ---
 
 # UC-INV-007: Validate and Activate Master Asset (Commissioning)
@@ -13,7 +14,7 @@ secondary_actors: []
 Validates and formally approves the technical inclusion of a physical asset (Equipment Unit, Level 6) into the operational ecosystem. It enforces strict completeness checks (Commissioning Gate), ensuring that critical parameters such as LOTO procedures, physical boundaries, and design attributes are fully documented before the asset is exposed to the Maintenance (MTTO) and Digital Twin (VIS) modules. In the MVP user interface, this workflow is hosted as an embedded **Commissioning Gate Mode** inside [`SCR-INV-005`](../../../ui-ux/screens/inv/SCR-INV-005.md).
 
 ## 2. Preconditions
-* The Engineer is authenticated in the system with the "Reliability Engineer" role [TR-006](../../../requirements/common/TR-006.md).
+* The Reviewer is authenticated in the system with the `"Reliability Engineer"` or `"Maintenance Supervisor"` role ([TR-006](../../../requirements/common/TR-006.md)); `"Project Engineer"` self-approval of preliminary records is prohibited under Segregation of Duties.
 * The asset is registered in the catalog in a preliminary/draft status.
 * The asset has a Functional Location defined in the system.
 

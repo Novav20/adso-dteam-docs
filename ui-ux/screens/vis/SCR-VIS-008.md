@@ -8,6 +8,8 @@ target_device: Industrial Tablet | Desktop
 roles:
   - HSEQ Inspector
   - Maintenance Supervisor
+  - Maintenance Technician
+  - Reliability Engineer
 user_stories:
   - "[[VIS-008]]"
 use_cases:
@@ -23,8 +25,10 @@ status: Stable
 
 * **View Objective:** Macro-spatial overview (Plot Plan / Common Operational Picture) of plant Functional Locations (ANSI/ISA-101 Level 1). Enables safety inspectors and supervisors to toggle a dynamic Work Permits (PTW) safety layer, detecting Simultaneous Operations (SIMOPS) conflicts and identifying unmapped orphan permits.
 * **Target Personas:** 
-  * **HSEQ Inspector (Primary):** Audits safety compliance, monitors redundant hazard cues, resolves unmapped orphan permits, and analyzes SIMOPS spatial intersections.
-  * **Maintenance Supervisor:** Maintains situational awareness, coordinates concurrent contractor tasks, and escalates to Level 3 equipment inspection.
+  * **HSEQ Inspector (Primary):** Audits safety compliance, monitors redundant hazard cues, resolves unmapped orphan permits (`CMP-07`), and analyzes SIMOPS spatial intersections.
+  * **Maintenance Supervisor:** Maintains situational awareness, coordinates concurrent contractor tasks, resolves SIMOPS/orphan conflicts (`CMP-07`), and escalates to Level 3 equipment inspection.
+  * **Maintenance Technician (Read & Navigation Access):** Navigates the 2D plant plot plan and inspects read-only permit overlays to locate equipment and transition to Level 3 faceplates ([SCR-VIS-033](./SCR-VIS-033.md)) or LOTO routes ([SCR-VIS-011](./SCR-VIS-011.md)), with SIMOPS/orphan resolution controls disabled.
+  * **Reliability Engineer (Read & Navigation Access):** Traverses Functional Location zones and mapped equipment units on the 2D canvas to reach Level 3 diagnostics ([SCR-VIS-033](./SCR-VIS-033.md)), with SIMOPS/orphan resolution controls disabled.
 * **Operational Context:** Rugged industrial field tablets in landscape and portrait orientations, and central maintenance desktop consoles.
 * **Mode of Operation:** Spatial supervision, safety audit, and passive contextual navigation. The interface does not issue industrial control maneuvers or manipulate process setpoints.
 
@@ -250,7 +254,7 @@ status: Stable
 
 ## 6. Industrial and Safety Considerations
 
-* **Read-Only Supervisory Boundary (ISO 45001 §8.1):** `SCR-VIS-008` operates strictly as a passive spatial supervision and SIMOPS audit interface. It cannot issue equipment start/stop commands, alter process setpoints, or bypass LOTO interlocks ([DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)).
+* **Read-Only Supervisory Boundary & SIMOPS Mutation Guard (ISO 45001 §8.1):** `SCR-VIS-008` operates as a passive spatial supervision and SIMOPS audit interface that cannot issue equipment start/stop commands, alter process setpoints, or bypass LOTO interlocks ([DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)). Read and spatial navigation access is granted to `Maintenance Technician` and `Reliability Engineer`, while SIMOPS permit/conflict mutation and orphan `MeshMapping` resolution controls (`CMP-07`) remain restricted exclusively to `HSEQ Inspector` and `Maintenance Supervisor`.
 * **Spatial Integrity Fail-Safe (`AF-001`):** Unmapped permits (`MeshMapping` status `UNMAPPED` or `SYNC_ERROR`) are strictly withheld from arbitrary canvas placement and excluded from mapped spatial filter counts (`CMP-08`) to prevent false spatial confidence during co-activity risk assessment (§5.2).
 * **HPHMI & Accessibility Governance ([TR-011](../../../requirements/common/TR-011.md)):** Visual salience, 4-channel redundant permit coding, neutral HPHMI spatial palette compliance, hybrid semantic zoom decluttering, and Priority 4 diagnostic state segregation adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope), [§3.4](../../DT-UI-DS-DOC-001.md#34-spatial-and-physical-material-tokens-digital-twin-canvas), [§6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto), and the interaction mechanics in §4 and §5.
 
@@ -359,6 +363,13 @@ public required IReadOnlyList<OrphanPermitDto> OrphanPermits { get; set; }
 
 [Parameter]
 public bool IsOpen { get; set; }
+
+/// <summary>
+/// RBAC mutation guard: true strictly for HSEQ Inspector and Maintenance Supervisor;
+/// false for Maintenance Technician and Reliability Engineer (read/navigation-only access).
+/// </summary>
+[Parameter]
+public bool CanResolveSimopsOrphans { get; set; }
 
 [Parameter]
 public EventCallback<bool> OnOpenChanged { get; set; }
@@ -632,7 +643,7 @@ public record PlantZoneDto
 | [NFR-194](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | Displays last known state with a Priority 4 diagnostic banner (`StaleCacheBanner`) if the permit stream is offline, without blocking navigation. |
 | [NFR-195](../../../requirements/user-stories/vis/VIS-008.md#non-functional-requirements-nfr) | `CMP-01` | 2D vector rendering guarantees full spatial supervision on hardware lacking WebGL 3D acceleration. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-05` | All initial REST queries and real-time permit synchronization streams execute over encrypted TLS/HTTPS and WSS transport channels. |
-| [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-06`, `CMP-07` | RBAC enforcement restricts permit layer inspection, orphan resolution, and L3 escalation to authorized roles (`HSEQ Inspector`, `Maintenance Supervisor`). |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-06`, `CMP-07` | RBAC enforcement grants 2D canvas read and spatial navigation access to `HSEQ Inspector`, `Maintenance Supervisor`, `Maintenance Technician`, and `Reliability Engineer`, while restricting SIMOPS permit/conflict controls and orphan `MeshMapping` resolution (`CanResolveSimopsOrphans`) strictly to `HSEQ Inspector` and `Maintenance Supervisor`. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-05`, `CMP-09` | Persistent real-time SignalR subscriptions on `/hubs/operations` (`PermitStatusChanged`) and `/hubs/telemetry` (`EmergencyEvacuationBroadcast`) update permit badges and cluster counts with $<1\text{s}$ publication latency and graceful polling fallback. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-05`, `CMP-09`, `CMP-10` | High-Performance HMI (ANSI/ISA-101): Neutral grayscale canvas (`--dt-color-bg-canvas`), reserving saturated tokens strictly for active permits and alarms. |
 | [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-07` | Idempotency contract (`X-Idempotency-Key: {uuidv7}`) paired with conditional PostgreSQL `xmin` optimistic concurrency (`If-Match` when updating an existing `MeshMapping` row; omitted on initial insert) for `UpsertMeshMappingCommand` (`PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}`). |

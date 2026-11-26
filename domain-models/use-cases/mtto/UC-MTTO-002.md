@@ -46,7 +46,7 @@ Governs the mobile execution workflow of an active Work Order on the plant floor
     2. Enforces the De-Isolation Safety Boundary Invariant: Physical LOTO padlocks remain attached and the machine remains de-energized; equipment operational status is NOT freed until formal Operations De-Isolation Handover.
     3. Persists failure classification, actual material consumption, labor hours, and multimedia attachments with cryptographic hashes.
     4. Records an append-only work order history log entry and an immutable audit trail record with chained SHA-256 hash.
-11. The System displays a confirmation notice: *"Work Order successfully completed and pending supervisory review"*, and returns the Technician to the Work Orders Backlog ([SCR-MTTO-026](../../../ui-ux/screens/mtto/SCR-MTTO-026.md)).
+11. The System displays a confirmation notice: *"Work Order successfully completed and pending supervisory review"*, returning `Maintenance Technician` users to the invoking `returnUrl` / Level 3 Equipment Task Faceplate ([SCR-VIS-033](../../../ui-ux/screens/vis/SCR-VIS-033.md)), while routing `Maintenance Planner`, `Maintenance Supervisor`, and `Reliability Engineer` roles to the Work Orders Backlog ([SCR-MTTO-026](../../../ui-ux/screens/mtto/SCR-MTTO-026.md)).
 
 ## 4. Alternate Flows
 

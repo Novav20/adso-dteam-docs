@@ -11,6 +11,7 @@ roles:
   - Auditor
   - Maintenance Supervisor
   - Reliability Engineer
+  - Maintenance Technician
 user_stories:
   - "[[INV-006]]"
 use_cases:
@@ -30,6 +31,7 @@ status: Stable
   * **Maintenance Planner:** Verifies physical vs. reserved stock balances (`FR-126`) and inspects historical spare part consumption rates across Equipment Units.
   * **Auditor:** Audits financial cost attribution, unit price variance alerts, physical count adjustments, and SHA-256 hash-chained ledger entries (`FR-130`, `TR-001`).
   * **Maintenance Supervisor & Reliability Engineer:** Drills down from the Equipment Master Data Card ([SCR-INV-005](SCR-INV-005.md)) or Spare Parts Master Catalog ([SCR-INV-031](SCR-INV-031.md)) to review all spare parts and rotable serial numbers consumed by a specific Level 6 Equipment Unit or SKU.
+  * **Maintenance Technician (Read-Only):** Queries spare part availability, warehouse bin locators, and equipment Kardex history in strictly read-only mode (`CanRegisterMovement == false`) without registering stock movements.
 * **Operational Context:** Deployed on desktop workstations in central warehouse offices and on rugged industrial tablets equipped with optical/laser barcode scanners in warehouse aisles and field staging zones ([DT-UI-NAV-DOC-001 §4.1–§4.2](../../DT-UI-NAV-DOC-001.md#42-navigation-structure-web-portal-client)). Responsive layout rules are governed in Section 8.
 * **Mode of Operation:** Transactional Inventory Ledger & Audit Inspection mode. Direct DCS/SCADA process control manipulation is strictly excluded. Ledger records in the `InventoryTransaction` aggregate root ([DT-DM-DOC-002 §4](../../../domain-models/class/DT-DM-DOC-002.md#4-layer-3-resource-control-inv)) are strictly append-only; corrections are executed exclusively via compensating return or physical count adjustment transactions (`FR-128`, `AF-003`).
 * **Upstream & Downstream Navigation Invariants:**
@@ -389,6 +391,9 @@ public string? ScopedSparePartSku { get; set; }
 [Parameter]
 public int PendingRetryQueueCount { get; set; }
 
+/// <summary>
+/// True strictly for Warehouse Manager; false (read-only mode) for Maintenance Technician, Maintenance Planner, Auditor, Maintenance Supervisor, and Reliability Engineer.
+/// </summary>
 [Parameter]
 public bool CanRegisterMovement { get; set; }
 
@@ -872,7 +877,7 @@ public record KardexAuditEntryDto
 | [TR-001](../../../requirements/common/TR-001.md) | `CMP-08`, `CMP-10`, `CMP-11` | Immutable append-only audit trail logging (`AuditActionType`) with SHA-256 cryptographic hash chaining on all inventory mutations. |
 | [TR-002](../../../requirements/common/TR-002.md) | `CMP-02`, `CMP-08` | AES-256 / SQLCipher encryption at rest for locally queued warehouse movements during temporary wireless dropouts. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-05`, `CMP-08`, `CMP-10` | Enforces TLS/HTTPS encryption in transit across all Kardex queries, stock checks, and transaction commits. |
-| [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-08` | Enforces RBAC permissions (`Warehouse Manager` for movement mutations; read/audit access for `Planner` and `Auditor`). |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-08` | Enforces RBAC permissions (`Warehouse Manager` for movement mutations via `CanRegisterMovement`; strictly read-only/query access for `Maintenance Technician`, `Maintenance Planner`, `Auditor`, `Maintenance Supervisor`, and `Reliability Engineer`). |
 | [TR-007](../../../requirements/common/TR-007.md) | `CMP-02`, `CMP-08` | Offline-first synchronization queue draining pending warehouse movements FIFO via command-sourced idempotent reconciliation without dropping over-issues ([TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr), [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007)). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-13` | ANSI/ISA-101 HPHMI 90/10 neutral grayscale ledger, zero badge inflation on routine movements, and WCAG 2.1 AA redundant coding. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-10`, `CMP-11` | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on Kardex audit records. |

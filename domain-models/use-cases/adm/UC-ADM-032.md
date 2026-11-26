@@ -6,7 +6,6 @@ user_story: ADM-032
 primary_actor: Auditor
 secondary_actors:
   - Plant Manager
-  - System Administrator
 ---
 
 # UC-ADM-032: Consult Cryptographic Audit Trail (Audit Log)
@@ -15,7 +14,7 @@ secondary_actors:
 Enables authorized governance personnel to query, inspect, verify, and export the platform's immutable, append-only cryptographic audit trail in compliance with ISO/IEC 27001:2022 Annex A.8.15–A.8.16, ISO 55001 Clause 7.5, and ISO 9001. Reserved strictly for forensic investigations, Root Cause Analysis (RCA), and regulatory compliance across critical state-mutating operations (`CREATE`, `UPDATE`, `DELETE`, `QUERY`, `ADJUST`, and `SECURITY_ALERT`), the system provides side-by-side before-and-after state comparisons with automatic secret masking, visualizes temporal activity trends to detect operational anomalies, validates SHA-256 cryptographic hash-chain continuity from the genesis record, enforces a minimum 7-year retention lifecycle, and records all audit queries via self-referential Meta-Auditing.
 
 ## 2. Preconditions
-* The Actor is authenticated in the web portal with the `Auditor`, `Plant Manager`, or `System Administrator` role possessing audit inspection privileges ([TR-006](../../../requirements/common/TR-006.md)).
+* The Actor is authenticated in the web portal with the `Auditor` or `Plant Manager` role possessing audit inspection privileges ([TR-006](../../../requirements/common/TR-006.md); `System Administrator` is excluded from `AUDIT` trail access per `SOD-SYS-01`).
 * Note on Offline Access Guard: In accordance with the global navigation offline guard ([DT-UI-NAV-DOC-001 §6.1](../../../ui-ux/DT-UI-NAV-DOC-001.md#61-offline-operation-guard)), direct queries against the central immutable audit repository require active server connectivity, while verified audit packages may be exported for independent offline analysis ([NFR-359](../../../requirements/user-stories/adm/ADM-032.md#non-functional-requirements-nfr)).
 * The centralized append-only audit ledger ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md)) is active and enforces strict write-once immutability preventing modification or deletion by any role ([FR-347](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)).
 
@@ -39,7 +38,7 @@ Enables authorized governance personnel to query, inspect, verify, and export th
 In step 8 or during periodic automated background verification ([FR-346](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [FR-351](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)), if the recalculated SHA-256 hash mismatches the stored digest or a chronological gap indicates external row deletion:
 1. The System immediately flags the exact compromised record and blocks standard compliance export for the corrupted range to prevent circulation of tampered evidence.
 2. The System deploys a high-salience critical security alert using redundant shape and color coding per WCAG 2.1 AA ([TR-011](../../../requirements/common/TR-011.md)): *"CRITICAL SECURITY ALERT: Cryptographic Hash-Chain Discrepancy Detected. Possible External Database Tampering."*
-3. The System automatically appends a high-priority `SECURITY_ALERT` event to the security log and dispatches an immediate incident notification to the Lead Auditor, System Administrator, and HSEQ supervision ([TR-003](../../../requirements/common/TR-003.md)).
+3. The System automatically appends a high-priority `SECURITY_ALERT` event to the security log and dispatches an immediate incident notification to the Lead Auditor, Plant Manager, and HSEQ supervision ([TR-003](../../../requirements/common/TR-003.md)).
 
 ### AF-002: Attempted Modification or Deletion of Audit Records
 If any user—including a System Administrator—attempts to edit, overwrite, or delete an existing audit trail entry via the interface or API ([FR-347](../../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr)):

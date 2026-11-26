@@ -149,7 +149,7 @@ status: Stable
      - Disabled State (`AF-001`): `--dt-color-state-disabled`
      - Portrait Elevation: `--dt-shadow-hud`
      - Touch Target: `--dt-touch-target-mobile`
-   - **Architectural Scope:** Initiates map centering or cross-screen drill-down routes per §5.4 and [DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac).
+   - **Architectural Scope:** Initiates map centering or cross-screen drill-down routes per §5.4 and [DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac), gating `[Work Orders]` strictly to roles authorized for `SCR-MTTO-026` (`CanAccessWorkOrderBacklog`).
 
 10. **`CMP-10`: Actionable Work Orders**
     - **Visual Role:** Frameless, hairline-divided list of active CMMS maintenance work orders displaying `OrderNumber`, `OrderType` badge (`CM`/`PM`/etc.), linked `PTW` pill when present, lifecycle `Status`, `RimePriorityScore`, and task description.
@@ -270,7 +270,7 @@ status: Stable
 1. **`[Locate]` (`CMP-09`):** Invokes `locateAssetOnMap(TagNumber)` (§5.2) when `MappingStatus == MAPPED`. Disabled via negative interlock (`--dt-color-state-disabled`) when spatial mapping is pending (`AF-001`).
 2. **`[LOTO Route]` (`CMP-09`):** Transitions the shared viewport workspace to LOTO Isolation Verification ([SCR-VIS-011](./SCR-VIS-011.md)) scoped to the selected `EquipmentUnit` and active work order isolation points.
 3. **`[Work Orders]` (`CMP-09`) vs. Direct Row Activation (`CMP-10`):**
-   - Pressing `[Work Orders]` in `CMP-09` navigates to RIME Backlog Prioritization ([SCR-MTTO-026](../mtto/SCR-MTTO-026.md)) filtered by `EquipmentId`.
+   - `[Work Orders]` in `CMP-09` is RBAC-guarded (`CanAccessWorkOrderBacklog == true`) so it is **only visible/enabled for roles authorized on `SCR-MTTO-026`** (`Maintenance Planner`, `Maintenance Supervisor`, `Reliability Engineer`), and hidden/disabled for `Maintenance Technician` and `HSEQ Inspector` (preventing unauthorized `403` backlog transitions). When enabled, pressing `[Work Orders]` navigates to RIME Backlog Prioritization ([SCR-MTTO-026](../mtto/SCR-MTTO-026.md)) filtered by `EquipmentId`.
    - Clicking an active Work Order row in `CMP-10` executes the LOTO Safety Interlock check ([DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)): execution transitions to Mobile Work Order Execution ([SCR-MTTO-002](../mtto/SCR-MTTO-002.md)) ONLY if the linked `WorkPermit` status is `APPROVED` and LOTO isolation points report `VERIFIED_ZERO_ENERGY` (or valid `LEASED_OFFLINE` offline cryptographic lease under [ADR-006](../../../architecture/adr/ADR-006.md)); otherwise the non-dismissible fail-safe modal activates (`AF-005`).
 4. **`[Master Sheet]` (`CMP-09`):** Routes to Level 3 Equipment Master Data Card ([SCR-INV-005](../inv/SCR-INV-005.md)) displaying immutable catalog specifications, nameplate fields, and maintenance boundaries.
 
@@ -512,6 +512,13 @@ public required string TagNumber { get; set; }
 
 [Parameter]
 public bool IsLocationMapped { get; set; } = true;
+
+/// <summary>
+/// RBAC guard: true only for roles authorized on SCR-MTTO-026 (Maintenance Planner, Maintenance Supervisor, Reliability Engineer);
+/// hides/disables [Work Orders] for Maintenance Technician and HSEQ Inspector.
+/// </summary>
+[Parameter]
+public bool CanAccessWorkOrderBacklog { get; set; }
 
 [Parameter]
 public EventCallback<string> OnActionTriggered { get; set; }
@@ -760,7 +767,7 @@ public enum TelemetryAlarmSeverity
 | [NFR-604](../../../requirements/user-stories/vis/VIS-033.md#non-functional-requirements-nfr) | `CMP-07` | Telemetry readings update and reflect in MAI bars in $< 1\text{s}$ from server ingestion ([TR-010](../../../requirements/common/TR-010.md)). |
 | [NFR-605](../../../requirements/user-stories/vis/VIS-033.md#non-functional-requirements-nfr) | `CMP-01`, `CMP-05` | Vector rendering maintains $\ge 30\text{ FPS}$ on industrial tablets ($\ge 60\text{ FPS}$ on desktop) with tactile touch ergonomics (`--dt-touch-target-mobile`). |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-05`, `CMP-07` | All initial REST catalog queries and real-time SCADA SignalR streams execute over encrypted TLS/HTTPS and WSS transport channels. |
-| [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-09`, `CMP-10`, `CMP-11` | RBAC enforcement restricts LOTO verification navigation, Work Order execution dispatch, and master catalog actions per authorized operational role ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)). |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-09`, `CMP-10`, `CMP-11` | RBAC enforcement restricts LOTO verification navigation, Work Order execution dispatch, `[Work Orders]` (`CMP-09` visible/enabled strictly for `Maintenance Planner`, `Maintenance Supervisor`, `Reliability Engineer`), and master catalog actions per authorized operational role ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)). |
 | [TR-007](../../../requirements/common/TR-007.md) | `CMP-01`, `CMP-05` | Preserves 2D plot plan inspection and cached equipment faceplate consultation against encrypted local storage (`IOfflineStorage`) during field wireless dropouts (`AF-003`). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-01`, `CMP-04`, `CMP-06` | Enforces ISO 14224 hierarchical integrity across Functional Location (`Levels 1 to 5`) and Equipment Unit (`Level 6`) tags and `CriticalityIndex` inheritance. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-05`, `CMP-07`, `CMP-10` | Persistent debounced SignalR subscriptions on `/hubs/telemetry` (`ReceiveTelemetryReading`, `EmergencyEvacuationBroadcast`) and `/hubs/operations` (`WorkOrderStatusChanged`, `AssetSwapCompleted`) stream updates in $< 1\text{s}$ with automatic stale-cache Priority 4 fallback on disconnect. |

@@ -10,6 +10,7 @@ roles:
   - Maintenance Technician
   - Maintenance Supervisor
   - Warehouse Manager
+  - Project Engineer
 user_stories:
   - "[[INV-025]]"
 use_cases:
@@ -29,6 +30,7 @@ status: Stable
   * **Maintenance Technician:** Performs physical field swap, scans replacement serial barcodes, and confirms dismantling destination.
   * **Warehouse Manager:** Reconciles rotable inventory movements and receives dismantled units into the repair workshop.
   * **Maintenance Supervisor:** Approves equipment substitutions associated with high-priority corrective work orders.
+  * **Project Engineer:** Executes rotable equipment installations and swaps during project commissioning handovers.
 * **Operational Context:** Accessible in field environments on rugged industrial tablets during physical equipment dismounting, and in control offices on desktop workstations. Detailed responsive profiles and breakpoints are specified in Section 8.
 * **Mode of Operation:** Contextual Transactional Modal Task. Deploys as a centered modal dialog across workstation and tablet viewports. Excludes continuous process telemetry manipulation, focusing strictly on asset lifecycle state transitions, barcode scanning, and cryptographic audit persistence. Detailed interaction rules and dimensions are specified in §5.2 and §8.
 
@@ -552,7 +554,7 @@ public record AssetSwapCompletedEvent
 | [TR-001](../../../requirements/common/TR-001.md) | `CMP-08`, `CMP-09` | Immutable append-only audit trail logging with SHA-256 hash chaining ([ADR-003](../../../architecture/adr/ADR-003.md)). |
 | [TR-002](../../../requirements/common/TR-002.md) | `CMP-01`, `CMP-09` | Encryption at Rest: AES-256 / SQLCipher encryption for locally cached equipment data and pending outbox records on mobile devices. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-09` | Encryption in Transit: Transport layer security (TLS/HTTPS) for all RESTful DTO transmissions and API calls. |
-| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-09` | Role-Based Access Control (RBAC): Enforces permissions (`Reliability Engineer`, `Technician`, `Supervisor`). |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-09` | Role-Based Access Control (RBAC): Enforces permissions (`Reliability Engineer`, `Maintenance Technician`, `Maintenance Supervisor`, `Warehouse Manager`, `Project Engineer`). |
 | [TR-007](../../../requirements/common/TR-007.md) | `CMP-01`, `CMP-09` | Offline Operation and Synchronization: Queues `ExecuteAssetSwapCommand` in the local outbox with a UUIDv7 `X-Idempotency-Key` and replays FIFO without stale `If-Match` for server-side command-sourced reconciliation ([TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr)). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-04`, `CMP-06` | ISO 14224 Hierarchy Management and Validation: Enforces taxonomic constraints and class parity in domain rules. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-09` | Real-time synchronization: broadcasts `AssetSwapCompleted(AssetSwapCompletedEvent)` over `/hubs/operations` to connected clients (< 1s). |

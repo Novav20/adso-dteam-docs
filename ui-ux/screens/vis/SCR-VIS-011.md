@@ -25,8 +25,8 @@ status: Stable
 * **View Objective:** Spatial and procedural verification of hazardous energy isolation boundaries (LOTO) over the plant 2D plot plan (ANSI/ISA-101 Level 4 Task Execution with Level 2/3 spatial context). Corroborates physical field lockouts and absence-of-energy tests with real-time IoT telemetry, enforcing active software interlocking to guarantee a proven Zero Energy State prior to Equipment Unit intervention (OSHA 1910.147, ISO 45001).
 * **Primary Target Persona:** Maintenance Technician executing field cutoffs, registering physical padlocks, performing Try-Out tests, and requesting work authorization.
 * **Secondary Personas:**
-  * **HSEQ Inspector:** Audits isolation boundaries, verifies cryptographic compliance trails, and monitors SIMOPS interactions.
-  * **Maintenance Supervisor:** Oversees active isolations and provides emergency supervisory overrides.
+  * **HSEQ Inspector:** Audits isolation boundaries, verifies cryptographic compliance trails, and monitors SIMOPS interactions in read-only inspection mode (`IsReadOnly == true` per `SOD-SAF-01` when lacking `SAFETY:EXECUTE`).
+  * **Maintenance Supervisor:** Oversees active isolations and supervisory reviews in read-only mode (`IsReadOnly == true` per `SOD-SAF-01` unless granted `SAFETY:EXECUTE`).
 * **Operational Context:** Deployed on rugged industrial tablets in the field and central maintenance workstations.
 * **Mode of Operation:** Hybrid Safety Interlock & Supervisory Inspection mode. Real-time telemetry monitoring and field safety interlock authorization. Direct DCS/SCADA process control manipulation is strictly excluded; field mechanics rely on physical manual cutoff points, padlocks, and local Try-Out tests.
 * **Single-Canvas Workspace Invariant:** Operates strictly as a contextual operational mode within the unified application shell, not as an independent web page with browser history. Activated contextually when selecting *"LOTO Route"* from [SCR-VIS-033](./SCR-VIS-033.md) or a Work Order panel, projecting the LOTO vector layer over the shared plot plan and opening the isolation drawer in-place.
@@ -405,6 +405,13 @@ public Guid? EquipmentUnitId { get; set; }
 
 [Parameter]
 public string? WorkOrderNumber { get; set; }
+
+/// <summary>
+/// Enforces SOD-SAF-01 (SCR-ADM-013): true when approver/audit roles (HSEQ Inspector, Maintenance Supervisor)
+/// inspect LOTO plans without SAFETY:EXECUTE permission, locking padlock confirmation, Try-Out signing, and [Start Work].
+/// </summary>
+[Parameter]
+public bool IsReadOnly { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-13`)
@@ -537,6 +544,9 @@ public required ZeroEnergyState OverallEnergyState { get; set; }
 public bool IsMinimized { get; set; }
 
 [Parameter]
+public bool IsReadOnly { get; set; }
+
+[Parameter]
 public EventCallback<bool> OnMinimizeToggled { get; set; }
 
 [Parameter]
@@ -580,6 +590,9 @@ public int RemainingLeaseSeconds { get; set; }
 public required IReadOnlyList<ChecklistStepDto> Steps { get; set; }
 
 [Parameter]
+public bool IsReadOnly { get; set; }
+
+[Parameter]
 public EventCallback<ConfirmCutoffStepRequestDto> OnStepVerified { get; set; }
 
 // CMP-07: TelemetryVerificationMatrix.razor (MAI Display)
@@ -597,6 +610,9 @@ public bool IsActionable { get; set; }
 public bool IsAttested { get; set; }
 
 [Parameter]
+public bool IsReadOnly { get; set; }
+
+[Parameter]
 public TryOutMethod SelectedMethod { get; set; } = TryOutMethod.MULTIMETER_PROBE;
 
 [Parameter]
@@ -608,6 +624,13 @@ public EventCallback<TryOutAttestationDto> OnTryOutAttested { get; set; }
 // CMP-09: ActiveSafetyInterlockButton.razor
 [Parameter]
 public bool CanStartWork { get; set; }
+
+/// <summary>
+/// Enforces SOD-SAF-01: when true for approver roles lacking SAFETY:EXECUTE (HSEQ Inspector, Maintenance Supervisor),
+/// disables/hides [Start Work] and padlock/Try-Out mutations while preserving telemetry/audit inspection.
+/// </summary>
+[Parameter]
+public bool IsReadOnly { get; set; }
 
 [Parameter]
 public WorkOrderStatus CurrentWorkOrderStatus { get; set; } = WorkOrderStatus.SCHEDULED;
@@ -901,7 +924,7 @@ public enum WorkOrderStatus
 | [TR-001](../../../requirements/common/TR-001.md) | `CMP-08`, `CMP-09` | Immutable append-only audit trail logging of padlock tags, Try-Out signature hash, and sensor snapshot with SHA-256 hash chaining. |
 | [TR-002](../../../requirements/common/TR-002.md) | `CMP-08`, `CMP-11` | Encrypts cached LOTO isolation plans, Cryptographic Offline Leases, and queued Try-Out attestations at rest in local device storage (`IOfflineStorage`). |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-07`, `CMP-12` | Enforces TLS/HTTPS and WSS encryption across all isolation command dispatches and real-time SignalR telemetry/evacuation streams. |
-| [TR-006](../../../requirements/common/TR-006.md) | `CMP-08`, `CMP-09`, `CMP-11` | Enforces RBAC role authorization and hardware-keystore verification for Try-Out signing and offline safety lease validation. |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-05`, `CMP-06`, `CMP-08`, `CMP-09`, `CMP-11` | Enforces RBAC role authorization, `SOD-SAF-01` read-only inspection (`IsReadOnly`) for approver roles lacking `SAFETY:EXECUTE` (`HSEQ Inspector`, `Maintenance Supervisor`), and hardware-keystore verification for Try-Out signing and offline safety lease validation. |
 | [TR-007](../../../requirements/common/TR-007.md) | `CMP-05`, `CMP-06`, `CMP-08`, `CMP-11` | Offline Sync Outbox persists sequential padlock confirmations (`ConfirmCutoffStepRequestDto`), signed `TryOutAttestationDto`, and `StartWorkOrderExecutionCommand` using UUIDv7 idempotency keys during field disconnections. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-07`, `CMP-09`, `CMP-11`, `CMP-12` | Persistent real-time SignalR streams on `/hubs/telemetry` (`ReceiveTelemetryReading`, **2s** `LotoHeartbeatAck` with **30s Grace Window**, `EmergencyEvacuationBroadcast`) and `/hubs/operations` (`PermitStatusChanged`, `WorkOrderStatusChanged`) with $< 1\text{s}$ latency and automatic disconnect fail-safe detection. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-04`, `CMP-07`, `CMP-13` | ANSI/ISA-101 HPHMI: 90/10 grayscale baseline with focal island de-emphasis, MAI zero-energy scales, Teal confirmation tokens, and `--dt-touch-target-mobile` gloved ergonomics. |

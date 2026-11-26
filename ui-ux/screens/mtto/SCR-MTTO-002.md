@@ -25,14 +25,14 @@ status: Stable
 * **View Objective:** Mobile field technical execution, taxonomy failure diagnosis, and formal technical closure of active Work Orders (ANSI/ISA-101 Level 4). Enforces strict ISO 14224 reliability coding (Maintainable Item, Failure Mode, Mechanism, Cause, Detection Method, Operational Condition, and Operational Impact), actual Wrench Time capture, immutable photographic evidence acquisition with SHA-256 cryptographic hashing ([TR-003](../../../requirements/common/TR-003.md)), and atomic status transition to `COMPLETE` ([DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders)), with full offline-first resilience via encrypted local database ([TR-002](../../../requirements/common/TR-002.md)) and transactional outbox synchronization ([TR-007](../../../requirements/common/TR-007.md)).
 * **Primary Target Persona:** Maintenance Technician operating on rugged industrial tablets in Class I Div 2 hazardous process areas under adverse conditions (glare, noise, chemical-resistant gloves). Detailed responsive profiles and breakpoints are specified in Section 8.
 * **Secondary Personas:**
-  * **Maintenance Supervisor:** Reviews field execution metrics, verifies Wrench Time variance, and performs administrative closure (`CLOSED`).
+  * **Maintenance Supervisor:** Reviews field execution metrics in read-only supervisory mode (`IsReadOnly == true` per `SOD-MTTO-01` unless granted `MAINTENANCE:EXECUTE`), verifies Wrench Time variance, and performs administrative closure (`CLOSED`).
   * **Reliability Engineer:** Consumes structured ISO 14224 failure distributions for Weibull analysis, Bad Actor tracking, and MTBF/MTTR calculations.
   * **HSEQ Inspector:** Audits the cryptographic hash chain of field evidence and verifies de-isolation safety handover protocols.
 * **Operational Context:** Deployed on portable industrial tablets and intrinsically safe handheld devices. Requires tactile targets, high-contrast typography, zero nested modal traps, and resilient persistence against unexpected power loss or radio-frequency shadowing inside tank dikes and pump battery limits. Tactile dimensions are specified in §5.2 and §8.
 * **Mode of Operation:** Transactional Execution & Field Technical Certification mode. Direct DCS/SCADA process control manipulation is strictly excluded; field mechanics log physical intervention data, parts consumption, and diagnostic classifications.
 * **Upstream & Downstream Navigation Invariants:**
   * **Upstream Continuity:** Directly launched upon successful Zero Energy verification and work initiation in [SCR-VIS-011](../vis/SCR-VIS-011.md), automatically transitioning the Work Order lifecycle state to `IN_PROGRESS`.
-  * **Downstream Transitions:** Hosts the trigger for the Rotable Asset Swap modal ([SCR-INV-025](../inv/SCR-INV-025.md)) when physical equipment replacement is required, and routes to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)) upon confirmed technical closure.
+  * **Downstream Transitions:** Hosts the trigger for the Rotable Asset Swap modal ([SCR-INV-025](../inv/SCR-INV-025.md)) when physical equipment replacement is required, and upon confirmed technical closure returns `Maintenance Technician` users to `returnUrl` / Level 3 Equipment Task Faceplate ([SCR-VIS-033](../vis/SCR-VIS-033.md)), while routing `Maintenance Planner`, `Maintenance Supervisor`, and `Reliability Engineer` roles to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
 
 ---
 
@@ -177,7 +177,7 @@ status: Stable
 
 8. **Technical Closure Complete**
    - **Activation Condition:** Technician confirms `[Finalize Work Order]`. System commits atomic transaction.
-   - **Visual Modification:** Form transitions to read-only state. Header badge updates to `COMPLETE`. Standardized completion certificate modal (header with close `X`, body with structured key-value certificate rows and SHA-256 seal, footer with primary action `[Return to Work Orders]`) confirms closure and redirects to [SCR-MTTO-026](./SCR-MTTO-026.md).
+   - **Visual Modification:** Form transitions to read-only state. Header badge updates to `COMPLETE`. Standardized completion certificate modal (header with close `X`, body with structured key-value certificate rows and SHA-256 seal, footer with primary return action `[Return to Work Orders]` / `[Back to Plot Plan]`) confirms closure and returns `Maintenance Technician` users to `returnUrl` / [SCR-VIS-033](../vis/SCR-VIS-033.md), while routing `Maintenance Planner`, `Maintenance Supervisor`, and `Reliability Engineer` roles to [SCR-MTTO-026](./SCR-MTTO-026.md).
 
 9. **Execution Suspended — Safety Interlock Breach (`AF-005`)**
    - **Activation Condition:** Continuous boundary telemetry or safety monitoring detects unexpected residual energy or barrier breach during `IN_PROGRESS` execution ([UC-MTTO-002 §4](../../../domain-models/use-cases/mtto/UC-MTTO-002.md#af-005-safety-interlock-breach-active-hazardous-energy-detected), [DT-DM-DOC-001 §4.21](../../../domain-models/class/DT-DM-DOC-001.md#421-workordercurrentstatus)).
@@ -220,11 +220,11 @@ sequenceDiagram
     alt Network Connected
         UI->>API: POST /api/v1/maintenance/work-orders/{id}/technical-closure (SubmitTechnicalClosureCommand + X-Idempotency-Key + If-Match)
         API-->>UI: HTTP 200 OK (WorkOrderTechnicallyCompletedEvent)
-        UI-->>Tech: Display completion certificate modal & navigate to SCR-MTTO-026
+        UI-->>Tech: Display completion certificate modal & navigate to returnUrl / SCR-VIS-033 (or SCR-MTTO-026 for Planner/Supervisor/Reliability)
     else Disconnected / Offline Outbox (AF-002)
         UI->>Store: Enqueue SubmitTechnicalClosureCommand & encrypted media binary into local outbox
         Store-->>UI: Offline outbox queued (X-Idempotency-Key)
-        UI-->>Tech: Display offline sync badge & return to backlog
+        UI-->>Tech: Display offline sync badge & return to returnUrl / SCR-VIS-033 (or SCR-MTTO-026)
     end
 ```
 
@@ -299,7 +299,7 @@ sequenceDiagram
   * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries, plus `If-Match: "{ConcurrencyToken}"` on live online commits enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169) (offline-queued replays omit stale `If-Match` per §5.3.5).
   * **Command Payload:** Serializes optional/conditional `FailureRecordInputDto?` (mandatory 7-tier ISO 14224 classifications, downtime, and technician notes when `WorkOrder.maintenanceMethod == CORRECTIVE` or a failure is explicitly reported; `null` for routine `PREVENTIVE` closure with no failure), `ActualLaborHours`, `ConcurrencyToken`, and `IReadOnlyList<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
   * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (concurrency verification, conditional failure record insertion when `FailureRecord` is supplied/required, Work Order status update to `COMPLETE`, history logging, cryptographic audit chaining, and `/hubs/operations` `WorkOrderStatusChanged` broadcast) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
-  * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates downstream to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
+  * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates back to `returnUrl` / Level 3 Equipment Task Faceplate ([SCR-VIS-033](../vis/SCR-VIS-033.md)) for `Maintenance Technician`, while routing `Maintenance Planner`, `Maintenance Supervisor`, and `Reliability Engineer` roles to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
   * **Failure / Disconnected Handling:** On network timeout or HTTP 5xx error, transitions to the Zero-Shift Offline Outbox Protocol (§5.3.5, [TR-007](../../../requirements/common/TR-007.md)).
 
 #### 5.3.5. Zero-Shift Offline Telemetry and Outbox Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-006`, `ADR-007`, `ADR-008`)
@@ -364,6 +364,13 @@ public Guid? WorkOrderId { get; set; }
 
 [Parameter, SupplyParameterFromQuery(Name = "returnUrl")]
 public string? ReturnUrl { get; set; }
+
+/// <summary>
+/// Enforces SOD-MTTO-01 (SCR-ADM-013): true when an approver/inspector role (e.g., Maintenance Supervisor)
+/// inspects the work order without MAINTENANCE:EXECUTE permission, locking all execution inputs and finalization.
+/// </summary>
+[Parameter]
+public bool IsReadOnly { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-10`)
@@ -437,6 +444,9 @@ public EventCallback<decimal> ActualLaborHoursChanged { get; set; }
 [Parameter]
 public decimal PlannedLaborHours { get; set; }
 
+[Parameter]
+public bool IsReadOnly { get; set; }
+
 // TaskChecklistCard.razor
 [Parameter]
 public required IReadOnlyList<ScopeTaskItemDto> Tasks { get; set; }
@@ -486,6 +496,9 @@ public EventCallback<SparePartAllocationDto> OnQuantityChanged { get; set; }
 [Parameter]
 public EventCallback OnRotateEquipmentRequested { get; set; }
 
+[Parameter]
+public bool IsReadOnly { get; set; }
+
 // CMP-05: IsoTaxonomyDiagnosisTab.razor
 [Parameter]
 public required FailureRecordInputDto Model { get; set; }
@@ -525,6 +538,9 @@ public bool IsCapturing { get; set; }
 [Parameter]
 public bool HasIntegrityError { get; set; }
 
+[Parameter]
+public bool IsReadOnly { get; set; }
+
 // EvidenceDropzone.razor
 [Parameter]
 public bool IsCapturing { get; set; }
@@ -555,6 +571,12 @@ public bool CanFinalize { get; set; }
 [Parameter]
 public bool IsSubmitting { get; set; }
 
+/// <summary>
+/// When true (SOD-MTTO-01 read-only mode for roles lacking MAINTENANCE:EXECUTE), forces CanFinalize == false and hides/disables [Finalize Work Order].
+/// </summary>
+[Parameter]
+public bool IsReadOnly { get; set; }
+
 [Parameter]
 public EventCallback OnPreviousStep { get; set; }
 
@@ -580,6 +602,9 @@ public bool IsQueuedOffline { get; set; }
 [Parameter]
 public EventCallback OnCloseRequested { get; set; }
 
+/// <summary>
+/// Navigates back to ReturnUrl / SCR-VIS-033 for Maintenance Technician, or SCR-MTTO-026 for Maintenance Planner, Maintenance Supervisor, and Reliability Engineer.
+/// </summary>
 [Parameter]
 public EventCallback OnReturnToBacklog { get; set; }
 ```
@@ -816,7 +841,7 @@ public record SubmitTechnicalClosureCommand
 | [TR-002](../../../requirements/common/TR-002.md) | `CMP-08` | Local database encryption at rest using AES-256 (SQLCipher) for all cached work orders, failure records, and media payloads. |
 | [TR-003](../../../requirements/common/TR-003.md) | `CMP-07` | Client-side asynchronous SHA-256 hash evaluation of all captured media files stored in metadata for tamper detection. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-08`, `CMP-09` | Enforces TLS/HTTPS and WSS encryption across all technical closure command dispatches and background outbox synchronization. |
-| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-09` | Enforces RBAC role authorization and authenticated technician session validation prior to technical closure submission. |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-03`, `CMP-04`, `CMP-05`, `CMP-07`, `CMP-09` | Enforces RBAC role authorization, `SOD-MTTO-01` read-only inspection (`IsReadOnly`) for approver roles lacking `MAINTENANCE:EXECUTE`, and role-scoped post-closure return routing (`returnUrl` / `SCR-VIS-033` for `Maintenance Technician`; `SCR-MTTO-026` for `Maintenance Planner`, `Maintenance Supervisor`, `Reliability Engineer`). |
 | [TR-007](../../../requirements/common/TR-007.md) | `CMP-08`, `CMP-09` | Transactional Offline Sync Outbox queues completed technical closures and encrypted local media binaries during disconnected field operation with FIFO `X-Idempotency-Key` replay omitting stale `If-Match` ([TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr)). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-05`, `CMP-06` | Validates ISO 14224 hierarchical integrity linking Level 6 `EquipmentUnit` class taxonomy to Level 8 `MaintainableItem` failure records. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-08`, `CMP-09` | Real-time synchronization via `/hubs/telemetry` (`EmergencyEvacuationBroadcast`, `LotoHeartbeatAck`) and `/hubs/operations` (`WorkOrderStatusChanged`). |

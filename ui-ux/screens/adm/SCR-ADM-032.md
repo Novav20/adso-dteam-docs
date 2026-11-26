@@ -8,7 +8,6 @@ target_device: Desktop Workstation
 roles:
   - Auditor
   - Plant Manager
-  - System Administrator
 user_stories:
   - "[[ADM-032]]"
 use_cases:
@@ -23,9 +22,9 @@ status: Stable
 ## 1. Purpose and Operational Context
 
 * **View Objective:** Centralized Level 2 forensic query, state-diff inspection, and cryptographic hash-chain verification console over the immutable audit trail (`AuditLog`, `AuditLogWorkspaceDto`, `AuditLogEntryDto`, `AuditLogDetailDto`). Enforces strict Write-Once-Read-Many (WORM) append-only immutability (`FR-347`), executes high-speed GIN containment queries over structured state snapshots ([DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032)), visualizes temporal activity trends and security anomalies (`FR-352`), renders secret-masked `PreviousState` vs. `NewState` diffs (`FR-349`), mathematically verifies sequential SHA-256 hash continuity (`AuditLog.VerifyIntegrity()` per [DT-DM-DOC-002 §6.3](../../../domain-models/class/DT-DM-DOC-002.md#63-auditlog-entity) and [ADR-003](../../../architecture/adr/ADR-003.md)), logs all audit consultations via self-referential Meta-Auditing (`NFR-360`), and governs 7-year regulatory retention archival (`FR-350`, `FR-358`, `TR-001-FR-367`).
-* **Primary Target Persona:** Lead Auditor and Plant Manager conducting forensic incident reconstructions, Root Cause Analysis (RCA), LOTO/SIMOPS safety compliance audits, and ISO 55001 / ISO 27001 / ISO 9001 regulatory reviews.
+* **Primary Target Persona:** Auditor (Lead Auditor) conducting forensic incident reconstructions, Root Cause Analysis (RCA), LOTO/SIMOPS safety compliance audits, 7-year cold-archive verification (`FR-350`), signed forensic exports (`FR-353`, `NFR-359`), and ISO 55001 / ISO 27001 / ISO 9001 regulatory reviews.
 * **Secondary Personas:**
-  * **System Administrator:** Monitors `SECURITY_ALERT` events (failed integrity checks, brute-force lockouts, RBAC Segregation of Duties blocks), verifies 7-year cold-archive partitions (`FR-350`), and exports signed forensic bundles for external analysis (`FR-353`, `NFR-359`).
+  * **Plant Manager:** Reviews operational compliance audits, `SECURITY_ALERT` governance exceptions, and facility-wide change history alongside the Auditor (`SOD-SYS-01` explicitly excludes `System Administrator` from `AUDIT` access to separate IAM administration in [SCR-ADM-013](SCR-ADM-013.md)/[SCR-ADM-014](SCR-ADM-014.md) from independent forensic auditing).
 * **Operational Context:** Deployed exclusively on high-resolution Desktop Workstations inside corporate audit, HSEQ, and security operations offices ([DT-UI-NAV-DOC-001 §4.2](../../DT-UI-NAV-DOC-001.md#42-navigation-structure-web-portal-client)). Per [DT-UI-NAV-DOC-001 §4.1](../../DT-UI-NAV-DOC-001.md#41-navigation-structure-mobile-client) and [§6.1](../../DT-UI-NAV-DOC-001.md#61-offline-operation-guard), mobile/tablet field clients and offline query execution against the central audit repository are strictly out of scope, while exported forensic packages support standalone offline verification (`NFR-359`). Compact desktop workstation adaptations are governed in Section 8.
 * **Mode of Operation:** Strictly Read-Only Forensic Supervision & Cryptographic Verification mode (`FR-347`). Direct DCS/SCADA process control manipulation is excluded, and zero mutation, update, or deletion controls exist for `AuditLog` entries (`TR-001-NFR-362`, `TR-001-NFR-365`).
 * **Web Portal Workspace Invariant:** Operates within the unified Blazor Web Portal shell alongside an **on-demand, closed-by-default** right-hand workspace dock (`CMP-12` hosting `CMP-08`/`CMP-09` and `CMP-11`) using the vertical tab spine pattern (`CLS = 0`). The dock initializes closed (`IsOpen = false`), opens on ledger row selection, vertical spine tab selection, or via `[Forensic Inspection]` (`CMP-04`), and closes cleanly on outside click, close trigger, or `Escape`.
@@ -195,7 +194,7 @@ status: Stable
 ## 4. Screen State Catalog
 
 1. **Forensic Ledger Inspection Mode (Default — Verified Chain)**
-   - **Activation Condition:** Auditor, Plant Manager, or Administrator navigates to `SCR-ADM-032`.
+   - **Activation Condition:** Auditor or Plant Manager navigates to `SCR-ADM-032`.
    - **Visual Modification:** Neutral grayscale 90/10 surfaces (`--dt-color-surface-card`) with `CMP-12` workspace dock closed by default (`IsOpen = false`, `CLS = 0`). Ledger grid `CMP-06` displays chronological records sorted descending by `TimestampUtc` (`UUIDv7` time-ordered) using plain neutral text (`Verified`) for intact entries and routine operations, reserving elevated amber/red capsules strictly for `ADJUST`/`DELETE` and `SECURITY_ALERT`. KPI card 2 in `CMP-03` and footer slot in `CMP-13` display cryptographic continuity confirmation (`--dt-color-state-success`, `#icon-check`).
 
 2. **Executing Indexed Query & Recording Meta-Audit (`NFR-355`, `NFR-360`)**
@@ -731,7 +730,7 @@ public record MetaAuditQueryEntryDto
 | [TR-002](../../../requirements/common/TR-002.md) | `CMP-06`, `CMP-11` | Encrypts active and archived audit log storage volumes at rest. |
 | [TR-003](../../../requirements/common/TR-003.md) | `CMP-09`, `CMP-10` | Verifies cryptographic SHA-256 payload digests and triggers immediate critical security alerts on mismatch (`AF-001`). |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-04`, `CMP-06`, `CMP-13` | Enforces TLS/HTTPS encryption in transit across all forensic queries and compliance exports. |
-| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-02` | Restricts audit log query and export access strictly to authorized `Auditor`, `Plant Manager`, and `System Administrator` roles. |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-02` | Restricts audit log query and export access strictly to authorized `Auditor` and `Plant Manager` roles, excluding `System Administrator` per `SOD-SYS-01`. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-13` | ANSI/ISA-101 HPHMI 90/10 neutral grayscale ledger, zero badge inflation on routine events, and WCAG 2.1 AA redundant coding on tamper alerts. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-08`, `CMP-09`, `CMP-10` | Chained SHA-256 hash verification (`GENESIS` sentinel $\to$ `PreviousHash` $\to$ `IntegrityHash`). |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-06` | Time-sequential `UUIDv7` primary keys preventing B-Tree page fragmentation in high-velocity audit tables. |
