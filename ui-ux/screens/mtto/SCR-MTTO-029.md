@@ -258,7 +258,7 @@ sequenceDiagram
     Eng->>UI: Adds Subunit & searches/links Maintainable Items (CMP-06)
     UI->>API: POST /api/v1/taxonomy/maintainable-items/validate-exclusivity (NFR-099 < 1s)
     API-->>UI: Returns ComponentExclusivityValidationResultDto
-    UI->>Crypto: ComputeSha256Digest(PreviousHash, BoundaryMutationPayload)
+    UI->>Crypto: ComputePayloadSha256Digest(BoundaryMutationPayload)
     Crypto-->>UI: Updates candidate SHA-256 seal preview (CMP-10)
     Eng->>UI: Enters AuditJustification & clicks [Save Boundary Definition] (CMP-12)
     UI->>API: PUT /api/v1/taxonomy/equipment-units/{id}/boundaries (SaveEquipmentBoundariesCommand + X-Idempotency-Key + If-Match)
@@ -309,8 +309,8 @@ sequenceDiagram
 
 #### 5.3.3. Client Command Dispatch & Cryptographic Audit Chain (`FR-098`, `NFR-095`, `TR-001`, `ADR-003`)
 1. **Atomic Command Dispatch (`NFR-095`):** Clicking `[Save Boundary Definition]` in `CMP-12` requires a mandatory `AuditJustification` ($\ge 15$ characters) persisted inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), and dispatches `SaveEquipmentBoundariesCommand` (§7.2.3) to `PUT /api/v1/taxonomy/equipment-units/{id}/boundaries` with headers `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)). On `HTTP 200 OK`, the client clears local draft storage, updates `CMP-03` Commissioning Gate state, prepends the committed revision to `CMP-10`, and returns cleanly to Read-Only Consultation Mode; on concurrency conflict or validation failure (`HTTP 409` / `422`), `CMP-11` surfaces the server diagnostic without data loss.
-2. **Chained Cryptographic Digest Preview (`FR-098`, `TR-001`, `ADR-003`):** `ICryptoInterop` computes the candidate SHA-256 integrity preview displayed in `CMP-10`:
-   $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{EngineerUserId} \parallel \text{EquipmentUnitId} \parallel \text{BoundaryStart} \parallel \text{BoundaryEnd} \parallel \text{SubunitItemTreeHash} \parallel \text{AuditJustification} \parallel \text{TimestampUtc})$$
+2. **Chained Cryptographic Digest Preview (`FR-098`, `TR-001`, `ADR-003`):** `ICryptoInterop` computes the candidate SHA-256 payload digest preview displayed in `CMP-10` without a client-supplied `PreviousHash`; inside the single-commit atomic transaction, `AuditSaveChangesInterceptor` resolves `audit_logs.previous_hash` server-side pre-commit ([DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)) and seals:
+   $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash}_{\text{server}} \parallel \text{EngineerUserId} \parallel \text{EquipmentUnitId} \parallel \text{BoundaryStart} \parallel \text{BoundaryEnd} \parallel \text{SubunitItemTreeHash} \parallel \text{AuditJustification} \parallel \text{TimestampUtc})$$
 
 #### 5.3.4. Session Crash-Recovery & Field Read-Only Consultation (`NFR-097`, `NFR-101`, `AF-002`, `AF-003`)
 1. **Auto-Saved Local Configuration Drafts (`NFR-101`, `AF-002`):** During active editing in Configuration Mode, boundary and sub-tree mutations debounce ($500\text{ms}$) into encrypted local storage (`IOfflineStorage` / `TR-002`). Reopening `SCR-MTTO-029` with an uncommitted draft activates `CMP-09` (`[Restore Draft]` / `[Discard]`).
@@ -894,8 +894,8 @@ public record EquipmentBoundaryCardDto
     public required EquipmentBoundaryHeaderDto Header { get; init; }
     /// <summary>Persisted inside <c>MaintainableItem</c> <c>design_attributes</c> (JSONB key <c>pid_reference_code</c> per DT-ERD-DOC-001 §6.1) / <c>SpatialMetadata</c> (<c>spatial_metadata</c>), not as a dedicated column on <c>EquipmentUnit</c> (<c>equipment_units</c>).</summary>
     public string? PidReferenceCode { get; init; }
-    public required string BoundaryStart { get; init; }
-    public required string BoundaryEnd { get; init; }
+    public string? BoundaryStart { get; init; }
+    public string? BoundaryEnd { get; init; }
     public required bool IsCommissioningGateSatisfied { get; init; }
     public IReadOnlyList<SubunitNodeDto> Subunits { get; init; } = [];
     public IReadOnlyList<BoundaryAuditEntryDto> AuditHistory { get; init; } = [];
@@ -1003,7 +1003,7 @@ public record BoundaryAuditEntryDto
 }
 
 /// <summary>
-/// Boundary & sub-tree configuration commit payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// Boundary & sub-tree configuration commit payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7, and <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
 /// <see cref="PidReferenceCode"/> persists inside <c>MaintainableItem</c> <c>design_attributes</c> (JSONB per DT-ERD-DOC-001 §6.1) / <c>SpatialMetadata</c> (<c>spatial_metadata</c>), not on <c>EquipmentUnit</c> (<c>equipment_units</c>).
 /// </summary>
 public record SaveEquipmentBoundariesCommand
@@ -1016,7 +1016,6 @@ public record SaveEquipmentBoundariesCommand
     public required IReadOnlyList<SubunitNodeDto> Subunits { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid EngineerUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 ```

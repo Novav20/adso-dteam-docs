@@ -247,8 +247,8 @@ sequenceDiagram
         UI-->>WM: Displays CMP-10 Warning Card & requires DuplicateOverrideJustification
         WM->>UI: Enters technical override justification (>= 15 chars)
     end
-    UI->>Crypto: ComputeSha256Digest(PreviousHash, PartMasterPayload)
-    Crypto-->>UI: Previews SHA-256 integrity hash
+    UI->>Crypto: ComputePayloadSha256Digest(PartMasterPayload)
+    Crypto-->>UI: Previews SHA-256 payload digest
     WM->>UI: Clicks [Register Spare Part]
     UI->>API: POST /api/v1/inventory/spare-parts (RegisterSparePartCommand + X-Idempotency-Key)
     API-->>UI: HTTP 201 Created (SparePartMasterItemDto)
@@ -758,6 +758,9 @@ public record UpdateSparePartPolicyFormDto
     public SparePartStatus Status { get; set; }
 }
 
+/// <summary>
+/// Spare part registration payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record RegisterSparePartCommand
 {
     public required string Sku { get; init; }
@@ -774,11 +777,10 @@ public record RegisterSparePartCommand
     public Guid? EquipmentClassId { get; init; }
     public string? DuplicateOverrideJustification { get; init; }
     public required Guid ManagerUserId { get; init; }
-    public required string PreviousHash { get; init; }
 }
 
 /// <summary>
-/// Versioned replenishment policy update payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// Versioned replenishment policy update payload; AuditJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7, and <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
 /// </summary>
 public record UpdateSparePartPolicyCommand
 {
@@ -794,7 +796,6 @@ public record UpdateSparePartPolicyCommand
     public required string SupplierWarrantyTerms { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid ManagerUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
     /// <summary>
     /// Optional PostgreSQL <c>xmin</c> concurrency token for the <c>Supplier</c> (<c>suppliers</c>) row when supplier contact or warranty terms are modified alongside the spare part policy.

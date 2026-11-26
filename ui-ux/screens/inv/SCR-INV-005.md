@@ -248,7 +248,7 @@ sequenceDiagram
     Engineer->>UI: Selects Functional Location (CMP-05) & Milestone Dates (CMP-09)
     UI->>UI: Validates single-occupancy (AF-004) & date progression (AF-003)
     Engineer->>UI: Toggles SCE flag & confirms ISO 45001 attestation (AF-005)
-    UI->>Interop: ComputeSha256Digest(PreviousHash, RegistrationPayload)
+    UI->>Interop: ComputePayloadSha256Digest(RegistrationPayload)
     Interop-->>UI: Returns candidate PayloadHash preview (CMP-11)
     Engineer->>UI: Clicks [Formalize Equipment Unit] (CMP-12)
     UI->>API: POST /api/v1/taxonomy/equipment-units (RegisterEquipmentUnitCommand + X-Idempotency-Key)
@@ -321,8 +321,8 @@ sequenceDiagram
 
 #### 5.3.5. Cryptographic Audit Trail Chaining & Historical Preservation (TR-001, NFR-123, ADR-005)
 1. **No Hard-Delete Invariant (`NFR-123`):** Physical deletion of Equipment Unit master records is strictly prohibited by the presentation and domain layers to preserve historical MTBF and reliability records. Retirement is handled exclusively via controlled decommissioning state transitions (`DisposalDate`, `DisposalReason`).
-2. **Chained SHA-256 Digest (`TR-001`, `ADR-003`):** Before dispatching creation or audited update commands, the client computes and previews the candidate cryptographic audit hash in `CMP-11`:
-   $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{EngineerUserId} \parallel \text{SerialNumber} \parallel \text{InheritedTagNumber} \parallel \text{EquipmentClassId} \parallel \text{IsSce} \parallel \text{FunctionalLocationId} \parallel \text{TimestampUtc})$$
+2. **Chained SHA-256 Digest (`TR-001`, `ADR-003`):** Before dispatching creation or audited update commands, the client computes and previews the candidate payload digest in `CMP-11` without a client-supplied `PreviousHash`. Inside the single-commit atomic transaction, `AuditSaveChangesInterceptor` resolves `audit_logs.previous_hash` server-side pre-commit ([DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)) and seals the immutable `IntegrityHash`:
+   $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash}_{\text{server}} \parallel \text{EngineerUserId} \parallel \text{SerialNumber} \parallel \text{InheritedTagNumber} \parallel \text{EquipmentClassId} \parallel \text{IsSce} \parallel \text{FunctionalLocationId} \parallel \text{TimestampUtc})$$
    Both the previous hash (`PreviousIntegrityHash`) and the candidate or committed integrity hash (`CandidateOrLatestIntegrityHash`) are presented in a vertical stacked layout with full 64-character monospace data wrapping (`--dt-font-mono-data`, neutral body text), preventing horizontal overflow and eliding decorative pseudo-badges in compliance with Section 6. Active installation timeline records are tracked under `AssetInstallation` per [ADR-010](../../../architecture/adr/ADR-010.md).
 
 #### 5.3.6. Atomic Registration, Audited Update & Commissioning Gate Dispatch (`CMP-12`, NFR-122, NFR-124, FR-137–FR-144, ADR-007)
@@ -469,10 +469,10 @@ public required EquipmentMaintenanceStatus MaintenanceStatus { get; set; }
 public required EquipmentHealthStatus HealthStatus { get; set; }
 
 [Parameter]
-public long OperatingHours { get; set; }
+public decimal OperatingHours { get; set; }
 
 [Parameter]
-public long SurveillanceHours { get; set; }
+public decimal SurveillanceHours { get; set; }
 
 // CMP-05: FunctionalLocationLinkageCard.razor
 [Parameter]
@@ -817,8 +817,8 @@ public record EquipmentUnitMasterCardDto
     public required Guid EquipmentClassId { get; init; }
     public required string EquipmentClassName { get; init; }
     public string? ManufacturerStandard { get; init; }
-    public required string BoundaryStart { get; init; }
-    public required string BoundaryEnd { get; init; }
+    public string? BoundaryStart { get; init; }
+    public string? BoundaryEnd { get; init; }
     public required DateOnly PurchaseDate { get; init; }
     public required DateOnly AcquisitionDate { get; init; }
     public DateOnly? InstallationDate { get; init; }
@@ -826,8 +826,8 @@ public record EquipmentUnitMasterCardDto
     public DateOnly? DisposalDate { get; init; }
     public string? DisposalReason { get; init; }
     public string? RejectionReason { get; init; }
-    public long OperatingHours { get; init; }
-    public long SurveillanceHours { get; init; }
+    public decimal OperatingHours { get; init; }
+    public decimal SurveillanceHours { get; init; }
     public required EquipmentOperationalStatus OperationalStatus { get; init; }
     public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
     public required EquipmentMaintenanceStatus MaintenanceStatus { get; init; }
@@ -861,6 +861,9 @@ public record SerialUniquenessResultDto
     public string? ConflictingLocationTag { get; init; }
 }
 
+/// <summary>
+/// Equipment onboarding payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record RegisterEquipmentUnitCommand
 {
     public required string SerialNumber { get; init; }
@@ -877,11 +880,10 @@ public record RegisterEquipmentUnitCommand
     public bool IsSceAttested { get; init; }
     public required Guid FunctionalLocationId { get; init; }
     public required Guid EngineerUserId { get; init; }
-    public required string PreviousHash { get; init; }
 }
 
 /// <summary>
-/// Audited master record update payload; TechnicalJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// Audited master record update payload; TechnicalJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7, and <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
 /// </summary>
 public record UpdateEquipmentMasterRecordCommand
 {
@@ -893,7 +895,6 @@ public record UpdateEquipmentMasterRecordCommand
     public bool IsSceAttested { get; init; }
     public required string TechnicalJustification { get; init; }
     public required Guid EngineerUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 
@@ -910,22 +911,26 @@ public record PendingCommissioningItemDto
     public required uint ConcurrencyToken { get; init; }
 }
 
+/// <summary>
+/// Commissioning approval payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record CommissionEquipmentUnitCommand
 {
     public required Guid EquipmentUnitId { get; init; }
-    public required long InitialOperatingHoursBaseline { get; init; }
+    public required decimal InitialOperatingHoursBaseline { get; init; }
     public required string ApprovalNotes { get; init; }
     public required Guid ApproverUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 
+/// <summary>
+/// Commissioning rejection payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record RejectEquipmentCommissioningCommand
 {
     public required Guid EquipmentUnitId { get; init; }
     public required string RejectionReason { get; init; }
     public required Guid ReviewerUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 

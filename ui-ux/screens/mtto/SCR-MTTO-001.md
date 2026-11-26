@@ -634,7 +634,7 @@ public record MaintainableItemLookupDto
     public required string SubunitType { get; init; }
     public string? SparePartType { get; init; }
     public required MaintainableItemStatus Status { get; init; }
-    public Guid? AssignedEquipmentUnitId { get; init; }
+    public required Guid AssignedEquipmentUnitId { get; init; }
     public string? AssignedEquipmentTag { get; init; }
     public IReadOnlyDictionary<string, string> DesignAttributes { get; init; } = new Dictionary<string, string>();
     public IReadOnlyList<LinkedSparePartSummaryDto> LinkedSpareParts { get; init; } = [];

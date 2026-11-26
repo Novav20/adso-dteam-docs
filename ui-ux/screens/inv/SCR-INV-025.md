@@ -471,7 +471,7 @@ public record InstalledAssetDetailsDto
     public required string Model { get; init; }
     public required Guid EquipmentClassId { get; init; }
     public required string EquipmentClassName { get; init; }
-    public required long OperatingHours { get; init; }
+    public required decimal OperatingHours { get; init; }
     public DateOnly? InstallationDate { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
@@ -484,7 +484,7 @@ public record RotableSpareSummaryDto
     public required string Model { get; init; }
     public required Guid EquipmentClassId { get; init; }
     public required string EquipmentClassName { get; init; }
-    public required long OperatingHours { get; init; }
+    public required decimal OperatingHours { get; init; }
     public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
     public required EquipmentMaintenanceStatus MaintenanceStatus { get; init; }
     public required EquipmentOperationalStatus OperationalStatus { get; init; }

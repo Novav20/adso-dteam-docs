@@ -285,7 +285,7 @@ sequenceDiagram
     Rail->>Rail: Updates preview score and priority band indicator
     Planner->>Rail: Enters mandatory technical justification (min 15 chars)
     Planner->>Rail: Clicks "Sign Cryptographic Calibration"
-    Rail->>Interop: ComputeSha256Digest(PreviousHash, AuditPayload)
+    Rail->>Interop: ComputePayloadSha256Digest(AuditPayload)
     Interop-->>Rail: Returns candidate PayloadHash
     Rail->>API: POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class (X-Idempotency-Key + If-Match)
     API-->>Rail: 200 OK (AdjustWorkClassResultDto with chained hash)
@@ -295,8 +295,8 @@ sequenceDiagram
 1. **Trigger:** The Planner clicks a backlog row; the right dock opens with `CMP-09` displaying the selected request.
 2. **Latency Requirement:** The UI recalculates the new RIME score in $< 100\text{ms}$ ([NFR-070](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr)), dynamically updating the preview badge.
 3. **Mandatory Justification:** The confirmation button remains disabled until the Planner enters a technical justification containing at least $15$ non-whitespace characters.
-4. **Cryptographic Integrity Hash, Idempotency & Optimistic Concurrency ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md), [ADR-007](../../../architecture/adr/ADR-007.md), [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):** Upon confirmation, the client dispatches `POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class` with headers `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) carrying `AdjustWorkClassCommand`. The backend system atomically commits the work class change (returning HTTP 409 Conflict if concurrently modified), rescores the backlog item, and seals `TechnicalJustification` inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state):
-   $$\text{PayloadHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{PlannerUserId} \parallel \text{WorkRequestId} \parallel \text{PreviousScore} \parallel \text{CalculatedScore} \parallel \text{TechnicalJustification} \parallel \text{TimestampUtc})$$
+4. **Cryptographic Integrity Hash, Idempotency & Optimistic Concurrency ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md), [ADR-007](../../../architecture/adr/ADR-007.md), [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):** Upon confirmation, the client dispatches `POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class` with headers `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) carrying `AdjustWorkClassCommand` without a client-supplied `PreviousHash`. Inside the single-commit atomic transaction, the backend validates concurrency (returning HTTP 409 Conflict if concurrently modified), rescores the backlog item, resolves `audit_logs.previous_hash` server-side pre-commit via `AuditSaveChangesInterceptor` ([DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)), and seals `TechnicalJustification` inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state):
+   $$\text{PayloadHash} = \text{SHA-256}(\text{PreviousHash}_{\text{server}} \parallel \text{PlannerUserId} \parallel \text{WorkRequestId} \parallel \text{PreviousScore} \parallel \text{CalculatedScore} \parallel \text{TechnicalJustification} \parallel \text{TimestampUtc})$$
 5. **Re-sorting & Enterprise Audit Handoff:** The backlog grid automatically re-sorts descending, moving the modified request to its new objective position without page reload. Inside `CMP-11`, clicking `[View RIME Calibration Audit]` navigates to [SCR-ADM-032](../adm/SCR-ADM-032.md) with query `?actionType=ADJUST&entityType=BacklogItem` ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)).
 
 ---
@@ -639,7 +639,7 @@ public record ChainedAuditEntryDto
 }
 
 /// <summary>
-/// Work class recalibration payload; TechnicalJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// Work class recalibration payload; TechnicalJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7, and <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
 /// </summary>
 public record AdjustWorkClassCommand
 {
@@ -648,7 +648,6 @@ public record AdjustWorkClassCommand
     public required int CalculatedScore { get; init; }
     public required string TechnicalJustification { get; init; }
     public required Guid PlannerUserId { get; init; }
-    public required string PreviousHash { get; init; }
     /// <summary>
     /// Binds to the <c>WorkRequest</c> (<c>work_requests</c>) <c>xmin</c> optimistic concurrency token while <c>BacklogItem</c> (<c>backlog_items</c>) is updated atomically as a derived projection.
     /// </summary>

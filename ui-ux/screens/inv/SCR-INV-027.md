@@ -247,7 +247,7 @@ sequenceDiagram
     Eng->>UI: Enters TagNumber, Name, Criticality (8), EnvironmentalExposure (SEVERE)
     UI->>API: GET /api/v1/taxonomy/functional-locations/verify-tag?tag={tag} (< 500ms)
     API-->>UI: Returns TagUniquenessResultDto (IsUnique = true)
-    UI->>Crypto: ComputeSha256Digest(PreviousHash, LocationPayload)
+    UI->>Crypto: ComputePayloadSha256Digest(LocationPayload)
     Crypto-->>UI: Updates candidate SHA-256 preview
     Eng->>UI: Clicks [Save Functional Location] (CMP-06)
     UI->>API: POST /api/v1/taxonomy/functional-locations (CreateFunctionalLocationCommand + X-Idempotency-Key)
@@ -749,6 +749,9 @@ public record TreeReorganizationValidationDto
     public string? DiagnosticMessage { get; init; }
 }
 
+/// <summary>
+/// Functional location creation payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record CreateFunctionalLocationCommand
 {
     public Guid? ParentId { get; init; }
@@ -761,7 +764,6 @@ public record CreateFunctionalLocationCommand
     public required EnvironmentalExposureLevel EnvironmentalExposure { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid EngineerUserId { get; init; }
-    public required string PreviousHash { get; init; }
 }
 
 public record UpdateFunctionalLocationCommand
@@ -778,6 +780,9 @@ public record UpdateFunctionalLocationCommand
     public required Guid EngineerUserId { get; init; }
 }
 
+/// <summary>
+/// Subtree reorganization payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record ReorganizeFunctionalLocationCommand
 {
     public required Guid FunctionalLocationId { get; init; }
@@ -785,7 +790,6 @@ public record ReorganizeFunctionalLocationCommand
     public required uint ConcurrencyToken { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid EngineerUserId { get; init; }
-    public required string PreviousHash { get; init; }
 }
 
 public record TaxonomyAuditEntryDto

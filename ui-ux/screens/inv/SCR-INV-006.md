@@ -790,7 +790,10 @@ public record RegisterInventoryTransactionCommand
     public required decimal TransactionUnitCost { get; init; }
     public required string Reason { get; init; }
     public required Guid OperatorUserId { get; init; }
-    public required uint ConcurrencyToken { get; init; }
+    /// <summary>
+    /// PostgreSQL <c>xmin</c> optimistic concurrency token supplied on live online mutations (with <c>If-Match</c>); <c>null</c> on offline outbox replay for server-side command-sourced reconciliation (TR-007, ADR-006).
+    /// </summary>
+    public uint? ConcurrencyToken { get; init; }
 }
 
 public record InventoryTransactionVoucherDto

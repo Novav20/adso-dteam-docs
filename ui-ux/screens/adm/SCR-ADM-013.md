@@ -249,7 +249,7 @@ sequenceDiagram
         Admin->>UI: Unchecks conflicting action (SAFETY.APPROVE) or clicks [Discard]
     end
     SoD-->>UI: Returns SodEvaluationResultDto (IsCompliant = true)
-    UI->>Crypto: ComputeSha256Digest(PreviousHash, RoleMatrixPayload)
+    UI->>Crypto: ComputePayloadSha256Digest(RoleMatrixPayload)
     Crypto-->>UI: Updates read-only candidate SHA-256 preview in CMP-07
     Admin->>UI: Enters AuditJustification (>= 15 chars) & clicks [Save Permission Matrix] (CMP-13)
     UI->>API: PUT /api/v1/security/roles/{id}/permissions (UpdateRolePermissionsCommand + X-Idempotency-Key + If-Match)
@@ -296,8 +296,8 @@ sequenceDiagram
 
 #### 5.3.3. Root Administrator Immutability & Chained SHA-256 Audit (`FR-250`, `AF-002`, `TR-001`, `ADR-003`)
 1. **Root Role Guard (`FR-250`, `AF-002`):** When `SelectedRole.IsSystemRootRole == true`, all checkbox inputs in `CMP-05` and `Role.RemovePermission` calls are hard-blocked on both client and server.
-2. **Chained SHA-256 Digest (`TR-001`, `ADR-003`):** Every role creation, permission matrix update, or logical deactivation requires a mandatory `AuditJustification` ($\ge 15$ characters) entered in `CMP-13` (or `CMP-10` for deactivations) and appends a tamper-evident record to `CMP-11`:
-   $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{AdminUserId} \parallel \text{RoleId} \parallel \text{PreviousPermissionsJson} \parallel \text{NewPermissionsJson} \parallel \text{AuditJustification} \parallel \text{TimestampUtc})$$
+2. **Chained SHA-256 Digest (`TR-001`, `ADR-003`):** Every role creation, permission matrix update, or logical deactivation requires a mandatory `AuditJustification` ($\ge 15$ characters) entered in `CMP-13` (or `CMP-10` for deactivations). The client computes only a candidate payload digest preview (without a client-supplied `PreviousHash`); inside the single-commit atomic transaction, `AuditSaveChangesInterceptor` resolves `audit_logs.previous_hash` server-side pre-commit ([DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)) and appends the tamper-evident record to `CMP-11`:
+   $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash}_{\text{server}} \parallel \text{AdminUserId} \parallel \text{RoleId} \parallel \text{PreviousPermissionsJson} \parallel \text{NewPermissionsJson} \parallel \text{AuditJustification} \parallel \text{TimestampUtc})$$
 3. **Discard Baseline Reversion (`CMP-13`):** Clicking `[Discard Changes]` restores the active role's working matrix cleanly to its persisted server baseline and clears pending justification text.
 
 #### 5.3.4. Logical Role Deactivation, Export & Immediate Session Revocation (`FR-252`, `FR-254`, `NFR-257`, `AF-004`)
@@ -719,7 +719,7 @@ public record SodRuleEvaluationItemDto
 }
 
 /// <summary>
-/// Custom role creation payload; AuditJustification is deterministically composed in the Application layer from Description and AuthorizedModules per DT-ERD-DOC-001 §6.7.
+/// Custom role creation payload; AuditJustification is deterministically composed in the Application layer from Description and AuthorizedModules per DT-ERD-DOC-001 §6.7, and <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
 /// </summary>
 public record CreateCustomRoleCommand
 {
@@ -729,11 +729,10 @@ public record CreateCustomRoleCommand
     public required IReadOnlySet<RbacModule> AuthorizedModules { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
-    public required string PreviousHash { get; init; }
 }
 
 /// <summary>
-/// Permission matrix mutation payload; AuditJustification persists within the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7.
+/// Permission matrix mutation payload; AuditJustification persists within the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7, and <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
 /// </summary>
 public record UpdateRolePermissionsCommand
 {
@@ -741,16 +740,17 @@ public record UpdateRolePermissionsCommand
     public required IReadOnlySet<PermissionGrantKeyDto> GrantedPermissions { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 
+/// <summary>
+/// Logical role deactivation payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record DeactivateCustomRoleCommand
 {
     public required Guid RoleId { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid AdminUserId { get; init; }
-    public required string PreviousHash { get; init; }
     public required uint ConcurrencyToken { get; init; }
 }
 
