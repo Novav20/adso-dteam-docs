@@ -15,7 +15,7 @@ workspace "System Component Model" {
         monolith = softwareSystem "Modular Monolith" "Central Maintenance and LOTO System (.NET 10)" {
             appContainer = container "Backend Web API" "Modular Monolith Runtime" ".NET 10" {
                 group "Driving Adapters" {
-                    idempotency_filter = component "Idempotency Filter" "Intercepts mutating requests with the canonical `X-Idempotency-Key` header; prevents reprocessing critical transitions resent after reconnection (TR-007, ADR-007)." "IActionFilter" "ComponentShape"
+                    idempotency_filter = component "Idempotency Filter" "Intercepts mutating requests with the canonical `X-Idempotency-Key` header; prevents reprocessing critical transitions resent after reconnection (TR-007, ADR-007)." "IEndpointFilter" "ComponentShape"
                     api_controllers = component "REST API Controllers" "Exposes HTTPS `/api/v1/...` endpoints; enforces optimistic concurrency control using PostgreSQL `xmin` mapped to EF Core `ConcurrencyToken` (`ETag` / `If-Match`, `DT-ARQ-DB-DOC-001 §3.12`)." "Minimal APIs" "ComponentShape"
                     signalr_hub = component "SignalR Hub" "Persistent bidirectional channel over WebSockets (WSS); degrades to polling if the industrial network fails." "SignalR.Hub" "ComponentShape"
                     telemetry_listener = component "Telemetry Listener (IoT)" "Asynchronous consumer (AMQP) of the Azure IoT Hub broker; injects telemetry to the LOTO port." "IHostedService" "ComponentShape"

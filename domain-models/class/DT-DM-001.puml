@@ -474,6 +474,26 @@ package "Safety and Governance (ADM)" <<Folder>> #F0F0F0 {
         - UserId: UUID
         - RoleId: UUID
     }
+    class PasswordPolicy <<Aggregate Root>> {
+        - Id: UUID
+        - MinLength: Integer
+        - RequireUppercase: Boolean
+        - RequireDigit: Boolean
+        - RequireSpecialChar: Boolean
+        - MaxAgeDays: Integer
+        - HistoryNonReuseCount: Integer
+        - LockoutThreshold: Integer
+        - LockoutDurationMinutes: Integer
+        - UpdatedAt: DateTime
+        --
+        + UpdatePolicy(minLength: Integer, requireUppercase: Boolean, requireDigit: Boolean, requireSpecialChar: Boolean, maxAgeDays: Integer, historyNonReuseCount: Integer, lockoutThreshold: Integer, lockoutDurationMinutes: Integer): void
+    }
+    class UserPasswordHistory <<Entity>> {
+        - Id: UUID
+        - UserId: UUID
+        - PasswordHash: String
+        - CreatedAt: DateTime
+    }
 }
 
 ' Relationships
@@ -527,5 +547,7 @@ User "1" *-- "0..*" AuthToken : authenticated with
 User "1" *-- "0..*" WorkOrderAssignment : assigned to
 WorkOrder "1" *-- "0..*" WorkOrderAssignment : assigns personnel
 User "1" o-- "0..*" AuditLog : generates
+User "1" *-- "0..*" UserPasswordHistory : retains
+PasswordPolicy "1" ..> "0..*" User : governs
 
 @enduml

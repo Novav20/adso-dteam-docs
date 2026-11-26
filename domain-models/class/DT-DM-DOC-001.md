@@ -59,7 +59,7 @@ To reflect the Modular Monolith architecture in the persistence layer and avoid 
 - `mtto`: Maintenance and reliability management (`work_requests`, `work_orders`, `work_order_histories`, `maintenance_plans`, `maintenance_plan_crafts`, `failure_records`, `media_attachments`, `backlog_items`).
 - `inv`: Resource and supply control (`spare_parts`, `inventory_transactions`, `material_requirements`, `warehouses`, `locators`, `suppliers`).
 - `vis`: Digital twin and operational safety layers (`mesh_mappings`, `spatial_metadata`, `visual_layers`, `telemetry_signals`, `work_permits`, `isolation_points`, `work_order_isolations`).
-- `adm`: Perimeter security, IAM, and immutable audit (`users`, `roles`, `user_roles`, `role_permissions`, `auth_tokens`, `work_order_assignments`, `audit_logs`, `audit_retention_partitions`, `idempotency_logs`).
+- `adm`: Perimeter security, IAM, and immutable audit (`users`, `roles`, `user_roles`, `role_permissions`, `auth_tokens`, `work_order_assignments`, `audit_logs`, `audit_retention_partitions`, `idempotency_logs`, `password_policies`, `user_password_histories`).
 
 This segregation allows for:
 1. **Defense in Depth:** Granular assignment of SQL privileges (GRANT/REVOKE) per module to prevent unauthorized cross-access.
@@ -104,6 +104,8 @@ This segregation allows for:
 | AuditLog | Entity | Append-only audit record containing the before/after state and chained SHA-256 hashes. | ISO 9000 audit evidence and record immutability |
 | AuditRetentionPartition | Entity | Governs the 7-year quarterly audit partition lifecycle, cold-archive sealing, and cryptographic anchor hash continuity (`FR-350`, `FR-358`). | ISO 55001 Clause 7.5; ISO 27001 A.8.10 |
 | IdempotencyLog | Entity | Deduplication ledger preventing duplicate execution of retransmitted offline or API commands (`ADR-007`). | Distributed Systems Idempotency |
+| PasswordPolicy | Aggregate Root | Singleton security configuration governing NIST SP 800-63B password complexity, rotation age, non-reuse history window, and brute-force lockout thresholds (`adm.password_policies`). | NIST SP 800-63B; ISO/IEC 27001 A.5.17 |
+| UserPasswordHistory | Entity | Append-only credential hash history record owned by a `User` to enforce password non-reuse (`FR-266`, `adm.user_password_histories`). | NIST SP 800-63B; OWASP Password Storage |
 | MaterialRequirement | Entity | Represents future planning and consumption reservation of a spare part for a specific work order. | ISO 55000 resource planning |
 
 ## 4. Controlled Vocabulary

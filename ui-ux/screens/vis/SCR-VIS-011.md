@@ -685,6 +685,7 @@ public record LotoIsolationPlanDto
     public IReadOnlyList<CutoffPointStatusDto> CutoffPoints { get; init; } = [];
     public IReadOnlyList<ChecklistStepDto> ChecklistSteps { get; init; } = [];
     public IReadOnlyList<SimopsPermitSummaryDto> ActiveSimopsPermits { get; init; } = [];
+    /// <summary>Informational <c>WorkOrder</c> <c>xmin</c> metadata; LOTO mutations use server-side pessimistic row locks (<c>SELECT ... FOR UPDATE NOWAIT</c>), not <c>If-Match</c>.</summary>
     public required uint ConcurrencyToken { get; init; }
 }
 
@@ -807,6 +808,7 @@ public record SupervisorLotoOverrideCommand
     public required Guid WorkOrderId { get; init; }
     public required Guid SupervisorUserId { get; init; }
     public required string OverrideJustification { get; init; }
+    /// <summary>Verified server-side against <c>User.password_hash</c> or a hardware-bound WebAuthn/HMAC signature.</summary>
     public required string SupervisorPinOrSignature { get; init; }
 }
 

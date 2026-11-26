@@ -153,30 +153,45 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 
 To prevent event-name drift across Blazor Web App and .NET MAUI Blazor Hybrid clients, all server-to-client WebSocket broadcasts via `signalr_broadcaster` MUST bind strictly to the three canonical SignalR hubs and strongly typed client contracts below:
 
-| Hub Endpoint | Typed Client Interface | Canonical Server-to-Client Event Signature | Authorized Subscribers & Consuming Screens |
-| :--- | :--- | :--- | :--- |
-| **`/hubs/telemetry`** | `ITelemetryClient` | `ReceiveTelemetryReading(TelemetryReadingDto reading)` | `SCR-VIS-033`, `SCR-VIS-011`, `SCR-MTTO-023` (live sensor updates & Zero Energy monitoring). |
-| **`/hubs/telemetry`** | `ITelemetryClient` | `EmergencyEvacuationBroadcast(EvacuationAlertDto alert)` | `SCR-VIS-008`, `SCR-VIS-011`, `SCR-VIS-033`, `SCR-MTTO-002` (plant-wide red priority alert & fail-safe interrupt). |
-| **`/hubs/telemetry`** | `ITelemetryClient` | `CbmReadingRecorded(CbmTriggerEventDto triggerEvent)` | `SCR-MTTO-023` (live condition-based trigger recalculation & counter tamper alerts). |
-| **`/hubs/telemetry`** | `ITelemetryClient` | `LotoHeartbeatAck(DateTimeOffset utcTimestamp)` | `SCR-VIS-011`, `SCR-MTTO-002`, `loto_watchdog` (2-second cadence; 30-second Grace Window before fail-safe lockout). |
-| **`/hubs/security`** | `ISecuritySessionClient` | `PermissionsUpdated(RolePermissionsUpdatedEvent evt)` | `SCR-ADM-013`, `SCR-ADM-014`, all authenticated Blazor sessions (real-time RBAC matrix cache refresh). |
-| **`/hubs/security`** | `ISecuritySessionClient` | `SessionRevoked(SessionRevocationEvent evt)` | `SCR-ADM-014`, all active sessions for revoked/locked user (immediate forced logout & local cache wipe). |
-| **`/hubs/operations`** | `IOperationsClient` | `PermitStatusChanged(WorkPermitStatusEvent evt)` | `SCR-VIS-008`, `SCR-VIS-011` (unified PTW lifecycle transitions: `APPROVED`, `REVOKED`, `CLOSED`, `EXPIRING_SOON`). |
-| **`/hubs/operations`** | `IOperationsClient` | `WorkOrderStatusChanged(WorkOrderTransitionEvent evt)` | `SCR-MTTO-026`, `SCR-MTTO-002`, `SCR-VIS-011`, `SCR-VIS-033` (RIME backlog board refresh and work-order FSM sync). |
-| **`/hubs/operations`** | `IOperationsClient` | `AssetSwapCompleted(AssetSwapCompletedEvent evt)` | `SCR-INV-025`, `SCR-INV-005`, `SCR-VIS-033` (rotable slot re-mount notification across connected viewports). |
+| Hub Endpoint | Typed Client Interface | Canonical Server-to-Client Event Signature | Producers | Authorized Subscribers & Consuming Screens |
+| :--- | :--- | :--- | :--- | :--- |
+| **`/hubs/telemetry`** | `ITelemetryClient` | `ReceiveTelemetryReading(TelemetryReadingDto reading)` | `telemetry_listener` (Azure IoT Hub / SCADA), `SCR-MTTO-023` (manual readings) | `SCR-VIS-033`, `SCR-VIS-011`, `SCR-MTTO-023` (live sensor updates & Zero Energy monitoring). |
+| **`/hubs/telemetry`** | `ITelemetryClient` | `EmergencyEvacuationBroadcast(EvacuationAlertDto alert)` | `telemetry_listener`, `loto_port`, `SCR-VIS-011` (Zero Energy breach / fail-safe interrupt) | `SCR-VIS-008`, `SCR-VIS-011`, `SCR-VIS-033`, `SCR-MTTO-002` (plant-wide red priority alert & fail-safe interrupt). |
+| **`/hubs/telemetry`** | `ITelemetryClient` | `CbmReadingRecorded(CbmTriggerEventDto triggerEvent)` | `telemetry_listener`, `mtto_port`, `SCR-MTTO-023` (CBM counter ingestion) | `SCR-MTTO-023` (live condition-based trigger recalculation & counter tamper alerts). |
+| **`/hubs/telemetry`** | `ITelemetryClient` | `LotoHeartbeatAck(DateTimeOffset utcTimestamp)` | `signalr_hub`, `loto_port` (watchdog heartbeat ack) | `SCR-VIS-011`, `SCR-MTTO-002`, `loto_watchdog` (2-second cadence; 30-second Grace Window before fail-safe lockout). |
+| **`/hubs/security`** | `ISecuritySessionClient` | `PermissionsUpdated(RolePermissionsUpdatedEvent evt)` | `SCR-ADM-013` (role matrix), `SCR-ADM-014` (user role assignments) | `SCR-ADM-013`, `SCR-ADM-014`, all authenticated Blazor sessions (real-time RBAC matrix cache refresh). |
+| **`/hubs/security`** | `ISecuritySessionClient` | `SessionRevoked(SessionRevocationEvent evt)` | `SCR-ADM-013` (role deactivation), `SCR-ADM-014` (user suspension / token revocation) | `SCR-ADM-014`, all active sessions for revoked/locked user (immediate forced logout & local cache wipe). |
+| **`/hubs/operations`** | `IOperationsClient` | `PermitStatusChanged(WorkPermitStatusEvent evt)` | `loto_port`, `SCR-VIS-008`, `SCR-VIS-011` (PTW lifecycle transitions) | `SCR-VIS-008`, `SCR-VIS-011` (unified PTW lifecycle transitions: `APPROVED`, `REVOKED`, `CLOSED`, `EXPIRING_SOON`). |
+| **`/hubs/operations`** | `IOperationsClient` | `WorkOrderStatusChanged(WorkOrderTransitionEvent evt)` | `SCR-MTTO-001`, `SCR-MTTO-023`, `SCR-MTTO-026`, `SCR-VIS-011`, `SCR-MTTO-002` | `SCR-MTTO-026`, `SCR-MTTO-002`, `SCR-VIS-011`, `SCR-VIS-033` (RIME backlog board refresh and work-order FSM sync). |
+| **`/hubs/operations`** | `IOperationsClient` | `AssetSwapCompleted(AssetSwapCompletedEvent evt)` | `SCR-INV-025` (`IInventoryService.SwapAssetAsync`) | `SCR-INV-025`, `SCR-INV-005`, `SCR-VIS-033` (rotable slot re-mount notification across connected viewports). |
+
+### 5.1. Canonical SignalR Event Payload Contracts
+
+The 8 typed SignalR event records (`LotoHeartbeatAck` emits a scalar `DateTimeOffset utcTimestamp`) expose the following canonical fields:
+
+| Event Record | Canonical Payload Fields |
+| :--- | :--- |
+| **`TelemetryReadingDto`** | `SignalId` (`Guid`), `EquipmentUnitId` (`Guid`), `SignalType` (`TelemetrySignalType`), `Value` (`decimal`), `Unit` (`string`), `Threshold` (`decimal?`), `IsSafetyCritical` (`bool`), `TimestampUtc` (`DateTimeOffset`). |
+| **`EvacuationAlertDto`** | `AlertId` (`Guid`), `EquipmentUnitId` (`Guid`), `FunctionalLocationTag` (`string`), `WorkOrderId` (`Guid?`), `SignalType` (`TelemetrySignalType`), `MeasuredValue` (`decimal`), `ThresholdValue` (`decimal`), `EngineeringUnit` (`string`), `Reason` (`string`), `TriggeredAtUtc` (`DateTimeOffset`). |
+| **`CbmTriggerEventDto`** | `MaintenancePlanId` (`Guid`), `EquipmentUnitId` (`Guid`), `SignalType` (`TelemetrySignalType`), `ReadingValue` (`decimal`), `NextTriggerLimit` (`decimal?`), `IsMonotonicityViolation` (`bool`), `TriggeredWorkOrderId` (`Guid?`), `RecordedAtUtc` (`DateTimeOffset`). |
+| **`RolePermissionsUpdatedEvent`** | `RoleId` (`Guid`), `RoleName` (`string`), `AffectedUserIds` (`IReadOnlyList<Guid>`), `UpdatedByUserId` (`Guid`), `UpdatedAtUtc` (`DateTimeOffset`). |
+| **`SessionRevocationEvent`** | `TargetUserId` (`Guid`), `RevokedTokenId` (`Guid?`), `Reason` (`string`), `RevokedByUserId` (`Guid`), `RevokedAtUtc` (`DateTimeOffset`). |
+| **`WorkPermitStatusEvent`** | `WorkPermitId` (`Guid`), `PermitIdentifier` (`string`), `EquipmentUnitId` (`Guid`), `PreviousStatus` (`WorkPermitStatus`), `NewStatus` (`WorkPermitStatus`), `IsExpiringSoon` (`bool`), `OccurredAtUtc` (`DateTimeOffset`). |
+| **`WorkOrderTransitionEvent`** | `WorkOrderId` (`Guid`), `WorkOrderNumber` (`string`), `EquipmentUnitId` (`Guid`), `OldStatus` (`WorkOrderStatus`), `NewStatus` (`WorkOrderStatus`), `TriggeredByUserId` (`Guid`), `OccurredAtUtc` (`DateTimeOffset`). |
+| **`AssetSwapCompletedEvent`** | `InstallationId` (`Guid`), `FunctionalLocationTag` (`string`), `DismountedSerialNumber` (`string`), `InstalledSerialNumber` (`string`), `CryptographicHash` (`string`), `Timestamp` (`DateTimeOffset`). |
 
 ---
 
 ## 6. REST API Prefix, Concurrency & Numeric Precision Conventions
 
 1. **Bounded-Context REST Prefixes:** All HTTPS endpoints exposed by `api_controllers` follow the canonical prefix `/api/v1/{context}/...` mapped cleanly by domain bounded context:
-   * `/api/v1/taxonomy/...` — ISO 14224 Functional Locations, Equipment Units, Commissioning Gate, Boundaries, Subunits (`SCR-INV-005`, `SCR-INV-027`, `SCR-MTTO-029`).
-   * `/api/v1/maintenance/...` — Maintenance Plans (Time-Based & CBM), Work Requests, RIME Backlog, Work Orders (`SCR-MTTO-001`, `SCR-MTTO-002`, `SCR-MTTO-023`, `SCR-MTTO-026`).
+   * `/api/v1/taxonomy/...` — ISO 14224 Functional Locations, Equipment Units, Commissioning Gate, Boundaries, Subunits (`SCR-INV-005`, `SCR-INV-027`, `SCR-MTTO-029`, `SCR-MTTO-001`, `SCR-MTTO-023`).
+   * `/api/v1/maintenance/...` — Maintenance Plans (Time-Based & CBM), Work Requests, RIME Backlog, Work Orders (`SCR-MTTO-001`, `SCR-MTTO-002`, `SCR-MTTO-023`, `SCR-MTTO-026`, `SCR-VIS-011`, `SCR-VIS-033`).
    * `/api/v1/inventory/...` — Spare Parts Catalog, Inventory Movements / Kardex, Atomic Rotable Swaps (`SCR-INV-006`, `SCR-INV-025`, `SCR-INV-031`).
    * `/api/v1/safety/...` — Work Permits (PTW) and LOTO Isolation Plans / Try-Out Verification (`SCR-VIS-008`, `SCR-VIS-011`).
    * `/api/v1/visualization/...` — 2D Plot Plan SVG revisions, Mesh Mappings, and Spatial Faceplate projections (`SCR-VIS-008`, `SCR-VIS-033`).
-   * `/api/v1/telemetry/...` — Telemetry Signal lookups and Manual Counter Readings (`SCR-MTTO-023`, `SCR-VIS-033`).
+   * `/api/v1/telemetry/...` — Telemetry Signal lookups and Manual Counter Readings (`SCR-MTTO-023`; SignalR-only for `SCR-VIS-033`).
    * `/api/v1/security/...` — RBAC Roles, User Lifecycle, Active Sessions, and WORM Audit Logs (`SCR-ADM-013`, `SCR-ADM-014`, `SCR-ADM-032`).
-2. **Idempotency & Optimistic Concurrency Headers:** Every mutating `POST`/`PUT`/`PATCH` command MUST include `X-Idempotency-Key` (`ADR-007`). Every update or state-transition on a mutable entity MUST enforce PostgreSQL `xmin` optimistic concurrency via `ETag` / `If-Match` headers and `uint ConcurrencyToken` (`DT-ARQ-DB-DOC-001 §3.12`).
+2. **Idempotency & Optimistic Concurrency Headers:** Every mutating `POST`/`PUT`/`PATCH`/`DELETE` command MUST include `X-Idempotency-Key` (`ADR-007`), whereas read-only query/validation `POST` routes (such as `POST /api/v1/taxonomy/maintainable-items/validate-exclusivity` and `POST /api/v1/security/audit-logs/query`) are exempt from `idempotency_filter`. Every update or state-transition on a mutable entity MUST enforce PostgreSQL `xmin` optimistic concurrency via `ETag` / `If-Match` headers and `uint ConcurrencyToken` (`DT-ARQ-DB-DOC-001 §3.12`).
 3. **Numeric Precision Boundary:** All domain, telemetry, engineering, financial, and inventory quantities MUST use C# `decimal` (mapped to PostgreSQL `DECIMAL`). IEEE-754 `double` is strictly permitted only in non-persisted 2D/3D SVG presentation viewport DTOs/view-models (`SCR-VIS-008`, `SCR-VIS-011`, `SCR-VIS-033`) for screen pan/zoom transforms, pixel coordinates, and cartographic scale factors (`DT-ARQ-DB-DOC-001 §2`).
 

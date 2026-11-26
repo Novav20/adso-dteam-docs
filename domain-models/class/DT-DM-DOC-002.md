@@ -222,6 +222,12 @@ Additionally, the document justifies the existence of each method under the prin
 | `SealColdArchive(anchorHash: String, sealedRecordCount: long): void` | Transitions `IsColdArchived` to `true`, locks `RecordCount` and `PartitionAnchorHash` (final SHA-256 `IntegrityHash` of the closed quarterly window), and stamps `SealedAt` in UTC. | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>FR-350, FR-358<br>[TR-001](../../requirements/common/TR-001.md)<br>TR-001-FR-367 | **7-Year Retention Lifecycle:** Preserves unbroken cryptographic continuity (`ADR-003`) across quarterly hot-to-cold archival boundaries per ISO 55001 Clause 7.5. |
 | `VerifyPartitionAnchor(recalculatedAnchorHash: String): boolean` | Compares the stored `PartitionAnchorHash` against the recalculated digest at the partition boundary and updates `IntegrityStatus` (`VERIFIED_INTACT` or `TAMPER_BREACH_DETECTED`). | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>FR-350, FR-351<br>[TR-003](../../requirements/common/TR-003.md) | **Tamper-Evident Continuity:** Detects unauthorized manipulation or deletion of archived segments across multi-year retention windows. |
 
+### 6.6. `PasswordPolicy` (`<<Aggregate Root>>`)
+
+| Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
+| :--- | :--- | :--- | :--- |
+| `UpdatePolicy(minLength: int, requireUppercase: bool, requireDigit: bool, requireSpecialChar: bool, maxAgeDays: int, historyNonReuseCount: int, lockoutThreshold: int, lockoutDurationMinutes: int): void` | Validates NIST SP 800-63B bounds on the singleton security configuration (`adm.password_policies`) and stamps `updatedAt` in UTC under PostgreSQL `xmin` optimistic concurrency. | [ADM-014](../../requirements/user-stories/adm/ADM-014.md)<br>FR-259, FR-260, FR-266, NFR-272 | **Singleton Configuration Root:** Centralizes complexity, rotation, non-reuse depth, and anti-brute-force lockout invariants rather than hardcoding thresholds across IAM services. |
+
 ---
 
 ## **Architectural Notes**
@@ -229,3 +235,4 @@ Additionally, the document justifies the existence of each method under the prin
 - The `EquipmentClass` and `InventoryTransaction` classes do not expose mutation methods in this model, as they act as immutable historical records (Ledger) and strict taxonomy catalogs respectively.
 - The `MeshMapping`, `TelemetrySignal`, `VisualLayer`, and `SpatialMetadata` classes function as read projections, immutable telemetry reception, or frontend graphical metadata ([DT-ERD-DOC-001 §6.3–§6.5](../entity-relationship/DT-ERD-DOC-001.md#63-visspatial_metadataposition)), so they do not expose complex mutating behavior in this MVP model.
 - The `WorkOrderAssignment` class does not expose mutating behavior, as it acts purely as an immutable associative entity that captures the moment and role in which a user was linked to a work order.
+- The `UserPasswordHistory` (`<<Entity>>`, `adm.user_password_histories`) class is an append-only credential digest record written atomically whenever `User.UpdatePassword(newPasswordHash)` executes (`FR-266`); it exposes no post-creation mutation methods and cascades deletion strictly with its owning `User`.

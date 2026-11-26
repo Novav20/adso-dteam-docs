@@ -260,7 +260,7 @@ sequenceDiagram
     Crypto-->>UI: Previews client payload digest (server AuditSaveChangesInterceptor chains previous_hash pre-commit)
     WM->>UI: Clicks [Confirm and Generate Receipt]
     UI->>API: POST /api/v1/inventory/transactions (RegisterInventoryTransactionCommand + X-Idempotency-Key + If-Match)
-    API-->>UI: HTTP 201 Created (InventoryTransactionVoucherDto + updated ETag / ConcurrencyToken)
+    API-->>UI: HTTP 201 Created (InventoryTransactionVoucherDto + updated SparePart ETag / ConcurrencyToken)
     UI-->>WM: Displays Technical Receipt Voucher Modal (CMP-10, FR-131) & refreshes ledger
 ```
 

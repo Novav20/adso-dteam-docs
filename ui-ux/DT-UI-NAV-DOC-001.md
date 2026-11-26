@@ -212,7 +212,7 @@ flowchart TD
 
 * **Visual Behavior:** A persistent upper amber banner (`--dt-color-alarm-warning`) is immediately activated, accompanied by the WCAG disconnection icon.
 * **Routing Restriction:** Access to centralized master data administration screens is blocked ([SCR-ADM-013](screens/adm/SCR-ADM-013.md), [SCR-ADM-014](screens/adm/SCR-ADM-014.md), [SCR-ADM-032](screens/adm/SCR-ADM-032.md)). 
-* **Operational Permissiveness:** Full navigation and editing are allowed on field execution screens ([SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-INV-025](screens/inv/SCR-INV-025.md)), performing reads and writes on the encrypted local database ([TR-002](../requirements/common/TR-002.md)). Generated mutations are logged in a transactional synchronization queue for subsequent dispatch upon network restoration.
+* **Operational Permissiveness:** Full navigation and editing are allowed on field execution screens ([SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-INV-025](screens/inv/SCR-INV-025.md), [SCR-INV-006](screens/inv/SCR-INV-006.md)), performing reads and writes on the encrypted local database ([TR-002](../requirements/common/TR-002.md)). Generated mutations are logged in a transactional synchronization queue for subsequent dispatch upon network restoration. Read-only offline cache consultation is additionally supported on [SCR-INV-005](screens/inv/SCR-INV-005.md), [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md), and [SCR-VIS-033](screens/vis/SCR-VIS-033.md).
 
 ### 6.2. LOTO Lockout and Fail-Safe Guard 
 
