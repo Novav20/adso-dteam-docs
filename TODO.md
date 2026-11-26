@@ -153,8 +153,10 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 
 ## 📌 Phase 4: Frontend Implementation (.NET 10 / C# 14 / Blazor Hybrid)
 
-- [ ] **Pre-Phase 4 Architectural Governance Gate**
-  - [ ] Implement master repository verifier script: `scripts/verify_all.py`.
+- [ ] **Pre-Phase 4 Documentation Quality & Governance Gate**
+  - [ ] **Human Readability, DRY & SSoT Audit:** Eliminate fragile hardcoded prose values, cross-layer content misplacement, and redundant DTO/formula duplication; resolve carried non-blocking audit notes (`NB-01..NB-08`, `DT-ARQ-CMP-001-component-model.dsl` stereotype, `adm.password_policies` coverage in `DT-DM-DOC-*`/`DT-ARQ-DB-DOC-001`).
+  - [ ] **Dimension-Agnostic 2D/3D Ubiquitous Language:** Decouple rendering-specific 2D/SVG terminology from core domain concepts in [`DT-UL-DOC-001.md`](domain-models/ubiquitous-language/DT-UL-DOC-001.md) and domain/use-case docs.
+  - [ ] **Modular Guardrail Suite (`scripts/verify_all.py`):** Refactor monolithic checks into `parsers/` (single-pass Markdown, C#, SQL), `rules/` (pure seam checks covering `GRD-01`–`GRD-17`), and thin `SKILL.md` workflow guides.
   - [ ] Codify Offline-First & Outbox guard skill: `.agents/skills/dteam-offline-sync-guard/` ([ADR-006](architecture/adr/ADR-006.md)).
   - [ ] Build automated C# SSoT contract verifier (`verify_csharp_contracts.py` / ArchUnitNET).
   - [ ] Execute `.NET 10 MAUI Blazor Hybrid + SQLCipher` Walking Skeleton spike.
