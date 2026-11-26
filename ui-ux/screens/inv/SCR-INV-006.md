@@ -299,8 +299,8 @@ sequenceDiagram
    * If $\text{QuantityOnHand} > \text{MaxCapacity}$ (or exceeds `Warehouse.MaxCapacity`), emits `EXCEEDS_MAX_CAPACITY`.
 2. **Technical Receipt Voucher (`FR-131`):** Every committed transaction returns an `InventoryTransactionVoucherDto` (§7.2.3) containing the sequential transaction folio, UTC timestamp, locator bin path, cost breakdown, and SHA-256 integrity hash, rendered immediately in `CMP-10`.
 
-#### 5.3.4. Background Retry Queue on Connectivity Drop (`NFR-136`, `AF-004`, `TR-007`, `ADR-007`)
-1. If a warehouse tablet experiences a wireless dropout during `RegisterInventoryTransactionCommand` submission, the client encrypts the payload in local SQLCipher storage (`TR-002`) with `X-Idempotency-Key: {uuidv7}` (`ADR-005`, `ADR-007`) and the observed `SparePart` `ConcurrencyToken` (`If-Match` per PostgreSQL `xmin` optimistic concurrency in [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)), and automatically retries via idempotent ingestion upon reconnection ([DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007)); if concurrent warehouse issues depleted stock during the outage, the backend rejects over-issues with HTTP `409 Conflict` for supervisor reconciliation.
+#### 5.3.4. Background Retry Queue on Connectivity Drop (`NFR-136`, `AF-004`, `TR-007`, `ADR-006`, `ADR-007`)
+1. If a warehouse tablet experiences a wireless dropout during `RegisterInventoryTransactionCommand` submission, the client encrypts the command payload in local SQLCipher storage (`TR-002`) with `X-Idempotency-Key: {uuidv7}` ([ADR-005](../../../architecture/adr/ADR-005.md), [ADR-007](../../../architecture/adr/ADR-007.md)) and **omits the stale `If-Match` header** (since `SparePart.ConcurrencyToken` / `xmin` may advance server-side during the partition). Upon reconnection, the background sync worker drains the outbox in chronological **FIFO** order via idempotent **command-sourced reconciliation** ([ADR-006](../../../architecture/adr/ADR-006.md), [TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr), [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007)). Rather than rejecting offline movements via HTTP `409 Conflict`, if concurrent warehouse issues depleted stock during the outage and replaying the command causes a negative balance, the backend preserves the historical movement in the `InventoryTransaction` ledger, records the physical discrepancy, and triggers a compensation/supervisor alert for administrative reconciliation.
 
 ---
 
@@ -833,7 +833,7 @@ public record KardexAuditEntryDto
 2. **Virtualized Ledger Scroll Interop (`IVirtualizationInterop`):**
    * Lazily renders visible Kardex rows within the scroll container to guarantee sub-second filter updates and 60 FPS scrolling across high-volume historical ledgers (`NFR-135`).
 3. **Encrypted Offline Retry Outbox & SHA-256 Bridge (`IOfflineStorage` / `ICryptoInterop`):**
-   * Computes SHA-256 digests asynchronously in a Web Worker (`TR-001`, `ADR-003`) and queues movements in encrypted local SQLCipher storage (`TR-002`, `TR-007`) with automatic exponential-backoff retry on connectivity restoration (`NFR-136`).
+   * Computes SHA-256 digests asynchronously in a Web Worker (`TR-001`, `ADR-003`) and queues movements in encrypted local SQLCipher storage (`TR-002`, `TR-007`) with `X-Idempotency-Key` (omitting stale `If-Match`) for exponential-backoff FIFO command-sourced reconciliation on connectivity restoration (`NFR-136`, `ADR-006`).
 
 ---
 
@@ -873,8 +873,9 @@ public record KardexAuditEntryDto
 | [TR-002](../../../requirements/common/TR-002.md) | `CMP-02`, `CMP-08` | AES-256 / SQLCipher encryption at rest for locally queued warehouse movements during temporary wireless dropouts. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-05`, `CMP-08`, `CMP-10` | Enforces TLS/HTTPS encryption in transit across all Kardex queries, stock checks, and transaction commits. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-08` | Enforces RBAC permissions (`Warehouse Manager` for movement mutations; read/audit access for `Planner` and `Auditor`). |
-| [TR-007](../../../requirements/common/TR-007.md) | `CMP-02`, `CMP-08` | Offline-first synchronization queue draining pending warehouse movements via idempotent upserts ([DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007)). |
+| [TR-007](../../../requirements/common/TR-007.md) | `CMP-02`, `CMP-08` | Offline-first synchronization queue draining pending warehouse movements FIFO via command-sourced idempotent reconciliation without dropping over-issues ([TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr), [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007)). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-13` | ANSI/ISA-101 HPHMI 90/10 neutral grayscale ledger, zero badge inflation on routine movements, and WCAG 2.1 AA redundant coding. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-10`, `CMP-11` | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on Kardex audit records. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-08` | Time-sequential UUIDv7 identifier generation for `InventoryTransaction` primary keys. |
-| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-08` | Idempotent transaction processing via `X-Idempotency-Key` header paired with PostgreSQL `xmin` optimistic concurrency (`If-Match`) during live and background retry stock reconciliation. |
+| [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-02`, `CMP-08` | Command-sourced FIFO offline synchronization omitting stale `If-Match` headers and recording negative-stock discrepancy alerts for supervisor compensation. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-08` | Idempotent transaction processing via `X-Idempotency-Key` header (paired with PostgreSQL `xmin` `If-Match` on live online commits; omitted on offline outbox replay per `ADR-006`). |

@@ -247,11 +247,11 @@ Chaining `audit_logs.previous_hash` exclusively on the server eliminates client 
 Upon pressing `[Swap Rotable Asset]`, the client dispatches an atomic substitution command against the backend API endpoint:
 `POST /api/v1/inventory/rotable-swaps`
 
-* **Client Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) guaranteeing exactly-once transaction processing during network reconnection retries, alongside `If-Match: "{DismountedConcurrencyToken}"` enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169).
-* **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) binding functional location, dismounted equipment ID and concurrency token, destination status enum, holding warehouse ID, replacement equipment ID and concurrency token, optional justifying work order reference, and technician user ID (`audit_logs.previous_hash` is computed server-side pre-commit by `AuditSaveChangesInterceptor`).
-* **Backend Persistence Invariant:** The backend orchestrates `ExecuteAssetSwapCommand` within a single-commit atomic transaction ([ADR-005](../../../architecture/adr/ADR-005.md), `NFR-596`): verifying concurrency tokens on both dismounted and replacement units (returning HTTP 409 Conflict on stale state), unlinking the dismounted asset, updating destination status and warehouse holding state, mounting the replacement rotable unit, recording the chained cryptographic audit entry ([TR-001](../../../requirements/common/TR-001.md)), and broadcasting `AssetSwapCompleted(AssetSwapCompletedEvent)` over SignalR hub `/hubs/operations` (`IOperationsClient`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)). Returns HTTP 200 OK with `AssetSwapCompletedEvent`.
+* **Client Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) guaranteeing exactly-once transaction processing during network reconnection retries, alongside `If-Match: "{DismountedConcurrencyToken}"` on live online commits enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169) (omitted on offline outbox replay).
+* **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) binding functional location, dismounted equipment ID and optional concurrency token, destination status enum, holding warehouse ID, replacement equipment ID and optional concurrency token, optional justifying work order reference, and technician user ID (`audit_logs.previous_hash` is computed server-side pre-commit by `AuditSaveChangesInterceptor`).
+* **Backend Persistence Invariant:** The backend orchestrates `ExecuteAssetSwapCommand` within a single-commit atomic transaction ([ADR-005](../../../architecture/adr/ADR-005.md), `NFR-596`): verifying concurrency tokens on both dismounted and replacement units on live online requests (returning HTTP 409 Conflict on stale state) or executing server-side command-sourced reconciliation for offline outbox replays, unlinking the dismounted asset, updating destination status and warehouse holding state, mounting the replacement rotable unit, recording the chained cryptographic audit entry ([TR-001](../../../requirements/common/TR-001.md)), and broadcasting `AssetSwapCompleted(AssetSwapCompletedEvent)` over SignalR hub `/hubs/operations` (`IOperationsClient`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)). Returns HTTP 200 OK with `AssetSwapCompletedEvent`.
 * **Success Handling (HTTP 200 OK):** Transitions UI state to `Swap Completed (Success)`, renders checkmark animation, dispatches `OnSwapCompleted` callback with `AssetSwapCompletedEvent`, and dismisses modal after $1.5\text{s}$.
-* **Offline Outbox Fallback (TR-007, TR-002):** On network disconnection or HTTP 5xx timeout, the client serializes `ExecuteAssetSwapCommand` into local encrypted storage via `IOfflineStorage` ([TR-002](../../../requirements/common/TR-002.md)), assigns an offline lease token, displays the "Offline Queued" state (§4), and dismisses after $1.5\text{s}$. Background synchronization worker drains the queue upon reconnecting to plant Wi-Fi.
+* **Offline Outbox Fallback (`TR-007`, `ADR-006`, `ADR-007`):** On network disconnection or HTTP 5xx timeout, the client serializes `ExecuteAssetSwapCommand` into the local encrypted outbox via `IOfflineStorage` ([TR-007](../../../requirements/common/TR-007.md), encrypted at rest per [TR-002](../../../requirements/common/TR-002.md)), assigns a UUIDv7 `X-Idempotency-Key` in the local outbox ([ADR-005](../../../architecture/adr/ADR-005.md), [ADR-007](../../../architecture/adr/ADR-007.md)), displays the "Offline Queued" state (§4), and dismisses after $1.5\text{s}$. Upon reconnecting to plant Wi-Fi, the background synchronization worker drains the outbox FIFO—**omitting stale `If-Match`** headers in favor of server-side command-sourced reconciliation ([ADR-006](../../../architecture/adr/ADR-006.md), [TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr)).
 
 ---
 
@@ -481,16 +481,17 @@ public record RotableSpareSummaryDto
 
 /// <summary>
 /// Atomic rotable asset swap command; audit_logs.previous_hash is computed server-side pre-commit by AuditSaveChangesInterceptor (never client-supplied).
+/// Live requests supply DismountedConcurrencyToken / ReplacementConcurrencyToken (with If-Match); offline outbox replays omit stale tokens/If-Match and queue with a UUIDv7 X-Idempotency-Key for server-side command-sourced reconciliation (TR-007, ADR-006).
 /// </summary>
 public record ExecuteAssetSwapCommand
 {
     public required Guid FunctionalLocationId { get; init; }
     public required Guid DismountedAssetId { get; init; }
-    public required uint DismountedConcurrencyToken { get; init; }
+    public uint? DismountedConcurrencyToken { get; init; }
     public required DismountDestinationStatus DestinationStatus { get; init; }
     public required Guid HoldingWarehouseId { get; init; }
     public required Guid ReplacementAssetId { get; init; }
-    public required uint ReplacementConcurrencyToken { get; init; }
+    public uint? ReplacementConcurrencyToken { get; init; }
     public Guid? JustifyingWorkOrderId { get; init; }
     public required Guid TechnicianUserId { get; init; }
 }
@@ -517,7 +518,7 @@ public record AssetSwapCompletedEvent
 3. **Web Cryptography SHA-256 Bridge (`ICryptoInterop`):**
    * Computes candidate `PayloadHash` asynchronously in a dedicated Web Worker to preview unalterable cryptographic chaining in `CMP-08`.
 4. **Encrypted Offline Storage Interop (`IOfflineStorage`):**
-   * Interfaces with client-side encrypted relational storage (SQLCipher / AES-256) for local transactional outbox queuing during offline field operation ([TR-002](../../../requirements/common/TR-002.md), [TR-007](../../../requirements/common/TR-007.md)).
+   * Interfaces with client-side encrypted relational storage (SQLCipher / AES-256 at rest per [TR-002](../../../requirements/common/TR-002.md)) for transactional outbox queuing during offline field operation ([TR-007](../../../requirements/common/TR-007.md)), assigning a UUIDv7 `X-Idempotency-Key` in the local outbox and omitting stale `If-Match` headers on FIFO reconnect replay for server-side command-sourced reconciliation ([ADR-006](../../../architecture/adr/ADR-006.md)).
 
 ---
 
@@ -549,14 +550,15 @@ public record AssetSwapCompletedEvent
 | [NFR-596](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | `CMP-09` | Single-commit database transaction ensuring atomic execution or complete rollback. |
 | [NFR-597](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | `CMP-09` | Hierarchical update and status changes complete in $< 2\text{s}$ on server. |
 | [TR-001](../../../requirements/common/TR-001.md) | `CMP-08`, `CMP-09` | Immutable append-only audit trail logging with SHA-256 hash chaining ([ADR-003](../../../architecture/adr/ADR-003.md)). |
-| [TR-002](../../../requirements/common/TR-002.md) | `CMP-01`, `CMP-09` | Offline Command Outbox and Conflict Management: Encrypted SQLite storage with lease tokens for disconnected operation. |
+| [TR-002](../../../requirements/common/TR-002.md) | `CMP-01`, `CMP-09` | Encryption at Rest: AES-256 / SQLCipher encryption for locally cached equipment data and pending outbox records on mobile devices. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-09` | Encryption in Transit: Transport layer security (TLS/HTTPS) for all RESTful DTO transmissions and API calls. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-09` | Role-Based Access Control (RBAC): Enforces permissions (`Reliability Engineer`, `Technician`, `Supervisor`). |
-| [TR-007](../../../requirements/common/TR-007.md) | `CMP-01`, `CMP-09` | Offline Operation and Synchronization: Queues atomic swap operations into local outbox storage during field disconnects. |
+| [TR-007](../../../requirements/common/TR-007.md) | `CMP-01`, `CMP-09` | Offline Operation and Synchronization: Queues `ExecuteAssetSwapCommand` in the local outbox with a UUIDv7 `X-Idempotency-Key` and replays FIFO without stale `If-Match` for server-side command-sourced reconciliation ([TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr)). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-04`, `CMP-06` | ISO 14224 Hierarchy Management and Validation: Enforces taxonomic constraints and class parity in domain rules. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-09` | Real-time synchronization: broadcasts `AssetSwapCompleted(AssetSwapCompletedEvent)` over `/hubs/operations` to connected clients (< 1s). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`..`CMP-10` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, saturated color reserved for status and alerts. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-08`, `CMP-09` | Tamper-evident cryptographic SHA-256 hash chaining on all asset swap mutations. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-01`, `CMP-09` | Time-sequential UUIDv7 generation for new Installation record and command idempotency. |
+| [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-01`, `CMP-09` | Command-sourced FIFO outbox synchronization omitting stale `If-Match` on offline replay and recording discrepancy alerts for reconciliation. |
 | [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-09` | Idempotent API message processing via `X-Idempotency-Key` header. |
 | [ADR-010](../../../architecture/adr/ADR-010.md) | `CMP-01`, `CMP-09` | AssetInstallation timeline tracking decoupling physical unit from functional location slot. |

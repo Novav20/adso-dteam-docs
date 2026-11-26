@@ -216,8 +216,8 @@ sequenceDiagram
         API-->>UI: HTTP 200 OK (WorkOrderTechnicallyCompletedEvent)
         UI-->>Tech: Display completion certificate modal & navigate to SCR-MTTO-026
     else Disconnected / Offline Outbox (AF-002)
-        UI->>Store: Enqueue SubmitTechnicalClosureCommand into encrypted outbox
-        Store-->>UI: Offline lease queued confirmation
+        UI->>Store: Enqueue SubmitTechnicalClosureCommand & encrypted media binary into local outbox
+        Store-->>UI: Offline outbox queued (X-Idempotency-Key)
         UI-->>Tech: Display offline sync badge & return to backlog
     end
 ```
@@ -284,28 +284,30 @@ sequenceDiagram
   2. Capturing photo via hardware camera or file picker downsamples image to maximum $1920\times 1080$ JPEG format (quality 0.85) to optimize offline storage footprint.
   3. Computes cryptographic checksum asynchronously in a Web Worker via ICryptoInterop (SHA-256).
   4. Renders individual gallery cards displaying image thumbnail (`--dt-layout-thumbnail-size`), metadata, delete trigger, and verified monospace hash stamp (`SHA-256: [hash]`).
-  5. Packages validated media items into `MediaAttachmentDto` records linking image URI, file format, timestamp, and hash string to the failure record context.
+  5. Packages validated media items into `MediaAttachmentDto` records linking image URI, file format, timestamp, and hash string to the failure record context (uploading directly via an Azure Blob SAS Valet Key per [ADR-008](../../../architecture/adr/ADR-008.md) when online, or persisting the encrypted binary locally for two-phase outbox sync on reconnect per §5.3.5).
   6. If file reading throws an I/O error or hash evaluation fails, the UI enters state `Evidence Corrupt` (`AF-003`), halts finalization, and forces recapture.
 
 #### 5.3.4. Atomic Technical Closure Command Dispatch (`CMP-09`, `TR-001`)
 * Upon pressing `[Finalize Work Order]`, the application dispatches an atomic technical closure command (`SubmitTechnicalClosureCommand`) against the backend API endpoint `POST /api/v1/maintenance/work-orders/{id}/technical-closure`.
 * **Client Command Contract:**
-  * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries, plus `If-Match: "{ConcurrencyToken}"` enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169).
+  * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries, plus `If-Match: "{ConcurrencyToken}"` on live online commits enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169) (offline-queued replays omit stale `If-Match` per §5.3.5).
   * **Command Payload:** Serializes optional/conditional `FailureRecordInputDto?` (mandatory 7-tier ISO 14224 classifications, downtime, and technician notes when `WorkOrder.maintenanceMethod == CORRECTIVE` or a failure is explicitly reported; `null` for routine `PREVENTIVE` closure with no failure), `ActualLaborHours`, `ConcurrencyToken`, and `IReadOnlyList<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
   * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (concurrency verification, conditional failure record insertion when `FailureRecord` is supplied/required, Work Order status update to `COMPLETE`, history logging, cryptographic audit chaining, and `/hubs/operations` `WorkOrderStatusChanged` broadcast) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
   * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates downstream to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
   * **Failure / Disconnected Handling:** On network timeout or HTTP 5xx error, transitions to the Zero-Shift Offline Outbox Protocol (§5.3.5, [TR-007](../../../requirements/common/TR-007.md)).
 
-#### 5.3.5. Zero-Shift Offline Telemetry and Outbox Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-007`)
+#### 5.3.5. Zero-Shift Offline Telemetry and Outbox Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-006`, `ADR-007`, `ADR-008`)
 * If network connection is lost or heartbeat timeout occurs:
   1. Telemetry indicator in header transitions from `ONLINE · [HH:MM]` to `OFFLINE · [HH:MM]` with disconnected network glyph.
   2. Amber badge `[1 PENDING SYNC]` illuminates directly in the header context.
   3. **Fail-Safe Zero-Energy Masking:** The safety capsule `[DE-ENERGIZED EQUIPMENT]` is automatically suppressed from the header UI during offline operation. While mechanical padlocks remain locked, real-time electrical zero-voltage and zero-current attestation cannot be confirmed via disconnected DCS telemetry; displaying a stale positive safety confirmation during telemetry blackout violates process safety integrity principles.
   4. Zero layout shift is incurred (CLS = 0), preventing disorienting viewport jumps or content displacement on tablet screens.
-  5. The full atomic command payload is serialized into JSON and written to the encrypted local outbox protected by database encryption at rest ([TR-002](../../../requirements/common/TR-002.md)).
-  6. Assigns a unique `IdempotencyKey` (UUIDv7) per `ADR-007`.
+  5. **Local Outbox & Encrypted Binary Persistence:** The full `SubmitTechnicalClosureCommand` payload is serialized into JSON and written to the encrypted local outbox (`IOfflineStorage`, AES-256 via SQLCipher per [TR-002](../../../requirements/common/TR-002.md)), while any offline-captured media binaries are persisted encrypted locally alongside their SHA-256 digests (`TR-003`) pending Valet Key upload (`ADR-008`).
+  6. Assigns a unique `X-Idempotency-Key` (UUIDv7) per [ADR-005](../../../architecture/adr/ADR-005.md) and [ADR-007](../../../architecture/adr/ADR-007.md), omitting stale `If-Match` headers on offline replay.
   7. Marks the local UI view as `COMPLETE (Pending Sync)`.
-  8. Background synchronization worker monitors connectivity; upon restoration, drains the outbox queue via idempotent `POST /api/v1/maintenance/work-orders/{id}/technical-closure` with `X-Idempotency-Key` and `If-Match` headers.
+  8. **Two-Phase Reconnect Sync (`ADR-008` & `ADR-006`):** Background synchronization worker monitors connectivity and drains the outbox in chronological **FIFO** order upon restoration:
+     * **Phase 1 — Valet Key Direct Blob Upload (`ADR-008`):** For each locally encrypted media binary, the worker requests an Azure Blob SAS Valet Key URL from the backend API and executes a direct `HTTPS PUT` of the binary payload directly to Azure Blob Storage, bypassing the API monolith.
+     * **Phase 2 — Idempotent Command Replay (`ADR-006`, `TR-007-NFR-407`):** With the remote Azure Blob `FileUrl` values populated in `EvidenceAttachments`, the worker dispatches `POST /api/v1/maintenance/work-orders/{id}/technical-closure` carrying `X-Idempotency-Key: {uuidv7}` and **omitting stale `If-Match`**, using server-side command-sourced reconciliation so the field closure is preserved and any concurrent state discrepancy triggers an administrative reconciliation alert rather than silent rejection.
 
 #### 5.3.6. Rotable Asset Swap Branching (`CMP-04`)
 * If the physical repair requires unmounting the pump unit, tapping `[Rotate Dismounted Equipment]` preserves the in-flight form draft in local memory and deploys the in-situ overlay modal [SCR-INV-025](../inv/SCR-INV-025.md). Upon completing the asset swap, `SCR-INV-025` returns the new mounted equipment serial number (`P-0101B`) and stamps the replacement reference into technical observations.
@@ -746,7 +748,7 @@ public record SubmitTechnicalClosureCommand
 2. **Web Crypto SHA-256 Hashing Bridge (`ICryptoInterop`):**
    * Dispatches cryptographic SHA-256 checksum computation asynchronously to a dedicated Web Worker to prevent UI thread stuttering or frame drops on industrial tablets during binary processing.
 3. **Encrypted Offline Storage Interop (`IOfflineStorage`):**
-   * Interfaces with client-side encrypted relational storage (AES-256 via SQLCipher) for immediate transactional outbox queuing during disconnected field operations ([TR-002](../../../requirements/common/TR-002.md), [TR-007](../../../requirements/common/TR-007.md)).
+   * Interfaces with client-side encrypted relational storage (AES-256 via SQLCipher) for immediate transactional outbox queuing and encrypted local media binary persistence during disconnected field operations ([TR-002](../../../requirements/common/TR-002.md), [TR-007](../../../requirements/common/TR-007.md), [ADR-008](../../../architecture/adr/ADR-008.md)).
 
 ---
 
@@ -783,11 +785,12 @@ public record SubmitTechnicalClosureCommand
 | [TR-003](../../../requirements/common/TR-003.md) | `CMP-07` | Client-side asynchronous SHA-256 hash evaluation of all captured media files stored in metadata for tamper detection. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-08`, `CMP-09` | Enforces TLS/HTTPS and WSS encryption across all technical closure command dispatches and background outbox synchronization. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-09` | Enforces RBAC role authorization and authenticated technician session validation prior to technical closure submission. |
-| [TR-007](../../../requirements/common/TR-007.md) | `CMP-08`, `CMP-09` | Transactional Offline Sync Outbox queues completed technical closures during disconnected field operation with idempotent retry. |
+| [TR-007](../../../requirements/common/TR-007.md) | `CMP-08`, `CMP-09` | Transactional Offline Sync Outbox queues completed technical closures and encrypted local media binaries during disconnected field operation with FIFO `X-Idempotency-Key` replay omitting stale `If-Match` ([TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr)). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-05`, `CMP-06` | Validates ISO 14224 hierarchical integrity linking Level 6 `EquipmentUnit` class taxonomy to Level 8 `MaintainableItem` failure records. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-08`, `CMP-09` | Real-time synchronization via `/hubs/telemetry` (`EmergencyEvacuationBroadcast`, `LotoHeartbeatAck`) and `/hubs/operations` (`WorkOrderStatusChanged`). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-10` | ANSI/ISA-101 HPHMI & ISO 9241-110 ergonomics: 90/10 neutral grayscale palette, Priority 4 diagnostic segregation, and `--dt-touch-target-mobile` gloved controls with `--dt-space-2` separation. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-07`, `CMP-08`, `CMP-09` | Client-side sequential UUIDv7 identifier generation for offline-captured failure records and media attachments. |
-| [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-01`, `CMP-08` | Integration with Cryptographic Offline Lease protocol for disconnected field operations. |
+| [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-01`, `CMP-08`, `CMP-09` | Command-sourced FIFO outbox reconciliation (omitting stale `If-Match` on offline replay) and Cryptographic Offline Lease integration for disconnected field operations. |
 | [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-08`, `CMP-09` | Idempotency key (`X-Idempotency-Key`) generation attached to technical closure payloads to prevent duplicate commits. |
+| [ADR-008](../../../architecture/adr/ADR-008.md) | `CMP-07`, `CMP-08`, `CMP-09` | Two-phase offline media sync via Azure Blob SAS Valet Key: persist encrypted binary locally offline, upload via direct `PUT` on reconnect, and attach remote `FileUrl` to `SubmitTechnicalClosureCommand`. |
 
