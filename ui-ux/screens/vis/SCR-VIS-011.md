@@ -241,19 +241,24 @@ sequenceDiagram
 
     Tech->>UI: Opens "LOTO Route" from Work Order
     UI->>API: GET /api/v1/safety/loto-plans/work-orders/{workOrderId}
-    API-->>UI: Returns LotoIsolationPlanDto (with ETag / ConcurrencyToken)
+    API-->>UI: Returns LotoIsolationPlanDto
     UI->>UI: Renders isolation boundary on SVG and initializes drawer (CMP-05)
     UI->>IoT: Subscribes to /hubs/telemetry (ReceiveTelemetryReading, LotoHeartbeatAck, EmergencyEvacuationBroadcast) & /hubs/operations (PermitStatusChanged, WorkOrderStatusChanged)
     IoT-->>UI: Live sensor readings pushed (< 1s latency)
     UI->>UI: Maps readings to MAI scale bars (CMP-07)
+
+    opt Pre-Fetch Offline Lease for RF-Shadowed Area (ADR-006)
+        UI->>API: POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease (X-Idempotency-Key)
+        API-->>UI: Returns CryptographicOfflineLeaseDto (MaxTtlMinutes = 60, HmacSignature)
+    end
     
     Tech->>UI: Inputs Padlock Tag IDs sequentially into CMP-06
-    UI->>API: POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm (ConfirmCutoffStepRequestDto + X-Idempotency-Key + If-Match)
-    API-->>UI: Isolation step confirmed & acknowledged (updated ConcurrencyToken)
+    UI->>API: POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm (ConfirmCutoffStepRequestDto + X-Idempotency-Key)
+    API-->>UI: Isolation step confirmed under SELECT ... FOR UPDATE NOWAIT
     
     Tech->>UI: Selects verification method, enters reading, signs Try-Out (CMP-08)
-    UI->>API: POST /api/v1/safety/loto-plans/{planId}/try-out (TryOutAttestationDto + X-Idempotency-Key + If-Match)
-    API-->>UI: Attestation & hardware-bound signature registered (updated ConcurrencyToken)
+    UI->>API: POST /api/v1/safety/loto-plans/{planId}/try-out (TryOutAttestationDto + X-Idempotency-Key)
+    API-->>UI: Attestation & hardware-bound signature registered (TR-001 audit logged)
     
     alt Hazardous Energy Detected (> threshold)
         API-->>UI: Safety Interlock Denied (Energy Detected / Uncertain)
@@ -263,7 +268,7 @@ sequenceDiagram
         API-->>UI: Safety Interlock Authorized (Zero State Proven)
         UI->>SEC: Enables [Start Work] control (CMP-09)
         Tech->>UI: Presses [Start Work]
-        UI->>API: POST /api/v1/maintenance/work-orders/{id}/start-execution (X-Idempotency-Key + If-Match)
+        UI->>API: POST /api/v1/maintenance/work-orders/{id}/start-execution (StartWorkOrderExecutionCommand + X-Idempotency-Key)
         API-->>UI: Execution confirmed (WorkOrder IN_PROGRESS, TR-001 audit logged)
     end
 
@@ -281,10 +286,11 @@ sequenceDiagram
    * Cutoff discs (`CMP-04`) project screen-space clamped scales (`32–40 px`) with obstacle collision avoidance against ANSI/ISA-5.1 instrument plates.
    * Drawer `CMP-05` initializes in baseline state with checklist step 1 highlighted and Try-Out card disabled.
 
-2. **Data Subscriptions, API Idempotency & Cache Initialization:**
+2. **Data Subscriptions, API Idempotency & Concurrency/Lease Protocol:**
    * Establishes real-time duplex WebSocket streams per [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010): `/hubs/telemetry` (`ITelemetryClient`: `ReceiveTelemetryReading`, `LotoHeartbeatAck` on a mandatory **2-second heartbeat cadence**, `EmergencyEvacuationBroadcast`) and `/hubs/operations` (`IOperationsClient`: `PermitStatusChanged`, `WorkOrderStatusChanged`).
-   * Every mutating isolation command (`POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm`, `POST /api/v1/safety/loto-plans/{planId}/try-out`, and `POST /api/v1/maintenance/work-orders/{id}/start-execution`) mandates `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guard offline-sync retries; live online submissions also include `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) so concurrent live updates fail with HTTP `409 Conflict`, whereas offline-queued commands under an active `LEASED_OFFLINE` window omit stale `If-Match` for deferred reconciliation upon reconnection ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)).
-   * Queries local secure storage (`ISecureStorage` / `IOfflineStorage`) for an active `CryptographicOfflineLeaseDto` (§7.2.3) issued to the device (`TR-006`, bounded to a **60-minute max TTL** validated against the **hardware monotonic clock** per [ADR-006](../../../architecture/adr/ADR-006.md)).
+   * Every mutating isolation and execution command (`POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm`, `POST /api/v1/safety/loto-plans/{planId}/try-out`, `POST /api/v1/maintenance/work-orders/{id}/start-execution`, and `POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease`) mandates `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee idempotent execution across retries.
+   * **Online Pessimistic Locking (`SELECT ... FOR UPDATE NOWAIT`):** Rather than client-supplied `If-Match` / PostgreSQL `xmin` optimistic concurrency on `confirm`, `try-out`, and `start-execution`, online submissions enforce server-side pessimistic locking (`SELECT ... FOR UPDATE NOWAIT`) on the isolation record per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006), aborting immediately as an indeterminate-safety lock conflict if concurrently locked by telemetry ingestion.
+   * **Offline Lease Delegation (`ADR-006`):** Prior to entering disconnected field zones, the client requests a bounded lease via `POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease`, persisting the signed `CryptographicOfflineLeaseDto` (`LeaseToken`, `WorkOrderId`, `IssuedToUserId`, `ExpiresAtUtc`, `MaxTtlMinutes = 60`, `HmacSignature`) in local secure storage (`ISecureStorage` / `IOfflineStorage`, `TR-006`), bounded to a **60-minute max TTL** validated against the **hardware monotonic clock**. Offline commands execute against the active lease and replay with `CryptographicOfflineLeaseDto` (`LeaseToken`) + `X-Idempotency-Key` upon reconnection.
 
 ### 5.2. Spatial Navigation, Edge Beacons & Tactile Mechanics
 
@@ -314,7 +320,7 @@ sequenceDiagram
    * Checklist `CMP-06` enforces strict thermodynamic and procedural sequencing:
      $$\text{Electrical Cutoff} \longrightarrow \text{Mechanical Upstream Isolation} \longrightarrow \text{Mechanical Downstream Isolation} \longrightarrow \text{Bleed / Venting}$$
    * Physical Padlock Tag IDs must conform to configured facility nomenclature (e.g., regex mask `^PAD-[A-Z0-9]{4,8}$`) or be captured directly via NFC / 2D barcode scan.
-   * Step $N+1$ cannot be confirmed until Step $N$ is marked and verified. Upon step verification, the client dispatches `ConfirmCutoffPointCommand` encapsulating `CutoffNodeId`, `PadlockTagId`, and UTC timestamp to the application service.
+   * Step $N+1$ cannot be confirmed until Step $N$ is marked and verified. Upon step verification, the client dispatches `ConfirmCutoffStepRequestDto` (§7.2.3, encapsulating `SequenceOrder`, `IsolationPointId`, and `AppliedPadlockTagId`) with `X-Idempotency-Key` to `POST /api/v1/safety/loto-plans/{planId}/cutoffs/{isolationPointId}/confirm` (locked online via `SELECT ... FOR UPDATE NOWAIT` per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)).
 
 2. **Moving Analog Indicator (MAI) Zero-Energy Verification (`CMP-07`):**
    * Continuous telemetry variables ($V, I, P, Q$) are rendered using Moving Analog Indicators (MAI) per [DT-UI-DS-DOC-001 §6.1](../../DT-UI-DS-DOC-001.md#61-moving-analog-indicator-mai-specification) and ISA-101.
@@ -332,13 +338,13 @@ sequenceDiagram
    * Upon attestation submission, the client captures:
      * Cryptographic attestation token: Digital signature generated via the device's hardware-bound security module (`TR-006`, `ADR-006`), binding technician identity, timestamp, and verification payload without exposing raw private keys in client memory.
      * Telemetry verification snapshot: Structured payload capturing instantaneous sensor values across all cutoff points at attestation time per [DT-ERD-DOC-001 §6.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#66-viswork_order_isolationstelemetry_snapshot).
-   * Encapsulated into `AttestTryOutCommand` containing `TryOutMethod`, `ObservedValue`, `TechnicianSignatureHash`, and `TelemetrySnapshot`. The application service processes the command, updating isolation state and appending an immutable audit record with SHA-256 hash chaining (`TR-001`).
+   * Encapsulated into `TryOutAttestationDto` (§7.2.3, containing `IsolationPointId`, `Method`, `ObservedPhysicalReading`, `TechnicianSignatureHash`, `TelemetrySnapshot`, and `AttestedAtUtc`) and dispatched with `X-Idempotency-Key` to `POST /api/v1/safety/loto-plans/{planId}/try-out`. The application service acquires a pessimistic `SELECT ... FOR UPDATE NOWAIT` lock online ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)), updates isolation state, and appends an immutable audit record with SHA-256 hash chaining (`TR-001`).
 
 4. **Active Safety Interlock Logic (`NFR-229`, `FR-230`):**
    * Work initiation button `CMP-09` `[Start Work]` reflects the server-authoritative safety gate. The backend application service permits work execution strictly when the following Boolean invariant evaluates to true:
      $$\text{CanStartWork} = \text{ChecklistCompleted} \land \text{TryOutAttested} \land \text{TelemetryNotEnergized} \land (\text{IsOnline} \lor \text{ValidOfflineLease})$$
    * **Normative Asymmetry (Negative Interlock Primacy):** IoT telemetry operates strictly as a **negative interlock**, never as a positive authorization enabler. The presence of detected energy ($V > 0.0\text{V}$ or $P > 0.5\text{psig}$) or telemetry uncertainty/sensor fault immediately and unconditionally forces $\text{CanStartWork} = \text{false}$. Conversely, telemetry showing zero energy is insufficient on its own to enable work: affirmative authorization is gated strictly by 100% physical checklist completion and verified manual Try-Out attestation.
-   * **Client Presentation Contract:** The UI reflects this rule via an optimistic state calculation (`CanStartWork`) that sets the disabled state (`--dt-color-state-disabled`) on `CMP-09`. However, client DOM manipulation cannot bypass the interlock: activating `[Start Work]` dispatches `StartWorkOrderExecutionCommand`, which is authoritatively validated by the backend domain aggregate before the Work Order transitions to `IN_PROGRESS`.
+   * **Client Presentation Contract:** The UI reflects this rule via an optimistic state calculation (`CanStartWork`) that sets the disabled state (`--dt-color-state-disabled`) on `CMP-09`. However, client DOM manipulation cannot bypass the interlock: activating `[Start Work]` dispatches `StartWorkOrderExecutionCommand` (§7.2.3) with `X-Idempotency-Key` to `POST /api/v1/maintenance/work-orders/{id}/start-execution`, which is authoritatively validated under `SELECT ... FOR UPDATE NOWAIT` online (or against `CryptographicOfflineLeaseDto` in offline lease mode per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)) before transitioning the Work Order to `IN_PROGRESS`.
    * In offline disconnected operations with a valid lease (`ADR-006`), live telemetry evaluation is bypassed in favor of mandatory physical Try-Out attestation verified against the hardware keystore.
 
 5. **Continuous In-Execution Monitoring & Emergency Broadcast Handling (`FR-232`, `AF-003`):**
@@ -349,8 +355,8 @@ sequenceDiagram
 
 6. **LOTO Watchdog Heartbeat & Cryptographic Offline Lease Protocol (`ADR-006`, `NFR-238`, `AF-002`, `TR-006`, `TR-007`, `TR-010`):**
    * **Mandatory 2-Second Heartbeat & 30-Second Grace Window ([DT-ARQ-DEP-DOC-001 §4](../../../architecture/views/DT-ARQ-DEP-DOC-001.md#4-perimeter-security-mechanism-loto-watchdog-fail-safe), [DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)):** The background LOTO Watchdog (`loto_watchdog`) validates WebSocket connectivity over `/hubs/telemetry` by sending a heartbeat ping on a mandatory **2-second cadence** and tracking `LotoHeartbeatAck` acknowledgments. To tolerate industrial RF shadowing and AP roaming without false positives, a **30-second Grace Window** applies before declaring telemetry disconnection and evaluating fail-safe lockout on `CMP-09`.
-   * **Lease & Monotonic Clock Evaluation (`ADR-006`):** If the **30-second Grace Window** expires without `LotoHeartbeatAck`, the client inspects its secure local cache for an active HMAC-SHA256-signed `CryptographicOfflineLeaseDto` issued to the authorized hardware device (`TR-006`). `RemainingLeaseSeconds` is strictly bounded to a **60-minute max TTL** ($\le 3600\text{ s}$) and validated against the device's **hardware monotonic clock** (mitigating OS wall-clock tampering or NTP skew).
-   * **Active Lease Present:** Transitions to bounded offline safe mode, deploying `CMP-11` in informational mode (*"Offline Safety Mode Active (Lease expires: HH:mm UTC)"* with `RemainingLeaseSeconds` countdown). Mandates physical Try-Out re-verification (`CMP-08`) and queues verification/start commands into the encrypted offline outbox (`TR-007`) with `X-Idempotency-Key` (omitting stale `If-Match` for deferred reconciliation upon reconnection per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)).
+   * **Lease Acquisition & Monotonic Clock Evaluation (`ADR-006`):** Prior to offline entry, the client acquires an HMAC-SHA256-signed `CryptographicOfflineLeaseDto` via `POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease` (`X-Idempotency-Key`), transitioning the server isolation record to `LEASED_OFFLINE` ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)). If the **30-second Grace Window** expires without `LotoHeartbeatAck`, the client validates the cached `CryptographicOfflineLeaseDto` (`LeaseToken`, `WorkOrderId`, `IssuedToUserId`, `ExpiresAtUtc`, `MaxTtlMinutes = 60`, `HmacSignature`). `RemainingLeaseSeconds` is strictly bounded to a **60-minute max TTL** ($\le 3600\text{ s}$) and evaluated against the device's **hardware monotonic clock** (mitigating OS wall-clock tampering or NTP skew).
+   * **Active Lease Present:** Transitions to bounded offline safe mode, deploying `CMP-11` in informational mode (*"Offline Safety Mode Active (Lease expires: HH:mm UTC)"* with `RemainingLeaseSeconds` countdown). Mandates physical Try-Out re-verification (`CMP-08`) and queues `ConfirmCutoffStepRequestDto`, `TryOutAttestationDto`, and `StartWorkOrderExecutionCommand` into the encrypted offline outbox (`TR-007`) paired with `CryptographicOfflineLeaseDto` (`LeaseToken`) + `X-Idempotency-Key` for deferred reconciliation upon reconnection ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)).
    * **Expired or Absent Lease:** Writes a Preventive Security Lockout flag to encrypted local storage (`DT-ARQ-DEP-DOC-001 §4`) and triggers an immediate fail-safe lock on `CMP-09`, displaying *"Danger: Telemetry communication lost. Intervention blocked by fail-safe design"*. Initiation requires connectivity restoration (and fresh Zero-Energy confirmation) or dual-supervisor cryptographic override.
 
 ---
@@ -683,7 +689,7 @@ public record ConfirmCutoffStepRequestDto
     public required int SequenceOrder { get; init; }
     public required Guid IsolationPointId { get; init; }
     public required string AppliedPadlockTagId { get; init; }
-    public required uint ConcurrencyToken { get; init; }
+    public string? OfflineLeaseToken { get; init; }
 }
 
 public record SimopsPermitSummaryDto
@@ -696,7 +702,7 @@ public record SimopsPermitSummaryDto
 
 /// <summary>
 /// Physical Try-Out attestation DTO; TelemetrySnapshot maps to the WorkOrderIsolation JSONB contract per DT-ERD-DOC-001 §6.6.
-/// IsolationPointId scopes ConcurrencyToken unambiguously to the (work_order_id, isolation_point_id) WorkOrderIsolation row.
+/// Online execution locks the (work_order_id, isolation_point_id) WorkOrderIsolation row via SELECT ... FOR UPDATE NOWAIT (DT-ARQ-DB-DOC-001 §3.7).
 /// </summary>
 public record TryOutAttestationDto
 {
@@ -706,24 +712,38 @@ public record TryOutAttestationDto
     public required string TechnicianSignatureHash { get; init; }
     public required IReadOnlyDictionary<string, decimal> TelemetrySnapshot { get; init; }
     public required DateTimeOffset AttestedAtUtc { get; init; }
-    public required uint ConcurrencyToken { get; init; }
+    public string? OfflineLeaseToken { get; init; }
 }
 
 /// <summary>
-/// Device-bound HMAC-SHA256 offline LOTO lease token persisted in encrypted local storage (ADR-006).
-/// MaxTtlSeconds is capped at 3600 (60-minute max TTL); RemainingLeaseSeconds is computed strictly from the hardware monotonic clock
+/// Device-bound HMAC-SHA256 offline LOTO lease token issued by POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease and persisted in encrypted local storage (ADR-006).
+/// MaxTtlMinutes is capped at 60 (60-minute max TTL); RemainingLeaseSeconds (0..3600) is computed strictly from the hardware monotonic clock
 /// after the 30-second Grace Window expires without a 2-second LotoHeartbeatAck heartbeat (DT-ARQ-DEP-DOC-001 §4, DT-UI-NAV-DOC-001 §6.2).
 /// </summary>
 public record CryptographicOfflineLeaseDto
 {
-    public required Guid LeaseId { get; init; }
+    public required string LeaseToken { get; init; }
     public required Guid WorkOrderId { get; init; }
-    public required Guid EquipmentUnitId { get; init; }
-    public required int MaxTtlSeconds { get; init; } = 3600;
+    public required Guid IssuedToUserId { get; init; }
+    public required DateTimeOffset ExpiresAtUtc { get; init; }
+    public int MaxTtlMinutes { get; init; } = 60;
+    public required string HmacSignature { get; init; }
     public required int RemainingLeaseSeconds { get; init; }
     public required long MonotonicIssuedTimestampMs { get; init; }
-    public required DateTimeOffset ExpiresAtUtc { get; init; }
-    public required string HmacSha256Signature { get; init; }
+}
+
+/// <summary>
+/// Authoritative execution start command dispatched to POST /api/v1/maintenance/work-orders/{id}/start-execution.
+/// Online execution enforces server-side SELECT ... FOR UPDATE NOWAIT (DT-ARQ-DB-DOC-001 §3.7);
+/// offline lease execution pairs OfflineLeaseToken (from CryptographicOfflineLeaseDto) with X-Idempotency-Key (ADR-006, ADR-007).
+/// </summary>
+public record StartWorkOrderExecutionCommand
+{
+    public required Guid WorkOrderId { get; init; }
+    public required Guid LotoPlanId { get; init; }
+    public required Guid TechnicianUserId { get; init; }
+    public string? OfflineLeaseToken { get; init; }
+    public required DateTimeOffset RequestedAtUtc { get; init; }
 }
 
 /// <summary>
@@ -874,7 +894,7 @@ public enum WorkOrderStatus
 | [NFR-229](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-09` | ACTIVE LOCK: interface disables work initiation on active energy; cannot be bypassed on client. |
 | [NFR-233](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-07` | Telemetry processing and UI update latency $< 1\text{s}$ via SignalR WebSocket stream. |
 | [NFR-234](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-09` | Fail-safe design: uncertain energy status assumes hazardous condition and maintains lock. |
-| [NFR-235](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-05`, `CMP-09` | Transactional synchronization via `ConfirmCutoffPointCommand` upon isolation confirmation. |
+| [NFR-235](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-05`, `CMP-09` | Transactional synchronization via `ConfirmCutoffStepRequestDto` upon isolation confirmation under `SELECT ... FOR UPDATE NOWAIT` ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)). |
 | [NFR-236](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-01` | Fluid SVG rendering $\ge 30\text{ FPS}$ on tablets, $\ge 60\text{ FPS}$ on desktop workstations. |
 | [NFR-237](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-07` | Out-of-range sensor readings trigger automated pessimistic hazardous energy lock. |
 | [NFR-238](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-09`, `CMP-11` | Disconnectivity fail-safe: 2-second `LotoHeartbeatAck` watchdog with 30-second Grace Window locks `CMP-09` unless an unexpired Cryptographic Offline Lease ($\le 60$-minute max TTL on hardware monotonic clock) exists ([ADR-006](../../../architecture/adr/ADR-006.md), [DT-ARQ-DEP-DOC-001 §4](../../../architecture/views/DT-ARQ-DEP-DOC-001.md#4-perimeter-security-mechanism-loto-watchdog-fail-safe)). |
@@ -882,8 +902,8 @@ public enum WorkOrderStatus
 | [TR-002](../../../requirements/common/TR-002.md) | `CMP-08`, `CMP-11` | Encrypts cached LOTO isolation plans, Cryptographic Offline Leases, and queued Try-Out attestations at rest in local device storage (`IOfflineStorage`). |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-01`, `CMP-07`, `CMP-12` | Enforces TLS/HTTPS and WSS encryption across all isolation command dispatches and real-time SignalR telemetry/evacuation streams. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-08`, `CMP-09`, `CMP-11` | Enforces RBAC role authorization and hardware-keystore verification for Try-Out signing and offline safety lease validation. |
-| [TR-007](../../../requirements/common/TR-007.md) | `CMP-05`, `CMP-06`, `CMP-08`, `CMP-11` | Offline Sync Outbox persists sequential padlock confirmations and signed Try-Out commands using UUIDv7 idempotency keys during field disconnections. |
+| [TR-007](../../../requirements/common/TR-007.md) | `CMP-05`, `CMP-06`, `CMP-08`, `CMP-11` | Offline Sync Outbox persists sequential padlock confirmations (`ConfirmCutoffStepRequestDto`), signed `TryOutAttestationDto`, and `StartWorkOrderExecutionCommand` using UUIDv7 idempotency keys during field disconnections. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-07`, `CMP-09`, `CMP-11`, `CMP-12` | Persistent real-time SignalR streams on `/hubs/telemetry` (`ReceiveTelemetryReading`, **2s** `LotoHeartbeatAck` with **30s Grace Window**, `EmergencyEvacuationBroadcast`) and `/hubs/operations` (`PermitStatusChanged`, `WorkOrderStatusChanged`) with $< 1\text{s}$ latency and automatic disconnect fail-safe detection. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-04`, `CMP-07`, `CMP-13` | ANSI/ISA-101 HPHMI: 90/10 grayscale baseline with focal island de-emphasis, MAI zero-energy scales, Teal confirmation tokens, and `--dt-touch-target-mobile` gloved ergonomics. |
-| [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-08`, `CMP-09`, `CMP-11` | Cryptographic Offline Lease protocol bounded to a 60-minute max TTL validated on the hardware monotonic clock for disconnected zero-energy field verification. |
-| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-06`, `CMP-08`, `CMP-09` | Mandatory `X-Idempotency-Key: {uuidv7}` header (paired with PostgreSQL `xmin` `If-Match` on live commits; omitted on offline lease replay per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)). |
+| [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-08`, `CMP-09`, `CMP-11` | Cryptographic Offline Lease protocol (`POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease`, bounded to 60-minute max TTL on hardware monotonic clock) for disconnected zero-energy field verification. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-06`, `CMP-08`, `CMP-09` | Mandatory `X-Idempotency-Key: {uuidv7}` header across `confirm`, `try-out`, `start-execution`, and `offline-lease` commands (online execution uses server-side `SELECT ... FOR UPDATE NOWAIT`; offline mode pairs with `CryptographicOfflineLeaseDto` per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)). |

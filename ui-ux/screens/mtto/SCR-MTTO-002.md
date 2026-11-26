@@ -199,8 +199,10 @@ sequenceDiagram
     participant Crypto as ICryptoInterop (Web Worker)
     participant API as Work Order Application Service
 
-    Tech->>VIS: Confirms Zero Energy & Try-Out
+    Tech->>VIS: Confirms Zero Energy & Try-Out (POST /api/v1/maintenance/work-orders/{id}/start-execution)
     VIS->>UI: Navigates with Execution Context (WorkOrderId, TechnicianId)
+    UI->>API: GET /api/v1/maintenance/work-orders/{id}/closing-context (or local fallback)
+    API-->>UI: Returns WorkOrderClosingContextDto
     UI->>Store: Pre-hydrate ISO 14224 taxonomy & cached WO details
     Store-->>UI: Return taxonomies & checklist items
     Tech->>UI: Attests checklist tasks & captures wrench time (CMP-03)
@@ -210,6 +212,10 @@ sequenceDiagram
     Tech->>UI: Captures photographic evidence (CMP-07)
     UI->>Crypto: Compute client-side SHA-256 hash asynchronously
     Crypto-->>UI: Return validated SHA-256 hash stamp
+    opt Network Connected (Valet Key Upload per ADR-008)
+        UI->>API: POST /api/v1/maintenance/work-orders/{id}/media-upload-sas (RequestMediaUploadSasCommand)
+        API-->>UI: Returns MediaUploadSasResponseDto (Azure Blob SAS URL + FileUrl)
+    end
     Tech->>UI: Clicks [Finalize Work Order] (CMP-09)
     alt Network Connected
         UI->>API: POST /api/v1/maintenance/work-orders/{id}/technical-closure (SubmitTechnicalClosureCommand + X-Idempotency-Key + If-Match)
@@ -223,9 +229,9 @@ sequenceDiagram
 ```
 
 1. **Context Ingestion Contract:**
-   * When navigated from [SCR-VIS-011](../vis/SCR-VIS-011.md), the route receives the initial execution context payload:
+   * Upon Zero Energy and Try-Out confirmation in [SCR-VIS-011](../vis/SCR-VIS-011.md), `SCR-VIS-011` dispatches `POST /api/v1/maintenance/work-orders/{id}/start-execution` (`StartWorkOrderExecutionCommand`), transitioning the Work Order to `IN_PROGRESS` with server-side audit timestamp logging and routing to `SCR-MTTO-002` with:
      $$\mathcal{P}_{\text{init}} = \langle \text{WorkOrderId}: \text{Guid}, \text{EquipmentTag}: \text{string}, \text{FunctionalLocation}: \text{string}, \text{TechnicianId}: \text{Guid}, \text{LotoIsolationStatus}: \text{IsolationStatus} \rangle$$
-   * If the initial Work Order status is `SCHEDULED`, the client dispatches an execution start command, transitioning the Work Order status to `IN_PROGRESS` with server-side audit timestamp logging.
+   * On load, `SCR-MTTO-002` calls `GET /api/v1/maintenance/work-orders/{id}/closing-context` to hydrate `WorkOrderClosingContextDto` (§7.2.3), falling back seamlessly to the local encrypted database (`IOfflineStorage`, [TR-002](../../../requirements/common/TR-002.md)) during disconnected operation. If the hydrated Work Order status is still `SCHEDULED` (e.g., direct entry after supervisory clearance), the client dispatches `POST /api/v1/maintenance/work-orders/{id}/start-execution` (`SCR-VIS-011` §7.2.3) to transition the Work Order to `IN_PROGRESS` before closure.
 2. **Local Cache Pre-Hydration (Offline Readiness):**
    * Pre-hydrates the ISO 14224 taxonomic datasets (maintainable items catalog, equipment class failure modes) from the local encrypted database ([TR-002](../../../requirements/common/TR-002.md)), guaranteeing zero network latency when populating dropdowns in field dead-zones.
 3. **Real-Time Safety & Status Channels ([TR-010](../../../requirements/common/TR-010.md), [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)):**
@@ -284,7 +290,7 @@ sequenceDiagram
   2. Capturing photo via hardware camera or file picker downsamples image to maximum $1920\times 1080$ JPEG format (quality 0.85) to optimize offline storage footprint.
   3. Computes cryptographic checksum asynchronously in a Web Worker via ICryptoInterop (SHA-256).
   4. Renders individual gallery cards displaying image thumbnail (`--dt-layout-thumbnail-size`), metadata, delete trigger, and verified monospace hash stamp (`SHA-256: [hash]`).
-  5. Packages validated media items into `MediaAttachmentDto` records linking image URI, file format, timestamp, and hash string to the failure record context (uploading directly via an Azure Blob SAS Valet Key per [ADR-008](../../../architecture/adr/ADR-008.md) when online, or persisting the encrypted binary locally for two-phase outbox sync on reconnect per §5.3.5).
+  5. Packages validated media items into `MediaAttachmentDto` records linking image URI, file format, timestamp, and hash string to the failure record context (when online, requesting an Azure Blob SAS Valet Key via `POST /api/v1/maintenance/work-orders/{id}/media-upload-sas` per [ADR-008](../../../architecture/adr/ADR-008.md) and executing a direct `HTTPS PUT` to Blob Storage; when offline, persisting the encrypted binary locally for two-phase outbox sync on reconnect per §5.3.5).
   6. If file reading throws an I/O error or hash evaluation fails, the UI enters state `Evidence Corrupt` (`AF-003`), halts finalization, and forces recapture.
 
 #### 5.3.4. Atomic Technical Closure Command Dispatch (`CMP-09`, `TR-001`)
@@ -306,7 +312,7 @@ sequenceDiagram
   6. Assigns a unique `X-Idempotency-Key` (UUIDv7) per [ADR-005](../../../architecture/adr/ADR-005.md) and [ADR-007](../../../architecture/adr/ADR-007.md), omitting stale `If-Match` headers on offline replay.
   7. Marks the local UI view as `COMPLETE (Pending Sync)`.
   8. **Two-Phase Reconnect Sync (`ADR-008` & `ADR-006`):** Background synchronization worker monitors connectivity and drains the outbox in chronological **FIFO** order upon restoration:
-     * **Phase 1 — Valet Key Direct Blob Upload (`ADR-008`):** For each locally encrypted media binary, the worker requests an Azure Blob SAS Valet Key URL from the backend API and executes a direct `HTTPS PUT` of the binary payload directly to Azure Blob Storage, bypassing the API monolith.
+     * **Phase 1 — Valet Key Direct Blob Upload (`ADR-008`):** For each locally encrypted media binary, the worker calls `POST /api/v1/maintenance/work-orders/{id}/media-upload-sas` (`RequestMediaUploadSasCommand` $\to$ `MediaUploadSasResponseDto`, §7.2.3) to obtain a short-lived Azure Blob SAS Valet Key URL and executes a direct `HTTPS PUT` of the binary payload directly to Azure Blob Storage, bypassing the API monolith.
      * **Phase 2 — Idempotent Command Replay (`ADR-006`, `TR-007-NFR-407`):** With the remote Azure Blob `FileUrl` values populated in `EvidenceAttachments`, the worker dispatches `POST /api/v1/maintenance/work-orders/{id}/technical-closure` carrying `X-Idempotency-Key: {uuidv7}` and **omitting stale `If-Match`**, using server-side command-sourced reconciliation so the field closure is preserved and any concurrent state discrepancy triggers an administrative reconciliation alert rather than silent rejection.
 
 #### 5.3.6. Rotable Asset Swap Branching (`CMP-04`)
@@ -660,6 +666,9 @@ public enum IsolationStatus
     RELEASED
 }
 
+/// <summary>
+/// Hydrated via GET /api/v1/maintenance/work-orders/{id}/closing-context (or local IOfflineStorage cache fallback).
+/// </summary>
 public record WorkOrderClosingContextDto
 {
     public required Guid WorkOrderId { get; init; }
@@ -712,6 +721,29 @@ public record SparePartAllocationDto
     public required decimal PlannedQuantity { get; init; }
     public decimal ActualQuantity { get; set; }
     public required string WarehouseLocation { get; init; }
+}
+
+/// <summary>
+/// Valet Key SAS request payload dispatched to POST /api/v1/maintenance/work-orders/{id}/media-upload-sas (ADR-008).
+/// </summary>
+public record RequestMediaUploadSasCommand
+{
+    public required Guid AttachmentId { get; init; }
+    public required MediaAttachmentFileType FileType { get; init; }
+    public required string IntegrityHashSha256 { get; init; }
+    public required long ContentLengthBytes { get; init; }
+}
+
+/// <summary>
+/// Time-limited Azure Blob SAS Valet Key response returned by POST /api/v1/maintenance/work-orders/{id}/media-upload-sas (ADR-008).
+/// Client performs a direct HTTPS PUT to UploadSasUrl, then persists BlobFileUrl in MediaAttachmentDto.FileUrl.
+/// </summary>
+public record MediaUploadSasResponseDto
+{
+    public required Guid AttachmentId { get; init; }
+    public required string UploadSasUrl { get; init; }
+    public required string BlobFileUrl { get; init; }
+    public required DateTimeOffset ExpiresAtUtc { get; init; }
 }
 
 public record MediaAttachmentDto
@@ -792,5 +824,5 @@ public record SubmitTechnicalClosureCommand
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-07`, `CMP-08`, `CMP-09` | Client-side sequential UUIDv7 identifier generation for offline-captured failure records and media attachments. |
 | [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-01`, `CMP-08`, `CMP-09` | Command-sourced FIFO outbox reconciliation (omitting stale `If-Match` on offline replay) and Cryptographic Offline Lease integration for disconnected field operations. |
 | [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-08`, `CMP-09` | Idempotency key (`X-Idempotency-Key`) generation attached to technical closure payloads to prevent duplicate commits. |
-| [ADR-008](../../../architecture/adr/ADR-008.md) | `CMP-07`, `CMP-08`, `CMP-09` | Two-phase offline media sync via Azure Blob SAS Valet Key: persist encrypted binary locally offline, upload via direct `PUT` on reconnect, and attach remote `FileUrl` to `SubmitTechnicalClosureCommand`. |
+| [ADR-008](../../../architecture/adr/ADR-008.md) | `CMP-07`, `CMP-08`, `CMP-09` | Two-phase offline media sync via Azure Blob SAS Valet Key (`POST /api/v1/maintenance/work-orders/{id}/media-upload-sas`): persist encrypted binary locally offline, upload via direct `PUT` on reconnect, and attach remote `FileUrl` to `SubmitTechnicalClosureCommand`. |
 
