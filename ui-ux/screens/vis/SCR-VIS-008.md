@@ -94,13 +94,13 @@ status: Stable
    - **Architectural Scope:** Represents active authorized permits on the map using 4-channel redundant coding per [DT-UI-DS-DOC-001 §6.2](../../DT-UI-DS-DOC-001.md#62-redundant-coding-matrix-for-permits-and-loto) and [§6.4](../../DT-UI-DS-DOC-001.md#64-iconography-and-redundant-symbology-standards). Enforces IOGP 459 / API 2015 3-state (`A` / `R` / `X`) compatibility rules, union-only conflict intersection hatching, and concurrency fan-out clustering specified in §5.1.
 
 6. **`CMP-06`: Context Popover Card**
-   - **Visual Role:** Transient frosted card displaying permit metadata, validity window, contractor, LOTO reference, SIMOPS joint countermeasures confirmation (for `R` state), and drill-down action.
+   - **Visual Role:** Transient frosted card displaying permit metadata, validity window, contractor, LOTO reference, SIMOPS joint countermeasures confirmation (for `R` state), and drill-down actions.
    - **Design Tokens:** 
 	   - Surface: `--dt-color-float-bg-strong`
 	   - Border: `--dt-color-float-border-strong`
 	   - Elevation: `--dt-shadow-glass`
 	   - Radius: `--dt-radius-lg`
-   - **Architectural Scope:** Deployed upon tapping `CMP-05` or selecting an entry from a concurrency fan-out tray. Features a secondary action button (`[View Permit Details]`) for Level 3 drill-down per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons) and §5.5. Viewport collision flipping and light-dismiss rules in §5.4.
+   - **Architectural Scope:** Deployed upon tapping `CMP-05` or selecting an entry from a concurrency fan-out tray. Features a secondary action button (`[View Permit Details]`) for Level 3 drill-down and a conditional `[Inspect Isolation]` trigger (active when `Permit.WorkOrderId != null`) for Level 4 LOTO verification per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons) and §5.5. Viewport collision flipping and light-dismiss rules in §5.4.
 
 7. **`CMP-07`: SIMOPS Integrity Panel**
    - **Visual Role:** Collapsible drawer displaying visualization failures and unmapped permits as flat rows separated by hairline dividers with dedicated resolution triggers (`#icon-location`).
@@ -237,7 +237,7 @@ status: Stable
 3. **Transient Popover Card Dismissal and Viewport Clamping (`CMP-06`):**
    * **Adaptive Viewport Clamping & Collision Flipping:** Dynamically calculates bounding box and flips leftward when colliding with the right viewport margin ($X + W > \text{Viewport}_W - \text{--dt-space-4}$); clamps vertically within safe boundaries ($[\text{--dt-layout-popover-top-clearance}, \text{Viewport}_H - H - \text{--dt-space-4}]$) respecting top toolbar clearance.
    * **Transient Light-Dismiss:** Moving the canvas via pan drag or adjusting zoom immediately dismisses `CMP-06` and open concurrency fan-out trays to maintain unobstructed visual scanning. Ending a pan gesture immediately unblocks input handling so subsequent stationary clicks or taps on markers deploy `CMP-06` without gesture-lock.
-   * **Secondary Action Trigger:** Features a label-only secondary action button (`[View Permit Details]`, borderless in light theme with subtle hairline framing in dark theme, without trailing chevron, per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons)) to initiate Level 3 inspection (§5.5).
+   * **Secondary Action Triggers:** Features label-only secondary action buttons (`[View Permit Details]` and, when `Permit.WorkOrderId != null`, `[Inspect Isolation]`, borderless in light theme with subtle hairline framing in dark theme, without trailing chevron, per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons)) to initiate Level 3 inspection and Level 4 LOTO verification (§5.5).
 4. **Horizontal Filter Chips Ergonomics (`CMP-08`):**
    * Transparent horizontal container anchored at the bottom viewport margin hosting independently floating, borderless filter pills elevated with `--dt-shadow-hud`.
    * Applies hazard-specific tinted fills upon selection (`HOT_WORK`, `CONFINED_SPACE`, etc.) and `--dt-color-surface-raised` for `ALL`, with widened count capsules.
@@ -248,7 +248,8 @@ status: Stable
 
 ### 5.5. Hierarchical Escalation (L1 $\to$ L3 Transition)
 1. Clicking on `[View Permit Details]` within `CMP-06` initiates an operational drill-down, transitioning the inspector directly into the Level 3 Equipment Task Faceplate ([SCR-VIS-033](./SCR-VIS-033.md)) for the target equipment unit.
-2. Direct selection of an Equipment Unit on the canvas (outside a PTW badge) seamlessly deploys the [SCR-VIS-033](./SCR-VIS-033.md) contextual drawer without changing screens.
+2. When `Permit.WorkOrderId != null`, clicking `[Inspect Isolation]` within `CMP-06` navigates directly to the Level 4 LOTO Isolation Boundary Matrix ([SCR-VIS-011](./SCR-VIS-011.md)) with query `?workOrderId={WorkOrderId}&equipId={EquipmentUnitId}` ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)). When `Permit.WorkOrderId == null`, `[Inspect Isolation]` is disabled/hidden.
+3. Direct selection of an Equipment Unit on the canvas (outside a PTW badge) seamlessly deploys the [SCR-VIS-033](./SCR-VIS-033.md) contextual drawer without changing screens.
 
 ---
 
@@ -356,6 +357,9 @@ public EventCallback OnCloseRequested { get; set; }
 
 [Parameter]
 public EventCallback<string> OnViewDetailsRequested { get; set; }
+
+[Parameter]
+public EventCallback<(Guid WorkOrderId, Guid EquipmentUnitId)> OnInspectIsolationRequested { get; set; }
 
 // CMP-07: SimopsIntegrityDrawer.razor
 [Parameter]
@@ -508,6 +512,7 @@ public record PtwOverlayDto
     public required DateTimeOffset ValidTo { get; init; }
     public required WorkPermitStatus Status { get; init; }
     public bool IsExpiringSoon { get; init; }
+    public Guid? WorkOrderId { get; init; }
     public string? AssociatedLotoNumber { get; init; }
     public double BufferRadiusMeters { get; init; } = 5.0; // 15m HOT_WORK, 13m CONFINED_SPACE, 5m default
     public bool HasSimopsConflict { get; init; }
@@ -630,7 +635,7 @@ public record PlantZoneDto
 | :--- | :--- | :--- |
 | [FR-182](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-01`, `CMP-02` | Toggling the "Work Permits" layer overlays active permits over the 2D plot plan without obscuring base context. |
 | [FR-183](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-05` | Renders redundant coding (Color + Geometric Shape) for each permit type against the neutral grayscale canvas. |
-| [FR-184](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-06` | Clicking a permit badge opens a compact popover card with type, contractor, supervisor, schedule, and drill-down action. |
+| [FR-184](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-06` | Clicking a permit badge opens a compact popover card with type, contractor, supervisor, schedule, `[View Permit Details]`, and conditional `[Inspect Isolation]` navigation to [SCR-VIS-011](./SCR-VIS-011.md) when `WorkOrderId != null`. |
 | [FR-185](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-02`, `CMP-07` | Automated integrity validation cross-references active permits against loaded SVG tags, flagging orphaned permits. |
 | [FR-186](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-07` | Collapsible lateral drawer displays visualization failures, allowing manual reassignment or resolution. |
 | [FR-187](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr) | `CMP-01`, `CMP-05` | Near real-time SignalR synchronization adds, updates, and removes permit badges without full page reloads. |

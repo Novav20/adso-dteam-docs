@@ -210,7 +210,7 @@ status: Stable
 
 8. **Work Order In Progress**
    - **Activation Condition:** Technician activates `[Start Work]` (`CMP-09`).
-   - **Visual Modification:** `CMP-05` header status reflects active execution (`IN_PROGRESS`). Primary action button `CMP-09` transitions to `[Complete Work & De-isolate]` (`--dt-color-surface-raised`). Boundary route remains locked in slate dashed.
+   - **Visual Modification:** Upon server confirmation (`WorkOrder.Status == IN_PROGRESS`), `CMP-05` header status reflects active execution (`IN_PROGRESS`), boundary routes remain locked in slate dashed, and the client navigates downstream to Mobile Work Order Execution ([SCR-MTTO-002](../mtto/SCR-MTTO-002.md), `?workOrderId={WorkOrderId}`) per [DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac). When inspected later in read-only supervisory context, `CMP-09` renders `[Execution Active · Open Work Order]` (`--dt-color-surface-raised`) without undocumented de-isolation mutations.
 
 9. **Re-energization Emergency (`AF-003`)**
    - **Activation Condition:** Continuous telemetry monitoring detects hazardous energy flow ($V > 0.0\text{ V}$ or $P > 0.5\text{ psig}$) during active execution and broadcasts an emergency alert (`FR-232`, `AF-003`).
@@ -218,11 +218,15 @@ status: Stable
 
 10. **Disconnectivity / Fail-Safe (`AF-002`)**
     - **Activation Condition:** Telemetry communication lost prior to work start ([ADR-006](../../../architecture/adr/ADR-006.md), `NFR-238`).
-    - **Visual Modification:** Diagnostic banner `CMP-11` transitions to Priority 4 disconnected mode (`--dt-color-surface-card`, `--dt-color-text-muted`, `#icon-wifi-off`). If a valid Cryptographic Offline Lease exists, displays remaining lease countdown; if expired or absent, `CMP-09` locks in fail-safe state blocking initiation.
+    - **Visual Modification:** Diagnostic banner `CMP-11` transitions to Priority 4 disconnected mode (`--dt-color-surface-card`, `--dt-color-text-muted`, `#icon-wifi-off`). If a valid Cryptographic Offline Lease exists, displays remaining lease countdown; if expired or absent (`AF-002.3`), `CMP-09` locks in fail-safe state blocking initiation until connectivity restoration or authorized Supervisor Cryptographic Override (`NFR-229`).
 
 11. **Unmapped Cutoff Node (Geometry Unresolved)**
     - **Activation Condition:** Cutoff point defined in the work order isolation plan lacks valid coordinate mapping in `MeshMapping` (`UNMAPPED` or `SYNC_ERROR`).
     - **Visual Modification:** Drawer step in `CMP-06` displays a neutral diagnostic pill `[Coordinates Pending CAD Ingestion]` (`--dt-color-text-muted`) and disables spatial pan-to-node for that cutoff point without rendering arbitrary $(0, 0)$ canvas markers.
+
+12. **Unapproved or Expired Work Permit (`AF-004`)**
+    - **Activation Condition:** Associated Work Permit is `DRAFT`, `PENDING`, `EXPIRED`, `REVOKED`, `CLOSED`, or absent (`LinkedPermitStatus != WorkPermitStatus.APPROVED`).
+    - **Visual Modification:** Regulatory safety interlock banner deploys across `CMP-05` (`--dt-color-alarm-critical`, `#icon-ban`): *"Permit Safety Guard: Field work cannot proceed without an active, approved Work Permit. Contact HSEQ Inspector."* `CMP-09` remains hard-disabled (`CanStartWork == false`) and LOTO execution is aborted.
 
 ---
 
@@ -260,16 +264,17 @@ sequenceDiagram
     UI->>API: POST /api/v1/safety/loto-plans/{planId}/try-out (TryOutAttestationDto + X-Idempotency-Key)
     API-->>UI: Attestation & hardware-bound signature registered (TR-001 audit logged)
     
-    alt Hazardous Energy Detected (> threshold)
-        API-->>UI: Safety Interlock Denied (Energy Detected / Uncertain)
+    alt Hazardous Energy Detected (> threshold) or Unapproved Permit (AF-001 / AF-004)
+        API-->>UI: Safety Interlock Denied (Energy Detected / Permit Not APPROVED)
         UI->>SEC: Maintains HARD LOCK (interlock active)
-        UI->>Tech: Deploys Critical Alert "Hazardous Energy Detected"
-    else Zero Energy Corroborated & Try-Out Attested
+        UI->>Tech: Deploys Critical Alert (Hazardous Energy or Permit Safety Guard)
+    else Zero Energy Corroborated, Try-Out Attested & WorkPermit == APPROVED
         API-->>UI: Safety Interlock Authorized (Zero State Proven)
         UI->>SEC: Enables [Start Work] control (CMP-09)
         Tech->>UI: Presses [Start Work]
         UI->>API: POST /api/v1/maintenance/work-orders/{id}/start-execution (StartWorkOrderExecutionCommand + X-Idempotency-Key)
         API-->>UI: Execution confirmed (WorkOrder IN_PROGRESS, TR-001 audit logged)
+        UI-->>Tech: Navigates to SCR-MTTO-002?workOrderId={WorkOrderId}
     end
 
     opt Re-energization Breach during Execution (AF-003)
@@ -340,11 +345,12 @@ sequenceDiagram
      * Telemetry verification snapshot: Structured payload capturing instantaneous sensor values across all cutoff points at attestation time per [DT-ERD-DOC-001 §6.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#66-viswork_order_isolationstelemetry_snapshot).
    * Encapsulated into `TryOutAttestationDto` (§7.2.3, containing `IsolationPointId`, `Method`, `ObservedPhysicalReading`, `TechnicianSignatureHash`, `TelemetrySnapshot`, and `AttestedAtUtc`) and dispatched with `X-Idempotency-Key` to `POST /api/v1/safety/loto-plans/{planId}/try-out`. The application service acquires a pessimistic `SELECT ... FOR UPDATE NOWAIT` lock online ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)), updates isolation state, and appends an immutable audit record with SHA-256 hash chaining (`TR-001`).
 
-4. **Active Safety Interlock Logic (`NFR-229`, `FR-230`):**
+4. **Active Safety Interlock Logic (`NFR-229`, `FR-230`, `AF-004`):**
    * Work initiation button `CMP-09` `[Start Work]` reflects the server-authoritative safety gate. The backend application service permits work execution strictly when the following Boolean invariant evaluates to true:
-     $$\text{CanStartWork} = \text{ChecklistCompleted} \land \text{TryOutAttested} \land \text{TelemetryNotEnergized} \land (\text{IsOnline} \lor \text{ValidOfflineLease})$$
-   * **Normative Asymmetry (Negative Interlock Primacy):** IoT telemetry operates strictly as a **negative interlock**, never as a positive authorization enabler. The presence of detected energy ($V > 0.0\text{V}$ or $P > 0.5\text{psig}$) or telemetry uncertainty/sensor fault immediately and unconditionally forces $\text{CanStartWork} = \text{false}$. Conversely, telemetry showing zero energy is insufficient on its own to enable work: affirmative authorization is gated strictly by 100% physical checklist completion and verified manual Try-Out attestation.
-   * **Client Presentation Contract:** The UI reflects this rule via an optimistic state calculation (`CanStartWork`) that sets the disabled state (`--dt-color-state-disabled`) on `CMP-09`. However, client DOM manipulation cannot bypass the interlock: activating `[Start Work]` dispatches `StartWorkOrderExecutionCommand` (§7.2.3) with `X-Idempotency-Key` to `POST /api/v1/maintenance/work-orders/{id}/start-execution`, which is authoritatively validated under `SELECT ... FOR UPDATE NOWAIT` online (or against `CryptographicOfflineLeaseDto` in offline lease mode per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)) before transitioning the Work Order to `IN_PROGRESS`.
+     $$\text{CanStartWork} = \text{ChecklistCompleted} \land \text{TryOutAttested} \land \text{TelemetryNotEnergized} \land (\text{LinkedPermitStatus} == \text{WorkPermitStatus.APPROVED}) \land (\text{IsOnline} \lor \text{ValidOfflineLease}) \land \neg\text{IsReadOnly}$$
+   * **Regulatory Work Permit Guard (`AF-004`):** If the associated Work Permit is absent, expired, revoked, or in any status other than `WorkPermitStatus.APPROVED`, `LinkedPermitStatus == WorkPermitStatus.APPROVED` evaluates to `false`, forcing `CanStartWork = false`, displaying the `AF-004` permit safety guard banner (*"Permit Safety Guard: Field work cannot proceed without an active, approved Work Permit. Contact HSEQ Inspector."*), and blocking LOTO execution ([DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)).
+   * **Normative Asymmetry (Negative Interlock Primacy):** IoT telemetry operates strictly as a **negative interlock**, never as a positive authorization enabler. The presence of detected energy ($V > 0.0\text{V}$ or $P > 0.5\text{psig}$) or telemetry uncertainty/sensor fault immediately and unconditionally forces $\text{CanStartWork} = \text{false}$. Conversely, telemetry showing zero energy is insufficient on its own to enable work: affirmative authorization is gated strictly by 100% physical checklist completion, verified manual Try-Out attestation, and an `APPROVED` Work Permit.
+   * **Client Presentation Contract & Downstream Navigation:** The UI reflects this rule via an optimistic state calculation (`CanStartWork`) that sets the disabled state (`--dt-color-state-disabled`) on `CMP-09` (and disables/hides `[Start Work]` when `IsReadOnly == true` per `SOD-SAF-01`). However, client DOM manipulation cannot bypass the interlock: activating `[Start Work]` dispatches `StartWorkOrderExecutionCommand` (§7.2.3) with `X-Idempotency-Key` to `POST /api/v1/maintenance/work-orders/{id}/start-execution`, which is authoritatively validated under `SELECT ... FOR UPDATE NOWAIT` online (or against `CryptographicOfflineLeaseDto` in offline lease mode per [DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)) before transitioning the Work Order to `IN_PROGRESS` and navigating downstream to Mobile Work Order Execution ([SCR-MTTO-002](../mtto/SCR-MTTO-002.md), `?workOrderId={WorkOrderId}`) per [DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac).
    * In offline disconnected operations with a valid lease (`ADR-006`), live telemetry evaluation is bypassed in favor of mandatory physical Try-Out attestation verified against the hardware keystore.
 
 5. **Continuous In-Execution Monitoring & Emergency Broadcast Handling (`FR-232`, `AF-003`):**
@@ -357,7 +363,7 @@ sequenceDiagram
    * **Mandatory 2-Second Heartbeat & 30-Second Grace Window ([DT-ARQ-DEP-DOC-001 §4](../../../architecture/views/DT-ARQ-DEP-DOC-001.md#4-perimeter-security-mechanism-loto-watchdog-fail-safe), [DT-UI-NAV-DOC-001 §6.2](../../DT-UI-NAV-DOC-001.md#62-loto-lockout-and-fail-safe-guard)):** The background LOTO Watchdog (`loto_watchdog`) validates WebSocket connectivity over `/hubs/telemetry` by sending a heartbeat ping on a mandatory **2-second cadence** and tracking `LotoHeartbeatAck` acknowledgments. To tolerate industrial RF shadowing and AP roaming without false positives, a **30-second Grace Window** applies before declaring telemetry disconnection and evaluating fail-safe lockout on `CMP-09`.
    * **Lease Acquisition & Monotonic Clock Evaluation (`ADR-006`):** Prior to offline entry, the client acquires an HMAC-SHA256-signed `CryptographicOfflineLeaseDto` via `POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease` (`X-Idempotency-Key`), transitioning the server isolation record to `LEASED_OFFLINE` ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)). If the **30-second Grace Window** expires without `LotoHeartbeatAck`, the client validates the cached `CryptographicOfflineLeaseDto` (`LeaseToken`, `WorkOrderId`, `IssuedToUserId`, `ExpiresAtUtc`, `MaxTtlMinutes = 60`, `HmacSignature`). `RemainingLeaseSeconds` is strictly bounded to a **60-minute max TTL** ($\le 3600\text{ s}$) and evaluated against the device's **hardware monotonic clock** (mitigating OS wall-clock tampering or NTP skew).
    * **Active Lease Present:** Transitions to bounded offline safe mode, deploying `CMP-11` in informational mode (*"Offline Safety Mode Active (Lease expires: HH:mm UTC)"* with `RemainingLeaseSeconds` countdown). Mandates physical Try-Out re-verification (`CMP-08`) and queues `ConfirmCutoffStepRequestDto`, `TryOutAttestationDto`, and `StartWorkOrderExecutionCommand` into the encrypted offline outbox (`TR-007`) paired with `CryptographicOfflineLeaseDto` (`LeaseToken`) + `X-Idempotency-Key` for deferred reconciliation upon reconnection ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)).
-   * **Expired or Absent Lease:** Writes a Preventive Security Lockout flag to encrypted local storage (`DT-ARQ-DEP-DOC-001 §4`) and triggers an immediate fail-safe lock on `CMP-09`, displaying *"Danger: Telemetry communication lost. Intervention blocked by fail-safe design"*. Initiation requires connectivity restoration (and fresh Zero-Energy confirmation) or dual-supervisor cryptographic override.
+   * **Expired or Absent Lease (`AF-002.3`, `NFR-229`):** Writes a Preventive Security Lockout flag to encrypted local storage ([DT-ARQ-DEP-DOC-001 §4](../../../architecture/views/DT-ARQ-DEP-DOC-001.md#4-perimeter-security-mechanism-loto-watchdog-fail-safe)) and triggers an immediate fail-safe lock on `CMP-09`, displaying *"Offline Safety Lease Expired. Re-establish network connectivity or provide Supervisor Cryptographic Override to proceed."* Bypassing the lock requires connectivity restoration (with fresh Zero-Energy confirmation) or an authorized Supervisor Cryptographic Override dispatching `SupervisorLotoOverrideCommand` (§7.2.3) with `X-Idempotency-Key: {uuidv7}` to `POST /api/v1/safety/loto-plans/{workOrderId}/supervisor-override`, recording `SupervisorUserId`, `OverrideJustification`, and `SupervisorPinOrSignature` in the immutable `TR-001` audit log while still requiring physical padlock confirmation and `TryOutAttestationDto`.
 
 ---
 
@@ -770,6 +776,19 @@ public record StartWorkOrderExecutionCommand
 }
 
 /// <summary>
+/// Dual-supervisor cryptographic override command dispatched to POST /api/v1/safety/loto-plans/{workOrderId}/supervisor-override
+/// when telemetry connectivity fails without an active offline lease (AF-002.3, NFR-229).
+/// Requires Supervisor authorization and mandatory technical justification; persisted in the immutable TR-001 audit log.
+/// </summary>
+public record SupervisorLotoOverrideCommand
+{
+    public required Guid WorkOrderId { get; init; }
+    public required Guid SupervisorUserId { get; init; }
+    public required string OverrideJustification { get; init; }
+    public required string SupervisorPinOrSignature { get; init; }
+}
+
+/// <summary>
 /// Controlled physical energy isolation vocabulary per DT-DM-DOC-001 §4.28.
 /// </summary>
 public enum IsolationType
@@ -914,7 +933,7 @@ public enum WorkOrderStatus
 | [FR-230](../../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr) | `CMP-08`, `CMP-09` | Start work control enables ONLY AFTER physical checklist completion, rich Try-Out attestation with signature hash, and corroborative telemetry zero state. |
 | [FR-231](../../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr) | `CMP-08`, `CMP-09` | Audit trail logging of technician signature hash, padlock IDs, timestamps, and sensor telemetry snapshot upon start. |
 | [FR-232](../../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr) | `CMP-01`, `CMP-09`, `CMP-12` | Continuous in-execution telemetry monitoring; automated server-side Work Order suspension to `SUSPENDED` and deployment of non-interactive passive evacuation beacon on re-energization breach. |
-| [NFR-229](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-09` | ACTIVE LOCK: interface disables work initiation on active energy; cannot be bypassed on client. |
+| [NFR-229](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-09` | ACTIVE LOCK: interface disables work initiation on active energy, unapproved Work Permit (`AF-004`, `LinkedPermitStatus != APPROVED`), or missing/expired lease unless authorized via `SupervisorLotoOverrideCommand` (`AF-002.3`); upon execution confirmation, navigates to [SCR-MTTO-002](../mtto/SCR-MTTO-002.md). |
 | [NFR-233](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-07` | Telemetry processing and UI update latency $< 1\text{s}$ via SignalR WebSocket stream. |
 | [NFR-234](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-09` | Fail-safe design: uncertain energy status assumes hazardous condition and maintains lock. |
 | [NFR-235](../../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | `CMP-05`, `CMP-09` | Transactional synchronization via `ConfirmCutoffStepRequestDto` upon isolation confirmation under `SELECT ... FOR UPDATE NOWAIT` ([DT-ARQ-DB-DOC-001 §3.7](../../../architecture/DT-ARQ-DB-DOC-001.md#37-pessimistic-locking-vs-distributed-offline-leases-for-loto-isolation-vis-011-asr-002-adr-006)). |

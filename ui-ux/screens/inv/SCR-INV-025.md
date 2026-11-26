@@ -107,13 +107,13 @@ status: Stable
    - **Architectural Scope:** Immediate visual gatekeeper for taxonomic `EquipmentClassId` parity and destination completeness ([DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons)). Hidden in default unselected state (`CLS = 0`). Detailed in §5.3.1.
 
 7. **`CMP-07`: Work Order Linkage Field**
-   - **Visual Role:** Searchable reference input linking the rotable swap transaction to a justifying maintenance Work Order (e.g., `WO-2026-0842`), captioned `Optional`.
+   - **Visual Role:** Mandatory searchable reference input linking the rotable swap transaction to a justifying maintenance Work Order (e.g., `WO-2026-0842`).
    - **Design Tokens:**
      - Surface: `--dt-color-surface-card`
-     - Border: `--dt-color-border-subtle`
+     - Border: `--dt-color-border-subtle`, `--dt-color-alarm-warning` (Missing Required Link)
      - Control Height: `--dt-control-height-lg`
      - Radius: `--dt-radius-md`
-   - **Architectural Scope:** Associates the inventory transaction (`InventoryTransaction.WorkOrderId`) with the originating maintenance intervention (`FR-595`). Detailed in §5.1.
+   - **Architectural Scope:** Mandatorily associates the inventory transaction (`InventoryTransaction.WorkOrderId`) and audit log with the originating maintenance intervention (`FR-595`). Detailed in §5.1 and §5.3.
 
 8. **`CMP-08`: Cryptographic Audit Hash Readout**
    - **Visual Role:** Borderless single-line monospace readout displaying the real-time candidate SHA-256 integrity seal (`—` when incomplete).
@@ -160,19 +160,23 @@ status: Stable
    - **Activation Condition:** User attempts to confirm the swap without selecting a destination status or receiving warehouse (`AF-002`).
    - **Visual Modification:** Unselected destination controls in `CMP-03` highlight with an amber outline (`--dt-color-alarm-warning`) and `#icon-warning` glyph. Footer validation badge `CMP-06` displays: *"Select destination status and receiving warehouse"*.
 
-5. **Ready for Execution**
-   - **Activation Condition:** Valid compatible replacement asset selected + dismounted asset destination status and receiving warehouse selected + optional Work Order linked.
+5. **Safety Interlock Violation / Unverified Energy Isolation (`AF-003`)**
+   - **Activation Condition:** Swap is invoked within a Work Order context where required LOTO isolation points are not formally locked and Try-Out attested (`IsolationStatus != VERIFIED_ZERO_ENERGY` / `LEASED_OFFLINE`), or live plant telemetry detects residual electrical current or fluid pressure above zero-energy thresholds (`AF-003`, [ASR-002](../../../architecture/asr/DT-ARQ-ASR-001.md#2-real-time-loto-security-and-fail-safe)).
+   - **Visual Modification:** Validation footer `CMP-06` and modal header deploy a critical safety interlock alert (`--dt-color-alarm-critical`, `#icon-ban`): *"Operational Safety Interlock: Equipment cannot be mechanically uncoupled while energy isolation remains unverified. Confirm zero energy state before proceeding."* Primary CTA `CMP-09` (`[Swap Rotable Asset]`) is hard-disabled and the swap workflow is aborted.
+
+6. **Ready for Execution**
+   - **Activation Condition:** Valid compatible replacement asset selected + dismounted asset destination status and receiving warehouse selected + mandatory justifying Work Order linked (`FR-595`) + LOTO energy isolation verified (`AF-003`).
    - **Visual Modification:** `CMP-06` renders a Teal confirmation pill (`--dt-color-state-success`, `#icon-check`): *"Compatible Class (B-PMP-CENT) · Ready to Confirm"*. Hash readout `CMP-08` displays the live 64-character SHA-256 preview. Primary CTA `CMP-09` (`[Swap Rotable Asset]`) unlocks in `--dt-color-state-info`.
 
-6. **Executing Atomic Commit**
+7. **Executing Atomic Commit**
    - **Activation Condition:** User activates `[Swap Rotable Asset]` (`CMP-09`).
    - **Visual Modification:** `CMP-09` renders a loading state (`--dt-color-surface-raised`) with label *"Processing asset swap..."*. All form inputs lock to prevent duplicate submissions.
 
-7. **Swap Completed (Success)**
+8. **Swap Completed (Success)**
    - **Activation Condition:** Single-commit atomic database transaction succeeds in $< 2\text{s}$ (`NFR-597`).
    - **Visual Modification:** Modal transitions to documentary confirmation state (`--dt-color-state-success`, `#icon-check`), displaying *"Rotable Asset Swap Completed Successfully"* with the new `InstallationId`, and automatically dismisses after $1.5\text{s}$.
 
-8. **Offline Queued / Disconnected Execution**
+9. **Offline Queued / Disconnected Execution**
    - **Activation Condition:** User confirms the swap while the industrial tablet is disconnected from the network ([TR-007](../../../requirements/common/TR-007.md)).
    - **Visual Modification:** Modal renders an amber offline strip (`--dt-color-alarm-warning`, `#icon-wifi-off`) in the header: *"OFFLINE MODE — ASSET SWAP WILL BE QUEUED ON DEVICE"*. Confirmation state displays `#icon-sync-pending` with *"Offline Mode — Asset Swap Saved Locally"*, dismissing after $1.5\text{s}$ and incrementing the caller view's pending sync counter.
 
@@ -250,15 +254,22 @@ Upon pressing `[Swap Rotable Asset]`, the client dispatches an atomic substituti
 `POST /api/v1/inventory/rotable-swaps`
 
 * **Client Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) guaranteeing exactly-once transaction processing during network reconnection retries, paired with `If-Match: "{DismountedConcurrencyToken}"` on live online commits enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169) (omitted on offline outbox replay).
-* **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) carrying `DismountedConcurrencyToken` and `ReplacementConcurrencyToken` alongside functional location, dismounted equipment ID, destination status enum, holding warehouse ID, replacement equipment ID, optional justifying work order reference, and technician user ID (`audit_logs.previous_hash` is computed server-side pre-commit by `AuditSaveChangesInterceptor`).
+* **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) carrying `DismountedConcurrencyToken` and `ReplacementConcurrencyToken` alongside functional location, dismounted equipment ID, destination status enum, holding warehouse ID, replacement equipment ID, mandatory justifying work order reference (`JustifyingWorkOrderId`, `FR-595`), and technician user ID (`audit_logs.previous_hash` is computed server-side pre-commit by `AuditSaveChangesInterceptor`).
 * **Backend Persistence Invariant:** The backend orchestrates `ExecuteAssetSwapCommand` within a single-commit atomic transaction ([ADR-005](../../../architecture/adr/ADR-005.md), `NFR-596`): validating `DismountedConcurrencyToken` and `ReplacementConcurrencyToken` server-side against both dismounted and replacement `EquipmentUnit` `xmin` rows on live online requests (returning HTTP 409 Conflict on stale state) or executing server-side command-sourced reconciliation for offline outbox replays, unlinking the dismounted asset, updating destination status and warehouse holding state, mounting the replacement rotable unit, recording the chained cryptographic audit entry ([TR-001](../../../requirements/common/TR-001.md)), and broadcasting `AssetSwapCompleted(AssetSwapCompletedEvent)` over SignalR hub `/hubs/operations` (`IOperationsClient`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)). Returns HTTP 200 OK with `AssetSwapCompletedEvent`.
 * **Success Handling (HTTP 200 OK):** Transitions UI state to `Swap Completed (Success)`, renders checkmark animation, dispatches `OnSwapCompleted` callback with `AssetSwapCompletedEvent`, and dismisses modal after $1.5\text{s}$.
 * **Offline Outbox Fallback (`TR-007`, `ADR-006`, `ADR-007`):** On network disconnection or HTTP 5xx timeout, the client serializes `ExecuteAssetSwapCommand` into the local encrypted outbox via `IOfflineStorage` ([TR-007](../../../requirements/common/TR-007.md), encrypted at rest per [TR-002](../../../requirements/common/TR-002.md)), assigns a UUIDv7 `X-Idempotency-Key` in the local outbox ([ADR-005](../../../architecture/adr/ADR-005.md), [ADR-007](../../../architecture/adr/ADR-007.md)), displays the "Offline Queued" state (§4), and dismisses after $1.5\text{s}$. Upon reconnecting to plant Wi-Fi, the background synchronization worker drains the outbox FIFO—**omitting stale `If-Match`** headers in favor of server-side command-sourced reconciliation ([ADR-006](../../../architecture/adr/ADR-006.md), [TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr)).
+
+#### 5.3.5. LOTO Energy Isolation Safety Interlock (AF-003)
+When an asset swap executes within a maintenance Work Order context (`JustifyingWorkOrderId`), the client and backend enforce the [ASR-002](../../../architecture/asr/DT-ARQ-ASR-001.md#2-real-time-loto-security-and-fail-safe) negative safety interlock before permitting mechanical uncoupling:
+1. Required LOTO isolation points for the target Work Order and equipment position must be locked and Try-Out attested (`VERIFIED_ZERO_ENERGY`, or valid `LEASED_OFFLINE` lease per [SCR-VIS-011](../vis/SCR-VIS-011.md)).
+2. Live plant telemetry sensors monitoring the associated isolation boundary must confirm zero residual energy ($V == 0.0\text{ V}$ and $P \le 0.5\text{ psig}$).
+3. If LOTO isolation is unverified or live telemetry detects active hazardous energy, `CMP-06` displays the critical `AF-003` safety interlock alert (*"Operational Safety Interlock: Equipment cannot be mechanically uncoupled while energy isolation remains unverified. Confirm zero energy state before proceeding."*), hard-disables `CMP-09` (`[Swap Rotable Asset]`), and aborts the swap transaction.
 
 ---
 
 ## 6. Industrial and Safety Considerations
 
+* **LOTO Energy Isolation Interlock (`AF-003` / [ASR-002](../../../architecture/asr/DT-ARQ-ASR-001.md#2-real-time-loto-security-and-fail-safe)):** Mechanical uncoupling of a mounted equipment unit within a Work Order context is strictly blocked whenever LOTO isolation attestation is incomplete or live telemetry detects hazardous energy ($V > 0.0\text{ V}$ or $P > 0.5\text{ psig}$), ensuring physical swap operations never bypass zero-energy verification (§5.3.5).
 * **Taxonomic Safety Interlock (`FR-593` / ISO 14224 §6):** Physical equipment rotation must never violate process engineering battery limits (e.g., mounting a low-pressure utility pump on a high-pressure hydrocarbon manifold). `CMP-06` and the domain service enforce strict `EquipmentClassId` equality and `IN_STORAGE` / `OPERATIONAL` readiness before enabling `CMP-09` (§5.3.1).
 * **Cross-Bounded-Context ACID Atomicity (`NFR-596` / [DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)):** Executing an asset swap mutates equipment unit entities, installation records (`FunctionalLocation.UninstallEquipment` $\to$ `EquipmentUnit.TransitionToRepair`/`TransitionToStorage`/`TransitionToDamaged` $\to$ `FunctionalLocation.InstallEquipment` per [DT-DM-DOC-002 §2.1](../../../domain-models/class/DT-DM-DOC-002.md#2-layer-1-asset-taxonomy-iso-14224)), inventory ledger transactions, and audit logs within a single shared database transaction, preventing orphaned equipment or split custody states.
 * **Offline Field Continuity & HPHMI Governance ([TR-007](../../../requirements/common/TR-007.md), [TR-011](../../../requirements/common/TR-011.md)):** Swaps executed in RF-shadowed process units are encrypted and queued locally (`IOfflineStorage`) with UUIDv7 idempotency keys ([ADR-007](../../../architecture/adr/ADR-007.md)). Visual surfaces, morphological differentiation between the capsule validation pill (`CMP-06`, `--dt-radius-full`) and primary action button (`CMP-09`, `--dt-radius-md`), and gloved touch targets (`--dt-touch-target-mobile`) adhere strictly to [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope) and [§6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons).
@@ -275,7 +286,7 @@ Components/Inventory/
     ├── DismountedAssetCard.razor                      # CMP-02 & CMP-03: Dismounted asset details & destination controls
     ├── ReplacementAssetCard.razor                     # CMP-04: Replacement rotable selector & specs grid
     │   └── BarcodeScannerButton.razor                 # CMP-05: Tactile optical/laser scan trigger
-    ├── WorkOrderReferenceInput.razor                  # CMP-07: Optional Work Order justification linkage
+    ├── WorkOrderReferenceInput.razor                  # CMP-07: Mandatory Work Order justification linkage (FR-595)
     ├── ChainedAuditPreviewStrip.razor                 # CMP-08: Real-time SHA-256 integrity hash readout
     └── ModalActionFooter.razor                        # CMP-09: Grounded footer with atomic commit CTA
         └── TaxonomicCompatibilityBadge.razor          # CMP-06: Capsule taxonomic & form validation pill
@@ -367,6 +378,9 @@ public Guid? WorkOrderId { get; set; }
 
 [Parameter]
 public string? WorkOrderNumber { get; set; }
+
+[Parameter]
+public bool HasWorkOrderError { get; set; }
 
 [Parameter]
 public EventCallback<Guid?> WorkOrderIdChanged { get; set; }
@@ -494,7 +508,7 @@ public record ExecuteAssetSwapCommand
     public required Guid HoldingWarehouseId { get; init; }
     public required Guid ReplacementAssetId { get; init; }
     public uint? ReplacementConcurrencyToken { get; init; }
-    public Guid? JustifyingWorkOrderId { get; init; }
+    public required Guid JustifyingWorkOrderId { get; init; }
     public required Guid TechnicianUserId { get; init; }
 }
 
@@ -548,7 +562,7 @@ public record AssetSwapCompletedEvent
 | [FR-592](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-03`, `CMP-09` | Atomically updates uninstalled asset status to `IN_REPAIR`, `IN_STORAGE`, or `DAMAGED`. |
 | [FR-593](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-06` | Validates replacement unit is `IN_STORAGE` / `OPERATIONAL` and matches `EquipmentClassId` (`AF-001`). |
 | [FR-594](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-04`, `CMP-09` | Associates new unit to location, atomically transitioning lifecycle status to `INSTALLED`, `OPERATIONAL`, `STANDBY` with current timestamp. |
-| [FR-595](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-08`, `CMP-09` | Records rotation details in audit log: location tag, uninstalled serial, installed serial, user, WO reference. |
+| [FR-595](../../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr) | `CMP-07`, `CMP-08`, `CMP-09` | Mandatorily captures `JustifyingWorkOrderId` (`required Guid`) in `ExecuteAssetSwapCommand` and records location tag, uninstalled serial, installed serial, user, and WO reference in the audit log. |
 | [NFR-596](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | `CMP-09` | Single-commit database transaction ensuring atomic execution or complete rollback. |
 | [NFR-597](../../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | `CMP-09` | Hierarchical update and status changes complete in $< 2\text{s}$ on server. |
 | [TR-001](../../../requirements/common/TR-001.md) | `CMP-08`, `CMP-09` | Immutable append-only audit trail logging with SHA-256 hash chaining ([ADR-003](../../../architecture/adr/ADR-003.md)). |
@@ -559,6 +573,7 @@ public record AssetSwapCompletedEvent
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-04`, `CMP-06` | ISO 14224 Hierarchy Management and Validation: Enforces taxonomic constraints and class parity in domain rules. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-09` | Real-time synchronization: broadcasts `AssetSwapCompleted(AssetSwapCompletedEvent)` over `/hubs/operations` to connected clients (< 1s). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`..`CMP-10` | ANSI/ISA-101 HPHMI: 90/10 grayscale palette, saturated color reserved for status and alerts. |
+| [ASR-002](../../../architecture/asr/DT-ARQ-ASR-001.md#2-real-time-loto-security-and-fail-safe) | `CMP-06`, `CMP-09` | Safety Interlock (`AF-003`): Hard-blocks asset swap within a Work Order context whenever LOTO isolation is unverified or live telemetry detects hazardous energy. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-08`, `CMP-09` | Tamper-evident cryptographic SHA-256 hash chaining on all asset swap mutations. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-01`, `CMP-09` | Time-sequential UUIDv7 generation for new Installation record and command idempotency. |
 | [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-01`, `CMP-09` | Command-sourced FIFO outbox synchronization omitting stale `If-Match` on offline replay and recording discrepancy alerts for reconciliation. |
