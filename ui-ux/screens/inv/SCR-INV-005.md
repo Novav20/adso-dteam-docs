@@ -300,7 +300,7 @@ sequenceDiagram
 ### 5.3. Domain Workflows & Validation Rules
 
 #### 5.3.1. Mandatory ISO 14224 Attributes & Real-Time Serial Uniqueness (FR-117, FR-118, NFR-121, AF-001, AF-002)
-1. **Mandatory Technical Completeness (`FR-118`, `AF-001`):** Formalizing an Equipment Unit requires non-empty values for `SerialNumber`, `Manufacturer`, `Model`, `EquipmentClassId` (mapped to catalog items in `EquipmentClassLookupDto`, §7.2.3), `BoundaryStart`, `BoundaryEnd`, `PurchaseDate`, `AcquisitionDate`, `InstallationDate`, and `OperationStartDate`. Attempting to submit with any omitted required field blocks finalization, highlights each missing input with redundant coding (`#icon-warning` + `--dt-color-alarm-warning` outline + inline diagnostic label), and deploys the `AF-001` alert indicator in `CMP-10` inside the sticky footer (`CLS = 0`).
+1. **Mandatory Technical Completeness (`FR-118`, `AF-001`):** Formalizing an Equipment Unit requires non-empty values for `SerialNumber`, `Manufacturer`, `Model`, `EquipmentClassId` (mapped to catalog items in `EquipmentClassLookupDto`, [DT-UI-CTR-001 §2](../../contracts/DT-UI-CTR-001.md#2-shared-lookup-dtos)), `BoundaryStart`, `BoundaryEnd`, `PurchaseDate`, `AcquisitionDate`, `InstallationDate`, and `OperationStartDate`. Attempting to submit with any omitted required field blocks finalization, highlights each missing input with redundant coding (`#icon-warning` + `--dt-color-alarm-warning` outline + inline diagnostic label), and deploys the `AF-001` alert indicator in `CMP-10` inside the sticky footer (`CLS = 0`).
 2. **Debounced Global Uniqueness Verification (`FR-117`, `NFR-121`, `AF-002`):** As the Engineer enters or scans the `SerialNumber` in `CMP-06`, the client debounces input ($300\text{ms}$) and queries `GET /api/v1/taxonomy/equipment-units/verify-uniqueness?serial={serialNumber}` without blocking the UI thread. If a collision is detected in the master catalog, `CMP-06` and `CMP-10` immediately render the `AF-002` duplicate conflict state (`#icon-ban` + `--dt-color-alarm-critical`) in the footer status slot and lock the commit button (`CLS = 0`).
 
 #### 5.3.2. Chronological Milestone Sequence Invariant (FR-119, AF-003)
@@ -311,7 +311,7 @@ sequenceDiagram
 
 #### 5.3.3. Hierarchical Functional Location Linkage & Single-Occupancy Rule (FR-116, AF-004)
 1. In `CMP-05`, the Engineer selects a target Level 5 Functional Location from the hierarchical plant taxonomy (`FunctionalLocationOptionDto`, §7.2.3). In Inspection Mode, if the unit is unmounted in warehouse custody (`EquipmentLifecycleStatus.IN_STORAGE`), `CMP-05` displays the assigned `WarehouseName` (`WarehouseId`).
-2. Upon selecting a Functional Location, the UI automatically previews the **inherited** process `TagNumber`, `Criticality` classification, and `EnvironmentalExposure` (mapped to enum `EnvironmentalExposureLevel`, §7.2.3) governed by that Functional Location. In Onboarding Mode, these three inherited attributes retain the identical modular two-column stacked Key-Top / Value-Bottom structure as in Inspection Mode, ensuring consistent visual alignment.
+2. Upon selecting a Functional Location, the UI automatically previews the **inherited** process `TagNumber`, `Criticality` classification, and `EnvironmentalExposure` (mapped to enum `EnvironmentalExposureLevel`, [DT-DM-DOC-001 §4.6](../../../domain-models/class/DT-DM-DOC-001.md#46-functionallocationenvironmentalexposure)) governed by that Functional Location. In Onboarding Mode, these three inherited attributes retain the identical modular two-column stacked Key-Top / Value-Bottom structure as in Inspection Mode, ensuring consistent visual alignment.
 3. **Single-Occupancy Invariant (`AF-004`):** If the selected Functional Location has `IsCurrentlyOccupied == true` (hosting an active mounted Equipment Unit where `RemovedAtUtc == null`), the system blocks direct mounting, displays the `AF-004` allocation alert (`#icon-ban` + `--dt-color-alarm-critical`) in `CMP-10` inside the sticky footer, and offers a direct trigger to execute a regulated Rotable Asset Swap ([SCR-INV-025](SCR-INV-025.md)) or select an unoccupied Functional Location (`CLS = 0`).
 4. **Real-Time Asset Swap Synchronization (`/hubs/operations`, `TR-010`):** In Inspection Mode, the view subscribes to `/hubs/operations` (`IOperationsClient`) for `AssetSwapCompleted(AssetSwapCompletedEvent)` ([DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)) so lifecycle status, warehouse custody, and functional location occupancy slots refresh automatically when a rotable swap is committed from [SCR-INV-025](SCR-INV-025.md) or another connected session.
 
@@ -321,8 +321,7 @@ sequenceDiagram
 
 #### 5.3.5. Cryptographic Audit Trail Chaining & Historical Preservation (TR-001, NFR-123, ADR-005)
 1. **No Hard-Delete Invariant (`NFR-123`):** Physical deletion of Equipment Unit master records is strictly prohibited by the presentation and domain layers to preserve historical MTBF and reliability records. Retirement is handled exclusively via controlled decommissioning state transitions (`DisposalDate`, `DisposalReason`).
-2. **Chained SHA-256 Digest (`TR-001`, `ADR-003`):** Before dispatching creation or audited update commands, the client computes and previews the candidate payload digest in `CMP-11` without a client-supplied `PreviousHash`. Inside the single-commit atomic transaction, `AuditSaveChangesInterceptor` resolves `audit_logs.previous_hash` server-side pre-commit ([DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)) and seals the immutable `IntegrityHash`:
-   $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash}_{\text{server}} \parallel \text{EngineerUserId} \parallel \text{SerialNumber} \parallel \text{InheritedTagNumber} \parallel \text{EquipmentClassId} \parallel \text{IsSce} \parallel \text{FunctionalLocationId} \parallel \text{TimestampUtc})$$
+2. **Chained SHA-256 Digest (`TR-001`, `ADR-003`):** Before dispatching creation or audited update commands, the client previews the candidate payload digest in `CMP-11` without supplying `PreviousHash`; the server resolves and seals the authoritative SHA-256 chain hash atomically pre-commit per [ADR-003 (Canonical Hash Formula)](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants) and [DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025).
    Both the previous hash (`PreviousIntegrityHash`) and the candidate or committed integrity hash (`CandidateOrLatestIntegrityHash`) are presented in a vertical stacked layout with full 64-character monospace data wrapping (`--dt-font-mono-data`, neutral body text), preventing horizontal overflow and eliding decorative pseudo-badges in compliance with Section 6. Active installation timeline records are tracked under `AssetInstallation` per [ADR-010](../../../architecture/adr/ADR-010.md).
 
 #### 5.3.6. Atomic Registration, Audited Update & Commissioning Gate Dispatch (`CMP-12`, NFR-122, NFR-124, FR-137–FR-144, ADR-007)
@@ -335,7 +334,7 @@ sequenceDiagram
    * **Headers:** `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)).
    * **Payload:** Serializes `RegisterEquipmentUnitCommand` (§7.2.3).
    * **Atomic Persistence Guarantee (`NFR-122`, `NFR-124`):** The backend executes a single-commit atomic transaction completing in $< 2\text{s}$: creating the Equipment Unit in commissioning baseline states, instantiating the active installation timeline record at the target Functional Location, and appending the SHA-256 chained audit log entry. Upon HTTP 201 confirmation, `CMP-10` renders a documentary confirmation banner (`--dt-color-state-success`, `#icon-check`) in the footer and transitions the view to Inspection Mode.
-3. **Audited Non-Critical Attribute Update (`FR-120`, `FR-139`):** In Audited Edit Mode (or during controlled technical parameter editing in Commissioning Gate Mode per `FR-139`), clicking `[Commit Audited Update]` dispatches `PUT /api/v1/taxonomy/equipment-units/{id}` with headers `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) and `UpdateEquipmentMasterRecordCommand` (§7.2.3), requiring a mandatory `TechnicalJustification` ($\ge 15$ characters) persisted inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state). Concurrent updates return HTTP 409 Conflict.
+3. **Audited Non-Critical Attribute Update (`FR-120`, `FR-139`):** In Audited Edit Mode (or during controlled technical parameter editing in Commissioning Gate Mode per `FR-139`), clicking `[Commit Audited Update]` dispatches `PUT /api/v1/taxonomy/equipment-units/{id}` with headers `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"` (optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) and `UpdateEquipmentMasterRecordCommand` (§7.2.3), requiring a mandatory `TechnicalJustification` ($\ge 15$ characters) persisted inside the immutable `AuditLog` structured state payload governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state). Concurrent updates return HTTP 409 Conflict.
 4. **Asset Commissioning Gate Endpoints (`UC-INV-007`, `FR-137`–`FR-144`, `NFR-145`–`NFR-147`):**
    * `GET /api/v1/taxonomy/equipment-units/pending-commissioning` — retrieves the prioritized list of `PendingCommissioningItemDto` records awaiting technical release (`FR-137`).
    * `POST /api/v1/taxonomy/equipment-units/{id}/commission` — dispatches `CommissionEquipmentUnitCommand` with `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"`, enforcing the Commissioning Gate checklist (valid Level 5 Functional Location linkage, Criticality & `IsSce` attestation, physical battery limits & Level 8 `MaintainableItem` structure `MaintainableItemCount >= 1`, and mapped LOTO isolation points `ConfiguredIsolationPointCount >= 1` per `FR-138`, `FR-144`, blocking on `UC-INV-007 AF-002`), transitioning the asset to operational readiness (`EquipmentLifecycleStatus.INSTALLED`, `EquipmentOperationalStatus.STANDBY`), initializing operating hours baseline (`FR-140`), and sealing the SHA-256 audit entry (`FR-144`, `NFR-145`, `NFR-147`).
@@ -400,23 +399,9 @@ public string? ReturnUrl { get; set; }
 
 #### 7.2.2. Subcomponent Parameters (`CMP-01` to `CMP-13`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-INV-005"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string? ActiveRouteCode { get; set; } = "SCR-INV-005";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnMobileDrawerToggled { get; set; }
-
 // CMP-02: EquipmentMasterHeaderBar.razor
 [Parameter]
 public required MasterCardMode ActiveMode { get; set; }
@@ -708,6 +693,10 @@ public string? SchematicSvgContent { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`EquipmentLifecycleStatus`, `EquipmentOperationalStatus`, `EquipmentMaintenanceStatus`, `EquipmentHealthStatus`, `EnvironmentalExposureLevel`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
+Shared Lookup DTOs (`EquipmentClassLookupDto`): see [DT-UI-CTR-001 §2](../../contracts/DT-UI-CTR-001.md#2-shared-lookup-dtos).
+
 ```csharp
 public enum MasterCardMode
 {
@@ -715,47 +704,6 @@ public enum MasterCardMode
     CREATE,
     AUDITED_EDIT,
     COMMISSIONING
-}
-
-public enum EquipmentLifecycleStatus
-{
-    IN_STORAGE,
-    INSTALLED,
-    COMMISSIONING,
-    DECOMMISSIONED
-}
-
-public enum EquipmentOperationalStatus
-{
-    UP,
-    DOWN,
-    STANDBY
-}
-
-public enum EquipmentMaintenanceStatus
-{
-    OPERATIONAL,
-    UNDER_MAINTENANCE,
-    UNDER_TEST
-}
-
-public enum EquipmentHealthStatus
-{
-    UNDETERMINED,
-    GOOD,
-    FAIR,
-    SERIOUS_BUT_STABLE,
-    SERIOUS,
-    CRITICAL_BUT_STABLE,
-    CRITICAL
-}
-
-public enum EnvironmentalExposureLevel
-{
-    SEVERE,
-    MODERATE,
-    LOW,
-    UNKNOWN
 }
 
 public enum ValidationConflictType
@@ -766,14 +714,6 @@ public enum ValidationConflictType
     OCCUPIED_FUNCTIONAL_LOCATION,
     SCE_ATTESTATION_PENDING,
     REGISTRATION_CONFIRMED
-}
-
-public record EquipmentClassLookupDto
-{
-    public required Guid EquipmentClassId { get; init; }
-    public required string ClassName { get; init; }
-    public string? Description { get; init; }
-    public string? ManufacturerStandard { get; init; }
 }
 
 public record FunctionalLocationOptionDto

@@ -30,7 +30,7 @@ status: Stable
   * **Reliability Engineer:** Associates Maintainable Items ([SCR-MTTO-029](../mtto/SCR-MTTO-029.md)) with standardized Part Master SKUs and flags rebuildable rotable assemblies (`IsRebuildable`).
   * **Auditor:** Reviews versioned stock policy changes, duplicate override justifications, and SHA-256 hash-chained catalog records (`FR-174`, `FR-176`, `TR-001`).
 * **Operational Context:** Deployed exclusively on high-resolution Desktop Workstations inside warehouse management, purchasing, and maintenance planning offices ([DT-UI-NAV-DOC-001 §4.2](../../DT-UI-NAV-DOC-001.md#42-navigation-structure-web-portal-client)). Compact desktop adaptations are governed in Section 8.
-* **Mode of Operation:** Master Catalog Governance and Technical Search mode. Direct DCS/SCADA process control manipulation is strictly excluded. Physical deletion of spare parts with historical transactions is prohibited (`ON DELETE RESTRICT` per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)); discontinued items transition to `SparePartStatus.OBSOLETE` (`DT-DM-DOC-001 §4.26`).
+* **Mode of Operation:** Master Catalog Governance and Technical Search mode. Direct DCS/SCADA process control manipulation is strictly excluded. Physical deletion of spare parts with historical transactions is prohibited (dependency-protected deletion per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)); discontinued items transition to `SparePartStatus.OBSOLETE` (`DT-DM-DOC-001 §4.26`).
 * **Web Portal Workspace Invariant:** Operates within the unified desktop Blazor Web Portal shell paired with an on-demand, closed-by-default right workspace dock (`CMP-12` hosting `CMP-07`, `CMP-08`, and `CMP-11` across three dedicated vertical spine tabs: `Spec | Policy | Audit`) matching the Blender N-panel pattern established in [SCR-MTTO-026](../mtto/SCR-MTTO-026.md) and [SCR-MTTO-029](../mtto/SCR-MTTO-029.md). Clicking outside catalog table rows (outside interactive dock, modal, filter, or header controls) automatically clears the active SKU selection and closes `CMP-12`, preserving `CLS = 0`.
 
 ---
@@ -288,7 +288,7 @@ sequenceDiagram
 2. **Standardized Units of Measure (`FR-181`):** `UnitOfMeasure` is constrained to standardized ISO 80000 / UNECE Rec 20 codes (`EA` Each, `SET` Set/Kit, `L` Liter, `KG` Kilogram, `M` Meter), preventing free-text unit synonyms from corrupting inventory conversions.
 
 #### 5.3.3. Versioned Policy Updates, Supplier Governance & Lifecycle Transitions (`FR-174`, `AF-003`, `TR-001`)
-1. **Versioned Policy & Attribute Mutation (`FR-174`, `AF-003`):** Invoking `PUT /api/v1/inventory/spare-parts/{id}/policy` (`UpdateSparePartPolicyCommand` carrying `X-Idempotency-Key: {uuidv7}` per [ADR-007](../../../architecture/adr/ADR-007.md) and `If-Match: "{ConcurrencyToken}"` per PostgreSQL `xmin` optimistic concurrency in [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) executes `SparePart.UpdateStockPolicy(policy, reorderPoint, maxCapacity)` ([DT-DM-DOC-002 §4.1](../../../domain-models/class/DT-DM-DOC-002.md#41-sparepart-aggregate-root)) or `Supplier.UpdateContactInfo(contactInfo, warrantyTerms)` ([DT-DM-DOC-002 §4.3](../../../domain-models/class/DT-DM-DOC-002.md#43-supplier-aggregate-root)) inside `CMP-08`, increments the technical catalog revision, and seals the mandatory `AuditJustification` inside a SHA-256 hash-chained `AuditLog` JSONB envelope ([DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), `CMP-11`, `TR-001`, `ADR-003`).
+1. **Versioned Policy & Attribute Mutation (`FR-174`, `AF-003`):** Invoking `PUT /api/v1/inventory/spare-parts/{id}/policy` (`UpdateSparePartPolicyCommand` carrying `X-Idempotency-Key: {uuidv7}` per [ADR-007](../../../architecture/adr/ADR-007.md) and `If-Match: "{ConcurrencyToken}"` for optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169); concurrent mutations return HTTP `409 Conflict`) executes `SparePart.UpdateStockPolicy(policy, reorderPoint, maxCapacity)` ([DT-DM-DOC-002 §4.1](../../../domain-models/class/DT-DM-DOC-002.md#41-sparepart-aggregate-root)) or `Supplier.UpdateContactInfo(contactInfo, warrantyTerms)` ([DT-DM-DOC-002 §4.3](../../../domain-models/class/DT-DM-DOC-002.md#43-supplier-aggregate-root)) inside `CMP-08`, increments the technical catalog revision, and seals the mandatory `AuditJustification` inside a SHA-256 hash-chained `AuditLog` structured state payload ([DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), `CMP-11`, `TR-001`, [ADR-003](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants)).
 2. **Controlled Lifecycle Archival ([DT-DM-DOC-001 §4.26](../../../domain-models/class/DT-DM-DOC-001.md#426-sparepartstatus)):** Transitioning a part to `SparePartStatus.OBSOLETE` blocks new purchase orders while retaining full historical Kardex and failure traceability; `SparePartStatus.SUSPENDED` temporarily quarantines the SKU during quality or supplier investigations.
 
 ---
@@ -343,23 +343,9 @@ public string? ReturnUrl { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-13`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-INV-031"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string? ActiveRouteCode { get; set; } = "SCR-INV-031";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnMobileDrawerToggled { get; set; }
-
 // CMP-02: PartMasterHeaderBar.razor
 [Parameter]
 public required string OperatorBadgeCode { get; set; }
@@ -604,27 +590,11 @@ public EventCallback<Guid?> OnNavigateToKardexHistory { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`SparePartStatus`, `StockPolicyType`, `AuditActionType`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
+Shared Lookup DTOs (`EquipmentClassLookupDto`): see [DT-UI-CTR-001 §2](../../contracts/DT-UI-CTR-001.md#2-shared-lookup-dtos).
+
 ```csharp
-/// <summary>
-/// Controlled spare part availability lifecycle vocabulary per DT-DM-DOC-001 §4.26.
-/// </summary>
-public enum SparePartStatus
-{
-    ACTIVE,
-    OBSOLETE,
-    SUSPENDED
-}
-
-/// <summary>
-/// Controlled spare part replenishment policy vocabulary per DT-DM-DOC-001 §4.27.
-/// </summary>
-public enum StockPolicyType
-{
-    REORDER_POINT,
-    MIN_MAX,
-    JUST_IN_TIME
-}
-
 /// <summary>
 /// Standardized ISO 80000 / UNECE Rec 20 Units of Measure per FR-181.
 /// </summary>
@@ -651,19 +621,6 @@ public enum PartMasterDockTab
     PART_SPECIFICATION,
     REPLENISHMENT_POLICY,
     SHA256_AUDIT
-}
-
-/// <summary>
-/// Controlled audit operation vocabulary per DT-DM-DOC-001 §4.36.
-/// </summary>
-public enum AuditActionType
-{
-    CREATE,
-    UPDATE,
-    DELETE,
-    QUERY,
-    ADJUST,
-    SECURITY_ALERT
 }
 
 public enum CatalogExportFormat
@@ -696,14 +653,6 @@ public record CommodityHierarchyNodeDto
     public required string FamilyName { get; init; }
     public string? ParentCommodityCode { get; init; }
     public IReadOnlyList<CommodityHierarchyNodeDto> SubCategories { get; init; } = [];
-}
-
-public record EquipmentClassLookupDto
-{
-    public required Guid EquipmentClassId { get; init; }
-    public required string ClassName { get; init; }
-    public string? Description { get; init; }
-    public string? ManufacturerStandard { get; init; }
 }
 
 public record SupplierDetailsDto

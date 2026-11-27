@@ -255,8 +255,8 @@ sequenceDiagram
     UI-->>Eng: Inserts L5 node into CMP-05 & displays post-commit confirmation in CMP-11
 ```
 
-1. **Recursive CTE Tree Hydration (`NFR-166`, [DT-ARQ-DB-DOC-001 §3.5](../../../architecture/DT-ARQ-DB-DOC-001.md#35-iso-14224-hierarchy-resolution-inv-027)):**
-   * On initialization, the backend resolves the Adjacency List (`ParentId`) via a server-side recursive tree projection (`FunctionalLocationTreeResponseDto`), returning the ordered hierarchy with precomputed breadcrumb paths (`FullPathTag`), child counts (`ChildLocationsCount`), and active Level 6 equipment occupancy (`MountedEquipment.SerialNumber`) in $< 3\text{s}$. In-memory full-table assembly on the client is prohibited.
+1. **Server-Projected Hierarchy Hydration (`NFR-166`, [DT-ARQ-DB-DOC-001 §3.5](../../../architecture/DT-ARQ-DB-DOC-001.md#35-iso-14224-hierarchy-resolution-inv-027)):**
+   * On initialization, the backend resolves parent-child hierarchy links (`ParentId`) via a server-side tree projection (`FunctionalLocationTreeResponseDto`), returning the ordered hierarchy with precomputed breadcrumb paths (`FullPathTag`), child counts (`ChildLocationsCount`), and active Level 6 equipment occupancy (`MountedEquipment.SerialNumber`) in $< 3\text{s}$. In-memory full-table assembly on the client is prohibited.
 2. **ISO 14224 Five-Level Taxonomic Model (`FR-160`, `TR-008-FR-413`):**
    * Every node is classified into one of the five canonical ISO 14224 spatial levels (`IsoFunctionalLocationLevel`, §7.2.3):
      * **Level 1 (`L1_INDUSTRY`):** Industry sector (e.g., *Hydrocarbons, Refining & Maritime Logistics*).
@@ -289,15 +289,15 @@ sequenceDiagram
 
 #### 5.3.2. Tree Reorganization & Recursive Cycle Prevention (`FR-162`, `NFR-167`, `NFR-168`, `AF-002`)
 1. **Cycle Detection Invariant (`NFR-167`, `TR-008-NFR-417`):** When moving node $u$ to candidate parent $v$ in modal `CMP-08` (`FunctionalLocation.ReorganizeTree(newParentId)`), the system validates in $< 1\text{s}$ using a recursive ancestor check that $v$ is not $u$ and $v \notin \text{Descendants}(u)$, and that moving $u$'s subtree preserves valid level depth ($\text{MaxDepth}(u) + \text{Level}(v) \le 5$).
-2. **Atomic Subtree Re-Parenting (`NFR-168`):** Upon confirmation with mandatory `AuditJustification` ($\ge 15$ characters), the client dispatches `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` carrying `ReorganizeFunctionalLocationCommand`, `X-Idempotency-Key: {uuidv7}`, and `If-Match: "{ConcurrencyToken}"`. The backend updates hierarchy links, recalculates materialized/recursive paths, and seals the justification and state diff inside the SHA-256 `AuditLog` JSONB envelope per [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) within a single ACID transaction.
+2. **Atomic Subtree Re-Parenting (`NFR-168`):** Upon confirmation with mandatory `AuditJustification` ($\ge 15$ characters), the client dispatches `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` carrying `ReorganizeFunctionalLocationCommand`, `X-Idempotency-Key: {uuidv7}`, and `If-Match: "{ConcurrencyToken}"`. The backend updates hierarchy links, recalculates materialized/recursive paths, and seals the justification and state diff inside the SHA-256 `AuditLog` structured state payload per [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) within a single ACID transaction.
 
 #### 5.3.3. Dependency-Gated Node Deletion (`FR-163`, `AF-003`)
 1. Invoking `FunctionalLocation.RemoveChild(childId)` ([DT-DM-DOC-002 §2](../../../domain-models/class/DT-DM-DOC-002.md#2-layer-1-asset-taxonomy-iso-14224)) evaluates the deletion guard before dispatching `DELETE /api/v1/taxonomy/functional-locations/{id}` (carrying `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"`):
    $$\text{CanDelete}(u) \iff (\text{ChildLocationsCount}(u) == 0) \land (\text{MountedEquipmentUnitId}(u) == \varnothing)$$
-2. If either condition is false, `CMP-09` blocks deletion (`ON DELETE RESTRICT` per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)) and directs the user to relocate child nodes or execute a Rotable Asset Swap ([SCR-INV-025](SCR-INV-025.md)).
+2. If either condition is false, `CMP-09` blocks dependency-protected deletion (referential integrity per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)) and directs the user to relocate child nodes or execute a Rotable Asset Swap ([SCR-INV-025](SCR-INV-025.md)).
 
 #### 5.3.4. Concurrency Isolation & Architecture Export (`FR-165`, `NFR-169`, `AF-004`)
-1. **Optimistic Concurrency Guard (`NFR-169`, `AF-004`):** Every mutation endpoint—metadata updates via `PUT /api/v1/taxonomy/functional-locations/{id}` (`UpdateFunctionalLocationCommand`), subtree reorganizations via `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` (`ReorganizeFunctionalLocationCommand`), and dependency-gated deletions via `DELETE /api/v1/taxonomy/functional-locations/{id}`—carries the node's PostgreSQL `xmin`-backed `ConcurrencyToken` (`If-Match: "{ConcurrencyToken}"` header per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) and `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)). Concurrent modifications by another engineer return HTTP 409 Conflict, triggering State 7 (`AF-004`) and refreshing the affected branch without silent data loss.
+1. **Optimistic Concurrency Guard (`NFR-169`, `AF-004`):** Every mutation endpoint—metadata updates via `PUT /api/v1/taxonomy/functional-locations/{id}` (`UpdateFunctionalLocationCommand`), subtree reorganizations via `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` (`ReorganizeFunctionalLocationCommand`), and dependency-gated deletions via `DELETE /api/v1/taxonomy/functional-locations/{id}`—carries the node's optimistic `ConcurrencyToken` (`If-Match: "{ConcurrencyToken}"` header per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) and `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)). Concurrent modifications by another engineer return HTTP 409 Conflict, triggering State 7 (`AF-004`) and refreshing the affected branch without silent data loss.
 2. **Taxonomic Architecture Export (`FR-165`):** Clicking `[Export]` in `CMP-02` calls `GET /api/v1/taxonomy/functional-locations/export` (`CSV` / `JSON` via `TaxonomyExportFormat`), downloading the full or filtered hierarchy including ISO level paths, criticality indices, environmental exposures, and mounted equipment serial numbers.
 
 ---
@@ -348,23 +348,9 @@ public int? InitialLevelFilter { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-13`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-INV-027"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string? ActiveRouteCode { get; set; } = "SCR-INV-027";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnMobileDrawerToggled { get; set; }
-
 // CMP-02: FunctionalLocationHeaderBar.razor
 [Parameter]
 public required string OperatorBadgeCode { get; set; }
@@ -608,6 +594,8 @@ public string? ConflictMessage { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`EnvironmentalExposureLevel`, `EquipmentOperationalStatus`, `AuditActionType`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
 /// <summary>
 /// Canonical ISO 14224:2016 Functional Location hierarchy levels (1..5).
@@ -619,27 +607,6 @@ public enum IsoFunctionalLocationLevel
     L3_INSTALLATION = 3,
     L4_PLANT_UNIT = 4,
     L5_SECTION_SYSTEM = 5
-}
-
-/// <summary>
-/// Controlled environmental exposure vocabulary per DT-DM-DOC-001 §4.6 (ISO 14224 Table A.70).
-/// </summary>
-public enum EnvironmentalExposureLevel
-{
-    SEVERE,
-    MODERATE,
-    LOW,
-    UNKNOWN
-}
-
-/// <summary>
-/// Controlled equipment operational status vocabulary per DT-DM-DOC-001 §4.4.
-/// </summary>
-public enum EquipmentOperationalStatus
-{
-    UP,
-    DOWN,
-    STANDBY
 }
 
 public enum TaxonomyInspectorMode
@@ -669,19 +636,6 @@ public enum TaxonomyExportFormat
 {
     FULL_TREE_CSV,
     FULL_TREE_JSON
-}
-
-/// <summary>
-/// Canonical cryptographic audit action vocabulary per DT-DM-DOC-001 §4.42.
-/// </summary>
-public enum AuditActionType
-{
-    CREATE,
-    UPDATE,
-    DELETE,
-    QUERY,
-    ADJUST,
-    SECURITY_ALERT
 }
 
 public record FunctionalLocationTreeNodeDto

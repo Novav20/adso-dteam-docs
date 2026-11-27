@@ -21,7 +21,7 @@ status: Stable
 
 ## 1. Purpose and Operational Context
 
-* **View Objective:** Centralized Level 2 forensic query, state-diff inspection, and cryptographic hash-chain verification console over the immutable audit trail (`AuditLog`, `AuditLogWorkspaceDto`, `AuditLogEntryDto`, `AuditLogDetailDto`). Enforces strict Write-Once-Read-Many (WORM) append-only immutability (`FR-347`), executes high-speed GIN containment queries over structured state snapshots ([DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032)), visualizes temporal activity trends and security anomalies (`FR-352`), renders secret-masked `PreviousState` vs. `NewState` diffs (`FR-349`), mathematically verifies sequential SHA-256 hash continuity (`AuditLog.VerifyIntegrity()` per [DT-DM-DOC-002 §6.3](../../../domain-models/class/DT-DM-DOC-002.md#63-auditlog-entity) and [ADR-003](../../../architecture/adr/ADR-003.md)), logs all audit consultations via self-referential Meta-Auditing (`NFR-360`), and governs 7-year regulatory retention archival (`FR-350`, `FR-358`, `TR-001-FR-367`).
+* **View Objective:** Centralized Level 2 forensic query, state-diff inspection, and cryptographic hash-chain verification console over the immutable audit trail (`AuditLog`, `AuditLogWorkspaceDto`, `AuditLogEntryDto`, `AuditLogDetailDto`). Enforces strict Write-Once-Read-Many (WORM) append-only immutability (`FR-347`), executes sub-second indexed containment queries over structured state snapshots ([DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032)), visualizes temporal activity trends and security anomalies (`FR-352`), renders secret-masked `PreviousState` vs. `NewState` diffs (`FR-349`), mathematically verifies sequential SHA-256 hash continuity (`AuditLog.VerifyIntegrity()` per [DT-DM-DOC-002 §6.3](../../../domain-models/class/DT-DM-DOC-002.md#63-auditlog-entity) and [ADR-003](../../../architecture/adr/ADR-003.md)), logs all audit consultations via self-referential Meta-Auditing (`NFR-360`), and governs 7-year regulatory retention archival (`FR-350`, `FR-358`, `TR-001-FR-367`).
 * **Primary Target Persona:** Auditor (Lead Auditor) conducting forensic incident reconstructions, Root Cause Analysis (RCA), LOTO/SIMOPS safety compliance audits, 7-year cold-archive verification (`FR-350`), signed forensic exports (`FR-353`, `NFR-359`), and ISO 55001 / ISO 27001 / ISO 9001 regulatory reviews.
 * **Secondary Personas:**
   * **Plant Manager:** Reviews operational compliance audits, `SECURITY_ALERT` governance exceptions, and facility-wide change history alongside the Auditor (`SOD-SYS-01` explicitly excludes `System Administrator` from `AUDIT` access to separate IAM administration in [SCR-ADM-013](SCR-ADM-013.md)/[SCR-ADM-014](SCR-ADM-014.md) from independent forensic auditing).
@@ -88,8 +88,8 @@ status: Stable
      - Calibration Warning Accent: `--dt-color-alarm-warning`
    - **Architectural Scope:** Acts as a one-click category filter over the ledger grid and surfaces immediate tamper-evident chain health (`FR-351`, `TR-001-FR-367`). Detailed in §5.1.
 
-4. **`CMP-04`: Multi-Criteria & JSONB Containment Filter Toolbar (`FR-348`)**
-   - **Visual Role:** Flat toolbar hosting UTC `DateFrom` / `DateTo` pickers, `AuditActionType` selector (`CREATE`, `UPDATE`, `DELETE`, `QUERY`, `ADJUST`, `SECURITY_ALERT`), `EntityType` selector (`WorkRequest`, `WorkOrder`, `WorkOrderIsolation`, `EquipmentUnit`, `Role`, `User`, `InventoryTransaction`, `AuditLog`), debounced search input across `Operator`, `IpAddress`, `EntityId`, and `IntegrityHash` (`Ctrl+K`), structured `JSONB` key-value containment query input (`{"is_active": false}`), `[Forensic Inspection]` dock toggle, and `[Reset]` action.
+4. **`CMP-04`: Multi-Criteria & Structured State Containment Filter Toolbar (`FR-348`)**
+   - **Visual Role:** Flat toolbar hosting UTC `DateFrom` / `DateTo` pickers, `AuditActionType` selector (`CREATE`, `UPDATE`, `DELETE`, `QUERY`, `ADJUST`, `SECURITY_ALERT`), `EntityType` selector (`WorkRequest`, `WorkOrder`, `WorkOrderIsolation`, `EquipmentUnit`, `Role`, `User`, `InventoryTransaction`, `AuditLog`), debounced search input across `Operator`, `IpAddress`, `EntityId`, and `IntegrityHash` (`Ctrl+K`), structured key-value state containment query input (`{"is_active": false}`), `[Forensic Inspection]` dock toggle, and `[Reset]` action.
    - **Design Tokens:**
      - Surface: `--dt-color-surface-base`
      - Controls: `--dt-color-surface-card`
@@ -97,7 +97,7 @@ status: Stable
      - Control Height: `--dt-control-height-sm`
      - Monospace Query Input: `--dt-font-mono-data`
      - Radius: `--dt-radius-sm`
-   - **Architectural Scope:** Executes sub-second GIN-indexed containment (`@>`) and chronological UUIDv7 range queries ([DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032), `NFR-355`, `NFR-356`). Detailed in §5.1 and §5.2.
+   - **Architectural Scope:** Executes sub-second indexed payload containment (`@>`) and chronological UUIDv7 range queries ([DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032), `NFR-355`, `NFR-356`). Detailed in §5.1 and §5.2.
 
 5. **`CMP-05`: Activity Trend & Anomaly Detection Strip (`FR-352`)**
    - **Visual Role:** Compact HPHMI monochrome histogram strip positioned above the ledger grid visualizing audit event density over time and highlighting anomalous adjustment spikes or `SECURITY_ALERT` bursts.
@@ -130,7 +130,7 @@ status: Stable
      - Radius: `--dt-radius-full`
    - **Architectural Scope:** Enforces 90/10 HPHMI and Anti-Badge-Inflation rules ([DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons)): routine events and verified integrity rows remain neutral grayscale without green per-row pills so `SECURITY_ALERT`, `ADJUST`, and tamper breaches command immediate pre-attentive salience. Detailed in §5.1.
 
-8. **`CMP-08`: Forensic Transaction Inspector & Secret-Masked JSONB Diff Rail (`FR-349`)**
+8. **`CMP-08`: Forensic Transaction Inspector & Secret-Masked State Diff Rail (`FR-349`)**
    - **Visual Role:** Master-detail inspector hosted inside dock `CMP-12` displaying full network traceability (`IpAddress`, `UserAgent`), a structured flat hairline-divided key-by-key `PreviousState` vs. `NewState` diff list rendered directly over the card surface (`SCR-ADM-013`/`014` parity, zero nested card boxes) with changed attributes highlighted and sensitive credential keys masked (`[REDACTED SECRET]`), and the Cryptographic Hash-Chain Proof section (`CMP-09`).
    - **Design Tokens:**
      - Surface: transparent over `--dt-color-surface-card`
@@ -199,7 +199,7 @@ status: Stable
 
 2. **Executing Indexed Query & Recording Meta-Audit (`NFR-355`, `NFR-360`)**
    - **Activation Condition:** User applies multi-criteria or structured attribute containment (`@>`) filters in `CMP-04`.
-   - **Visual Modification:** Skeleton shimmer (`--dt-color-surface-raised`) across `CMP-06` rows while the backend executes the GIN-indexed query and appends a self-referential `QUERY` Meta-Audit record; `CMP-02` reveals the transient Meta-Audit indicator chip (`META-AUDIT LOGGED`, `CLS = 0`).
+   - **Visual Modification:** Skeleton shimmer (`--dt-color-surface-raised`) across `CMP-06` rows while the backend executes the indexed state containment query and appends a self-referential `QUERY` Meta-Audit record; `CMP-02` reveals the transient Meta-Audit indicator chip (`META-AUDIT LOGGED`, `CLS = 0`).
 
 3. **Inspecting Elevated Calibration or Security Alert (`ADJUST` / `SECURITY_ALERT`)**
    - **Activation Condition:** Auditor selects an `ADJUST` (RIME priority calibration or reconciliation) or `SECURITY_ALERT` (SoD block or brute-force lockout) row in `CMP-06`, or toggles `CMP-04` `[Forensic Inspection]`.
@@ -225,7 +225,7 @@ status: Stable
 
 ## 5. Interaction Rules and Data Flow
 
-### 5.1. Initial Load, GIN `@>` Querying & Meta-Audit Lifecycle
+### 5.1. Initial Load, Indexed Containment Querying & Meta-Audit Lifecycle
 
 ```mermaid
 sequenceDiagram
@@ -239,14 +239,14 @@ sequenceDiagram
     UI->>API: GET /api/v1/security/audit-logs (Default window; records QUERY Meta-Audit)
     API-->>UI: Returns AuditLogWorkspaceDto (Metrics, TrendBuckets, Entries, Partitions)
     UI-->>Aud: Renders KPI Strip (CMP-03), Trend Strip (CMP-05) & Ledger Grid (CMP-06)
-    Aud->>UI: Enters JSONB containment filter '{"is_active": false}' & EntityType="WorkOrder"
-    UI->>API: POST /api/v1/security/audit-logs/query (GIN @> query & appends QUERY Meta-Audit)
+    Aud->>UI: Enters state containment filter '{"is_active": false}' & EntityType="WorkOrder"
+    UI->>API: POST /api/v1/security/audit-logs/query (Indexed payload query & appends QUERY Meta-Audit)
     API-->>UI: Returns matching AuditLogEntryDto list
     Aud->>UI: Selects event row in CMP-06 (Opens CMP-12 Dock)
     UI->>Crypto: VerifyRecordIntegrity(SelectedEntry, PredecessorHash)
     alt Hash Matches (Chain Intact)
         Crypto-->>UI: Returns IntegrityVerificationResultDto (IsIntact = true)
-        UI-->>Aud: Renders masked JSONB diff (CMP-08) & Teal Verified Seal (CMP-09)
+        UI-->>Aud: Renders masked state diff (CMP-08) & Teal Verified Seal (CMP-09)
     else Hash Mismatch or Missing Link (AF-001)
         Crypto-->>UI: Returns IntegrityVerificationResultDto (IsIntact = false)
         UI->>API: POST /api/v1/security/audit-logs/report-tamper-breach (X-Idempotency-Key + Logs SECURITY_ALERT)
@@ -255,9 +255,9 @@ sequenceDiagram
 ```
 
 1. **Controlled Audit Event Vocabulary (`FR-345`, [DT-DM-DOC-001 §4.36](../../../domain-models/class/DT-DM-DOC-001.md#436-auditlogactiontype)):**
-   * Every row returned by `AuditLogEntryDto` is classified using the strongly-typed `AuditActionType` enum defined in §7.2.3.
-2. **GIN `jsonb_path_ops` Containment Queries (`FR-348`, `NFR-355`, `NFR-356`, [DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032), [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):**
-   * Filter predicates over `PreviousState` and `NewState` (`JSONB`) are dispatched via `AuditLogQueryFilterDto` to execute indexed containment queries (`@>`) paired with chronologically ordered `UUIDv7` keys ([ADR-005](../../../architecture/adr/ADR-005.md)) and the polymorphic state snapshot contracts defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) to sustain sub-second response times across multi-year ledgers.
+   * Every row returned by `AuditLogEntryDto` is classified using the canonical `AuditActionType` enum defined in [DT-DM-DOC-001 §4.36](../../../domain-models/class/DT-DM-DOC-001.md#436-auditlogactiontype).
+2. **Indexed Structured State Containment Queries (`FR-348`, `NFR-355`, `NFR-356`, [DT-ARQ-DB-DOC-001 §3.8](../../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032), [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):**
+   * Filter predicates over `PreviousState` and `NewState` structured payloads are dispatched via `AuditLogQueryFilterDto` to execute indexed containment queries (`@>`) paired with chronologically ordered `UUIDv7` keys ([ADR-005](../../../architecture/adr/ADR-005.md)) and the polymorphic state snapshot contracts defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) to sustain sub-second response times across multi-year ledgers.
 
 ---
 
@@ -267,7 +267,7 @@ sequenceDiagram
    * Uses `Virtualize<AuditLogEntryDto>` with fixed row height (`--dt-layout-table-row-height`).
    * `CMP-12` initializes closed (`IsOpen = false`, `CLS = 0`), expanding to `--dt-layout-drawer-width-desktop` (or `--dt-layout-drawer-width-tablet` on compact desktop displays) when a row is clicked, a vertical spine tab is activated, or `[Forensic Inspection]` is triggered; clicking outside, pressing `Escape`, or clicking the close icon collapses the dock cleanly.
    * In `CMP-09`, clicking `[< Prev]` or `[Next >]` walks backward or forward along the `PreviousHash` $\leftrightarrow$ `IntegrityHash` chain to trace incidents chronologically.
-2. **Automatic Secret Redaction in JSONB Diffs (`CMP-08`, `FR-349`, `NFR-357`):**
+2. **Automatic Secret Redaction in Structured State Diffs (`CMP-08`, `FR-349`, `NFR-357`):**
    * Before rendering `PreviousState` and `NewState` payloads, the presentation parser masks sensitive credential keys designated for mandatory redaction in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) to `[REDACTED SECRET]`, preventing credential exposure during screen sharing or audit exports.
 
 ---
@@ -279,9 +279,7 @@ sequenceDiagram
 2. **Append-Only WORM Enforcement (`FR-347`, `AF-002`, `TR-001-NFR-362`, `TR-001-NFR-365`):** Application roles strictly lack modification or deletion privileges over `AuditLog` persistence ([DT-DM-DOC-001 §2.6](../../../domain-models/class/DT-DM-DOC-001.md#26-module-isolation-via-database-schemas)). Any attempt to mutate or remove an audit row is rejected and recorded as `AuditActionType.SECURITY_ALERT`.
 
 #### 5.3.2. Chained SHA-256 Verification & Tamper-Evident Breach Protocol (`FR-346`, `FR-351`, `AF-001`, `ADR-003`)
-1. **Hash-Chain Mathematical Contract (`AuditLog.VerifyIntegrity()`, [DT-DM-DOC-002 §6.3](../../../domain-models/class/DT-DM-DOC-002.md#63-auditlog-entity)):**
-   For chronological record $k$ ($k \ge 1$, where $H_0 = \text{"GENESIS"}$ per [DT-ERD-DOC-001 §3.5.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#351-audit_logs)):
-   $$H_k = \text{SHA-256}\left(H_{k-1} \parallel \text{Id}_k \parallel \text{UserId}_k \parallel \text{ActionType}_k \parallel \text{EntityType}_k \parallel \text{EntityId}_k \parallel \text{TimestampUtc}_k \parallel \text{CanonicalJson}(\text{PrevState}_k) \parallel \text{CanonicalJson}(\text{NewState}_k)\right)$$
+1. **Hash-Chain Mathematical Contract (`AuditLog.VerifyIntegrity()`, [DT-DM-DOC-002 §6.3](../../../domain-models/class/DT-DM-DOC-002.md#63-auditlog-entity)):** Client and server chain verification recalculates sequential digests from `GENESIS` (`H_0`, [DT-ERD-DOC-001 §3.5.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#351-audit_logs)) using the single authoritative WORM chain formula defined in [ADR-003 (Canonical Hash Formula)](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants).
 2. **Tamper Breach Quarantine (`AF-001`, `ADR-007`):** If $H_k^{\text{recalculated}} \ne H_k^{\text{stored}}$ or $H_{k-1}^{\text{linked}} \ne H_{k-1}^{\text{stored}}$, `CMP-10` immediately blocks `[Export Forensic Package]` in `CMP-13`, highlights the exact broken link, and dispatches `POST /api/v1/security/audit-logs/report-tamper-breach` carrying `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to record a deduplicated `SECURITY_ALERT` notification (`TR-003-NFR-380`).
 
 #### 5.3.3. Self-Referential Meta-Auditing & 7-Year Regulatory Retention (`FR-350`, `FR-353`, `FR-358`, `NFR-359`, `NFR-360`)
@@ -340,23 +338,9 @@ public AuditActionType? InitialActionTypeFilter { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-13`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-ADM-032"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string? ActiveRouteCode { get; set; } = "SCR-ADM-032";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnMobileDrawerToggled { get; set; }
-
 // CMP-02: AuditLogHeaderBar.razor
 [Parameter]
 public required string OperatorBadgeCode { get; set; }
@@ -504,27 +488,9 @@ public EventCallback<AuditExportFormat> OnExportVerifiedTrailClicked { get; set;
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`AuditActionType`, `ChainIntegrityStatus`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
-/// <summary>
-/// Controlled audit operation type vocabulary per DT-DM-DOC-001 §4.36 & DT-ERD-DOC-001 §3.5.1.
-/// </summary>
-public enum AuditActionType
-{
-    CREATE,
-    UPDATE,
-    DELETE,
-    QUERY,
-    ADJUST,
-    SECURITY_ALERT
-}
-
-public enum ChainIntegrityStatus
-{
-    VERIFIED_INTACT,
-    VERIFYING_IN_PROGRESS,
-    TAMPER_BREACH_DETECTED
-}
-
 public enum AuditKpiFilterCategory
 {
     ALL_RECORDS,

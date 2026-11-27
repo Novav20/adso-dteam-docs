@@ -93,7 +93,7 @@ status: Stable
      - Radius: `--dt-radius-md`
      - Active Filter Ring: `--dt-color-state-info`
      - Alert Count Accent: `--dt-color-alarm-warning`
-   - **Architectural Scope:** Populated via single-pass PostgreSQL `FILTER (WHERE ...)` aggregations ([DT-ARQ-DB-DOC-001 §3.2](../../../architecture/DT-ARQ-DB-DOC-001.md#32-conditional-aggregations-with-filter-clause-mtto-026-inv-006)). Acts as a one-click movement category filter (`FR-129`, `FR-130`). Detailed in §5.1.
+   - **Architectural Scope:** Populated via single-pass server-side conditional aggregations ([DT-ARQ-DB-DOC-001 §3.2](../../../architecture/DT-ARQ-DB-DOC-001.md#32-conditional-aggregations-with-filter-clause-mtto-026-inv-006)). Acts as a one-click movement category filter (`FR-129`, `FR-130`). Detailed in §5.1.
 
 4. **`CMP-04`: Multi-Criteria Kardex Filter Toolbar**
    - **Visual Role:** Clean card-surface filter bar hosting `Warehouse` selector, cascading physical `Locator` bin filter, `InventoryTransactionType` / Return filter, `WorkOrder` filter, `DateOnly` range pickers (`From` / `To`), and paired `Search` + `[Reset]` control group (`FR-130`).
@@ -257,7 +257,7 @@ sequenceDiagram
     API-->>UI: Returns SparePartAvailabilityDto (OnHand: 4, Reserved: 2, Available: 2)
     WM->>UI: Selects ISSUE, links WO-2026-0842, enters Quantity = 1.0000
     UI->>Crypto: ComputePayloadPreviewDigest(MovementPayload)
-    Crypto-->>UI: Previews client payload digest (server AuditSaveChangesInterceptor chains previous_hash pre-commit)
+    Crypto-->>UI: Previews client payload digest (server seals audit hash chain pre-commit per ADR-003)
     WM->>UI: Clicks [Confirm and Generate Receipt]
     UI->>API: POST /api/v1/inventory/transactions (RegisterInventoryTransactionCommand + X-Idempotency-Key + If-Match)
     API-->>UI: HTTP 201 Created (InventoryTransactionVoucherDto + updated SparePart ETag / ConcurrencyToken)
@@ -265,7 +265,7 @@ sequenceDiagram
 ```
 
 1. **Single-Pass Conditional Aggregation ([DT-ARQ-DB-DOC-001 §3.2](../../../architecture/DT-ARQ-DB-DOC-001.md#32-conditional-aggregations-with-filter-clause-mtto-026-inv-006)):**
-   * Summary metrics in `CMP-03` (`TotalMovementsCount`, `InboundReceiptsCount`, `WorkOrderIssuesCount`, `AdjustmentsAndReturnsCount`, `ActivePolicyAlertsCount`) are computed in a single database scan using PostgreSQL `COUNT(*) FILTER (WHERE ...)` and `SUM(...) FILTER (WHERE ...)` clauses, prohibiting multi-pass queries or `SUM(CASE ...)`.
+   * Summary metrics in `CMP-03` (`TotalMovementsCount`, `InboundReceiptsCount`, `WorkOrderIssuesCount`, `AdjustmentsAndReturnsCount`, `ActivePolicyAlertsCount`) are delivered by the API in a single-pass server-side aggregated projection (see [DT-ARQ-DB-DOC-001 §3.2](../../../architecture/DT-ARQ-DB-DOC-001.md#32-conditional-aggregations-with-filter-clause-mtto-026-inv-006) for database execution guarantees).
 2. **Numerical Precision Invariant ([DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints)):**
    * All stock quantities (`InventoryTransaction.Quantity`, `CountedPhysicalQuantity`, `SparePart.QuantityOnHand`, `ReservedQuantity`, `ReorderPoint`, `MaxCapacity`) bind strictly to fixed-point `decimal` (`4-decimal` quantity precision), and all monetary unit and total costs (`SparePart.UnitCost`, `InventoryTransaction.UnitCost`, `TotalCost`) bind strictly to `decimal` (`2-decimal` currency precision), guaranteeing zero IEEE 754 floating-point discrepancy (`NFR-134`).
 
@@ -292,7 +292,7 @@ sequenceDiagram
 
 #### 5.3.2. Unused Material Return & Cost Reversal (`FR-128`, `AF-003`)
 1. **Return & Cost Reversal (`FR-128`):** When unused spare parts previously issued to a Work Order are returned to the warehouse, the transaction is recorded as a positive `RECEIPT` (`IsUnusedMaterialReturn = true`) linked to the originating `WorkOrderId` and `LocatorId`. The backend atomically increments `QuantityOnHand`, decrements `MaterialRequirement.ActualQuantity`, and credits `TotalCost` back to the Work Order's material cost accumulator (`NFR-134`).
-2. **Physical Count Reconciliation (`ADJUSTMENT`, `AF-003`):** Selecting `InventoryTransactionType.ADJUSTMENT` requires entering `CountedPhysicalQuantity` and a mandatory reconciliation `Reason` ($\ge 15$ characters). The system computes $\Delta Q = Q_{\text{counted}} - Q_{\text{system}}$, updates `QuantityOnHand`, logs the financial variance ($\Delta Q \times \text{UnitCost}$), and seals the reconciliation `Reason` inside an `AuditActionType.ADJUST` `AuditLog` JSONB envelope ([DT-DM-DOC-001 §4.36](../../../domain-models/class/DT-DM-DOC-001.md#436-auditlogactiontype), [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)).
+2. **Physical Count Reconciliation (`ADJUSTMENT`, `AF-003`):** Selecting `InventoryTransactionType.ADJUSTMENT` requires entering `CountedPhysicalQuantity` and a mandatory reconciliation `Reason` ($\ge 15$ characters). The system computes $\Delta Q = Q_{\text{counted}} - Q_{\text{system}}$, updates `QuantityOnHand`, logs the financial variance ($\Delta Q \times \text{UnitCost}$), and seals the reconciliation `Reason` inside an `AuditActionType.ADJUST` `AuditLog` structured state payload ([DT-DM-DOC-001 §4.36](../../../domain-models/class/DT-DM-DOC-001.md#436-auditlogactiontype), [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)).
 
 #### 5.3.3. Replenishment Policy Evaluation & Technical Receipt Voucher (`FR-129`, `FR-131`, `AF-002`)
 1. **Automated Stock Policy Alerts (`FR-129`, `AF-002`):** Following every atomic stock mutation, the domain service evaluates the Spare Part's configured `StockPolicyType` ([DT-DM-DOC-001 §4.27](../../../domain-models/class/DT-DM-DOC-001.md#427-sparepartstockpolicy): `REORDER_POINT`, `MIN_MAX`, `JUST_IN_TIME`):
@@ -301,8 +301,14 @@ sequenceDiagram
    * If $\text{QuantityOnHand} > \text{MaxCapacity}$ (or exceeds `Warehouse.MaxCapacity`), emits `EXCEEDS_MAX_CAPACITY`.
 2. **Technical Receipt Voucher (`FR-131`):** Every committed transaction returns an `InventoryTransactionVoucherDto` (§7.2.3) containing the sequential transaction folio, UTC timestamp, locator bin path, cost breakdown, and SHA-256 integrity hash, rendered immediately in `CMP-10`.
 
-#### 5.3.4. Background Retry Queue on Connectivity Drop (`NFR-136`, `AF-004`, `TR-007`, `ADR-006`, `ADR-007`)
-1. If a warehouse tablet experiences a wireless dropout during `RegisterInventoryTransactionCommand` submission, the client encrypts the command payload in local SQLCipher storage (`TR-002`) with `X-Idempotency-Key: {uuidv7}` ([ADR-005](../../../architecture/adr/ADR-005.md), [ADR-007](../../../architecture/adr/ADR-007.md)) and **omits the stale `If-Match` header** (since `SparePart.ConcurrencyToken` / `xmin` may advance server-side during the partition). Upon reconnection, the background sync worker drains the outbox in chronological **FIFO** order via idempotent **command-sourced reconciliation** ([ADR-006](../../../architecture/adr/ADR-006.md), [TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr), [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007)). Rather than rejecting offline movements via HTTP `409 Conflict`, if concurrent warehouse issues depleted stock during the outage and replaying the command causes a negative balance, the backend preserves the historical movement in the `InventoryTransaction` ledger, records the physical discrepancy, and triggers a compensation/supervisor alert for administrative reconciliation.
+#### 5.3.4. Offline Delta Card (`NFR-136`, `AF-004`, `TR-007`, `ADR-006`, `ADR-007`)
+Offline queueing, encrypted local storage (`TR-002`), UUIDv7 idempotency (`ADR-007`), and FIFO reconnection replay follow the canonical 5-step lifecycle in [ADR-006 (Canonical 5-Step Offline Outbox Lifecycle)](../../../architecture/adr/ADR-006.md#canonical-5-step-offline-outbox-two-phase-media-sync-lifecycle) and [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007). Screen-specific deltas:
+
+| Delta Dimension | `SCR-INV-006` Specification |
+| :--- | :--- |
+| **Queued Command DTO** | `RegisterInventoryTransactionCommand` (`POST /api/v1/inventory/transactions`, `X-Idempotency-Key: {uuidv7}`, omitting stale `If-Match`) |
+| **Local Pre-Validation Rule** | Net `AvailableQuantity = QuantityOnHand - ReservedQuantity` check on unreserved `ISSUE` (`AF-001`); mandatory `Reason >= 15` chars on `ADJUSTMENT` (`AF-003`) |
+| **Screen-Specific Conflict Policy** | Server-side command-sourced reconciliation preserves the historical movement in `InventoryTransaction` and raises a compensation/supervisor discrepancy alert if concurrent outage issues produce a negative balance (no silent HTTP `409 Conflict`) |
 
 ---
 
@@ -355,23 +361,9 @@ public Guid? FilterSparePartId { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-13`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-INV-006"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string? ActiveRouteCode { get; set; } = "SCR-INV-006";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnMobileDrawerToggled { get; set; }
-
 // CMP-02: KardexHeaderBar.razor
 [Parameter]
 public required string OperatorBadgeCode { get; set; }
@@ -603,19 +595,11 @@ public EventCallback OnNavigateToSparePartsCatalog { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`InventoryTransactionType`, `StockPolicyType`, `AuditActionType`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
 /// <summary>
-/// Controlled inventory movement type vocabulary per DT-DM-DOC-001 §4.25.
-/// </summary>
-public enum InventoryTransactionType
-{
-    RECEIPT,
-    ISSUE,
-    ADJUSTMENT
-}
-
-/// <summary>
-/// Controlled spare part unit of measure vocabulary per DT-DM-DOC-001 §4.26.
+/// Standardized ISO 80000 / UNECE Rec 20 Units of Measure per FR-181.
 /// </summary>
 public enum StandardUnitOfMeasure
 {
@@ -624,29 +608,6 @@ public enum StandardUnitOfMeasure
     L,
     KG,
     M
-}
-
-/// <summary>
-/// Controlled spare part replenishment policy vocabulary per DT-DM-DOC-001 §4.27.
-/// </summary>
-public enum StockPolicyType
-{
-    REORDER_POINT,
-    MIN_MAX,
-    JUST_IN_TIME
-}
-
-/// <summary>
-/// Canonical audit action vocabulary per DT-DM-DOC-001 §4.36.
-/// </summary>
-public enum AuditActionType
-{
-    CREATE,
-    UPDATE,
-    DELETE,
-    QUERY,
-    ADJUST,
-    SECURITY_ALERT
 }
 
 public enum KardexMovementFilterType

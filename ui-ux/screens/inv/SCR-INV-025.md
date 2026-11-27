@@ -244,20 +244,24 @@ To eliminate logical asset orphanhood, dismounting an equipment unit requires ex
 3. **Holding Warehouse Selection:** Holding warehouse `CMP-03` requires an explicit selection from active storage warehouses.
 4. **Validation Guard:** If either destination status or holding warehouse is omitted, clicking `[Swap Rotable Asset]` applies WCAG 2.1 AA redundant coding (amber focus ring + warning icon `#icon-warning` + inline text label), blocking submission.
 
-#### 5.3.3. Cryptographic Audit Trail Chaining (TR-001)
-Upon confirmation, the client submits `ExecuteAssetSwapCommand` (§7.2.3) without a client-supplied `PreviousHash`. Inside the single-commit atomic transaction, `AuditSaveChangesInterceptor` resolves `audit_logs.previous_hash` server-side pre-commit and seals the immutable `IntegrityHash`:
-$$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash}_{\text{server}} \parallel \text{TechnicianUserId} \parallel \text{FunctionalLocationId} \parallel \text{DismountedAssetId} \parallel \text{DestinationStatus} \parallel \text{HoldingWarehouseId} \parallel \text{ReplacementAssetId} \parallel \text{JustifyingWorkOrderId} \parallel \text{TimestampUtc})$$
-Chaining `audit_logs.previous_hash` exclusively on the server eliminates client race conditions and guarantees unalterable lifecycle traceability ([TR-001](../../../requirements/common/TR-001.md)).
+#### 5.3.3. Cryptographic Audit Trail Chaining (TR-001, ADR-003)
+Upon confirmation, the client submits `ExecuteAssetSwapCommand` (§7.2.3) without a client-supplied `PreviousHash`. Server-side pre-commit hashing resolves the predecessor chain digest and seals the immutable `IntegrityHash` atomically per [ADR-003 (Canonical Hash Formula)](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants) and [TR-001](../../../requirements/common/TR-001.md), eliminating client race conditions and guaranteeing unalterable lifecycle traceability.
 
 #### 5.3.4. Atomic Asset Swap Command Dispatch (`CMP-09`, TR-001, TR-007, ADR-005, ADR-007)
 Upon pressing `[Swap Rotable Asset]`, the client dispatches an atomic substitution command against the backend API endpoint:
 `POST /api/v1/inventory/rotable-swaps`
 
-* **Client Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) guaranteeing exactly-once transaction processing during network reconnection retries, paired with `If-Match: "{DismountedConcurrencyToken}"` on live online commits enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169) (omitted on offline outbox replay).
-* **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) carrying `DismountedConcurrencyToken` and `ReplacementConcurrencyToken` alongside functional location, dismounted equipment ID, destination status enum, holding warehouse ID, replacement equipment ID, mandatory justifying work order reference (`JustifyingWorkOrderId`, `FR-595`), and technician user ID (`audit_logs.previous_hash` is computed server-side pre-commit by `AuditSaveChangesInterceptor`).
-* **Backend Persistence Invariant:** The backend orchestrates `ExecuteAssetSwapCommand` within a single-commit atomic transaction ([ADR-005](../../../architecture/adr/ADR-005.md), `NFR-596`): validating `DismountedConcurrencyToken` and `ReplacementConcurrencyToken` server-side against both dismounted and replacement `EquipmentUnit` `xmin` rows on live online requests (returning HTTP 409 Conflict on stale state) or executing server-side command-sourced reconciliation for offline outbox replays, unlinking the dismounted asset, updating destination status and warehouse holding state, mounting the replacement rotable unit, recording the chained cryptographic audit entry ([TR-001](../../../requirements/common/TR-001.md)), and broadcasting `AssetSwapCompleted(AssetSwapCompletedEvent)` over SignalR hub `/hubs/operations` (`IOperationsClient`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)). Returns HTTP 200 OK with `AssetSwapCompletedEvent`.
+* **Client Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) guaranteeing exactly-once transaction processing during network reconnection retries, paired with `If-Match: "{DismountedConcurrencyToken}"` on live online commits enforcing optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169) (omitted on offline outbox replay).
+* **Command Payload:** Serializes `ExecuteAssetSwapCommand` (§7.2.3) carrying `DismountedConcurrencyToken` and `ReplacementConcurrencyToken` alongside functional location, dismounted equipment ID, destination status enum, holding warehouse ID, replacement equipment ID, mandatory justifying work order reference (`JustifyingWorkOrderId`, `FR-595`), and technician user ID (authoritative SHA-256 hash chaining executes server-side pre-commit per [ADR-003 (Canonical Hash Formula)](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants)).
+* **Backend Persistence Invariant:** The backend orchestrates `ExecuteAssetSwapCommand` within a single-commit atomic transaction ([ADR-005](../../../architecture/adr/ADR-005.md), `NFR-596`): validating `DismountedConcurrencyToken` and `ReplacementConcurrencyToken` server-side for both dismounted and replacement `EquipmentUnit` records on live online requests (returning HTTP 409 Conflict on stale state) or executing server-side command-sourced reconciliation for offline outbox replays, unlinking the dismounted asset, updating destination status and warehouse holding state, mounting the replacement rotable unit, recording the chained cryptographic audit entry ([TR-001](../../../requirements/common/TR-001.md)), and broadcasting `AssetSwapCompleted(AssetSwapCompletedEvent)` over SignalR hub `/hubs/operations` (`IOperationsClient`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)). Returns HTTP 200 OK with `AssetSwapCompletedEvent`.
 * **Success Handling (HTTP 200 OK):** Transitions UI state to `Swap Completed (Success)`, renders checkmark animation, dispatches `OnSwapCompleted` callback with `AssetSwapCompletedEvent`, and dismisses modal after $1.5\text{s}$.
-* **Offline Outbox Fallback (`TR-007`, `ADR-006`, `ADR-007`):** On network disconnection or HTTP 5xx timeout, the client serializes `ExecuteAssetSwapCommand` into the local encrypted outbox via `IOfflineStorage` ([TR-007](../../../requirements/common/TR-007.md), encrypted at rest per [TR-002](../../../requirements/common/TR-002.md)), assigns a UUIDv7 `X-Idempotency-Key` in the local outbox ([ADR-005](../../../architecture/adr/ADR-005.md), [ADR-007](../../../architecture/adr/ADR-007.md)), displays the "Offline Queued" state (§4), and dismisses after $1.5\text{s}$. Upon reconnecting to plant Wi-Fi, the background synchronization worker drains the outbox FIFO—**omitting stale `If-Match`** headers in favor of server-side command-sourced reconciliation ([ADR-006](../../../architecture/adr/ADR-006.md), [TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr)).
+* **Offline Delta Card (`TR-007`, `ADR-006`, `ADR-007`):** On network disconnection or HTTP 5xx timeout, offline queueing, encrypted local storage (`TR-002`), UUIDv7 idempotency (`ADR-007`), and FIFO reconnection replay follow [ADR-006 (Canonical 5-Step Offline Outbox Lifecycle)](../../../architecture/adr/ADR-006.md#canonical-5-step-offline-outbox-two-phase-media-sync-lifecycle) (UI displays "Offline Queued" in §4 and dismisses after $1.5\text{s}$). Screen-specific deltas:
+
+| Delta Dimension | `SCR-INV-025` Specification |
+| :--- | :--- |
+| **Queued Command DTO** | `ExecuteAssetSwapCommand` (`POST /api/v1/inventory/rotable-swaps`, `X-Idempotency-Key: {uuidv7}`, omitting stale `If-Match`) |
+| **Local Pre-Validation Rule** | `EquipmentClassId` parity, `IN_STORAGE`/`OPERATIONAL` readiness (`FR-593`), destination + holding warehouse, mandatory `JustifyingWorkOrderId` (`FR-595`), and `AF-003` LOTO zero-energy interlock |
+| **Screen-Specific Conflict Policy** | Omits stale `DismountedConcurrencyToken` / `ReplacementConcurrencyToken` (`If-Match`) on FIFO reconnect replay and delegates conflict reconciliation to server-side command-sourced merge with administrative alert if either unit's state diverged during the outage |
 
 #### 5.3.5. LOTO Energy Isolation Safety Interlock (AF-003)
 When an asset swap executes within a maintenance Work Order context (`JustifyingWorkOrderId`), the client and backend enforce the [ASR-002](../../../architecture/asr/DT-ARQ-ASR-001.md#2-real-time-loto-security-and-fail-safe) negative safety interlock before permitting mechanical uncoupling:
@@ -415,6 +419,8 @@ public string? CompatibilityMessage { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`EquipmentLifecycleStatus`, `EquipmentOperationalStatus`, `EquipmentMaintenanceStatus`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
 /// <summary>
 /// Post-dismount custody and condition disposition mapping onto EquipmentUnit 4D statuses.
@@ -424,37 +430,6 @@ public enum DismountDestinationStatus
     IN_REPAIR,
     IN_STORAGE,
     DAMAGED
-}
-
-/// <summary>
-/// Controlled equipment lifecycle vocabulary per DT-DM-DOC-001 §4.2.
-/// </summary>
-public enum EquipmentLifecycleStatus
-{
-    IN_STORAGE,
-    INSTALLED,
-    COMMISSIONING,
-    DECOMMISSIONED
-}
-
-/// <summary>
-/// Controlled equipment operational status vocabulary per DT-DM-DOC-001 §4.4.
-/// </summary>
-public enum EquipmentOperationalStatus
-{
-    UP,
-    DOWN,
-    STANDBY
-}
-
-/// <summary>
-/// Controlled equipment maintenance status vocabulary per DT-DM-DOC-001 §4.3.
-/// </summary>
-public enum EquipmentMaintenanceStatus
-{
-    OPERATIONAL,
-    UNDER_MAINTENANCE,
-    UNDER_TEST
 }
 
 public record WarehouseLookupDto

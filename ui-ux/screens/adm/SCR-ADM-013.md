@@ -260,9 +260,9 @@ sequenceDiagram
 1. **Canonical Domain Module & Action Matrix (`FR-248`, [DT-DM-DOC-001 §4.39](../../../domain-models/class/DT-DM-DOC-001.md#439-rolepermissionmodule), [§4.42](../../../domain-models/class/DT-DM-DOC-001.md#442-rolepermissionaction)):**
    * The matrix rows bind strictly to the 5 canonical `RbacModule` enum values (`ASSETS`, `MAINTENANCE`, `INVENTORY`, `SAFETY`, `SYSTEM`), and the columns bind to the 7 canonical `RbacAction` enum values (`CREATE`, `READ`, `EDIT`, `DELETE`, `APPROVE`, `AUDIT`, `EXECUTE`).
 2. **Imperceptible Authorization Cache & Optimistic Concurrency (`NFR-256`, `NFR-257`, `TR-010`, `ADR-007`):**
-   * Custom role creation (`POST /api/v1/security/roles` carrying `CreateCustomRoleCommand` and `X-Idempotency-Key: {uuidv7}`), committed matrix updates (`PUT /api/v1/security/roles/{id}/permissions`), and logical role deactivations (`POST /api/v1/security/roles/{id}/deactivate`) carry `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), with matrix updates and deactivations additionally requiring `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)). Upon commit, the backend invalidates distributed memory/JWT permission claims and pushes a real-time SignalR `/hubs/security` (`ISecuritySessionClient`) `PermissionsUpdated(RolePermissionsUpdatedEvent)` broadcast (or `SessionRevoked(SessionRevocationEvent)` on deactivation) to connected clients in $< 2\text{s}$ (`NFR-257`, `TR-010-NFR-432`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)), enabling runtime endpoint authorization checks to execute in $< 5\text{ms}$–$10\text{ms}$ (`NFR-256`, `TR-006-NFR-401`).
+   * Custom role creation (`POST /api/v1/security/roles` carrying `CreateCustomRoleCommand` and `X-Idempotency-Key: {uuidv7}`), committed matrix updates (`PUT /api/v1/security/roles/{id}/permissions`), and logical role deactivations (`POST /api/v1/security/roles/{id}/deactivate`) carry `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), with matrix updates and deactivations additionally requiring `If-Match: "{ConcurrencyToken}"` (optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169); concurrent mutations return HTTP `409 Conflict`). Upon commit, the backend invalidates distributed memory/JWT permission claims and pushes a real-time SignalR `/hubs/security` (`ISecuritySessionClient`) `PermissionsUpdated(RolePermissionsUpdatedEvent)` broadcast (or `SessionRevoked(SessionRevocationEvent)` on deactivation) to connected clients in $< 2\text{s}$ (`NFR-257`, `TR-010-NFR-432`, [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)), enabling runtime endpoint authorization checks to execute in $< 5\text{ms}$–$10\text{ms}$ (`NFR-256`, `TR-006-NFR-401`).
 3. **Audit Justification Payload Mapping ([DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):**
-   * Mandatory interactive `AuditJustification` text captured in `CMP-13` (matrix commits) and `CMP-10` (role deactivation) ($\ge 15$ characters) persists inside the `AuditLog` post-mutation `JSONB` envelope (`NewState`) under the transversal justification contract defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
+   * Mandatory interactive `AuditJustification` text captured in `CMP-13` (matrix commits) and `CMP-10` (role deactivation) ($\ge 15$ characters) persists inside the `AuditLog` structured post-mutation state payload (`NewState`) under the transversal justification contract defined in [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state).
    * For custom role creation in `CMP-09` (which dispatches `POST /api/v1/security/roles` with `CreateCustomRoleCommand` and `X-Idempotency-Key: {uuidv7}`, capturing `Name`, `Description`, `CloneFromRoleId`, and `AuthorizedModules` without a redundant second justification input), the Application layer deterministically composes `CreateCustomRoleCommand.AuditJustification` from the role's business `Description` and authorized module scope (guaranteed $\ge 15$ characters) before sealing the `IntegrityHash` (`ADR-003`).
 
 ---
@@ -296,8 +296,7 @@ sequenceDiagram
 
 #### 5.3.3. Root Administrator Immutability & Chained SHA-256 Audit (`FR-250`, `AF-002`, `TR-001`, `ADR-003`)
 1. **Root Role Guard (`FR-250`, `AF-002`):** When `SelectedRole.IsSystemRootRole == true`, all checkbox inputs in `CMP-05` and `Role.RemovePermission` calls are hard-blocked on both client and server.
-2. **Chained SHA-256 Digest (`TR-001`, `ADR-003`):** Every role creation, permission matrix update, or logical deactivation requires a mandatory `AuditJustification` ($\ge 15$ characters) entered in `CMP-13` (or `CMP-10` for deactivations). The client computes only a candidate payload digest preview (without a client-supplied `PreviousHash`); inside the single-commit atomic transaction, `AuditSaveChangesInterceptor` resolves `audit_logs.previous_hash` server-side pre-commit ([DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)) and appends the tamper-evident record to `CMP-11`:
-   $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash}_{\text{server}} \parallel \text{AdminUserId} \parallel \text{RoleId} \parallel \text{PreviousPermissionsJson} \parallel \text{NewPermissionsJson} \parallel \text{AuditJustification} \parallel \text{TimestampUtc})$$
+2. **Chained SHA-256 Digest (`TR-001`, `ADR-003`):** Every role creation, permission matrix update, or logical deactivation requires a mandatory `AuditJustification` ($\ge 15$ characters) entered in `CMP-13` (or `CMP-10` for deactivations). The client previews a candidate payload digest in `CMP-07` without supplying `PreviousHash`; the server resolves and seals the authoritative SHA-256 chain hash atomically pre-commit per [ADR-003 (Canonical Hash Formula)](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants) and [DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025), appending the tamper-evident record to `CMP-11`.
 3. **Discard Baseline Reversion (`CMP-13`):** Clicking `[Discard Changes]` restores the active role's working matrix cleanly to its persisted server baseline and clears pending justification text.
 
 #### 5.3.4. Logical Role Deactivation, Export & Immediate Session Revocation (`FR-252`, `FR-254`, `NFR-257`, `AF-004`)
@@ -349,23 +348,9 @@ public Guid? InitialRoleId { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-13`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-ADM-013"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string? ActiveRouteCode { get; set; } = "SCR-ADM-013";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnMobileDrawerToggled { get; set; }
-
 // CMP-02: RbacHeaderBar.razor
 [Parameter]
 public required string OperatorBadgeCode { get; set; }
@@ -579,33 +564,9 @@ public EventCallback OnSaveMatrixClicked { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`RbacModule`, `RbacAction`, `AuditActionType`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
-/// <summary>
-/// Controlled application subdomain module vocabulary per DT-DM-DOC-001 §4.39.
-/// </summary>
-public enum RbacModule
-{
-    ASSETS,
-    MAINTENANCE,
-    INVENTORY,
-    SAFETY,
-    SYSTEM
-}
-
-/// <summary>
-/// Controlled granular RBAC action vocabulary per FR-248, DT-DM-DOC-001 §4.42 & DT-ERD-DOC-001 §3.5.3.
-/// </summary>
-public enum RbacAction
-{
-    CREATE,
-    READ,
-    EDIT,
-    DELETE,
-    APPROVE,
-    AUDIT,
-    EXECUTE
-}
-
 public enum RbacRoleFilterCategory
 {
     ALL_ROLES,
@@ -632,19 +593,6 @@ public enum RbacMatrixExportFormat
 {
     GLOBAL_MATRIX_CSV,
     GLOBAL_MATRIX_JSON
-}
-
-/// <summary>
-/// Controlled audit operation vocabulary per DT-DM-DOC-001 §4.36.
-/// </summary>
-public enum AuditActionType
-{
-    CREATE,
-    UPDATE,
-    DELETE,
-    QUERY,
-    ADJUST,
-    SECURITY_ALERT
 }
 
 public readonly record struct PermissionGrantKeyDto(
