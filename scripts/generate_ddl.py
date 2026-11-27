@@ -40,6 +40,11 @@ def parse_enums(dm_doc_path: Path) -> dict[str, list[str]]:
     current_field = None
 
     for line in lines:
+        if re.match(r"^#{1,3}\s+", line):
+            current_entity = None
+            current_field = None
+            continue
+
         match = re.match(r"^#### \d+\.\d+ (\w+)\.(\w+)", line)
         if match:
             current_entity = match.group(1)
@@ -59,13 +64,15 @@ def parse_enums(dm_doc_path: Path) -> dict[str, list[str]]:
         if (
             current_entity
             and line.startswith("|")
-            and not line.startswith("| ---")
+            and not re.match(r"^\|\s*:?---", line)
             and not line.startswith("| Value")
             and not line.startswith("| Code")
         ):
             parts = [p.strip() for p in line.split("|")]
             if len(parts) >= 3 and parts[1]:
                 val = parts[1]
+                if not re.match(r"^[A-Z0-9_]+$|^-?\d+$", val):
+                    continue
                 snake_entity = re.sub(r"(?<!^)(?=[A-Z])", "_", current_entity).lower()
                 plural_snake_entity = pluralize(snake_entity)
                 snake_field = re.sub(r"(?<!^)(?=[A-Z])", "_", current_field).lower()

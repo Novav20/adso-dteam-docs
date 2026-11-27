@@ -549,7 +549,7 @@ CREATE TABLE IF NOT EXISTS adm.audit_retention_partitions (
     sealed_at                      TIMESTAMPTZ,
 
     CONSTRAINT uq_audit_retention_partitions_partition_name UNIQUE (partition_name),
-    CONSTRAINT ck_audit_retention_partitions_integrity_status CHECK (integrity_status IN ('VERIFIED_INTACT', 'VERIFYING_IN_PROGRESS', 'TAMPER_BREACH_DETECTED', 'Rule Code', ':---', '**`SOD-SAF-01`**', '**`SOD-INV-01`**', '**`SOD-MTTO-01`**', '**`SOD-SYS-01`**', 'Domain Mechanism', '**Zero-Energy Verification**', '**SIMOPS Clearance Radius**')),
+    CONSTRAINT ck_audit_retention_partitions_integrity_status CHECK (integrity_status IN ('VERIFIED_INTACT', 'VERIFYING_IN_PROGRESS', 'TAMPER_BREACH_DETECTED')),
     CONSTRAINT pk_audit_retention_partitions PRIMARY KEY (id)
 );
 
