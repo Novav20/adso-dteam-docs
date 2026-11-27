@@ -100,11 +100,11 @@ flowchart TB
 ## Consistency Rules
 
 1. Active UI clients follow [ADR-004](adr/ADR-004.md), sharing components via `Dteam.Ui` (RCL), and `Dteam.Mobile` MUST NOT reference `Microsoft.EntityFrameworkCore` or module assemblies.
-2. Module internals (`Domain`, `Infrastructure`, `DbContext`) remain `internal`; cross-module collaboration flows strictly through public port interfaces or `IEventBus` (with `SharedDbConnection` in `Dteam.Shared` per [DT-ARQ-DB-DOC-001 §3.9](DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)).
+2. Module internals (`Domain`, `Infrastructure`, `DbContext`) remain `internal`; cross-module collaboration flows strictly through public port interfaces or `IEventBus` (with `SharedDbConnection` in `Dteam.Shared` per [DT-ARQ-DB-DOC-001](DT-ARQ-DB-DOC-001.md) §3.9).
 3. Previous frontend technologies can only appear in historical records or superseded decisions, clearly identified as inactive.
 4. Stack changes require a new ADR or an approved update to [ADR-004](adr/ADR-004.md).
 5. Structurizr diagram labels (`DT-ARQ-CMP-001-component-model.dsl`, `DT-ARQ-DEP-001-deployment-model.dsl`) must match the Target Stack table; diagram file names and view codes remain unchanged.
-6. Authentication session TTLs (`15-min` Access JWT / `8-hour` Shift Refresh) follow [ADR-006](adr/ADR-006.md#canonical-offline-watchdog-session-constants) and [TR-006](../requirements/common/TR-006.md).
+6. Authentication session TTLs follow [ADR-006](adr/ADR-006.md#canonical-offline-watchdog-session-constants) and [TR-006](../requirements/common/TR-006.md).
 
 ## Related Artifacts
 
