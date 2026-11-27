@@ -140,7 +140,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 - [ ] **Pre-Implementation Architecture & Contract Alignment (Batch 3)**
   - [x] Resolve `ITaxonomyService` vs. `IInventoryService` ownership of `INV-025` (`SwapAssetAsync`) in [`DT-ARQ-CMP-DOC-001.md`](architecture/views/DT-ARQ-CMP-DOC-001.md).
   - [x] Document the Cross-DbContext Unit of Work / Shared `DbConnection` transaction pattern in [`DT-ARQ-DB-DOC-001.md`](architecture/DT-ARQ-DB-DOC-001.md).
-  - [ ] Define the canonical multi-project `.sln` structure (`Dteam.Contracts`, shared `Dteam.Ui` Razor Class Library, `Dteam.Web`, `Dteam.Mobile`) in [`DT-ARQ-TECH-001.md`](architecture/DT-ARQ-TECH-001.md).
+  - [x] Define the canonical multi-project `.sln` structure (`Dteam.Contracts`, shared `Dteam.Ui` Razor Class Library, `Dteam.Web`, `Dteam.Mobile`, modular monolith assemblies, and `.NET Aspire` local orchestration) in [`DT-ARQ-TECH-001.md`](architecture/DT-ARQ-TECH-001.md).
 
 - [x] **MOC Layout Revision Entity (`vis.plant_layout_revisions`)**
   - [x] Add relational entity to `DT-ERD-DOC-001.md`: UUIDv7, FK to Level 4 Functional Location, revision code, Blob Storage URI, SHA-256 checksum, lifecycle status (`DRAFT`, `ACTIVE`, `SUPERSEDED`), and approver ID.

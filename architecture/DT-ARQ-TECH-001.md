@@ -29,7 +29,75 @@ This document is the consolidated source for identifying the target technology s
 | Object Storage | Azure Blob Storage | Valet Key offloading for ISO 14224 multimedia evidence | ADR-008, DT-ARQ-DEP-001 |
 | IoT Ingestion | Azure IoT Hub | Industrial telemetry (MQTT from SCADA / AMQP to Backend) | DT-ARQ-DEP-001 |
 | Infrastructure | Docker, Nginx, and Azure Cloud Services | Containers, reverse proxy, TLS 1.3, and deployment | DT-ARQ-DEP-001 |
+| Local Orchestration & Observability | .NET Aspire (`AppHost` + `ServiceDefaults`) | Local multi-service startup, OpenTelemetry tracing, and `Aspire.Hosting.Testing` | ADR-011, DT-ARQ-DEP-001 |
 | Visualization | 2D First model (SVG), 3D Evolutionary | Digital twin and operational context | ADR-001 |
+
+## Physical Solution Structure (`Dteam.sln`)
+
+The implementation repository (`adso-dteam-code`) organizes the **Modular Monolith + Hexagonal (Ports & Adapters)** architecture using **one `internal`-encapsulated module assembly per PostgreSQL schema** (`tax`, `mtto`, `inv`, `vis`, `adm`), shared cross-cutting/contract assemblies, client hosts, Aspire local orchestration, and automated test suites:
+
+```text
+adso-dteam-code/
+├── Dteam.sln
+├── src/
+│   ├── Dteam.ServiceDefaults/               # OpenTelemetry, health checks, resilience (.NET Aspire)
+│   ├── Dteam.AppHost/                       # Local orchestration: Api, Web, TimescaleDB, Redis, MQTT (ADR-011)
+│   ├── Dteam.Contracts/                     # Shared DTOs, Commands, Enums (supersedes DT-UI-CTR-001)
+│   ├── Dteam.Shared/                        # IEventBus, ITelemetryBus, AuditSaveChangesInterceptor, SharedDbConnection, IEndpointFilter
+│   ├── Dteam.Ui/                            # Shared Razor Class Library (CanvasViewport2D, HUD, forms, tokens.css, icons.svg)
+│   ├── Modules/
+│   │   ├── Dteam.Modules.Tax/               # Schema tax.* (Domain/, Application/, Infrastructure/, Endpoints/; internal types + public ITaxonomyService)
+│   │   ├── Dteam.Modules.Mtto/              # Schema mtto.* (Domain/, Application/, Infrastructure/, Endpoints/; internal types + public IWorkOrderService)
+│   │   ├── Dteam.Modules.Inv/               # Schema inv.* (Domain/, Application/, Infrastructure/, Endpoints/; internal types + public IInventoryService)
+│   │   ├── Dteam.Modules.Vis/               # Schema vis.* (Domain/, Application/, Infrastructure/, Endpoints/; internal types + public ILotoService, ISpatialIngestionService)
+│   │   └── Dteam.Modules.Adm/               # Schema adm.* (Domain/, Application/, Infrastructure/, Endpoints/; internal types + public ISecurityService)
+│   ├── Dteam.Api/                           # ASP.NET Core Minimal APIs host, SignalR Hubs, module composition root
+│   ├── Dteam.Web/                           # Blazor Web App administrative portal (consumes Dteam.Ui + Dteam.Contracts)
+│   └── Dteam.Mobile/                        # .NET 10 MAUI Blazor Hybrid + sqlite-net-pcl/SQLCipher (zero EF Core)
+└── tests/
+    ├── Dteam.Domain.Tests/                  # Unit & Stryker.NET mutation tests for module Domain invariants
+    ├── Dteam.Architecture.Tests/            # NetArchTest.Rules enforcing hexagonal layers, internal module isolation, no EF Core in Mobile
+    ├── Dteam.Integration.Tests/             # Aspire.Hosting.Testing + PostgreSQL 18 / TimescaleDB parity & CTEs
+    └── Dteam.Acceptance.Tests/              # Reqnroll Gherkin acceptance scenarios mapped to srs.csv / UC-*
+```
+
+### Package Dependency Diagram
+
+```mermaid
+flowchart TB
+    AppHost["Dteam.AppHost (.NET Aspire)"] --> Api["Dteam.Api (Minimal APIs + SignalR)"]
+    AppHost --> Web["Dteam.Web (Blazor Web App)"]
+
+    Web --> Ui["Dteam.Ui (RCL)"]
+    Mobile["Dteam.Mobile (MAUI + SQLCipher)"] --> Ui
+    Ui --> Contracts["Dteam.Contracts"]
+    Web --> Contracts
+    Mobile --> Contracts
+
+    Api --> ServiceDefaults["Dteam.ServiceDefaults"]
+    Web --> ServiceDefaults
+    Api --> Shared["Dteam.Shared"]
+
+    Api --> Tax["Dteam.Modules.Tax"]
+    Api --> Mtto["Dteam.Modules.Mtto"]
+    Api --> Inv["Dteam.Modules.Inv"]
+    Api --> Vis["Dteam.Modules.Vis"]
+    Api --> Adm["Dteam.Modules.Adm"]
+
+    Tax --> Shared
+    Mtto --> Shared
+    Inv --> Shared
+    Vis --> Shared
+    Adm --> Shared
+
+    Tax --> Contracts
+    Mtto --> Contracts
+    Inv --> Contracts
+    Vis --> Contracts
+    Adm --> Contracts
+```
+
+> **Boundary Invariants:** Module internals (`Domain`, `Infrastructure`, `DbContext`) remain `internal`; cross-module collaboration flows strictly through public port interfaces or `IEventBus` (with `SharedDbConnection` coordinated in `Dteam.Shared` for `INV-025`), and `Dteam.Mobile` MUST NEVER reference `Dteam.Infrastructure` or `Microsoft.EntityFrameworkCore`.
 
 ## Consistency Rules
 
@@ -43,6 +111,7 @@ This document is the consolidated source for identifying the target technology s
 ## Related Artifacts
 
 - [ADR-004: Frontend Client with .NET MAUI Blazor Hybrid](adr/ADR-004.md)
+- [ADR-011: .NET Aspire for Local Orchestration, Observability, and Integration Testing](adr/ADR-011.md)
 - [Component Model](views/DT-ARQ-CMP-001-component-model.dsl)
 - [Component Specification](views/DT-ARQ-CMP-DOC-001.md)
 - [Deployment Model](views/DT-ARQ-DEP-001-deployment-model.dsl)
