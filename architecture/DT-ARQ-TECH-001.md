@@ -1,7 +1,7 @@
 ---
 code: DT-ARQ-TECH-001
-version: 1.2
-date: 2026-09-25
+version: 1.3
+date: 2026-11-27
 status: Approved
 author: Juan David Julio
 ---
@@ -34,42 +34,42 @@ This document is the consolidated source for identifying the target technology s
 
 ## Physical Solution Structure (`Dteam.sln`)
 
-The implementation repository (`adso-dteam-code`) organizes the **Modular Monolith + Hexagonal (Ports & Adapters)** architecture using **one `internal`-encapsulated module assembly per PostgreSQL schema** (`tax`, `mtto`, `inv`, `vis`, `adm`), shared cross-cutting/contract assemblies, client hosts, Aspire local orchestration, and automated test suites:
+`adso-dteam-code` implements a Modular Monolith with **one `internal`-encapsulated module assembly per PostgreSQL schema**, shared cross-cutting assemblies, client hosts, and test suites:
 
 ```text
 adso-dteam-code/
 ├── Dteam.sln
 ├── src/
-│   ├── Dteam.ServiceDefaults/               # OpenTelemetry, health checks, resilience (.NET Aspire)
-│   ├── Dteam.AppHost/                       # Local orchestration: Api, Web, TimescaleDB, Redis, MQTT (ADR-011)
+│   ├── Dteam.ServiceDefaults/               # OpenTelemetry, health checks, resilience
+│   ├── Dteam.AppHost/                       # Local Aspire orchestration (ADR-011)
 │   ├── Dteam.Contracts/                     # Shared DTOs, Commands, Enums (supersedes DT-UI-CTR-001)
 │   ├── Dteam.Shared/                        # IEventBus, ITelemetryBus, AuditSaveChangesInterceptor, SharedDbConnection, IEndpointFilter
-│   ├── Dteam.Ui/                            # Shared Razor Class Library (CanvasViewport2D, HUD, forms, tokens.css, icons.svg)
+│   ├── Dteam.Ui/                            # Shared RCL (CanvasViewport2D, HUD, forms, tokens.css, icons.svg)
 │   ├── Modules/
-│   │   ├── Dteam.Modules.Tax/               # Schema tax.* (Domain/, Application/, Infrastructure/, Endpoints/; internal types + public ITaxonomyService)
-│   │   ├── Dteam.Modules.Mtto/              # Schema mtto.* (Domain/, Application/, Infrastructure/, Endpoints/; internal types + public IWorkOrderService)
-│   │   ├── Dteam.Modules.Inv/               # Schema inv.* (Domain/, Application/, Infrastructure/, Endpoints/; internal types + public IInventoryService)
-│   │   ├── Dteam.Modules.Vis/               # Schema vis.* (Domain/, Application/, Infrastructure/, Endpoints/; internal types + public ILotoService, ISpatialIngestionService)
-│   │   └── Dteam.Modules.Adm/               # Schema adm.* (Domain/, Application/, Infrastructure/, Endpoints/; internal types + public ISecurityService)
-│   ├── Dteam.Api/                           # ASP.NET Core Minimal APIs host, SignalR Hubs, module composition root
-│   ├── Dteam.Web/                           # Blazor Web App administrative portal (consumes Dteam.Ui + Dteam.Contracts)
-│   └── Dteam.Mobile/                        # .NET 10 MAUI Blazor Hybrid + sqlite-net-pcl/SQLCipher (zero EF Core)
+│   │   ├── Dteam.Taxonomy/                  # Schema tax.* (Domain/, Application/, Infrastructure/, Endpoints/; public ITaxonomyService)
+│   │   ├── Dteam.Maintenance/               # Schema mtto.* (Domain/, Application/, Infrastructure/, Endpoints/; public IWorkOrderService)
+│   │   ├── Dteam.Inventory/                 # Schema inv.* (Domain/, Application/, Infrastructure/, Endpoints/; public IInventoryService)
+│   │   ├── Dteam.Visualization/             # Schema vis.* (Domain/, Application/, Infrastructure/, Endpoints/; public ILotoService, ISpatialIngestionService)
+│   │   └── Dteam.Administration/            # Schema adm.* (Domain/, Application/, Infrastructure/, Endpoints/; public ISecurityService)
+│   ├── Dteam.Api/                           # Minimal APIs + SignalR host and module composition root
+│   ├── Dteam.Web/                           # Blazor Web App administrative portal
+│   └── Dteam.Mobile/                        # MAUI Blazor Hybrid field client
 └── tests/
-    ├── Dteam.Domain.Tests/                  # Unit & Stryker.NET mutation tests for module Domain invariants
-    ├── Dteam.Architecture.Tests/            # NetArchTest.Rules enforcing hexagonal layers, internal module isolation, no EF Core in Mobile
-    ├── Dteam.Integration.Tests/             # Aspire.Hosting.Testing + PostgreSQL 18 / TimescaleDB parity & CTEs
-    └── Dteam.Acceptance.Tests/              # Reqnroll Gherkin acceptance scenarios mapped to srs.csv / UC-*
+    ├── Dteam.Domain.Tests/                  # Module subfolders (Taxonomy/, Maintenance/, Inventory/, Visualization/, Administration/) + Stryker.NET
+    ├── Dteam.Architecture.Tests/            # NetArchTest.Rules (hexagonal layers, internal isolation, no EF Core in Mobile)
+    ├── Dteam.Integration.Tests/             # Aspire.Hosting.Testing + TimescaleDB; module subfolders (Taxonomy/..Administration/)
+    └── Dteam.Acceptance.Tests/              # Reqnroll Gherkin scenarios; module subfolders (Taxonomy/..Administration/)
 ```
 
 ### Package Dependency Diagram
 
 ```mermaid
 flowchart TB
-    AppHost["Dteam.AppHost (.NET Aspire)"] --> Api["Dteam.Api (Minimal APIs + SignalR)"]
-    AppHost --> Web["Dteam.Web (Blazor Web App)"]
+    AppHost["Dteam.AppHost"] --> Api["Dteam.Api"]
+    AppHost --> Web["Dteam.Web"]
 
-    Web --> Ui["Dteam.Ui (RCL)"]
-    Mobile["Dteam.Mobile (MAUI + SQLCipher)"] --> Ui
+    Web --> Ui["Dteam.Ui"]
+    Mobile["Dteam.Mobile"] --> Ui
     Ui --> Contracts["Dteam.Contracts"]
     Web --> Contracts
     Mobile --> Contracts
@@ -78,35 +78,33 @@ flowchart TB
     Web --> ServiceDefaults
     Api --> Shared["Dteam.Shared"]
 
-    Api --> Tax["Dteam.Modules.Tax"]
-    Api --> Mtto["Dteam.Modules.Mtto"]
-    Api --> Inv["Dteam.Modules.Inv"]
-    Api --> Vis["Dteam.Modules.Vis"]
-    Api --> Adm["Dteam.Modules.Adm"]
+    Api --> Taxonomy["Dteam.Taxonomy"]
+    Api --> Maintenance["Dteam.Maintenance"]
+    Api --> Inventory["Dteam.Inventory"]
+    Api --> Visualization["Dteam.Visualization"]
+    Api --> Administration["Dteam.Administration"]
 
-    Tax --> Shared
-    Mtto --> Shared
-    Inv --> Shared
-    Vis --> Shared
-    Adm --> Shared
+    Taxonomy --> Shared
+    Maintenance --> Shared
+    Inventory --> Shared
+    Visualization --> Shared
+    Administration --> Shared
 
-    Tax --> Contracts
-    Mtto --> Contracts
-    Inv --> Contracts
-    Vis --> Contracts
-    Adm --> Contracts
+    Taxonomy --> Contracts
+    Maintenance --> Contracts
+    Inventory --> Contracts
+    Visualization --> Contracts
+    Administration --> Contracts
 ```
-
-> **Boundary Invariants:** Module internals (`Domain`, `Infrastructure`, `DbContext`) remain `internal`; cross-module collaboration flows strictly through public port interfaces or `IEventBus` (with `SharedDbConnection` coordinated in `Dteam.Shared` for `INV-025`), and `Dteam.Mobile` MUST NEVER reference `Dteam.Infrastructure` or `Microsoft.EntityFrameworkCore`.
 
 ## Consistency Rules
 
-1. Active artifacts must use .NET MAUI Blazor Hybrid for the mobile client and Blazor Web App for the administrative client, sharing components via Razor Class Library (RCL).
-2. Previous frontend technologies can only appear in historical records or superseded decisions, clearly identified as inactive.
-3. Mobile persistence is formalized under `sqlite-net-pcl` with SQLCipher encryption; the use of Entity Framework Core on the mobile client is not allowed.
-4. Stack changes must be recorded via a new ADR or an approved new version of ADR-004.
-5. Structurizr diagram labels (`DT-ARQ-CMP-001-component-model.dsl`, `DT-ARQ-DEP-001-deployment-model.dsl`) must match this matrix; diagram file names and view codes do not change due to the stack.
-6. Authentication sessions implement a split-lifecycle token strategy (`TR-006`): short-lived stateless **Access JWTs (15-minute TTL)** minimize replay exposure while rotating **Session Refresh Tokens (8-hour maximum shift TTL)** stored in `adm.auth_tokens` (`purpose = 'SESSION_REFRESH'`) enforce industrial shift boundaries and support immediate revocation upon account deactivation or risk lockout (`SCR-ADM-014`).
+1. Active UI clients follow [ADR-004](adr/ADR-004.md), sharing components via `Dteam.Ui` (RCL), and `Dteam.Mobile` MUST NOT reference `Microsoft.EntityFrameworkCore` or module assemblies.
+2. Module internals (`Domain`, `Infrastructure`, `DbContext`) remain `internal`; cross-module collaboration flows strictly through public port interfaces or `IEventBus` (with `SharedDbConnection` in `Dteam.Shared` per [DT-ARQ-DB-DOC-001 §3.9](DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)).
+3. Previous frontend technologies can only appear in historical records or superseded decisions, clearly identified as inactive.
+4. Stack changes require a new ADR or an approved update to [ADR-004](adr/ADR-004.md).
+5. Structurizr diagram labels (`DT-ARQ-CMP-001-component-model.dsl`, `DT-ARQ-DEP-001-deployment-model.dsl`) must match the Target Stack table; diagram file names and view codes remain unchanged.
+6. Authentication session TTLs (`15-min` Access JWT / `8-hour` Shift Refresh) follow [ADR-006](adr/ADR-006.md#canonical-offline-watchdog-session-constants) and [TR-006](../requirements/common/TR-006.md).
 
 ## Related Artifacts
 
