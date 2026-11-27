@@ -115,215 +115,241 @@ class AuditReport:
 
 
 RULE_SPECS: tuple[RuleSpec, ...] = (
+    # Module 1: rules/domain_erd_parity.py (scopes: domain, erd)
     RuleSpec(
         rule_id="GRD-01",
-        name="Ubiquitous Language & Dimension-Agnostic Purity",
+        name="SQL CHECK & Controlled Vocabulary Parity",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("ul", "seam1", "uc"),
+        scopes=("domain", "erd"),
         description=(
-            "Verifies DT-UL-DOC-001 consistency and detects rendering-coupled 2D/3D/SVG/canvas "
-            "or infrastructure/UI bleed inside domain and use-case specifications."
+            "Verifies every ck_* CHECK constraint in DT-ERD-001.sql matches DT-DM-DOC-001 §4 "
+            "controlled vocabularies and catches non-enum table leaks (CB-SQL-01)."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-02",
-        name="Domain Model & State Machine Coherence",
+        name="ERD Markdown-to-SQL Schema Parity",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("seam1", "erd", "uc"),
+        scopes=("domain", "erd"),
         description=(
-            "Cross-checks DT-DM-DOC-001 entities and DT-DM-DOC-002 state transitions against "
-            "ERD tables and use-case preconditions/postconditions."
+            "Verifies 1:1 structural parity between DT-ERD-DOC-001.md and DT-ERD-001.sql "
+            "(tables, column names, SQL types, nullability, defaults, PKs, FKs, and indexes)."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-03",
-        name="Controlled Vocabulary & Enum Parity",
+        name="ERD Markdown-to-DBML Schema Parity",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("seam1", "erd", "ui"),
+        scopes=("domain", "erd"),
         description=(
-            "Verifies 1:1 parity between DT-DM-DOC-001 §4 controlled vocabularies, PostgreSQL "
-            "CHECK constraints in DT-ERD-001.sql, and C# enum definitions across SCR/CTR specs."
+            "Verifies 1:1 structural parity between DT-ERD-DOC-001.md and DT-ERD-001.dbml "
+            "(tables, columns, types, pk/not null/default attributes, and Ref relationships)."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-04",
-        name="ERD Three-Way Schema Parity (SQL / DBML / Markdown)",
+        name="Domain Constants, State Machine & PlantUML Consistency",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("erd", "seam2"),
+        scopes=("domain", "erd"),
         description=(
-            "Verifies structural parity across DT-ERD-DOC-001.md §§3-4, DT-ERD-001.sql, and "
-            "DT-ERD-001.dbml for schemas, tables, columns, nullability, types, FKs, and indexes."
+            "Verifies DT-DM-DOC-001 §5 constants (SOD-*, 0.0 V, 0.5 psig, 15 m, 13 m, 5 m) "
+            "and entity/state consistency across DT-DM-DOC-001, DT-DM-DOC-002, and DT-DM-001.puml."
         ),
+        implemented=True,
     ),
+    # Module 2: rules/ui_contracts.py (scopes: contracts, ui)
     RuleSpec(
         rule_id="GRD-05",
-        name="PostgreSQL DDL Temporal, PK & Concurrency Conventions",
+        name="C# DTO/Command Type, Precision & Nullability Parity",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("erd", "seam2"),
+        scopes=("contracts", "ui"),
         description=(
-            "Enforces TIMESTAMPTZ for all timestamps, UUIDv7 PK defaults, explicit FK referential "
-            "actions, GIN jsonb_path_ops indexes, and partial unique active-slot indexes."
+            "Validates SCR-*.md §7.2 and DT-UI-CTR-001.md C# types (decimal, DateTimeOffset/DateOnly, "
+            "uint? ConcurrencyToken) and nullability against DT-ERD-DOC-001.md."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-06",
-        name="WORM & Append-Only Table Governance",
+        name="Shared Contract DRY Enforcement",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("erd", "seam2", "seam3"),
+        scopes=("contracts", "ui"),
         description=(
-            "Validates append-only immutability, RLS/REVOKE protections, partitioning/hypertable "
-            "setup, and ADR-003 SHA-256 chain hash consistency on WORM tables."
+            "Fails if any C# record, enum, or .razor component contract is duplicated across >= 2 "
+            "SCR-*.md files instead of residing in DT-UI-CTR-001.md or DT-DM-DOC-001 §4."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-07",
-        name="Application Layer Purity & Cross-DbContext Unit of Work",
-        default_severity=SEVERITY_WARNING,
-        scopes=("seam2", "seam3"),
+        name="C# Enum Parity & Pure Blazor Contract Hygiene",
+        default_severity=SEVERITY_BLOCKER,
+        scopes=("contracts", "ui"),
         description=(
-            "Audits architectural port ownership, shared DbTransaction boundaries across "
-            "DbContexts (DT-ARQ-DB-DOC-001), and ADR-010 slot/asset separation."
+            "Validates C# enums against DT-DM-DOC-001 §4 aliases/subsets and bans Blazor "
+            "code-behind constructs (ComponentBase, [Inject], _privateFields, OnInitialized*, namespace)."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-08",
-        name="REST API Catalog, Idempotency & Optimistic Concurrency Parity",
+        name="Command PreviousHash Prohibition",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("seam3",),
+        scopes=("contracts", "ui"),
         description=(
-            "Cross-checks /api/v1/... endpoints in SCR-*.md against DT-ARQ-CMP-DOC-001 §6, "
-            "verifying X-Idempotency-Key on mutations and If-Match/uint ConcurrencyToken."
+            "Bans PreviousHash on all mutating *Command and *RequestDto records, permitting it "
+            "exclusively on read-side audit entry and chain-verification DTOs."
         ),
+        implemented=True,
     ),
+    # Module 3: rules/use_cases_rbac.py (scopes: uc, nav, rbac)
     RuleSpec(
         rule_id="GRD-09",
-        name="SignalR Hub & Real-Time Event Contract Parity",
+        name="SCR/UC Structural Completeness & Bidirectional Traceability",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("seam3", "seam4"),
+        scopes=("uc", "nav", "rbac"),
         description=(
-            "Cross-checks /hubs/* endpoints, typed client interfaces, event method signatures, "
-            "and payload DTO fields against DT-ARQ-CMP-DOC-001 §5."
+            "Validates SCR-*.md (9 sections, §7.1-§7.3, YAML keys) and UC-*.md (6 sections, YAML keys) "
+            "along with bidirectional SCR.use_cases <-> UC.Related Screens traceability."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-10",
-        name="Numeric Precision Boundary (decimal vs Viewport double)",
+        name="Navigation Routes, ISA-101 Levels & Alternate Flow Coverage",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("seam3", "seam4", "ui"),
+        scopes=("uc", "nav", "rbac"),
         description=(
-            "Enforces C# decimal for operational, telemetry, financial, and engineering quantities; "
-            "restricts double strictly to non-persisted spatial viewport/zoom coordinates."
+            "Validates navigation routes and ISA-101 L1-L4 levels against DT-UI-NAV-DOC-001 §§5-6 "
+            "and verifies every UC-* AF-* alternate flow is covered in linked SCR-*.md specs."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-11",
-        name="Shared UI Contracts & DRY Screen Specification Guard",
+        name="RBAC Roles & SoD Reference Governance",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("seam4", "ui"),
+        scopes=("uc", "nav", "rbac"),
         description=(
-            "Verifies DT-UI-CTR-001.md SSoT compliance and prevents inline duplication of shared "
-            "lookup DTOs, shared Razor shell/form components, or DT-DM-DOC-001 §4 enums in SCR-*.md."
+            "Validates roles across SCR-*, UC-*, and DT-UI-NAV-DOC-001 §5 against approved RBAC roles "
+            "and verifies SOD-* references resolve to DT-DM-DOC-001 §5."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-12",
-        name="C# & Razor Contract Hygiene & Cross-Screen Consistency",
+        name="Use Case Black-Box Invariant",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("seam4", "ui"),
+        scopes=("uc", "nav", "rbac"),
         description=(
-            "Prohibits DateTime, ComponentBase, [Inject], namespaces, and mutable private fields in "
-            "§7 contracts while checking DTO property name/type/required/nullable parity across screens."
+            "Dynamically loads ERD tables/columns/schemas and bans physical DB leaks, Class.Method(), "
+            "/api/ routes, --dt-* CSS tokens, CMP-*, HTML tags, and SCR-* clutter in UC flow steps."
         ),
+        implemented=True,
     ),
+    # Module 4: rules/architecture_runtime.py (scopes: arch, api)
     RuleSpec(
         rule_id="GRD-13",
-        name="Design Token Coverage & CSS Hygiene",
+        name="Bidirectional REST API Catalog Parity",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("ui", "tokens"),
+        scopes=("arch", "api"),
         description=(
-            "Validates all referenced --dt-* tokens against ui-ux/assets/tokens.css (light & dark), "
-            "prevents duplicate token keys, token-literal shadowing, raw hex colors, and raw CSS in prose."
+            "Asserts bidirectional parity of all VERB /api/v1/... endpoints between SCR-*.md "
+            "and DT-ARQ-CMP-DOC-001 §6.1."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-14",
-        name="SVG Iconography & Spatial Contract Integrity",
+        name="SignalR Hub, Client Method & Event Record Parity",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("ui", "tokens"),
+        scopes=("arch", "api"),
         description=(
-            "Validates that every #icon-* reference across SCR-*.md, DT-UI-DS-DOC-001, and UI "
-            "prototypes resolves to a symbol in ui-ux/assets/icons.svg and aligns with DT-UI-SVG-DOC-001."
+            "Asserts parity of SignalR /hubs/* paths, typed client methods, and event payload "
+            "records between SCR-*.md and DT-ARQ-CMP-DOC-001 §§5-5.1."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-15",
-        name="Screen Specification Structure, ISA-101 & Language Policy",
+        name="WORM Immutability, Idempotency & If-Match Governance",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("ui",),
+        scopes=("arch", "api"),
         description=(
-            "Checks SCR-*.md frontmatter keys, 9 canonical sections and §7.1-§7.3 order, §8 "
-            "responsive tiers, ISA-101 L1-L4 bounds, zero Unicode emojis, and 100% Technical English."
+            "Bans xmin/If-Match on WORM/append-only tables and validates RLS/partitioning/hypertables "
+            "plus X-Idempotency-Key / If-Match conventions on mutating REST endpoints."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-16",
-        name="UI Prototype Asset & DOM Copy Purity",
-        default_severity=SEVERITY_WARNING,
-        scopes=("ui", "tokens"),
+        name="ADR-003/ADR-006 SSoT, Obsolete Terms & SCR Narrative Purity",
+        default_severity=SEVERITY_BLOCKER,
+        scopes=("arch", "api"),
         description=(
-            "Scans prototype .html/.css/.js files for leaked spec IDs (FR/NFR/TR/SCR), "
-            "engineering meta-jargon, and undefined CSS custom properties."
+            "Enforces ADR-003 (Hk hash) and ADR-006 (LOTO timers / 5-step outbox) as sole SSoTs, "
+            "bans obsolete terms (IActionFilter, Kubernetes), and bans DB mechanics in SCR §§1-5."
         ),
+        implemented=True,
     ),
+    # Module 5: rules/hygiene_ssot.py (scopes: links, ul, tokens, srs)
     RuleSpec(
         rule_id="GRD-17",
-        name="Use Case Integrity & MVP Scope Guard",
+        name="Relative Links, GFM Anchors, Artifact IDs & Zero Body Wikilinks",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("uc", "seam1"),
+        scopes=("links", "ul", "tokens", "srs"),
         description=(
-            "Enforces approved MVP UC-*/SCR-*/ADR-* indexes, approved RBAC actor names, "
-            "and structural completeness of UC-*.md specifications."
+            "Validates relative Markdown links, GFM section anchors, 4-segment DT-* artifact IDs, "
+            "and prohibits [[...]] wikilinks in document bodies."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-18",
-        name="Universal Relative Links, GFM Anchors & Zero Body Wikilinks",
+        name="Dimension-Agnostic 2D/3D UL & Layer Purity",
         default_severity=SEVERITY_BLOCKER,
-        scopes=("links",),
+        scopes=("links", "ul", "tokens", "srs"),
         description=(
-            "Verifies all relative Markdown links resolve on disk (respecting planned-stub "
-            "allowlists), all #anchor fragments match GFM heading slugs, and zero [[...]] exist in bodies."
+            "Enforces dimension-agnostic domain language and layer purity across DT-UL-DOC-001.md, "
+            "DT-DM-DOC-001/002, UC-*.md, and srs.csv (permitting MeshMapping entity identifier)."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-19",
-        name="SRS CSV & Requirements Traceability Parity",
-        default_severity=SEVERITY_WARNING,
-        scopes=("srs", "uc", "ui"),
+        name="UI Foundation Docs, --dt-* Token Parity & WCAG 2.1 Contrast",
+        default_severity=SEVERITY_BLOCKER,
+        scopes=("links", "ul", "tokens", "srs"),
         description=(
-            "Cross-checks FR-*/NFR-* IDs in requirements/data/srs.csv and TR-* references against "
-            "use cases, screen §9 traceability matrices, and DT-ARQ-CMP-DOC-001 §4."
+            "Audits DT-UI-DS-DOC-001, DT-UI-SVG-DOC-001, DT-UI-NAV-DOC-001, --dt-* token parity "
+            "against tokens.css (light & dark), and WCAG 2.1 AA contrast ratios."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-20",
-        name="Offline-First Outbox, LOTO Watchdog & Idempotency Replay Parity",
-        default_severity=SEVERITY_BLOCKER,
-        scopes=("seam3", "seam4"),
+        name="SVG Icons, Screenshots, Language Policy, LaTeX & Mermaid",
+        default_severity=SEVERITY_WARNING,
+        scopes=("links", "ul", "tokens", "srs"),
         description=(
-            "Verifies ADR-006 FIFO offline outbox semantics, LOTO 2s heartbeat / 30s grace window, "
-            "cryptographic offline lease boundaries, and omission/handling of If-Match on offline replay."
+            "Verifies #icon-* symbols in icons.svg, SCR §2 screenshot assets, Technical English in .md / "
+            "Spanish UI copy in prototypes, LaTeX $...$ parity, and Mermaid block validity."
         ),
+        implemented=True,
     ),
     RuleSpec(
         rule_id="GRD-21",
-        name="Markdown Formatting, Mermaid Diagrams, LaTeX & Roadmap Sync",
+        name="SRS CSV Quality, TR-* Sync, Framework Ban & Dynamic MVP Index",
         default_severity=SEVERITY_WARNING,
-        scopes=("ui", "links", "srs"),
+        scopes=("links", "ul", "tokens", "srs"),
         description=(
-            "Checks fenced Mermaid block validity, balanced LaTeX $...$/$$...$$ math delimiters, "
-            "section numbering continuity, and TODO.md artifact path alignment."
+            "Checks srs.csv integrity and TR-*.md sync, bans unapproved frameworks (React/Angular/Vue/"
+            "Flutter), and dynamically verifies MVP SCR-*/UC-* index alignment."
         ),
+        implemented=True,
     ),
 )
 

@@ -56,6 +56,7 @@ class RepoIndex:
     srs_rows: tuple[dict[str, str], ...] = ()
     raw_texts: dict[str, str] = field(default_factory=dict)
     read_counts: dict[str, int] = field(default_factory=dict)
+    repo_files: frozenset[str] = field(default_factory=frozenset)
 
     @property
     def total_files_indexed(self) -> int:
@@ -245,5 +246,26 @@ def build_repo_index(
                 asset_text = read_once(canonical, rel)
                 if asset_text is not None:
                     index.prototype_assets[rel] = parse_prototype_asset(rel, asset_text)
+
+    # 6. Parse PlantUML and Structurizr DSL texts for pure Layer 2 inspection
+    puml_path = resolved_root / SSOT_PATHS.dm_puml
+    read_once(puml_path, SSOT_PATHS.dm_puml)
+    for dsl_path in _discover_non_hidden_files(resolved_root, ".dsl"):
+        rel_dsl = dsl_path.relative_to(resolved_root).as_posix()
+        read_once(dsl_path, rel_dsl)
+
+    # 7. Collect non-hidden repository file paths (stat-only, zero reads) for link/asset checks
+    repo_file_set: set[str] = set()
+    for any_path in resolved_root.rglob("*"):
+        if not any_path.is_file():
+            continue
+        try:
+            rel_parts = any_path.relative_to(resolved_root).parts
+        except ValueError:
+            continue
+        if _is_ignored_rel(rel_parts):
+            continue
+        repo_file_set.add(any_path.relative_to(resolved_root).as_posix())
+    index.repo_files = frozenset(repo_file_set)
 
     return index

@@ -1,8 +1,12 @@
 """
 Guardrail rule registry and scope/filter resolver (`GRD-01`..`GRD-21`).
 
-Batch G1 registers all 21 rule specifications with deterministic no-op stubs
-that return empty finding lists until rule implementations are added in Batch G2.
+Wires all 21 pure Layer 2 rule evaluators from the five domain-named modules:
+- `domain_erd_parity` (`GRD-01`..`GRD-04`)
+- `ui_contracts` (`GRD-05`..`GRD-08`)
+- `use_cases_rbac` (`GRD-09`..`GRD-12`)
+- `architecture_runtime` (`GRD-13`..`GRD-16`)
+- `hygiene_ssot` (`GRD-17`..`GRD-21`)
 """
 
 from __future__ import annotations
@@ -11,18 +15,68 @@ from collections.abc import Callable
 from pathlib import Path
 
 from ..config import VALID_SCOPES
-from ..models import RULE_SPECS, SEVERITY_ORDER, Finding, RuleSpec
+from ..models import RULE_SPEC_MAP, RULE_SPECS, SEVERITY_ORDER, Finding, RuleSpec
 from ..parsers import RepoIndex
+from .architecture_runtime import (
+    evaluate_grd_13,
+    evaluate_grd_14,
+    evaluate_grd_15,
+    evaluate_grd_16,
+)
+from .domain_erd_parity import (
+    evaluate_grd_01,
+    evaluate_grd_02,
+    evaluate_grd_03,
+    evaluate_grd_04,
+)
+from .hygiene_ssot import (
+    evaluate_grd_17,
+    evaluate_grd_18,
+    evaluate_grd_19,
+    evaluate_grd_20,
+    evaluate_grd_21,
+)
+from .ui_contracts import (
+    evaluate_grd_05,
+    evaluate_grd_06,
+    evaluate_grd_07,
+    evaluate_grd_08,
+)
+from .use_cases_rbac import (
+    evaluate_grd_09,
+    evaluate_grd_10,
+    evaluate_grd_11,
+    evaluate_grd_12,
+)
 
 RuleFunc = Callable[[RepoIndex], list[Finding]]
 
-
-def _unimplemented_rule(_index: RepoIndex) -> list[Finding]:
-    return []
-
+_RULE_EVALUATORS: dict[str, RuleFunc] = {
+    "GRD-01": evaluate_grd_01,
+    "GRD-02": evaluate_grd_02,
+    "GRD-03": evaluate_grd_03,
+    "GRD-04": evaluate_grd_04,
+    "GRD-05": evaluate_grd_05,
+    "GRD-06": evaluate_grd_06,
+    "GRD-07": evaluate_grd_07,
+    "GRD-08": evaluate_grd_08,
+    "GRD-09": evaluate_grd_09,
+    "GRD-10": evaluate_grd_10,
+    "GRD-11": evaluate_grd_11,
+    "GRD-12": evaluate_grd_12,
+    "GRD-13": evaluate_grd_13,
+    "GRD-14": evaluate_grd_14,
+    "GRD-15": evaluate_grd_15,
+    "GRD-16": evaluate_grd_16,
+    "GRD-17": evaluate_grd_17,
+    "GRD-18": evaluate_grd_18,
+    "GRD-19": evaluate_grd_19,
+    "GRD-20": evaluate_grd_20,
+    "GRD-21": evaluate_grd_21,
+}
 
 RULE_REGISTRY: dict[str, tuple[RuleSpec, RuleFunc]] = {
-    spec.rule_id: (spec, _unimplemented_rule) for spec in RULE_SPECS
+    spec.rule_id: (spec, _RULE_EVALUATORS[spec.rule_id]) for spec in RULE_SPECS
 }
 
 
@@ -56,7 +110,7 @@ def resolve_rules(
 
     requested_ids = parse_rule_id_args(rule_ids)
     if requested_ids is not None:
-        unknown = [rid for rid in requested_ids if rid not in RULE_REGISTRY]
+        unknown = [rid for rid in requested_ids if rid not in RULE_SPEC_MAP]
         if unknown:
             raise ValueError(f"Unknown guardrail rule ID(s): {', '.join(unknown)}.")
 
@@ -70,6 +124,13 @@ def resolve_rules(
         selected.append((registered_spec, func))
 
     return selected
+
+
+def _strip_rel_prefix(path_str: str) -> str:
+    norm = path_str.replace("\\", "/")
+    while norm.startswith("./"):
+        norm = norm[2:]
+    return norm.lstrip("/")
 
 
 def normalize_target_files(root: Path, raw_files: list[str] | None) -> tuple[str, ...]:
@@ -90,7 +151,7 @@ def normalize_target_files(root: Path, raw_files: list[str] | None) -> tuple[str
                 except ValueError:
                     rel = candidate.as_posix()
             else:
-                rel = raw.replace("\\", "/").lstrip("./")
+                rel = _strip_rel_prefix(raw)
             if rel not in normalized:
                 normalized.append(rel)
     return tuple(normalized)
@@ -113,7 +174,7 @@ def run_rules(
 
     if file_filter:
         raw_findings = [
-            f for f in raw_findings if f.file.replace("\\", "/").lstrip("./") in file_filter
+            f for f in raw_findings if _strip_rel_prefix(f.file) in file_filter
         ]
 
     # Deduplicate and sort deterministically
