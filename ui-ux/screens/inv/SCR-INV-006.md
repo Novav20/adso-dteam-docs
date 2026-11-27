@@ -93,7 +93,7 @@ status: Stable
      - Radius: `--dt-radius-md`
      - Active Filter Ring: `--dt-color-state-info`
      - Alert Count Accent: `--dt-color-alarm-warning`
-   - **Architectural Scope:** Populated via single-pass server-side conditional aggregations ([DT-ARQ-DB-DOC-001 §3.2](../../../architecture/DT-ARQ-DB-DOC-001.md#32-conditional-aggregations-with-filter-clause-mtto-026-inv-006)). Acts as a one-click movement category filter (`FR-129`, `FR-130`). Detailed in §5.1.
+   - **Architectural Scope:** Populated via single-pass server-side conditional aggregations ([DT-ARQ-DB-DOC-001 §3.2](../../../architecture/DT-ARQ-DB-DOC-001.md#32-conditional-aggregations-with-filter-clause)). Acts as a one-click movement category filter (`FR-129`, `FR-130`). Detailed in §5.1.
 
 4. **`CMP-04`: Multi-Criteria Kardex Filter Toolbar**
    - **Visual Role:** Clean card-surface filter bar hosting `Warehouse` selector, cascading physical `Locator` bin filter, `InventoryTransactionType` / Return filter, `WorkOrder` filter, `DateOnly` range pickers (`From` / `To`), and paired `Search` + `[Reset]` control group (`FR-130`).
@@ -264,8 +264,8 @@ sequenceDiagram
     UI-->>WM: Displays Technical Receipt Voucher Modal (CMP-10, FR-131) & refreshes ledger
 ```
 
-1. **Single-Pass Conditional Aggregation ([DT-ARQ-DB-DOC-001 §3.2](../../../architecture/DT-ARQ-DB-DOC-001.md#32-conditional-aggregations-with-filter-clause-mtto-026-inv-006)):**
-   * Summary metrics in `CMP-03` (`TotalMovementsCount`, `InboundReceiptsCount`, `WorkOrderIssuesCount`, `AdjustmentsAndReturnsCount`, `ActivePolicyAlertsCount`) are delivered by the API in a single-pass server-side aggregated projection (see [DT-ARQ-DB-DOC-001 §3.2](../../../architecture/DT-ARQ-DB-DOC-001.md#32-conditional-aggregations-with-filter-clause-mtto-026-inv-006) for database execution guarantees).
+1. **Single-Pass Conditional Aggregation ([DT-ARQ-DB-DOC-001 §3.2](../../../architecture/DT-ARQ-DB-DOC-001.md#32-conditional-aggregations-with-filter-clause)):**
+   * Summary metrics in `CMP-03` (`TotalMovementsCount`, `InboundReceiptsCount`, `WorkOrderIssuesCount`, `AdjustmentsAndReturnsCount`, `ActivePolicyAlertsCount`) are delivered by the API in a single-pass server-side aggregated projection (see [DT-ARQ-DB-DOC-001 §3.2](../../../architecture/DT-ARQ-DB-DOC-001.md#32-conditional-aggregations-with-filter-clause) for database execution guarantees).
 2. **Numerical Precision Invariant ([DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints)):**
    * All stock quantities (`InventoryTransaction.Quantity`, `CountedPhysicalQuantity`, `SparePart.QuantityOnHand`, `ReservedQuantity`, `ReorderPoint`, `MaxCapacity`) bind strictly to fixed-point `decimal` (`4-decimal` quantity precision), and all monetary unit and total costs (`SparePart.UnitCost`, `InventoryTransaction.UnitCost`, `TotalCost`) bind strictly to `decimal` (`2-decimal` currency precision), guaranteeing zero IEEE 754 floating-point discrepancy (`NFR-134`).
 
@@ -302,7 +302,7 @@ sequenceDiagram
 2. **Technical Receipt Voucher (`FR-131`):** Every committed transaction returns an `InventoryTransactionVoucherDto` (§7.2.3) containing the sequential transaction folio, UTC timestamp, locator bin path, cost breakdown, and SHA-256 integrity hash, rendered immediately in `CMP-10`.
 
 #### 5.3.4. Offline Delta Card (`NFR-136`, `AF-004`, `TR-007`, `ADR-006`, `ADR-007`)
-Offline queueing, encrypted local storage (`TR-002`), UUIDv7 idempotency (`ADR-007`), and FIFO reconnection replay follow the canonical 5-step lifecycle in [ADR-006 (Canonical 5-Step Offline Outbox Lifecycle)](../../../architecture/adr/ADR-006.md#canonical-5-step-offline-outbox-two-phase-media-sync-lifecycle) and [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007). Screen-specific deltas:
+Offline queueing, encrypted local storage (`TR-002`), UUIDv7 idempotency (`ADR-007`), and FIFO reconnection replay follow the canonical 5-step lifecycle in [ADR-006 (Canonical 5-Step Offline Outbox Lifecycle)](../../../architecture/adr/ADR-006.md#canonical-5-step-offline-outbox-two-phase-media-sync-lifecycle) and [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues). Screen-specific deltas:
 
 | Delta Dimension | `SCR-INV-006` Specification |
 | :--- | :--- |
@@ -832,7 +832,7 @@ public record KardexAuditEntryDto
 | [TR-002](../../../requirements/common/TR-002.md) | `CMP-02`, `CMP-08` | AES-256 / SQLCipher encryption at rest for locally queued warehouse movements during temporary wireless dropouts. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-05`, `CMP-08`, `CMP-10` | Enforces TLS/HTTPS encryption in transit across all Kardex queries, stock checks, and transaction commits. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-08` | Enforces RBAC permissions (`Warehouse Manager` for movement mutations via `CanRegisterMovement`; strictly read-only/query access for `Maintenance Technician`, `Maintenance Planner`, `Auditor`, `Maintenance Supervisor`, and `Reliability Engineer`). |
-| [TR-007](../../../requirements/common/TR-007.md) | `CMP-02`, `CMP-08` | Offline-first synchronization queue draining pending warehouse movements FIFO via command-sourced idempotent reconciliation without dropping over-issues ([TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr), [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007)). |
+| [TR-007](../../../requirements/common/TR-007.md) | `CMP-02`, `CMP-08` | Offline-first synchronization queue draining pending warehouse movements FIFO via command-sourced idempotent reconciliation without dropping over-issues ([TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr), [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues)). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-13` | ANSI/ISA-101 HPHMI 90/10 neutral grayscale ledger, zero badge inflation on routine movements, and WCAG 2.1 AA redundant coding. |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-10`, `CMP-11` | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on Kardex audit records. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-08` | Time-sequential UUIDv7 identifier generation for `InventoryTransaction` primary keys. |

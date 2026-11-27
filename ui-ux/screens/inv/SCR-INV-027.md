@@ -111,7 +111,7 @@ status: Stable
      - Connector Guides: `--dt-color-border-subtle`
      - Row Height: `--dt-layout-table-row-height`
      - Selected Row Indicator: `--dt-color-state-info`
-   - **Architectural Scope:** Enforces zero badge inflation by rendering `L1`–`L5` and normal environmental exposures in neutral monospace/body text, reserving `--dt-color-alarm-warning` (`#icon-warning Floor 75`) solely for unconfigured criticality. Hydrated via recursive CTE projections ([DT-ARQ-DB-DOC-001 §3.5](../../../architecture/DT-ARQ-DB-DOC-001.md#35-iso-14224-hierarchy-resolution-inv-027)) in $< 3\text{s}$ (`NFR-166`). Detailed in §5.1 and §5.2.
+   - **Architectural Scope:** Enforces zero badge inflation by rendering `L1`–`L5` and normal environmental exposures in neutral monospace/body text, reserving `--dt-color-alarm-warning` (`#icon-warning Floor 75`) solely for unconfigured criticality. Hydrated via recursive CTE projections ([DT-ARQ-DB-DOC-001 §3.5](../../../architecture/DT-ARQ-DB-DOC-001.md#35-iso-14224-hierarchy-resolution)) in $< 3\text{s}$ (`NFR-166`). Detailed in §5.1 and §5.2.
 
 6. **`CMP-06`: Functional Location Node Inspector & Form**
    - **Visual Role:** Master-detail inspector hosted inside dock `CMP-12` displaying or editing the selected node's attributes (`ParentTagNumber`, `HierarchyLevel`, `TagNumber`, `Name`, `Criticality`, `EnvironmentalExposure`, `GeographicLocation`, `Description`), mandatory `AuditJustification`, pre-commit SHA-256 preview, and `[Cancel]` / `[Save Functional Location]` commit triggers in `CREATE`/`EDIT` modes.
@@ -255,7 +255,7 @@ sequenceDiagram
     UI-->>Eng: Inserts L5 node into CMP-05 & displays post-commit confirmation in CMP-11
 ```
 
-1. **Server-Projected Hierarchy Hydration (`NFR-166`, [DT-ARQ-DB-DOC-001 §3.5](../../../architecture/DT-ARQ-DB-DOC-001.md#35-iso-14224-hierarchy-resolution-inv-027)):**
+1. **Server-Projected Hierarchy Hydration (`NFR-166`, [DT-ARQ-DB-DOC-001 §3.5](../../../architecture/DT-ARQ-DB-DOC-001.md#35-iso-14224-hierarchy-resolution)):**
    * On initialization, the backend resolves parent-child hierarchy links (`ParentId`) via a server-side tree projection (`FunctionalLocationTreeResponseDto`), returning the ordered hierarchy with precomputed breadcrumb paths (`FullPathTag`), child counts (`ChildLocationsCount`), and active Level 6 equipment occupancy (`MountedEquipment.SerialNumber`) in $< 3\text{s}$. In-memory full-table assembly on the client is prohibited.
 2. **ISO 14224 Five-Level Taxonomic Model (`FR-160`, `TR-008-FR-413`):**
    * Every node is classified into one of the five canonical ISO 14224 spatial levels (`IsoFunctionalLocationLevel`, §7.2.3):
@@ -297,7 +297,7 @@ sequenceDiagram
 2. If either condition is false, `CMP-09` blocks dependency-protected deletion (referential integrity per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)) and directs the user to relocate child nodes or execute a Rotable Asset Swap ([SCR-INV-025](SCR-INV-025.md)).
 
 #### 5.3.4. Concurrency Isolation & Architecture Export (`FR-165`, `NFR-169`, `AF-004`)
-1. **Optimistic Concurrency Guard (`NFR-169`, `AF-004`):** Every mutation endpoint—metadata updates via `PUT /api/v1/taxonomy/functional-locations/{id}` (`UpdateFunctionalLocationCommand`), subtree reorganizations via `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` (`ReorganizeFunctionalLocationCommand`), and dependency-gated deletions via `DELETE /api/v1/taxonomy/functional-locations/{id}`—carries the node's optimistic `ConcurrencyToken` (`If-Match: "{ConcurrencyToken}"` header per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) and `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)). Concurrent modifications by another engineer return HTTP 409 Conflict, triggering State 7 (`AF-004`) and refreshing the affected branch without silent data loss.
+1. **Optimistic Concurrency Guard (`NFR-169`, `AF-004`):** Every mutation endpoint—metadata updates via `PUT /api/v1/taxonomy/functional-locations/{id}` (`UpdateFunctionalLocationCommand`), subtree reorganizations via `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` (`ReorganizeFunctionalLocationCommand`), and dependency-gated deletions via `DELETE /api/v1/taxonomy/functional-locations/{id}`—carries the node's optimistic `ConcurrencyToken` (`If-Match: "{ConcurrencyToken}"` header per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column)) and `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)). Concurrent modifications by another engineer return HTTP 409 Conflict, triggering State 7 (`AF-004`) and refreshing the affected branch without silent data loss.
 2. **Taxonomic Architecture Export (`FR-165`):** Clicking `[Export]` in `CMP-02` calls `GET /api/v1/taxonomy/functional-locations/export` (`CSV` / `JSON` via `TaxonomyExportFormat`), downloading the full or filtered hierarchy including ISO level paths, criticality indices, environmental exposures, and mounted equipment serial numbers.
 
 ---

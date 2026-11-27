@@ -30,7 +30,7 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 - `vis`: Digital twin and operational safety layers.
 - `adm`: Perimeter security, IAM, and immutable audit.
 
-**Optimistic Concurrency Standard (PostgreSQL `xmin`):** Physical tables do **not** declare synthetic `row_version` columns. Instead, all mutable aggregate roots leverage PostgreSQL 18's native `xmin` system column mapped in Entity Framework Core via `.Property<uint>("ConcurrencyToken").IsRowVersion()` and serialized as HTTP `ETag` / `If-Match` headers ([DT-ARQ-DB-DOC-001 §3.12](../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)).
+**Optimistic Concurrency Standard (PostgreSQL `xmin`):** Physical tables do **not** declare synthetic `row_version` columns. Instead, all mutable aggregate roots leverage PostgreSQL 18's native `xmin` system column mapped in Entity Framework Core via `.Property<uint>("ConcurrencyToken").IsRowVersion()` and serialized as HTTP `ETag` / `If-Match` headers ([DT-ARQ-DB-DOC-001 §3.12](../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column)).
 
 ## 3. Physical Data Dictionary by Schema
 
@@ -637,7 +637,7 @@ This section serves as the **Single Source of Truth (SSoT)** for the internal JS
 - **Extensible Typed Dictionary:** Open domain-specific keys constrained to a homogeneous value type and canonical key naming style (e.g., `design_attributes`, `telemetry_snapshot`).
 - **Polymorphic Envelope:** Shared structural conventions and transversal governance keys paired with entity- or event-specific payloads (e.g., `audit_logs.previous_state` and `audit_logs.new_state`).
 
-All `JSONB` columns are indexed in PostgreSQL using `GIN (... jsonb_path_ops)` to support sub-second containment queries (`@>`) per [DT-ARQ-DB-DOC-001 §3.8](../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit-adm-032). Upstream domain projections and application services bind strictly to the physical payload contracts below.
+All `JSONB` columns are indexed in PostgreSQL using `GIN (... jsonb_path_ops)` to support sub-second containment queries (`@>`) per [DT-ARQ-DB-DOC-001 §3.8](../../architecture/DT-ARQ-DB-DOC-001.md#38-gin-indexing-for-jsonb-immutable-audit). Upstream domain projections and application services bind strictly to the physical payload contracts below.
 
 ### 6.1 `tax.maintainable_items.design_attributes`
 
@@ -827,7 +827,7 @@ All `JSONB` columns are indexed in PostgreSQL using `GIN (... jsonb_path_ops)` t
 
 ## 7. Optimistic Concurrency Mapping (PostgreSQL `xmin` System Column)
 
-Per [DT-ARQ-DB-DOC-001 §3.12](../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169) and [NFR-169](../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr), every mutable aggregate root in schemas `tax`, `mtto`, `inv`, `vis`, and `adm` enforces optimistic concurrency through PostgreSQL's native 32-bit `xmin` transaction-ID system column rather than a custom `row_version` column:
+Per [DT-ARQ-DB-DOC-001 §3.12](../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column) and [NFR-169](../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr), every mutable aggregate root in schemas `tax`, `mtto`, `inv`, `vis`, and `adm` enforces optimistic concurrency through PostgreSQL's native 32-bit `xmin` transaction-ID system column rather than a custom `row_version` column:
 
 | Persistence Layer | Wire / DTO Representation | Conflict Handling |
 | :--- | :--- | :--- |

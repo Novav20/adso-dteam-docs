@@ -622,6 +622,22 @@ def evaluate_grd_16(index: RepoIndex) -> list[Finding]:
                     )
                 )
 
+        if rel.startswith("architecture/") and rel != SSOT_PATHS.adr_006:
+            ttl_re = re.compile(r"\b(?:15[-\s]*min(?:ute)?s?|8[-\s]*hours?)\b", re.IGNORECASE)
+            for line_no, line in enumerate(doc.raw_text.splitlines(), start=1):
+                if ttl_re.search(line):
+                    findings.append(
+                        Finding(
+                            rule_id="GRD-16",
+                            severity=SEVERITY_BLOCKER,
+                            scope="arch",
+                            file=rel,
+                            line=line_no,
+                            message=f"Hardcoded ADR-006 session TTL literal duplicated in '{rel}'.",
+                            remediation="Reference ADR-006 §Canonical Offline, Watchdog & Session Constants instead of hardcoding TTLs.",
+                        )
+                    )
+
     for rel, raw_dsl in sorted(index.raw_texts.items()):
         if not rel.endswith(".dsl"):
             continue

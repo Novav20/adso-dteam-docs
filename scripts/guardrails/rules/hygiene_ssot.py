@@ -146,6 +146,25 @@ def evaluate_grd_17(index: RepoIndex) -> list[Finding]:
                 )
             )
 
+        # 1b. Ban Markdown links inside headings (# ...) to keep GFM and Obsidian anchors identical
+        in_fence = False
+        for line_no, raw_line in enumerate(doc.raw_text.splitlines(), start=1):
+            if raw_line.strip().startswith("```"):
+                in_fence = not in_fence
+                continue
+            if not in_fence and re.match(r"^#{1,6}\s+", raw_line) and "](" in raw_line:
+                findings.append(
+                    Finding(
+                        rule_id="GRD-17",
+                        severity=SEVERITY_BLOCKER,
+                        scope="links",
+                        file=rel,
+                        line=line_no,
+                        message="Prohibited Markdown link `[...](...)` inside heading; breaks Obsidian anchor resolution.",
+                        remediation="Keep headings plain text and cite references naturally inside the section body.",
+                    )
+                )
+
         # 2. Validate relative Markdown links and GFM section anchors
         parent_dir = PurePosixPath(rel).parent.as_posix()
         for link in doc.links:
