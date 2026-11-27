@@ -701,6 +701,16 @@
       "$value": "#2A9D8F",
       "$type": "color",
       "$description": ""
+    },
+    "magenta-700": {
+      "$value": "#A21CAF",
+      "$type": "color",
+      "$description": ""
+    },
+    "magenta-400": {
+      "$value": "#E879F9",
+      "$type": "color",
+      "$description": ""
     }
   },
   "Semantic-Dark": {
@@ -1001,6 +1011,11 @@
     },
     "state-success": {
       "$value": "{teal-400}",
+      "$type": "color",
+      "$description": ""
+    },
+    "quality-bad": {
+      "$value": "{magenta-400}",
       "$type": "color",
       "$description": ""
     },
@@ -1328,6 +1343,11 @@
     },
     "state-success": {
       "$value": "{teal-700}",
+      "$type": "color",
+      "$description": ""
+    },
+    "quality-bad": {
+      "$value": "{magenta-700}",
       "$type": "color",
       "$description": ""
     },

@@ -65,6 +65,8 @@
   --dt-primitive-teal-700: #0B857A;
   --dt-primitive-teal-600: #0D9488;
   --dt-primitive-teal-400: #2A9D8F;
+  --dt-primitive-magenta-700: #A21CAF;
+  --dt-primitive-magenta-400: #E879F9;
 
   /* Spacing */
   --dt-space-0: 0px;
@@ -222,6 +224,7 @@
   --dt-color-alarm-warning: var(--dt-primitive-amber-600);
   --dt-color-state-info: var(--dt-primitive-blue-600);
   --dt-color-state-success: var(--dt-primitive-teal-700);
+  --dt-color-quality-bad: var(--dt-primitive-magenta-700);
   --dt-color-state-disabled: var(--dt-primitive-gray-380);
   --dt-shadow-marker: 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-920) 22%, transparent), 0 1px 1px color-mix(in srgb, var(--dt-primitive-slate-920) 10%, transparent);
   --dt-shadow-hud: 0 1px 4px color-mix(in srgb, var(--dt-primitive-slate-920) 18%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-920) 8%, transparent);
@@ -291,6 +294,7 @@
   --dt-color-alarm-warning: var(--dt-primitive-amber-400);
   --dt-color-state-info: var(--dt-primitive-blue-450);
   --dt-color-state-success: var(--dt-primitive-teal-400);
+  --dt-color-quality-bad: var(--dt-primitive-magenta-400);
   --dt-color-state-disabled: var(--dt-primitive-gray-580);
   --dt-shadow-marker: 0 2px 3px color-mix(in srgb, var(--dt-primitive-slate-975) 50%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-975) 34%, transparent);
   --dt-shadow-hud: 0 2px 6px color-mix(in srgb, var(--dt-primitive-slate-975) 45%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-975) 35%, transparent);

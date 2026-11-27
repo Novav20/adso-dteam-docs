@@ -187,7 +187,9 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | --dt-primitive-blue-200  | #BAE6FD   | Pale process blue |
 | --dt-primitive-teal-700  | #0B857A   | Deep pine teal |
 | --dt-primitive-teal-600  | #0D9488   | Medium pine teal |
-| --dt-primitive-teal-400  | #2A9D8F   | Light pine teal |
+| --dt-primitive-teal-400    | #2A9D8F   | Light pine teal |
+| --dt-primitive-magenta-700 | #A21CAF   | Deep diagnostic magenta (ISA-101 Bad Quality) |
+| --dt-primitive-magenta-400 | #E879F9   | Bright diagnostic magenta (ISA-101 Bad Quality) |
 
 > **Zero Pure White/Black Invariant:** Pure `#FFFFFF` and `#000000` are strictly prohibited across all primitive, UI, and CAD spatial surfaces.
 
@@ -219,6 +221,7 @@ The palette is structured in two layers: **Primitive Tokens** (absolute palette 
 | **Warning / Approaching Limit**  | --dt-color-alarm-warning  | --dt-primitive-amber-400    | --dt-primitive-amber-600    | Triangle                   |
 | **Informational / Selection**    | --dt-color-state-info     | --dt-primitive-blue-450     | --dt-primitive-blue-600     | Circle / Rhombus           |
 | **Documentary Confirmation**     | --dt-color-state-success  | --dt-primitive-teal-400     | --dt-primitive-teal-700     | Checkmark ( $\checkmark$ ) |
+| **Bad Quality / Sensor Fault**   | --dt-color-quality-bad    | --dt-primitive-magenta-400  | --dt-primitive-magenta-700  | Question / Diamond (`?`)   |
 | **Disabled Element**             | --dt-color-state-disabled | --dt-primitive-gray-580     | --dt-primitive-gray-380     | Dotted border              |
 
 ### 3.4. Spatial and Physical Material Tokens (Digital Twin Canvas)

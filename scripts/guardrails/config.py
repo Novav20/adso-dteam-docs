@@ -311,6 +311,7 @@ APPROVED_COLOR_PALETTE: frozenset[str] = frozenset(
         "#0F172A", "#475569", "#526075", "#64748B", "#BCC5D1", "#CBD5E1", "#CFD6DF",
         "#E1E6EC", "#ECEFF3", "#F0F3F7", "#F7F9FB",
         "#B45309", "#60A5FA",
+        "#A21CAF", "#E879F9",
     }
 )
 
