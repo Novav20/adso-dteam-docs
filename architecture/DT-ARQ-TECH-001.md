@@ -10,27 +10,27 @@ author: Juan David Julio
 
 ## Purpose
 
-This document is the consolidated source for identifying the target technology stack of DTEAM and linking it to the decisions, architecture views, and requirements that justify it. Active views must remain consistent with this matrix.
+This document is the consolidated source for identifying the technology stack of DTEAM and linking it to the decisions, architecture views, and requirements that justify it. Active views must remain consistent with this matrix.
 
-## Target Stack
+## Technology Stack
 
-| Layer | Target Technology | Main Use | Traceability |
+| Layer | Technology | Main Use | Traceability |
 | :--- | :--- | :--- | :--- |
-| Mobile Client | .NET MAUI Blazor Hybrid | Field Android/iOS operation and offline-first experience | ADR-004, `TR-002`, `TR-007`, DT-ARQ-DEP-001 |
-| Administrative Client | Blazor Web App | HSEQ supervision, planning, administration, and dashboards | ADR-004, DT-ARQ-CMP-001, DT-ARQ-DEP-001 |
-| UI Components | Razor Components / Blazor (RCL) | HPHMI, forms, tables, shared states, and navigation | ADR-004, `TR-011` |
-| Application Language | C# 14 | Client, shared services, domain, and backend | ADR-004 |
-| Backend | .NET 10 / ASP.NET Core | API, DDD business rules, authentication, and processing | DT-ARQ-DEP-001 |
-| Real-Time | SignalR over WSS | LOTO Heartbeat (2s), KPIs, and authorized notifications | `TR-010`, DT-ARQ-DEP-001 |
-| API | HTTPS/JSON | Synchronization and client-server operations | `TR-005`, `TR-007`, DT-ARQ-DEP-001 |
-| Mobile Persistence | `sqlite-net-pcl` + SQLCipher | Local state, offline queue (`TR-007`), and preventive block | `TR-002`, `TR-007`, ADR-004 |
-| Distributed Cache | Redis 7.x | Fast-path idempotency caching for offline-sync retry storms | ADR-007, `TR-007`, DT-ARQ-DEP-001 |
-| Central Database | PostgreSQL 18 + TimescaleDB | Assets, inventory, immutable audit, and time series | ADR-003, DT-ARQ-DEP-001 |
-| Object Storage | Azure Blob Storage | Valet Key offloading for ISO 14224 multimedia evidence | ADR-008, DT-ARQ-DEP-001 |
-| IoT Ingestion | Azure IoT Hub | Industrial telemetry (MQTT from SCADA / AMQP to Backend) | DT-ARQ-DEP-001 |
-| Infrastructure | Docker, Nginx, and Azure Cloud Services | Containers, reverse proxy, TLS 1.3, and deployment | DT-ARQ-DEP-001 |
-| Local Orchestration & Observability | .NET Aspire (`AppHost` + `ServiceDefaults`) | Local multi-service startup, OpenTelemetry tracing, and `Aspire.Hosting.Testing` | ADR-011, DT-ARQ-DEP-001 |
-| Visualization | 2D First model (SVG), 3D Evolutionary | Digital twin and operational context | ADR-001 |
+| Mobile Client | .NET MAUI Blazor Hybrid | Field Android/iOS operation and offline-first experience | [ADR-004](adr/ADR-004.md), [TR-002](../requirements/common/TR-002.md), [TR-007](../requirements/common/TR-007.md), [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| Administrative Client | Blazor Web App | HSEQ supervision, planning, administration, and dashboards | [ADR-004](adr/ADR-004.md), [DT-ARQ-CMP-001](views/DT-ARQ-CMP-DOC-001.md), [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| UI Components | Razor Components / Blazor (RCL) | HPHMI, forms, tables, shared states, and navigation | [ADR-004](adr/ADR-004.md), [TR-011](../requirements/common/TR-011.md) |
+| Application Language | C# 14 | Client, shared services, domain, and backend | [ADR-004](adr/ADR-004.md) |
+| Backend | .NET 10 / ASP.NET Core | API, DDD business rules, authentication, and processing | [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| Real-Time | SignalR over WSS | LOTO Heartbeat (2s), KPIs, and authorized notifications | [TR-010](../requirements/common/TR-010.md), [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| API | HTTPS/JSON | Synchronization and client-server operations | [TR-005](../requirements/common/TR-005.md), [TR-007](../requirements/common/TR-007.md), [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| Mobile Persistence | `sqlite-net-pcl` + SQLCipher | Local state, offline queue (`TR-007`), and preventive block | [TR-002](../requirements/common/TR-002.md), [TR-007](../requirements/common/TR-007.md), [ADR-004](adr/ADR-004.md) |
+| Distributed Cache | Redis 7.x | Fast-path idempotency caching for offline-sync retry storms | [ADR-007](adr/ADR-007.md), [TR-007](../requirements/common/TR-007.md), [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| Central Database | PostgreSQL 18 + TimescaleDB | Assets, inventory, immutable audit, and time series | [ADR-003](adr/ADR-003.md), [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| Object Storage | Azure Blob Storage | Valet Key offloading for ISO 14224 multimedia evidence | [ADR-008](adr/ADR-008.md), [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| IoT Ingestion | Azure IoT Hub | Industrial telemetry (MQTT from SCADA / AMQP to Backend) | [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| Infrastructure | Docker, Nginx, and Azure Cloud Services | Containers, reverse proxy, TLS 1.3, and deployment | [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| Local Orchestration & Observability | .NET Aspire (`AppHost` + `ServiceDefaults`) | Local multi-service startup, OpenTelemetry tracing, and `Aspire.Hosting.Testing` | [ADR-011](adr/ADR-011.md), [DT-ARQ-DEP-001](views/DT-ARQ-DEP-DOC-001.md) |
+| Visualization | 2D First model (SVG), 3D Evolutionary | Digital twin and operational context | [ADR-001](adr/ADR-001.md) |
 
 ## Physical Solution Structure (`Dteam.sln`)
 
@@ -103,7 +103,7 @@ flowchart TB
 2. Module internals (`Domain`, `Infrastructure`, `DbContext`) remain `internal`; cross-module collaboration flows strictly through public port interfaces or `IEventBus` (with `SharedDbConnection` in `Dteam.Shared` per [DT-ARQ-DB-DOC-001 §3.9](DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing)).
 3. Previous frontend technologies can only appear in historical records or superseded decisions, clearly identified as inactive.
 4. Stack changes require a new ADR or an approved update to [ADR-004](adr/ADR-004.md).
-5. Structurizr diagram labels (`DT-ARQ-CMP-001-component-model.dsl`, `DT-ARQ-DEP-001-deployment-model.dsl`) must match the Target Stack table; diagram file names and view codes remain unchanged.
+5. Structurizr diagram labels (`DT-ARQ-CMP-001-component-model.dsl`, `DT-ARQ-DEP-001-deployment-model.dsl`) must match the Technology Stack table; diagram file names and view codes remain unchanged.
 6. Authentication session TTLs follow [ADR-006](adr/ADR-006.md#canonical-offline-watchdog-session-constants) and [TR-006](../requirements/common/TR-006.md).
 
 ## Related Artifacts
