@@ -1,6 +1,22 @@
-# 🛠️ Docs-as-Code Automation and Generators
+# Docs-as-Code Automation, Guardrails, and Generators
 
-This directory contains the support scripts for synchronization and automated generation of Markdown documents from tabular master data (`requirements/data/`).
+This directory contains the unified guardrail verification suite (`verify_all.py`) and support scripts for synchronization and automated generation of Markdown documents from tabular master data (`requirements/data/`).
+
+## `verify_all.py` (Primary Verification Entry Point)
+
+Runs the modular architectural & documentation guardrails (`GRD-01`–`GRD-21`) across the repository:
+
+```bash
+python scripts/verify_all.py --scope all --strict
+```
+
+Unit tests for the guardrail suite live in `scripts/tests/`:
+
+```bash
+python -m unittest discover -s scripts/tests
+```
+
+---
 
 ## `generate_design_tokens.py`
 

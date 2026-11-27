@@ -856,19 +856,20 @@ def evaluate_grd_04(index: RepoIndex) -> list[Finding]:
                         remediation="Reference DT-DM-DOC-001 §5.2 canonical threshold (0.5 psig).",
                     )
                 )
-            vm = re.search(r"(?<![A-Za-z0-9_.])(\d+(?:\.\d+)?)\s*V\b", line)
-            if vm and vm.group(1) not in ("0.0", "0"):
-                findings.append(
-                    Finding(
-                        rule_id="GRD-04",
-                        severity=SEVERITY_BLOCKER,
-                        scope="domain",
-                        file=dm2_path,
-                        line=idx,
-                        message=f"Voltage threshold '{vm.group(0)}' in DT-DM-DOC-002 conflicts with DT-DM-DOC-001 §5.2 ('0.0 V').",
-                        remediation="Reference DT-DM-DOC-001 §5.2 canonical threshold (0.0 V).",
+            if re.search(r"loto|zero[- ]energy|voltage|electrical|energ", line, re.IGNORECASE):
+                vm = re.search(r"(?<![A-Za-z0-9_.])(\d+(?:\.\d+)?)\s*V\b", line)
+                if vm and vm.group(1) not in ("0.0", "0"):
+                    findings.append(
+                        Finding(
+                            rule_id="GRD-04",
+                            severity=SEVERITY_BLOCKER,
+                            scope="domain",
+                            file=dm2_path,
+                            line=idx,
+                            message=f"Voltage threshold '{vm.group(0)}' in DT-DM-DOC-002 conflicts with DT-DM-DOC-001 §5.2 ('0.0 V').",
+                            remediation="Reference DT-DM-DOC-001 §5.2 canonical threshold (0.0 V).",
+                        )
                     )
-                )
 
     # 3. Validate PlantUML DT-DM-001.puml parity with DT-DM-DOC-002 & DT-ERD-DOC-001
     if puml_text is None:

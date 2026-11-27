@@ -188,6 +188,7 @@ CSHARP_SUBSET_ENUM_ALIASES: dict[str, str] = {
 # Validated composite UI presentation projection enums
 PRESENTATION_PROJECTION_ENUMS: dict[str, frozenset[str]] = {
     "DismountDestinationStatus": frozenset({"IN_REPAIR", "IN_STORAGE", "DAMAGED"}),
+    "StandardUnitOfMeasure": frozenset({"EA", "SET", "L", "KG", "M"}),
     "TelemetryAlarmSeverity": frozenset({"NONE", "WARNING_P2", "CRITICAL_P1"}),
     "ZeroEnergyState": frozenset({"ENERGIZED", "UNCERTAIN", "ZERO_ENERGY_VERIFIED"}),
 }
@@ -220,7 +221,6 @@ UI_LOCAL_ENUM_ALLOWLIST: frozenset[str] = frozenset(
         "RbacRoleFilterCategory",
         "RbacRoleLifecycleFilter",
         "RimePriorityBand",
-        "StandardUnitOfMeasure",
         "StockPolicyAlertType",
         "TaxonomyConflictType",
         "TaxonomyDockTab",

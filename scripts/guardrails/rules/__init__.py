@@ -174,7 +174,10 @@ def run_rules(
 
     if file_filter:
         raw_findings = [
-            f for f in raw_findings if _strip_rel_prefix(f.file) in file_filter
+            f
+            for f in raw_findings
+            if _strip_rel_prefix(f.file) in file_filter
+            or any(_strip_rel_prefix(af) in file_filter for af in f.affected_files)
         ]
 
     # Deduplicate and sort deterministically

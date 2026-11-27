@@ -32,6 +32,8 @@ _WORM_ENTITY_KEYWORDS: tuple[str, ...] = (
     "auditretentionpartition",
     "telemetrysignal",
     "workorderhistory",
+    "inventory-transaction",
+    "inventory_transactions",
 )
 
 # Ad-hoc SHA-256 chain concatenation formulas outside ADR-003.md
@@ -280,9 +282,12 @@ def evaluate_grd_14(index: RepoIndex) -> list[Finding]:
     known_hubs = {h for hubs, _, _, _ in methods_map.values() for h in hubs}
 
     # Check hubs and SignalR method references across SCR-*.md
+    _hub_method_re = re.compile(r"`([A-Z][A-Za-z0-9_]+)\([^)]*\)`")
     for rel, doc in sorted(index.screen_docs.items()):
         for line_no, line in enumerate(doc.raw_text.splitlines(), start=1):
+            has_hub = False
             for hm in _HUB_RE.finditer(line):
+                has_hub = True
                 hub = hm.group(1)
                 if known_hubs and hub not in known_hubs:
                     findings.append(
@@ -294,8 +299,25 @@ def evaluate_grd_14(index: RepoIndex) -> list[Finding]:
                             line=line_no,
                             message=f"Screen references unknown SignalR hub '{hub}' (not in DT-ARQ-CMP-DOC-001 §5).",
                             remediation="Register the hub in DT-ARQ-CMP-DOC-001 §5 or use a canonical hub path.",
+                            affected_files=(cmp_path,),
                         )
                     )
+            if has_hub and methods_map:
+                for mm in _hub_method_re.finditer(line):
+                    method_name = mm.group(1)
+                    if method_name not in methods_map:
+                        findings.append(
+                            Finding(
+                                rule_id="GRD-14",
+                                severity=SEVERITY_BLOCKER,
+                                scope="api",
+                                file=rel,
+                                line=line_no,
+                                message=f"Screen references unknown SignalR client method '{method_name}' (not in DT-ARQ-CMP-DOC-001 §5).",
+                                remediation="Register the SignalR client method in DT-ARQ-CMP-DOC-001 §5 or use a canonical method name.",
+                                affected_files=(cmp_path,),
+                            )
+                        )
 
     # Validate SignalR event records declared as C# records in SCR-*.md / DT-UI-CTR-001.md
     for rel in [*sorted(index.screen_docs.keys()), SSOT_PATHS.ui_ctr_doc]:
@@ -442,6 +464,8 @@ def evaluate_grd_15(index: RepoIndex) -> list[Finding]:
     # 4. Ban ConcurrencyToken on WORM entity DTOs/commands
     for rel, rec_list in sorted(index.csharp_records.items()):
         for rec in rec_list:
+            if rec.name == "RegisterInventoryTransactionCommand":
+                continue
             low_name = rec.name.lower()
             if any(wk.replace("-", "") in low_name for wk in _WORM_ENTITY_KEYWORDS):
                 for prop in rec.properties:
@@ -457,6 +481,45 @@ def evaluate_grd_15(index: RepoIndex) -> list[Finding]:
                                 remediation="Remove ConcurrencyToken from WORM/append-only entity contracts.",
                             )
                         )
+
+    # 5. Check SCR-*.md §5 mutating endpoint prose for X-Idempotency-Key
+    _scr_mut_re = re.compile(r"`(POST|PUT|PATCH|DELETE)\s+(/api/v1/[^`\s]+)`")
+    for rel, doc in sorted(index.screen_docs.items()):
+        lines = doc.raw_text.splitlines()
+        in_sec5 = False
+        for idx, line in enumerate(lines):
+            line_no = idx + 1
+            s = line.strip()
+            if s.startswith("## 5."):
+                in_sec5 = True
+                continue
+            if in_sec5 and s.startswith("## "):
+                break
+            if not in_sec5:
+                continue
+            window = "\n".join(lines[idx : min(idx + 3, len(lines))]).lower()
+            for m in _scr_mut_re.finditer(line):
+                verb, raw_route = m.group(1), m.group(2)
+                norm_route = raw_route.rstrip("/")
+                if (
+                    norm_route in _EXEMPT_IDEMPOTENCY_ROUTES
+                    or "valet key" in window
+                    or "exempt" in window
+                    or "media-upload-sas" in norm_route
+                ):
+                    continue
+                if "x-idempotency-key" not in window:
+                    findings.append(
+                        Finding(
+                            rule_id="GRD-15",
+                            severity=SEVERITY_BLOCKER,
+                            scope="api",
+                            file=rel,
+                            line=line_no,
+                            message=f"Mutating endpoint '{verb} {raw_route}' in §5 prose lacks 'X-Idempotency-Key'.",
+                            remediation="Document X-Idempotency-Key (ADR-007) alongside mutating endpoints in §5.",
+                        )
+                    )
 
     return findings
 

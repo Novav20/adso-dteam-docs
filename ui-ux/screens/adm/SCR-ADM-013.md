@@ -212,13 +212,13 @@ status: Stable
 
 6. **Creating Custom Role (`FR-247`) or Deactivating Role (`AF-004` / `FR-254`)**
    - **Activation Condition:** Administrator clicks `[+ Create Custom Role]` (`CMP-09`) or `[Deactivate]` inside `CMP-07` (`CMP-10`).
-   - **Visual Modification:** Centered modal deploys over `--dt-color-surface-overlay` backdrop with keyboard focus trapping and `Escape` dismissal. In `CMP-09`, entering a duplicate role name (`IsRoleNameUnique == false`) escalates the `Name` field border and validation box to `--dt-color-alarm-critical` with `#icon-ban` inline feedback and keeps `[Create Role]` disabled until a unique name is entered. Deactivated roles remain inspectable in read-only mode when filtered via `INACTIVE` or `ALL`.
+   - **Visual Modification:** Centered modal deploys over `--dt-color-surface-overlay` backdrop with keyboard focus trapping and `Escape` dismissal. In `CMP-09`, entering a duplicate role name (`IsRoleNameUnique == false`, `AF-006`) escalates the `Name` field border and validation box to `--dt-color-alarm-critical` with `#icon-ban` inline feedback and keeps `[Create Role]` disabled until a unique name is entered. Deactivated roles remain inspectable in read-only mode when filtered via `INACTIVE` or `ALL`.
 
 7. **Documentary Confirmation & Live Session Broadcast (`NFR-257`)**
    - **Activation Condition:** Atomic permission matrix save, custom role creation/deactivation, or global compliance matrix export (`FR-252`) commits cleanly.
    - **Visual Modification:** Footer slot in `CMP-13` renders a Teal documentary confirmation (`--dt-color-state-success`, `#icon-check`) displaying the truncated SHA-256 digest or export summary, while the transient header chip in `CMP-02` (`LastSessionBroadcastAtUtc != null`) confirms: *"SESSIONS INVALIDATED (< 2s)"*.
 
-8. **Unauthorized Route or Governance Action Blocked (`403 Forbidden` / `TR-006`)**
+8. **Unauthorized Route or Governance Action Blocked (`AF-005` / `403 Forbidden` / `TR-006`)**
    - **Activation Condition:** An authenticated user lacking RBAC governance authorization (e.g., `Technician`) attempts direct URL navigation to `SCR-ADM-013` or attempts an unauthorized mutation (`AC-ADM-013-74`).
    - **Visual Modification:** The portal route guard intercepts rendering prior to loading role matrices, displays a `403 Forbidden` access-denied surface with a safe return action, and logs an immutable `AuditActionType.SECURITY_ALERT` entry (`TR-001`, `TR-006`).
 

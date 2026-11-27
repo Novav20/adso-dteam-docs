@@ -54,7 +54,7 @@ Spacing and sizing are governed by an **8px** base grid system (with a 4px sub-f
 | --dt-control-height-sm              | 32px               | auto              | Desktop Web: Compact buttons in dense data tables and secondary filters.                    |
 | --dt-control-height-md              | 40px               | auto              | Desktop Web: Standard text inputs, selectors, and form buttons.                       |
 | --dt-control-height-lg              | 48px               | auto              | Mobile/Tablet: Standard height for all input fields (InputText, InputSelect).          |
-| --dt-control-height-xl              | 56px               | 100%              | Mobile: Primary footer action button (e.g., "Complete Work Order").            |
+| --dt-control-height-xl              | 56px               | 100%              | Mobile: Primary footer action button (e.g., "Complete Work Order"); width generates `--dt-control-width-xl`. |
 | --dt-control-height-nav-step        | 44px               | 56px              | Step navigation button footprint ($56\times 44\text{px}$) for gloved hands; width generates `--dt-control-width-nav-step`. |
 | --dt-control-height-nav-step-mobile | 42px               | 52px              | Compact smartphone step navigation button footprint ($52\times 42\text{px}$); width generates `--dt-control-width-nav-step-mobile`. |
 | --dt-control-size-checkbox          | 28px               | 28px              | Visual circular check indicator footprint; on mobile/tablet touch rows, the enclosing interactive hit target MUST enforce `--dt-touch-target-mobile`. |

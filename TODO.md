@@ -6,7 +6,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 
 ---
 
-## 📌 Phase 1: Spatial UI/UX & HMI Viewports (Desktop & Mobile)
+## Phase 1: Spatial UI/UX & HMI Viewports (Desktop & Mobile)
 
 ### Core Spatial & Supervisory Viewports (Digital Twin HMI)
 - [x] **SCR-VIS-033: Level 3 Equipment Task Faceplate**
@@ -102,7 +102,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 
 ---
 
-## 📌 Phase 2: Ingestion Contracts & Digital Twin Spatial Tooling
+## Phase 2: Ingestion Contracts & Digital Twin Spatial Tooling
 
 - [x] **DT-UI-SVG-DOC-001: SVG Ingestion Contract (v2.3 Approved)**
   - [x] Normative 7-layer standard (`L-CIVL-BOTM`, `L-CIVL-PROP`, `L-CIVL-PUBROAD`, `L-MECH-EQPM`, `L-PIPE-PROC`, `L-INSP-INST`, `L-FIRE-PROT`, `L-ELEC-HAZ`, `L-ANNO-TEXT`).
@@ -123,7 +123,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 
 ---
 
-## 📌 Phase 3: Data Architecture & Domain Model
+## Phase 3: Data Architecture & Domain Model
 
 - [x] **Try-Out Attestation & Verification Methods in ERD/DM**
   - [x] Relational schema extension in [`DT-ERD-DOC-001.md`](domain-models/entity-relationship/DT-ERD-DOC-001.md) (`vis.work_order_isolations`).
@@ -151,14 +151,14 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
 
 ---
 
-## 📌 Phase 4: Frontend Implementation (.NET 10 / C# 14 / Blazor Hybrid)
+## Phase 4: Frontend Implementation (.NET 10 / C# 14 / Blazor Hybrid)
 
 - [ ] **Pre-Phase 4 Documentation Quality & Governance Gate**
-  - [ ] **Human Readability, DRY & SSoT Audit:** Eliminate fragile hardcoded prose values, cross-layer content misplacement, and redundant DTO/formula duplication; resolve carried non-blocking audit notes (`NB-01..NB-08`, `DT-ARQ-CMP-001-component-model.dsl` stereotype, `adm.password_policies` coverage in `DT-DM-DOC-*`/`DT-ARQ-DB-DOC-001`).
-  - [ ] **Dimension-Agnostic 2D/3D Ubiquitous Language:** Decouple rendering-specific 2D/SVG terminology from core domain concepts in [`DT-UL-DOC-001.md`](domain-models/ubiquitous-language/DT-UL-DOC-001.md) and domain/use-case docs.
-  - [ ] **Modular Guardrail Suite (`scripts/verify_all.py`):** Refactor monolithic checks into `parsers/` (single-pass Markdown, C#, SQL), `rules/` (pure seam checks covering `GRD-01`–`GRD-17`), and thin `SKILL.md` workflow guides.
+  - [x] **Human Readability, DRY & SSoT Audit:** Eliminate fragile hardcoded prose values, cross-layer content misplacement, and redundant DTO/formula duplication; resolve carried non-blocking audit notes (`NB-01..NB-08`, `DT-ARQ-CMP-001-component-model.dsl` stereotype, `adm.password_policies` coverage in `DT-DM-DOC-*`/`DT-ARQ-DB-DOC-001`).
+  - [x] **Dimension-Agnostic 2D/3D Ubiquitous Language:** Decouple rendering-specific 2D/SVG terminology from core domain concepts in [`DT-UL-DOC-001.md`](domain-models/ubiquitous-language/DT-UL-DOC-001.md) and domain/use-case docs.
+  - [x] **Modular Guardrail Suite (`scripts/verify_all.py`):** Refactor monolithic checks into `parsers/` (single-pass Markdown, C#, SQL), `rules/` (pure seam checks covering `GRD-01`–`GRD-21`), and thin `SKILL.md` workflow guides.
   - [ ] Codify Offline-First & Outbox guard skill: `.agents/skills/dteam-offline-sync-guard/` ([ADR-006](architecture/adr/ADR-006.md)).
-  - [ ] Build automated C# SSoT contract verifier (`verify_csharp_contracts.py` / ArchUnitNET).
+  - [ ] Build automated C# SSoT contract verifier (`verify_csharp_contracts.py` / ArchUnitNET) — Markdown-level `GRD-05`..`08` done; compiled C# `.sln` ArchUnitNET/Roslyn check pending Phase 4.
   - [ ] Execute `.NET 10 MAUI Blazor Hybrid + SQLCipher` Walking Skeleton spike.
 
 - [ ] **Razor Components Migration**

@@ -118,6 +118,7 @@ def build_repo_index(
             raise FileNotFoundError(f"Prototype directory does not exist: {resolved_proto_dir}")
     else:
         for candidate in (
+            resolved_root / "ui-ux" / "prototype",
             resolved_root / "ui-ux" / "prototypes",
             resolved_root / "prototypes",
         ):

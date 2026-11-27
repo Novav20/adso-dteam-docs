@@ -29,6 +29,7 @@ class Finding:
     line: int | None
     message: str
     remediation: str
+    affected_files: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

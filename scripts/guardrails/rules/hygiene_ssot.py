@@ -373,9 +373,13 @@ def evaluate_grd_18(index: RepoIndex) -> list[Finding]:
                         )
                     )
 
-    # Audit requirements/data/srs.csv for dimension-coupled terms (WARNING since Notion-exported CSV)
+    # Audit requirements/data/srs.csv for dimension-coupled terms (WARNING since Notion-exported CSV).
+    # Explicitly scoped Post-MVP 3D/WebGL capability requirements are exempt.
+    _srs_3d_exempt = {"NFR-195", "NFR-223", "FR-240", "FR-242", "NFR-244"}
     for row_idx, row in enumerate(index.srs_rows, start=2):
         req_id = (row.get("Req ID") or f"row-{row_idx}").strip()
+        if req_id in _srs_3d_exempt:
+            continue
         desc = row.get("Description") or ""
         m = _DIM_COUPLED_RE.search(desc)
         if m:
@@ -446,6 +450,46 @@ def _resolve_token_hex(
 def evaluate_grd_19(index: RepoIndex) -> list[Finding]:
     """Audit UI foundation docs, `--dt-*` token parity, palette compliance, and WCAG 2.1 AA contrast."""
     findings: list[Finding] = []
+
+    # --- 0. Screen Spec Token-Literal Shadowing (TOK-003) & Raw CSS Dimensions (CSS-002) ---
+    tok_shadow_re = re.compile(
+        r"--dt-[a-z0-9-]+(?:\s*`?\s*[,:]\s*(?:\$?\d+(?:\.\d+)?(?:\\text\{px\}|px|rem|em)|[^\n.;]{0,20}\(\d+(?:\.\d+)?px\))|\s*\(\d+(?:\.\d+)?px\))"
+    )
+    raw_css_dim_re = re.compile(
+        r"\b(?:width|height|min-width|max-width|min-height|max-height|padding|margin|font-size|border-radius)\s*:\s*\d+(?:\.\d+)?px\s*;"
+    )
+    for rel_path, scr_doc in sorted(index.screen_docs.items()):
+        in_fence = False
+        for line_no, line in enumerate(scr_doc.raw_text.splitlines(), start=1):
+            if line.strip().startswith("```"):
+                in_fence = not in_fence
+                continue
+            if in_fence:
+                continue
+            if tok_shadow_re.search(line):
+                findings.append(
+                    Finding(
+                        rule_id="GRD-19",
+                        severity=SEVERITY_BLOCKER,
+                        scope="tokens",
+                        file=rel_path,
+                        line=line_no,
+                        message="TOK-003: Design token shadowed by hardcoded px/rem/em literal in screen prose.",
+                        remediation="Reference the `--dt-*` token without duplicating its hardcoded pixel value.",
+                    )
+                )
+            if raw_css_dim_re.search(line):
+                findings.append(
+                    Finding(
+                        rule_id="GRD-19",
+                        severity=SEVERITY_BLOCKER,
+                        scope="tokens",
+                        file=rel_path,
+                        line=line_no,
+                        message="CSS-002: Raw CSS dimension declaration (`prop: Npx;`) leaked into screen prose.",
+                        remediation="Reference semantic `--dt-*` tokens instead of raw inline CSS properties.",
+                    )
+                )
 
     # --- A1. DT-UI-DS-DOC-001.md ---
     ds_doc = index.markdown_docs.get(SSOT_PATHS.ui_ds_doc)
