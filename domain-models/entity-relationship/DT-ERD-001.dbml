@@ -53,6 +53,8 @@ TableGroup adm {
   "adm"."work_order_assignments"
   "adm"."idempotency_logs"
   "adm"."audit_retention_partitions"
+  "adm"."password_policies"
+  "adm"."user_password_histories"
 }
 
 Table "tax"."equipment_classes" {
@@ -69,19 +71,19 @@ Table "tax"."equipment_units" {
   "model" "VARCHAR(120)" [not null, note: 'Asset type identification.']
   "purchase_date" "DATE" [not null, note: 'Procurement chronology.']
   "rejection_reason" "VARCHAR(255)" [note: 'Only present when commissioning is rejected.']
-  "boundary_start" "VARCHAR(150)" [not null, note: 'Starting point of the boundary definition.']
-  "boundary_end" "VARCHAR(150)" [not null, note: 'Ending point of the boundary definition.']
+  "boundary_start" "VARCHAR(150)" [note: 'Starting point of the boundary definition (validated as required at `Activate()` / `DefineBoundaries()`).']
+  "boundary_end" "VARCHAR(150)" [note: 'Ending point of the boundary definition (validated as required at `Activate()` / `DefineBoundaries()`).']
   "acquisition_date" "DATE" [not null, note: 'Asset acquisition traceability.']
   "installation_date" "DATE" [note: 'Installation may be pending.']
   "operation_start_date" "DATE" [note: 'Operational start may be pending.']
-  "operating_hours" "BIGINT" [not null, default: 0, note: 'Reliability and usage tracking.']
-  "surveillance_hours" "BIGINT" [not null, default: 0, note: 'Surveillance/standby time for accurate failure calculation (ISO 14224).']
+  "operating_hours" "DECIMAL(12,2)" [not null, default: 0, note: 'Reliability and usage tracking.']
+  "surveillance_hours" "DECIMAL(12,2)" [not null, default: 0, note: 'Surveillance/standby time for accurate failure calculation (ISO 14224).']
   "disposal_date" "DATE" [note: 'End-of-life record for liability traceability (ISO 55000).']
   "disposal_reason" "VARCHAR(255)" [note: 'Reason for asset retirement or decommissioning.']
   "operational_status" "VARCHAR(20)" [not null, note: 'Controlled operational status vocabulary.']
   "lifecycle_status" "VARCHAR(20)" [not null, note: 'Controlled lifecycle vocabulary.']
   "maintenance_status" "VARCHAR(30)" [not null, note: 'Controlled maintenance status vocabulary.']
-  "health_status" "VARCHAR(30)" [note: 'Controlled overall health status vocabulary (ISO 13374-4).']
+  "health_status" "VARCHAR(30)" [not null, default: `'UNDETERMINED'`, note: 'Controlled overall health status vocabulary (ISO 13374-4).']
   "is_sce" "BOOLEAN" [not null, default: false, note: 'Safety Critical Element indicator.']
   "functional_location_id" "UUID" [unique, note: 'Foreign key to the related table.']
   "equipment_class_id" "UUID" [not null, note: 'Foreign key to the related table.']
@@ -136,7 +138,7 @@ Table "mtto"."backlog_items" {
 Table "mtto"."failure_records" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Identity of the failure event.']
   "work_order_id" "UUID" [not null, note: 'Foreign key to the related table.']
-  "maintainable_item_id" "UUID" [note: 'Foreign key to the related table.']
+  "maintainable_item_id" "UUID" [not null, note: 'Foreign key to the related table (mandatory ISO 14224 Level 8 failure target).']
   "failure_mode" "VARCHAR(120)" [not null, note: 'ISO 14224 failure coding.']
   "failure_mechanism" "VARCHAR(120)" [not null, note: 'ISO 14224 failure coding.']
   "failure_cause" "VARCHAR(120)" [not null, note: 'ISO 14224 failure coding.']
@@ -381,7 +383,9 @@ Table "adm"."auth_tokens" {
   "user_id" "UUID" [not null, note: 'Foreign key to the related table.']
   "token_hash" "VARCHAR(255)" [unique, not null, note: 'Cryptographic representation of the token.']
   "expires_at" "TIMESTAMPTZ" [not null, note: 'UTC temporal validity limit.']
-  "is_revoked" "BOOLEAN" [not null, default: false, note: 'Pre-expiration manual revocation flag.']
+  "is_revoked" "BOOLEAN" [not null, default: false, note: 'Pre-expiration manual revocation flag (`Revoke()`).']
+  "is_used" "BOOLEAN" [not null, default: false, note: 'Single-use token consumption flag (`MarkAsUsed()`, distinct from `Revoke()`).']
+  "used_at" "TIMESTAMPTZ" [note: 'UTC timestamp recorded when a single-use token is consumed via `MarkAsUsed()`.']
   "purpose" "VARCHAR(30)" [not null, note: 'Controlled token purpose (ACCESS, SESSION_REFRESH, REGISTRATION, PASSWORD_RESET, OFFLINE_LOTO_LEASE).']
 }
 
@@ -426,9 +430,10 @@ Table "adm"."work_order_assignments" {
 Table "adm"."idempotency_logs" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
   "idempotency_key" "VARCHAR(128)" [unique, not null, note: 'Client-provided uniqueness token (ADR-007).']
-  "tenant_id" "UUID" [not null, note: 'Multi-tenant isolation boundary.']
   "request_hash" "VARCHAR(64)" [not null, note: 'SHA-256 fingerprint to prevent payload mutation.']
   "status" "VARCHAR(20)" [not null, note: 'Controlled state of the transaction (PROCESSING, COMPLETED, FAILED).']
+  "response_status_code" "INT" [note: 'Cached HTTP status code replayed on duplicate requests during PostgreSQL idempotency fallback (ADR-007).']
+  "response_payload" "JSONB" [note: 'Cached JSON response payload replayed on duplicate requests during PostgreSQL idempotency fallback (ADR-007).']
   "created_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC timestamp indexed for scheduled batched 24-hour TTL purge on the unpartitioned table (ADR-007).']
 }
 
@@ -438,16 +443,37 @@ Table "adm"."audit_retention_partitions" {
   "period_start" "DATE" [not null, note: 'Inclusive UTC start date of the quarterly retention window (FR-358).']
   "period_end" "DATE" [not null, note: 'Inclusive UTC end date of the quarterly retention window (FR-358).']
   "record_count" "BIGINT" [not null, default: 0, note: 'Total immutable audit records sealed inside the retention partition.']
-  "partition_anchor_hash" "VARCHAR(64)" [not null, note: 'Final SHA-256 `integrity_hash` anchoring continuity across archived partition boundaries (ADR-003, FR-350).']
+  "partition_anchor_hash" "VARCHAR(64)" [note: 'Final SHA-256 `integrity_hash` anchoring continuity across archived partition boundaries (`NULL` while `is_cold_archived = FALSE`; ADR-003, FR-350).']
   "is_cold_archived" "BOOLEAN" [not null, default: false, note: 'Flag indicating whether the quarterly partition is sealed in 7-year cold storage (FR-350, FR-358).']
   "integrity_status" "VARCHAR(30)" [not null, default: `'VERIFIED_INTACT'`, note: 'Controlled partition integrity status vocabulary (DT-DM-DOC-001 §4.43).']
   "sealed_at" "TIMESTAMPTZ" [note: 'UTC timestamp when the partition was sealed for cold archival (`NULL` while hot/active).']
+}
+
+Table "adm"."password_policies" {
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the singleton policy record (PK).']
+  "min_length" "INT" [not null, default: `12`, note: 'Minimum required password length enforced under NIST SP 800-63B (`FR-259`, `NFR-272`).']
+  "require_uppercase" "BOOLEAN" [not null, default: true, note: 'Requires at least one uppercase alphabetical character (`NFR-272`).']
+  "require_digit" "BOOLEAN" [not null, default: true, note: 'Requires at least one numeric digit (`NFR-272`).']
+  "require_special_char" "BOOLEAN" [not null, default: true, note: 'Requires at least one special symbol (`NFR-272`).']
+  "max_age_days" "INT" [not null, default: `90`, note: 'Maximum credential validity window in days triggering periodic password rotation (`FR-266`).']
+  "history_non_reuse_count" "INT" [not null, default: `5`, note: 'Number of prior credential hashes blocked from reuse (`FR-266`, `NFR-272`).']
+  "lockout_threshold" "INT" [not null, default: `5`, note: 'Maximum consecutive failed login attempts before brute-force lockout (`FR-260`).']
+  "lockout_duration_minutes" "INT" [not null, default: `15`, note: 'Duration in minutes for temporary account lockout (`FR-260`).']
+  "updated_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC timestamp of last policy update; singleton configuration aggregate guarded by PostgreSQL `xmin` optimistic concurrency (`PUT /api/v1/security/password-policy`).']
+}
+
+Table "adm"."user_password_histories" {
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
+  "user_id" "UUID" [not null, note: 'Foreign key to `adm.users(id)` (`ON DELETE CASCADE`) enforcing password non-reuse (`FR-266`).']
+  "password_hash" "VARCHAR(255)" [not null, note: 'Salted cryptographic digest (`Argon2id`) of historical credential retained to prevent password reuse (`FR-266`, `NFR-267`).']
+  "created_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC timestamp when the rotated credential hash was recorded.']
 }
 
 // --- RELATIONSHIPS ---
 Ref: "tax"."equipment_classes"."id" < "tax"."equipment_units"."equipment_class_id" [delete: restrict, update: cascade]
 Ref: "tax"."functional_locations"."id" < "tax"."functional_locations"."parent_id" [delete: restrict, update: cascade]
 Ref: "tax"."functional_locations"."id" < "tax"."equipment_units"."functional_location_id" [delete: restrict, update: cascade]
+Ref: "inv"."warehouses"."id" < "tax"."equipment_units"."warehouse_id" [delete: set null, update: cascade]
 Ref: "tax"."functional_locations"."id" < "tax"."asset_installations"."functional_location_id" [delete: cascade, update: cascade]
 Ref: "tax"."equipment_units"."id" < "tax"."asset_installations"."equipment_unit_id" [delete: cascade, update: cascade]
 Ref: "tax"."equipment_units"."id" < "tax"."subunits"."equipment_unit_id" [delete: cascade, update: cascade]
@@ -469,6 +495,7 @@ Ref: "mtto"."failure_records"."id" < "mtto"."media_attachments"."failure_record_
 Ref: "mtto"."work_orders"."id" < "mtto"."work_order_histories"."work_order_id" [delete: cascade, update: cascade]
 Ref: "inv"."locators"."id" < "inv"."inventory_transactions"."locator_id" [delete: restrict, update: cascade]
 Ref: "inv"."warehouses"."id" < "inv"."locators"."warehouse_id" [delete: cascade, update: cascade]
+Ref: "inv"."warehouses"."id" < "inv"."inventory_transactions"."warehouse_id" [delete: restrict, update: cascade]
 Ref: "inv"."spare_parts"."id" < "inv"."inventory_transactions"."spare_part_id" [delete: restrict, update: cascade]
 Ref: "mtto"."work_orders"."id" < "inv"."inventory_transactions"."work_order_id" [delete: set null, update: cascade]
 Ref: "tax"."maintainable_items"."id" < "inv"."maintainable_item_spare_parts"."maintainable_item_id" [delete: cascade, update: cascade]
@@ -494,4 +521,5 @@ Ref: "adm"."roles"."id" < "adm"."role_permissions"."role_id" [delete: cascade, u
 Ref: "adm"."users"."id" < "adm"."auth_tokens"."user_id" [delete: cascade, update: cascade]
 Ref: "adm"."users"."id" < "adm"."work_order_assignments"."user_id" [delete: cascade, update: cascade]
 Ref: "mtto"."work_orders"."id" < "adm"."work_order_assignments"."work_order_id" [delete: cascade, update: cascade]
-Ref: "adm"."users"."id" < "adm"."audit_logs"."user_id" [delete: set null, update: cascade]
+Ref: "adm"."users"."id" < "adm"."audit_logs"."user_id" [delete: restrict, update: restrict]
+Ref: "adm"."users"."id" < "adm"."user_password_histories"."user_id" [delete: cascade, update: cascade]

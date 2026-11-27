@@ -29,19 +29,19 @@ CREATE TABLE IF NOT EXISTS tax.equipment_units (
     model                          VARCHAR(120) NOT NULL,
     purchase_date                  DATE NOT NULL,
     rejection_reason               VARCHAR(255),
-    boundary_start                 VARCHAR(150) NOT NULL,
-    boundary_end                   VARCHAR(150) NOT NULL,
+    boundary_start                 VARCHAR(150),
+    boundary_end                   VARCHAR(150),
     acquisition_date               DATE NOT NULL,
     installation_date              DATE,
     operation_start_date           DATE,
-    operating_hours                BIGINT NOT NULL DEFAULT 0,
-    surveillance_hours             BIGINT NOT NULL DEFAULT 0,
+    operating_hours                DECIMAL(12,2) NOT NULL DEFAULT 0,
+    surveillance_hours             DECIMAL(12,2) NOT NULL DEFAULT 0,
     disposal_date                  DATE,
     disposal_reason                VARCHAR(255),
     operational_status             VARCHAR(20) NOT NULL,
     lifecycle_status               VARCHAR(20) NOT NULL,
     maintenance_status             VARCHAR(30) NOT NULL,
-    health_status                  VARCHAR(30),
+    health_status                  VARCHAR(30) NOT NULL DEFAULT 'UNDETERMINED',
     is_sce                         BOOLEAN NOT NULL DEFAULT FALSE,
     functional_location_id         UUID,
     equipment_class_id             UUID NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS mtto.backlog_items (
 CREATE TABLE IF NOT EXISTS mtto.failure_records (
     id                             UUID NOT NULL DEFAULT uuidv7(),
     work_order_id                  UUID NOT NULL,
-    maintainable_item_id           UUID,
+    maintainable_item_id           UUID NOT NULL,
     failure_mode                   VARCHAR(120) NOT NULL,
     failure_mechanism              VARCHAR(120) NOT NULL,
     failure_cause                  VARCHAR(120) NOT NULL,
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS mtto.maintenance_plans (
     status                         VARCHAR(20) NOT NULL,
 
     CONSTRAINT ck_maintenance_plans_maintenance_method CHECK (maintenance_method IN ('PREVENTIVE', 'PREDICTIVE', 'CONDITION_BASED')),
-    CONSTRAINT ck_maintenance_plans_frequency_type CHECK (frequency_type IN ('CALENDAR_TIME', 'OPERATING_HOURS', 'CYCLES')),
+    CONSTRAINT ck_maintenance_plans_frequency_type CHECK (frequency_type IN ('CALENDAR_TIME', 'OPERATING_HOURS', 'CYCLES', 'SENSOR_THRESHOLD')),
     CONSTRAINT ck_maintenance_plans_interval_unit CHECK (interval_unit IN ('DAYS', 'WEEKS', 'MONTHS', 'YEARS', 'OPERATING_HOURS', 'CYCLES', 'KILOMETERS', 'WEAR_DEPTH_MM')),
     CONSTRAINT ck_maintenance_plans_monitored_signal_type CHECK (monitored_signal_type IN ('TEMPERATURE', 'PRESSURE', 'VIBRATION', 'FLOW_RATE', 'VOLTAGE', 'CURRENT', 'RPM', 'OPERATING_HOURS', 'CYCLES')),
     CONSTRAINT ck_maintenance_plans_status CHECK (status IN ('DRAFT', 'ACTIVE', 'INACTIVE', 'ARCHIVED')),
@@ -460,6 +460,8 @@ CREATE TABLE IF NOT EXISTS adm.auth_tokens (
     token_hash                     VARCHAR(255) NOT NULL,
     expires_at                     TIMESTAMPTZ NOT NULL,
     is_revoked                     BOOLEAN NOT NULL DEFAULT FALSE,
+    is_used                        BOOLEAN NOT NULL DEFAULT FALSE,
+    used_at                        TIMESTAMPTZ,
     purpose                        VARCHAR(30) NOT NULL,
 
     CONSTRAINT uq_auth_tokens_token_hash UNIQUE (token_hash),
@@ -524,9 +526,10 @@ CREATE TABLE IF NOT EXISTS adm.work_order_assignments (
 CREATE TABLE IF NOT EXISTS adm.idempotency_logs (
     id                             UUID NOT NULL DEFAULT uuidv7(),
     idempotency_key                VARCHAR(128) NOT NULL,
-    tenant_id                      UUID NOT NULL,
     request_hash                   VARCHAR(64) NOT NULL,
     status                         VARCHAR(20) NOT NULL,
+    response_status_code           INT,
+    response_payload               JSONB,
     created_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
 
     CONSTRAINT uq_idempotency_logs_idempotency_key UNIQUE (idempotency_key),
@@ -540,14 +543,38 @@ CREATE TABLE IF NOT EXISTS adm.audit_retention_partitions (
     period_start                   DATE NOT NULL,
     period_end                     DATE NOT NULL,
     record_count                   BIGINT NOT NULL DEFAULT 0,
-    partition_anchor_hash          VARCHAR(64) NOT NULL,
+    partition_anchor_hash          VARCHAR(64),
     is_cold_archived               BOOLEAN NOT NULL DEFAULT FALSE,
     integrity_status               VARCHAR(30) NOT NULL DEFAULT 'VERIFIED_INTACT',
     sealed_at                      TIMESTAMPTZ,
 
     CONSTRAINT uq_audit_retention_partitions_partition_name UNIQUE (partition_name),
-    CONSTRAINT ck_audit_retention_partitions_integrity_status CHECK (integrity_status IN ('VERIFIED_INTACT', 'VERIFYING_IN_PROGRESS', 'TAMPER_BREACH_DETECTED')),
+    CONSTRAINT ck_audit_retention_partitions_integrity_status CHECK (integrity_status IN ('VERIFIED_INTACT', 'VERIFYING_IN_PROGRESS', 'TAMPER_BREACH_DETECTED', 'Rule Code', ':---', '**`SOD-SAF-01`**', '**`SOD-INV-01`**', '**`SOD-MTTO-01`**', '**`SOD-SYS-01`**', 'Domain Mechanism', '**Zero-Energy Verification**', '**SIMOPS Clearance Radius**')),
     CONSTRAINT pk_audit_retention_partitions PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS adm.password_policies (
+    id                             UUID NOT NULL DEFAULT uuidv7(),
+    min_length                     INT NOT NULL DEFAULT 12,
+    require_uppercase              BOOLEAN NOT NULL DEFAULT TRUE,
+    require_digit                  BOOLEAN NOT NULL DEFAULT TRUE,
+    require_special_char           BOOLEAN NOT NULL DEFAULT TRUE,
+    max_age_days                   INT NOT NULL DEFAULT 90,
+    history_non_reuse_count        INT NOT NULL DEFAULT 5,
+    lockout_threshold              INT NOT NULL DEFAULT 5,
+    lockout_duration_minutes       INT NOT NULL DEFAULT 15,
+    updated_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+
+    CONSTRAINT pk_password_policies PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS adm.user_password_histories (
+    id                             UUID NOT NULL DEFAULT uuidv7(),
+    user_id                        UUID NOT NULL,
+    password_hash                  VARCHAR(255) NOT NULL,
+    created_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+
+    CONSTRAINT pk_user_password_histories PRIMARY KEY (id)
 );
 
 -- ==========================================
@@ -614,6 +641,8 @@ CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON adm.user_roles (user_id);
 CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON adm.user_roles (role_id);
 CREATE INDEX IF NOT EXISTS idx_work_order_assignments_work_order_id ON adm.work_order_assignments (work_order_id);
 CREATE INDEX IF NOT EXISTS idx_work_order_assignments_user_id ON adm.work_order_assignments (user_id);
+CREATE INDEX IF NOT EXISTS idx_idempotency_logs_response_payload ON adm.idempotency_logs USING GIN (response_payload jsonb_path_ops);
+CREATE INDEX IF NOT EXISTS idx_user_password_histories_user_id ON adm.user_password_histories (user_id);
 
 -- ==========================================
 -- FOREIGN KEY CONSTRAINTS (CROSS-SCHEMA)
@@ -629,7 +658,7 @@ ALTER TABLE tax.equipment_units
 
 ALTER TABLE tax.equipment_units
     ADD CONSTRAINT fk_equipment_units_warehouse FOREIGN KEY (warehouse_id) REFERENCES inv.warehouses (id)
-    ON DELETE RESTRICT ON UPDATE CASCADE;
+    ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE tax.functional_locations
     ADD CONSTRAINT fk_functional_locations_parent FOREIGN KEY (parent_id) REFERENCES tax.functional_locations (id)
@@ -801,7 +830,7 @@ ALTER TABLE vis.work_permits
 
 ALTER TABLE adm.audit_logs
     ADD CONSTRAINT fk_audit_logs_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
-    ON DELETE SET NULL ON UPDATE CASCADE;
+    ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ALTER TABLE adm.auth_tokens
     ADD CONSTRAINT fk_auth_tokens_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
@@ -825,6 +854,10 @@ ALTER TABLE adm.work_order_assignments
 
 ALTER TABLE adm.work_order_assignments
     ADD CONSTRAINT fk_work_order_assignments_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE adm.user_password_histories
+    ADD CONSTRAINT fk_user_password_histories_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
     ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- =============================================================================
