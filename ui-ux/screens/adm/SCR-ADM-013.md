@@ -566,6 +566,8 @@ public EventCallback OnSaveMatrixClicked { get; set; }
 
 Shared Domain Enums (`RbacModule`, `RbacAction`, `AuditActionType`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
 
+Shared Value Types (`PermissionGrantKeyDto`): see [DT-UI-CTR-001 §4](../../contracts/DT-UI-CTR-001.md#4-shared-value-types-and-presentation-enums).
+
 ```csharp
 public enum RbacRoleFilterCategory
 {
@@ -594,11 +596,6 @@ public enum RbacMatrixExportFormat
     GLOBAL_MATRIX_CSV,
     GLOBAL_MATRIX_JSON
 }
-
-public readonly record struct PermissionGrantKeyDto(
-    RbacModule Module,
-    RbacAction Action
-);
 
 public record PermissionToggleRequestDto
 {

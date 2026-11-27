@@ -57,7 +57,7 @@ Prior to step 8, if wireless connectivity drops in shielded or remote plant zone
    1. The System applies Fail-Safe Zero-Energy Telemetry Masking, rendering a neutral diagnostic stale notice per ANSI/ISA-101.
    2. The System prompts for mandatory manual attestation: the Technician re-confirms physical lock placement and signs the physical Try-Out attestation locally.
    3. The System unlocks the work-start confirmation under "Offline Verified Safety Mode".
-   4. In step 9, the System persists the transaction in local encrypted storage ([TR-002](../../../requirements/common/TR-002.md)) and queues the command payload into the local offline synchronization queue ([ADR-006](../../../architecture/adr/ADR-006.md)) using client-side UUIDv7 identifiers ([ADR-005](../../../architecture/adr/ADR-005.md)).
+   4. In step 9, the System persists the transaction in local encrypted storage ([TR-002](../../../requirements/common/TR-002.md)) and queues the command payload into the local offline synchronization queue ([ADR-006](../../../architecture/adr/ADR-006.md)) using unique client-generated correlation identifiers ([ADR-005](../../../architecture/adr/ADR-005.md)).
    5. Upon network recovery, the background synchronization service dispatches the transaction to the central server using idempotency keys.
 3. If the lease is expired or absent:
    1. The System enforces the fail-safe lockout, disabling the work start interface.

@@ -594,19 +594,9 @@ Shared Domain Enums (`SparePartStatus`, `StockPolicyType`, `AuditActionType`): s
 
 Shared Lookup DTOs (`EquipmentClassLookupDto`): see [DT-UI-CTR-001 §2](../../contracts/DT-UI-CTR-001.md#2-shared-lookup-dtos).
 
-```csharp
-/// <summary>
-/// Standardized ISO 80000 / UNECE Rec 20 Units of Measure per FR-181.
-/// </summary>
-public enum StandardUnitOfMeasure
-{
-    EA,
-    SET,
-    L,
-    KG,
-    M
-}
+Shared Presentation Enums (`StandardUnitOfMeasure`): see [DT-UI-CTR-001 §4](../../contracts/DT-UI-CTR-001.md#4-shared-value-types-and-presentation-enums).
 
+```csharp
 public enum PartMasterKpiFilter
 {
     ALL_ACTIVE,

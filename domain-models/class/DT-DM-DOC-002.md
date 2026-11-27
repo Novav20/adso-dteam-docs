@@ -226,7 +226,7 @@ Additionally, the document justifies the existence of each method under the prin
 
 | Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
 | :--- | :--- | :--- | :--- |
-| `UpdatePolicy(minLength: int, requireUppercase: bool, requireDigit: bool, requireSpecialChar: bool, maxAgeDays: int, historyNonReuseCount: int, lockoutThreshold: int, lockoutDurationMinutes: int): void` | Validates NIST SP 800-63B bounds on the singleton security configuration (`adm.password_policies`) and stamps `updatedAt` in UTC under PostgreSQL `xmin` optimistic concurrency. | [ADM-014](../../requirements/user-stories/adm/ADM-014.md)<br>FR-259, FR-260, FR-266, NFR-272 | **Singleton Configuration Root:** Centralizes complexity, rotation, non-reuse depth, and anti-brute-force lockout invariants rather than hardcoding thresholds across IAM services. |
+| `UpdatePolicy(minLength: int, requireUppercase: bool, requireDigit: bool, requireSpecialChar: bool, maxAgeDays: int, historyNonReuseCount: int, lockoutThreshold: int, lockoutDurationMinutes: int): void` | Validates NIST SP 800-63B bounds on the singleton security configuration (`adm.password_policies`) and stamps `updatedAt` in UTC under underlying relational database optimistic concurrency. | [ADM-014](../../requirements/user-stories/adm/ADM-014.md)<br>FR-259, FR-260, FR-266, NFR-272 | **Singleton Configuration Root:** Centralizes complexity, rotation, non-reuse depth, and anti-brute-force lockout invariants rather than hardcoding thresholds across IAM services. |
 
 ---
 

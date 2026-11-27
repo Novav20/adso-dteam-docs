@@ -72,3 +72,4 @@ In step 4, if the Planner decides to adjust the interval to a recommended range 
   - [TR-011](../../../requirements/common/TR-011.md): High-Performance HMI (HPHMI) redundant coding.
 * **Architectural Decision Records:**
   - [ADR-005](../../../architecture/adr/ADR-005.md): Time-sequential UUIDv7 generation for plan and work order entities.
+* **Related Screens:** [SCR-MTTO-001](../../../ui-ux/screens/mtto/SCR-MTTO-001.md), [SCR-MTTO-026](../../../ui-ux/screens/mtto/SCR-MTTO-026.md), [SCR-MTTO-029](../../../ui-ux/screens/mtto/SCR-MTTO-029.md)

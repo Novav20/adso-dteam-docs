@@ -1,55 +1,55 @@
 ---
 name: dteam-sdlc-deep-audit
-description: >-
-  In-depth auditor for the DTEAM project's docs-as-code repository.
-  Performs a holistic and chronological analysis of the artifacts (SDLC) to detect
-  cross-layer redundancies, logical contradictions over time,
-  and architectural decisions without a justifying ADR.
-  Use it when a complete, deep audit or an end-of-milestone review is requested.
+description: Holistic end-of-milestone SDLC auditor combining deterministic repository-wide guardrails (scripts/verify_all.py --scope all) with chronological cross-layer redundancy, ADR, and semantic analysis.
 ---
 
 # DTEAM Docs-as-Code — Lifecycle Auditor (SDLC Deep Audit)
 
-## General Description
+## 1. General Description
 
-This skill executes an exhaustive and historical analysis of the documentation state in the `adso-dteam-docs` repository. Unlike `dteam-coherence-audit` (which evaluates a single artifact when added), this skill evaluates **the entire repository** by reading the artifacts in the order they are supposed to have been created according to the SDLC (Software Development Life Cycle).
+This skill performs a repository-wide SDLC audit across Requirements (`srs.csv`), Domain & Use Cases (`DT-UL-DOC-001`, `DT-DM-DOC-001/002`, `UC-*`), Relational Schema (`DT-ERD-DOC-001`, `.sql`, `.dbml`), Architecture (`DT-ARQ-*`, `ADR-*`), and UI/UX (`DT-UI-*`, `DT-UI-CTR-001`, `SCR-*`).
 
-Its purpose is to identify:
-1. **Inter-layer Redundancies**: Unnecessarily repeated information between artifacts (e.g., requirements vs use cases vs screens) without refinement purpose.
-2. **Historical Contradictions**: Logical inconsistencies between artifacts (versions, IDs, roles, technologies) that arise over time.
-3. **Arbitrary Decisions (Lack of ADRs)**: Identify key architectural or design decisions that lack a formal Architecture Decision Record (ADR) backing them.
-4. **Terminology Desynchronization**: Incoherencies in the use of IDs, roles, and terms throughout the lifecycle.
+It combines:
+1. **Deterministic Full-Repo Sweep (`GRD-01`..`GRD-21`):** Automated verification across all 13 architectural scopes via `scripts/verify_all.py --scope all`.
+2. **Chronological Semantic Review:** Deep inspection of `git log` history and cross-layer artifacts to catch semantic redundancies, undocumented architectural decisions lacking an ADR, and subtle drift beyond deterministic rules.
 
-## Chat Activation
+---
 
-The agent must activate this skill when the user requests:
-- "Do an in-depth analysis of the docs"
-- "Execute a full SDLC audit"
-- "Audit the entire lifecycle"
-- "Search for redundancies and contradictions across the whole repo"
+## 2. Deterministic Full-Repository Baseline
 
-**Note:** It is recommended to suggest the user to use the `/goal` command to ensure the agent does not stop before finishing reviewing all necessary files.
+Always start from the repository root (`adso-dteam-docs/`) by running the deterministic suite:
 
-## Execution Workflow
-
-### Step 1 — Reconstruct the Chronological Order (SDLC)
-Use commands like `git log` and the folder structure (names, logical prefixes) to determine the evolution order of the documentation.
-
-### Step 2 — Sequential Scanning
-Proceed to read the key artifacts of the repository, respecting the logical order of the SDLC (e.g., Requirements -> Domain Models/Use Cases -> Architecture -> UI/UX).
-
-### Step 3 — Cross-Execution (Optional)
-To leverage existing tools, you can request an execution of the coherence skill (`dteam-coherence-audit`) in global mode (`audit-all`) to raise basic reference errors and focus on the deep analysis.
 ```bash
-uv run .agents/skills/dteam-coherence-audit/scripts/audit.py audit-all
+# Run all 21 guardrails across all scopes and inspect console summary
+python3 scripts/verify_all.py --scope all --format console
+
+# Run strict CI gate (fail on any WARNING as well as BLOCKER)
+python3 scripts/verify_all.py --scope all --strict --format console
+
+# Persist structured baseline snapshot for the SDLC audit report
+python3 scripts/verify_all.py --scope all --format markdown --output reports/audits/AUD-SDLC-GUARDRAILS.md
 ```
 
-### Step 4 — Report Generation
-Generate a detailed report with the findings.
-- The report **MUST** be saved in `reports/audits/AUD-SDLC-DOCS-IN-DEPTH-ANALYSIS.md`.
-- Update the existing report version if one already exists.
-- Structure the report with:
-  - Findings (with status: `[RESOLVED]`, `[PENDING: ADR]`, `[PENDING: DECISION]`, etc.)
-  - Detected redundancies
-  - Arbitrary decisions or lack of ADRs
-  - Logical contradictions
+Targeted drill-down scopes: `domain`, `erd`, `contracts`, `ui`, `uc`, `nav`, `rbac`, `arch`, `api`, `links`, `ul`, `tokens`, `srs`. Exit code `2` indicates unresolved `BLOCKER` findings (or `WARNING`s under `--strict`).
+
+---
+
+## 3. Chronological & Semantic SDLC Workflow
+
+1. **Reconstruct Evolution:** Inspect `git log -n 30 --oneline` to trace recent architectural and SSoT milestones.
+2. **Sweep Upstream-to-Downstream Layers:**
+   * *Requirements & UL:* Check `requirements/data/srs.csv`, auto-generated `TR-*.md`, and `DT-UL-DOC-001.md` dimension-agnostic parity (`GRD-18`, `GRD-21`).
+   * *Domain & Schema:* Verify `DT-DM-DOC-001 §§4–5` (vocabularies, `SOD-*`, physical safety thresholds `0.0 V`, `0.5 psig`, `15 m`, `13 m`, `5 m`), `DT-DM-DOC-002`, `DT-DM-001.puml`, and `DT-ERD-DOC-001`/`.sql`/`.dbml` (`GRD-01`..`GRD-04`).
+   * *Architecture & ADRs:* Verify single-SSoT ownership in `ADR-003` (WORM `H_k` hash chain, `AuditJustification >= 15` chars, `7 years` retention), `ADR-006` (offline leases & 5-step `SyncOutbox`), and `DT-ARQ-CMP-DOC-001 §§5–6` (REST/SignalR registries, `GRD-13`..`GRD-16`).
+   * *UI/UX & Contracts:* Verify DRY consolidation in `DT-UI-CTR-001.md`, presentation-layer purity across `SCR-*.md`, and `--dt-*` / WCAG contrast (`GRD-05`..`GRD-11`, `GRD-19`, `GRD-20`).
+3. **Report Findings:** Persist the consolidated SDLC analysis to `reports/audits/AUD-SDLC-DOCS-IN-DEPTH-ANALYSIS.md` using `[RESOLVED]`, `[PENDING: ADR]`, `[PENDING: DECISION]`, and `[BLOCKER]` statuses, highlighting inter-layer redundancies, missing ADRs, and cross-artifact contradictions.
+
+---
+
+## 4. Exit Codes
+
+| Exit Code | Meaning |
+| :--- | :--- |
+| `0` | Passed (`0` blockers, and `0` warnings under `--strict`) |
+| `1` | Execution/configuration error |
+| `2` | Guardrail failure (`BLOCKER`, or `WARNING` under `--strict`) |

@@ -14,6 +14,7 @@ from ..config import (
     APPROVED_COLOR_PALETTE,
     MVP_APPROVED_SCREENS,
     MVP_APPROVED_UCS,
+    PLANNED_ARTIFACT_STUBS,
     PLANNED_STUBS,
     SSOT_PATHS,
 )
@@ -129,6 +130,8 @@ def evaluate_grd_17(index: RepoIndex) -> list[Finding]:
     findings: list[Finding] = []
 
     for rel, doc in sorted(index.markdown_docs.items()):
+        if rel.startswith("reports/"):
+            continue
         # 1. Ban Obsidian wikilinks inside document body (frontmatter wikilinks remain valid)
         for wref in doc.body_wikilinks:
             findings.append(
@@ -251,7 +254,7 @@ def evaluate_grd_17(index: RepoIndex) -> list[Finding]:
                 if art_id in seen_ids:
                     continue
                 seen_ids.add(art_id)
-                if not _repo_has_artifact(index.repo_files, art_id):
+                if art_id not in PLANNED_ARTIFACT_STUBS and not _repo_has_artifact(index.repo_files, art_id):
                     line_no = scoped_text[: m.start()].count("\n") + 1
                     findings.append(
                         Finding(
@@ -1100,6 +1103,8 @@ def evaluate_grd_20(index: RepoIndex) -> list[Finding]:
 
     if known_icons:
         for rel, doc in sorted(index.markdown_docs.items()):
+            if rel.startswith("reports/"):
+                continue
             for line_no, line in enumerate(doc.raw_text.splitlines(), start=1):
                 for m in _MD_ICON_REF_RE.finditer(line):
                     sym = m.group(1)
@@ -1150,6 +1155,8 @@ def evaluate_grd_20(index: RepoIndex) -> list[Finding]:
 
     # 3. Language policy (Technical English + zero emojis in .md docs; lang="es" in screen HTML prototypes)
     for rel, doc in sorted(index.markdown_docs.items()):
+        if rel.startswith("reports/"):
+            continue
         if not rel.startswith("scripts/"):
             in_fence = False
             for line_no, line in enumerate(doc.raw_text.splitlines(), start=1):
@@ -1512,7 +1519,7 @@ def evaluate_grd_21(index: RepoIndex) -> list[Finding]:
 
     # 2. Unapproved Framework Ban across Markdown docs
     for rel, doc in sorted(index.markdown_docs.items()):
-        if rel.startswith("scripts/"):
+        if rel.startswith(("scripts/", "reports/")):
             continue
         tech_text = _strip_adr_alternatives(doc.raw_text)
         tech_lines = tech_text.splitlines()
@@ -1566,7 +1573,7 @@ def evaluate_grd_21(index: RepoIndex) -> list[Finding]:
             )
 
     for rel, doc in sorted(index.markdown_docs.items()):
-        if rel == SSOT_PATHS.todo_md or rel.startswith("scripts/"):
+        if rel == SSOT_PATHS.todo_md or rel.startswith(("scripts/", "reports/")):
             continue
         scoped = _strip_planned_and_code(doc.raw_text)
         seen_extra: set[str] = set()

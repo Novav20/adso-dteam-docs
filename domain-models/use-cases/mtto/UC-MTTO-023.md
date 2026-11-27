@@ -73,3 +73,4 @@ If the selected Level 6 Equipment Unit lacks formalized physical battery limits 
 * **Non-Functional Requirements:** [NFR-588](../../../requirements/user-stories/mtto/MTTO-023.md#non-functional-requirements-nfr), [NFR-589](../../../requirements/user-stories/mtto/MTTO-023.md#non-functional-requirements-nfr)
 * **Transversal Requirements:** [TR-001](../../../requirements/common/TR-001.md), [TR-005](../../../requirements/common/TR-005.md), [TR-006](../../../requirements/common/TR-006.md), [TR-008](../../../requirements/common/TR-008.md), [TR-010](../../../requirements/common/TR-010.md), [TR-011](../../../requirements/common/TR-011.md)
 * **Architectural Decisions:** [ADR-002](../../../architecture/adr/ADR-002.md), [ADR-005](../../../architecture/adr/ADR-005.md)
+* **Related Screens:** [SCR-MTTO-023](../../../ui-ux/screens/mtto/SCR-MTTO-023.md), [SCR-MTTO-026](../../../ui-ux/screens/mtto/SCR-MTTO-026.md), [SCR-MTTO-029](../../../ui-ux/screens/mtto/SCR-MTTO-029.md)

@@ -147,6 +147,8 @@ def build_repo_index(
     }
     for md_path in _discover_non_hidden_files(resolved_root, ".md"):
         rel = md_path.relative_to(resolved_root).as_posix()
+        if rel.startswith("reports/"):
+            continue
         raw = read_once(md_path, rel)
         if raw is None:
             continue

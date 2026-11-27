@@ -459,3 +459,29 @@ public EventCallback<EquipmentUnitLookupDto> OnEquipmentUnitSelected { get; set;
 [Parameter]
 public EventCallback OnCloseRequested { get; set; }
 ```
+
+---
+
+## 4. Shared Value Types and Presentation Enums
+
+```csharp
+// Consumed by: SCR-ADM-013, SCR-ADM-014
+public readonly record struct PermissionGrantKeyDto(
+    RbacModule Module,
+    RbacAction Action
+);
+
+// Consumed by: SCR-INV-006, SCR-INV-031
+/// <summary>
+/// Standardized ISO 80000 / UNECE Rec 20 Units of Measure per FR-181.
+/// </summary>
+public enum StandardUnitOfMeasure
+{
+    EA,
+    SET,
+    L,
+    KG,
+    M
+}
+```
+

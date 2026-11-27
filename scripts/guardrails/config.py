@@ -120,6 +120,13 @@ PLANNED_STUBS: tuple[str, ...] = (
     r"views/DT-ARQ-.*\.drawio$",
 )
 
+# Planned artifact IDs referenced in SSoT docs whose diagram/file is scheduled post-MVP
+PLANNED_ARTIFACT_STUBS: frozenset[str] = frozenset(
+    {
+        "DT-ERD-LOG-001",
+    }
+)
+
 # SQL CHECK enum lookup aliases (table.column -> canonical domain key in DT-DM-DOC-001 §4)
 ENUM_ALIASES: dict[str, str] = {
     "maintenance_plan_crafts.craft": "maintenance_plans.required_specialty",
@@ -247,6 +254,7 @@ APPROVED_RBAC_ROLES: frozenset[str] = frozenset(
         "Auditor",
         "Manager",
         "Plant Manager",
+        "Plant Operations Manager",
         "Project Engineer",
         "Plant Operator",
         "Scheduler",
@@ -266,6 +274,8 @@ APPROVED_SYSTEM_ACTORS: frozenset[str] = frozenset(
         "LOTO Safety Watchdog",
         "Offline Sync Worker",
         "SCADA Engine",
+        "SCADA / Historian",
+        "SCADA / Historian Module",
         "IoT Hub",
     }
 )

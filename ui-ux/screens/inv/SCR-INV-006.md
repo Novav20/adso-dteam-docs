@@ -597,19 +597,9 @@ public EventCallback OnNavigateToSparePartsCatalog { get; set; }
 
 Shared Domain Enums (`InventoryTransactionType`, `StockPolicyType`, `AuditActionType`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
 
-```csharp
-/// <summary>
-/// Standardized ISO 80000 / UNECE Rec 20 Units of Measure per FR-181.
-/// </summary>
-public enum StandardUnitOfMeasure
-{
-    EA,
-    SET,
-    L,
-    KG,
-    M
-}
+Shared Presentation Enums (`StandardUnitOfMeasure`): see [DT-UI-CTR-001 §4](../../contracts/DT-UI-CTR-001.md#4-shared-value-types-and-presentation-enums).
 
+```csharp
 public enum KardexMovementFilterType
 {
     ALL,

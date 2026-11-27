@@ -302,6 +302,8 @@ def evaluate_grd_09(index: RepoIndex) -> list[Finding]:
             )
             continue
 
+        has_primary_backlink = False
+        valid_rel_scrs: list[str] = []
         for scr_id in rel_scrs:
             if scr_id not in scr_map:
                 findings.append(
@@ -316,23 +318,28 @@ def evaluate_grd_09(index: RepoIndex) -> list[Finding]:
                     )
                 )
                 continue
+            valid_rel_scrs.append(scr_id)
             scr_rel = scr_map[scr_id]
             scr_ucs = _as_id_list(index.screen_docs[scr_rel].frontmatter.get("use_cases"))
-            if uc_id and uc_id not in scr_ucs:
-                findings.append(
-                    Finding(
-                        rule_id="GRD-09",
-                        severity=SEVERITY_BLOCKER,
-                        scope="uc",
-                        file=scr_rel,
-                        line=1,
-                        message=(
-                            f"Asymmetric traceability: '{uc_id}' references '{scr_id}' in Related Screens, "
-                            f"but '{scr_rel}' omits '{uc_id}' in frontmatter 'use_cases'."
-                        ),
-                        remediation=f"Add '{uc_id}' to frontmatter 'use_cases' in '{scr_rel}'.",
-                    )
+            if uc_id and uc_id in scr_ucs:
+                has_primary_backlink = True
+
+        if uc_id and valid_rel_scrs and not has_primary_backlink:
+            primary_rel = scr_map[valid_rel_scrs[0]]
+            findings.append(
+                Finding(
+                    rule_id="GRD-09",
+                    severity=SEVERITY_BLOCKER,
+                    scope="uc",
+                    file=primary_rel,
+                    line=1,
+                    message=(
+                        f"Asymmetric traceability: '{uc_id}' lists Related Screens {valid_rel_scrs}, "
+                        f"but none declare '{uc_id}' in frontmatter 'use_cases'."
+                    ),
+                    remediation=f"Add '{uc_id}' to frontmatter 'use_cases' in its primary screen '{primary_rel}'.",
                 )
+            )
 
     return findings
 

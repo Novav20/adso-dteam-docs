@@ -611,6 +611,8 @@ public EventCallback OnSaveRoleAssignmentsClicked { get; set; }
 
 Shared Domain Enums (`UserStatus`, `AuthTokenPurpose`, `RbacModule`, `RbacAction`, `AuditActionType`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
 
+Shared Value Types (`PermissionGrantKeyDto`): see [DT-UI-CTR-001 §4](../../contracts/DT-UI-CTR-001.md#4-shared-value-types-and-presentation-enums).
+
 ```csharp
 public enum UserLifecycleActionType
 {
@@ -632,11 +634,6 @@ public enum UserDockTab
     USER_PROFILE,
     SHA256_AUDIT
 }
-
-public readonly record struct PermissionGrantKeyDto(
-    RbacModule Module,
-    RbacAction Action
-);
 
 public record UserDirectoryMetricsDto
 {

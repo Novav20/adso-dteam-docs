@@ -61,7 +61,7 @@ In step 1, if operating in plant zones lacking wireless connectivity ([TR-007](.
 1. The System displays the offline indicator ("OFFLINE · LOCALLY QUEUED").
 2. The System applies Fail-Safe Zero-Energy Telemetry Masking, presenting neutral diagnostic status indicators.
 3. The Technician executes steps 1 through 8 normally; data, photos, and failure classifications are persisted in encrypted local storage ([TR-002](../../../requirements/common/TR-002.md)).
-4. In step 10, the System marks the order as locally completed, queues the command payload using client-side UUIDv7 identifiers ([ADR-005](../../../architecture/adr/ADR-005.md)), and displays: *"Work locally completed. Synchronization pending."*
+4. In step 10, the System marks the order as locally completed, queues the command payload using unique client-generated correlation identifiers ([ADR-005](../../../architecture/adr/ADR-005.md)), and displays: *"Work locally completed. Synchronization pending."*
 5. Upon network recovery, the background synchronization service dispatches the transaction queue to the central server using idempotency verification ([ADR-007](../../../architecture/adr/ADR-007.md)).
 
 ### AF-003: Corrupt Evidence File or Cryptographic Hash Mismatch

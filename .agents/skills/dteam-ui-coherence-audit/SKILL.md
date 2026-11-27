@@ -1,239 +1,68 @@
 ---
 name: dteam-ui-coherence-audit
-description: Audits UI/UX screen specifications against the Domain Model, ERD, Design System, and HPHMI/ISA-101 standards, supporting both Transactional (APM) and Supervisory (Digital Twin) screens.
+description: Audits UI/UX screen specifications (SCR-*.md) and companion prototypes against the Domain Model, ERD, Shared UI Contracts, ADRs, Design System tokens, and ANSI/ISA-101 HPHMI standards.
 ---
 
 # UI/UX Coherence & HMI Audit Skill
 
-## 1. Purpose & Architectural Philosophy
+## 1. Purpose & Three-Tier Architecture
 
-This skill performs a **Three-Tier Coherence and Ergonomic Audit** on system UI/UX screen specifications (`SCR-*.md`) within the hybrid **Asset Performance Management (APM) and Digital Twin (DT)** architecture:
+This skill audits `ui-ux/screens/<mod>/SCR-<MOD>-<NUM>.md` and companion prototypes (`scr-*.html`, `scr-*.js`) across three tiers:
 
-* **Tier 0 (Deterministic Pre-Flight Gate):** Automated script-based parsing via `.agents/skills/dteam-ui-coherence-audit/scripts/audit.py`. Evaluates AST/regex negative boundary rules: halts execution immediately on SQL/schema leaks, Blazor code-behind wrappers, private state, [Inject], raw CSS rules, hex codes, or missing canonical sections.
-* **Tier 1 (Local Heuristic & Ergonomic Audit):** Executed locally by the agent against the repository's Single Sources of Truth (SSoT: `DT-ERD-DOC-001`, `DT-DM-DOC-002`, `DT-UI-DS-DOC-001`, and requirements). Validates task completeness, cardinality constraints, component boundaries, and codified HPHMI rules.
-* **Tier 2 (Deterministic Grounded Escalation Gate):** Escalation to the user's external **Gemini Notebook (GN)**, which is grounded on authoritative, copyrighted standard corpora (ANSI/ISA-101.01, *The High Performance HMI Handbook*, ISO 14224, ISO 11064, OSHA 1910.147). Escalation is governed by 4 deterministic triggers (G1–G4) with a mandatory justification gate in every audit report to prevent cognitive complacency.
+1. **Tier 0 (Deterministic Guardrails):** `scripts/verify_all.py` enforces DRY contracts (`DT-UI-CTR-001.md`), enum parity (`DT-DM-DOC-001 §4`), `ADR-003`/`ADR-006` SSoTs, REST/SignalR parity (`DT-ARQ-CMP-DOC-001`), `--dt-*` token/WCAG 2.1 AA contrast, and prototype hygiene.
+2. **Tier 1 (Heuristic & Ergonomic Audit):** Cross-checks mandatory ERD `NOT NULL` fields (`DT-ERD-DOC-001.md`), domain behaviors (`DT-DM-DOC-002.md`), safety invariants (`DT-DM-DOC-001 §5`), ISA-101 display hierarchy, and Spanish operational prototype copy.
+3. **Tier 2 (Grounded Escalation Gate — Gemini Notebook):** Evaluates Triggers G1–G4 with a mandatory technical justification referencing local SSoTs when escalation is not triggered.
 
 ---
 
-## 2. CLI Execution & Helper Script
+## 2. Deterministic CLI Execution (Tier 0)
 
-From the repository root (`adso-dteam-docs/`), the deterministic auditor is invoked via CLI:
+Run from repository root (`adso-dteam-docs/`). Zero external packages required (`Python >= 3.11` stdlib):
 
 ```bash
-# 1. Full deterministic audit + markdown report generation in reports/audits/ui/
-uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py audit --file ui-ux/screens/vis/SCR-VIS-008.md
+# Audit target screen contracts, UI rules, and API/SignalR parity
+python3 scripts/verify_all.py --scope ui --files ui-ux/screens/vis/SCR-VIS-008.md --format console
+python3 scripts/verify_all.py --scope contracts --files ui-ux/screens/vis/SCR-VIS-008.md --format console
+python3 scripts/verify_all.py --scope api --files ui-ux/screens/vis/SCR-VIS-008.md --format console
 
-# 2. Fast console linting (pre-commit / CI gate, zero report files generated)
-uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py lint --file ui-ux/screens/vis/SCR-VIS-008.md
-
-# 3. Batch scan of all screen specifications
-uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py audit-all
+# Verify Design System tokens, WCAG contrast, and navigation guards
+python3 scripts/verify_all.py --scope tokens --format console
+python3 scripts/verify_all.py --scope nav --format console
 ```
 
-### Exit Codes:
-* `0`: Clean PASS or only WARNING/INFO observations.
-* `1`: Execution error (file not found, outside repo).
-* `2`: BLOCKER found (immediate rejection — document MUST NOT be approved without remediation).
+Exit codes: `0` pass, `1` runtime/config error, `2` BLOCKER (or WARNING under `--strict`). Halt Tier 1 review whenever exit code `2` occurs.
 
 ---
 
-## 3. Step-by-Step Execution Workflow
+## 3. Authoritative SSoT References & Audit Checklist
 
-### Step 0: Deterministic Pre-Flight Gate (Tier 0)
-1. Run `uv run .agents/skills/dteam-ui-coherence-audit/scripts/audit.py audit --file <relative-path>`.
-2. If exit code is `2` (BLOCKER), stop immediately and report the specific syntactic/boundary violations to the user. Do NOT proceed to heuristic evaluation while deterministic blockers exist.
-
-### Step 1: Context Gathering & Archetype Classification
-1. Read the target screen specification (`SCR-*.md`), its associated use case (`UC-*.md`), and—whenever a companion interactive prototype exists (`scr-[mod]-[num].html` and `scr-[mod]-[num].js`)—inspect the user-facing HTML/JS copy alongside visual artifacts.
-2. Identify the screen archetype:
-   * **Archetype A: Transactional / Command Screen (APM):** Forms, workflows, state mutations, permits, failure reporting, or inventory transactions (e.g., `SCR-MTTO-023`, `SCR-VIS-011`, `SCR-INV-025`).
-   * **Archetype B: Supervisory / Inspection Screen (Digital Twin HMI):** Vector schematics, spatial navigation, real-time telemetry monitoring, faceplates, or alarm oversight (e.g., `SCR-VIS-033`, `SCR-VIS-008`).
-3. Load corresponding project SSoTs:
-   * ERD schema: `adso-dteam-docs/domain-models/entity-relationship/DT-ERD-DOC-001.md`.
-   * Conceptual Domain Model & Controlled Vocabularies: `adso-dteam-docs/domain-models/class/DT-DM-DOC-001.md`.
-   * Domain Model behaviors: `adso-dteam-docs/domain-models/class/DT-DM-DOC-002.md`.
-   * Design System & tokens: `adso-dteam-docs/ui-ux/DT-UI-DS-DOC-001.md`.
-   * Ubiquitous Language: `adso-dteam-docs/ubiquitous-language/DT-UL-DOC-001.md`.
-   * Canonical Screen Template: `adso-dteam-docs/.agents/skills/dteam-ui-coherence-audit/templates/SCR-TEMPLATE-screen-specification.md`.
+* **Shared UI Contracts:** [DT-UI-CTR-001.md](../../ui-ux/contracts/DT-UI-CTR-001.md) — shared lookup DTOs, Razor shell/HUD/planning/lookup parameters, `PermissionGrantKeyDto`, `StandardUnitOfMeasure`. Any DTO, enum, or `.razor` block duplicated across $\ge 2$ screens or redeclared inline is a `BLOCKER` (`GRD-06`).
+* **Domain Vocabularies & Safety Constants:** [DT-DM-DOC-001.md](../../domain-models/class/DT-DM-DOC-001.md) — §4 enums (`DT-DM-DOC-001 §4` link required; no inline shared enums) and §5 constants (`SOD-*`, `0.0 V`, `0.5 psig`, `15 m`, `13 m`, `5 m`).
+* **API & SignalR Registry:** [DT-ARQ-CMP-DOC-001.md](../../architecture/views/DT-ARQ-CMP-DOC-001.md) §§5–6 — every `VERB /api/v1/...`, `/hubs/*`, and SignalR event must match bidirectionally (`GRD-13`/`GRD-14`).
+* **Audit & Offline ADRs:** [ADR-003.md](../../architecture/adr/ADR-003.md) (no `PreviousHash` on mutating commands/requests; `AuditJustification >= 15` chars; client preview digest only; `7 years` WORM retention) and [ADR-006.md](../../architecture/adr/ADR-006.md) (point §5.3.4 errors to canonical 5-step `SyncOutbox`; offline commands use `uint? ConcurrencyToken`).
+* **Type & Contract Purity (`GRD-05`/`GRD-07`):** Use `decimal` (quantities/hours), `DateTimeOffset`/`DateOnly` (no `DateTime`), `uint`/`uint?` for `ConcurrencyToken`, and declarative Razor parameters only (ban `ComponentBase`, `[Inject]`, `_privateField`, `namespace`).
+* **Structure & HPHMI:** Verify ordered `## 1.`–`## 9.` and `### 7.1`–`7.3` per `templates/SCR-TEMPLATE-screen-specification.md`; 90/10 grayscale, redundant shape+color alarms, Priority 4 diagnostic separation, `CLS = 0`, `#icon-*` symbols, and `<html lang="es">` prototypes free of emojis or SRS codes (`FR-*`/`AF-*`).
 
 ---
 
-### Step 2: Archetype-Specific Auditing
+## 4. Tier 2 Escalation Gate (G1–G4) & Report Persistence
 
-#### For Archetype A: Transactional / Command Screens
-1. **Mandatory Field Completeness:**
-   * Check physical ERD tables for `NOT NULL` columns that lack default values.
-   * **Validation:** Does the UI provide explicit inputs or contextual state to supply all mandatory fields?
-2. **Cardinality Verification:**
-   * Check ERD referential relationships (`1 : 0..N` or `N : M`).
-   * **Validation:** If a relationship is `1 : 0..N` (e.g., a work order with multiple failure records or LOTO points), does the UI allow dynamic multi-item additions, or does it erroneously enforce a `1 : 1` static form?
-3. **Domain Method Signature Alignment:**
-   * Check method signatures in `DT-DM-DOC-002.md` for triggered domain commands (e.g., `InstallEquipment`, `ReportFailure`).
-   * **Validation:** Does the UI payload provide all typed parameters required by the domain method?
-4. **DTO-to-ERD & Canonical Enum Parity (§7.2.3):**
-   * Verify that every property in §7.2.3 Presentation DTOs/Commands maps to an existing physical column in `DT-ERD-DOC-001.md`, uses `DateTimeOffset` for `TIMESTAMPTZ` columns (`CS-006`), uses `int` (`1..10`) for criticality (`CS-008`), and matches canonical enums in `DT-DM-DOC-001.md` (`CS-007`).
+Evaluate all four triggers explicitly before concluding:
+* **G1 (Life Safety & LOTO):** Hazardous energy isolation, live energy overrides, hot work interlocks.
+* **G2 (Cognitive Overload):** $>30$ concurrent dynamic objects or multi-priority alarm floods.
+* **G3 (Normative Taxonomy):** ISO 14224 Levels 6–9 boundary or failure mode conflicts unresolved by SSoT.
+* **G4 (Novel Interaction):** Unprecedented spatial gestures or control modalities outside Archetypes A–C.
 
-#### For Archetype B: Supervisory / Inspection Screens (HMI)
-1. **Read-Model & SSoT Traceability:**
-   * Verify displayed entities, identifiers, and statuses against `DT-ERD-DOC-001.md` and `DT-DM-DOC-002.md`.
-   * **Validation:** Are status badges and criticality levels adhering strictly to canonical domain enums (e.g., `UP`, `DOWN`, `STANDBY`)?
-2. **DTO-to-ERD & Canonical Enum Parity (§7.2.3):**
-   * Verify that every property in §7.2.3 Presentation DTOs/Commands maps to an existing physical column in `DT-ERD-DOC-001.md`, uses `DateTimeOffset` for `TIMESTAMPTZ` columns (`CS-006`), uses `int` (`1..10`) for criticality (`CS-008`), and matches canonical enums in `DT-DM-DOC-001.md` (`CS-007`).
-3. **ISA-101 Display Hierarchy & Cognitive Boundaries:**
-   * Validate screen classification (`isa101_level`): Level 1 (COP Overview), Level 2 (Process Area Schematic), Level 3 (Equipment Task Faceplate), Level 4 (Diagnostic / Master Detail).
-   * **Validation:** Does a Level 3 Faceplate strictly isolate tactical operational data? Flag any Level 4 static master data (datasheets, purchase records, full vendor manuals, deep history) improperly polluting the faceplate.
-4. **Codified HPHMI & Alarm Guardrails (`DT-UI-DS-DOC-001`):**
-   * **Color Semantics:** Verify that neutral grays are used for normal operation. **[FAIL]** if green is used to indicate "normal/running".
-   * **Alarm vs. Diagnostic Segregation:** Verify that communication/link failure or telemetry loss uses Priority 4 Diagnostic coding (muted text, neutral stale icon, timestamp). **[FAIL]** if amber/yellow or red is used for lost connection or stale data.
-   * **Moving Analog Indicators (MAI):** Continuous process variables (pressure, temperature, flow) must be rendered in analog scale bars with defined normal operating zones (`--dt-color-mai-normal-zone`) and trip limits. **[FAIL]** if continuous variables are presented solely as naked numeric readouts.
-5. **Actionable Task Content:**
-   * Ensure lists (such as active Work Orders) display actionable attributes (WO ID, Type CM/PM, Status, Priority). **[FAIL]** if reduced to raw un-actionable counts ("3 active WOs").
+Persist reports to `reports/audits/ui/AUD-UI-<SCREEN_ID>-<YYYYMMDD-HHMMSS>.md`:
 
+```yaml
 ---
-
-### Step 3: Design System & Ergonomic Integrity (All Screens)
-
-1. **Semantic Token Conformance:**
-   * Verify that every `CMP-*` component references valid semantic tokens declared in `DT-UI-DS-DOC-001.md` (e.g., `--dt-color-*`, `--dt-radius-*`, `--dt-z-*`).
-2. **Tactile Ergonomics:**
-   * For controls targeted at tablets or mobile (`target_device: Industrial Tablet`), ensure action buttons and container triggers inherit `--dt-touch-target-mobile` ($\ge 48\text{px}$) to support gloved operation.
-3. **Screen State Matrix Completeness:**
-   * Verify coverage of necessary states: `Normal`, `Loading`, `Selected`, `Critical Alarm`, `Telemetry Loss / Diagnostic`, and `Unmapped / Offline`.
-
+id: AUD-UI-<SCREEN_ID>-<YYYYMMDD-HHMMSS>
+screen_audited: <SCREEN_ID>
+date: <YYYY-MM-DD HH:MM:SS>
+verdict: PASSED | PASSED_WITH_OBSERVATIONS | BLOCKED
+auditor: dteam-ui-coherence-audit
 ---
+```
 
-### Step 4: Structural Integrity, SSoT Boundary Enforcement & Anti-Redundancy Audit
-
-All screen specifications must strictly align with the canonical standard defined in `templates/SCR-TEMPLATE-screen-specification.md`:
-
-1. **Canonical 9-Section Hierarchy:**
-   * Verify presence and exact sequencing of all 9 sections:
-     * §1 Purpose and Operational Context
-     * §2 Visual Artifact (Universal markdown link `![SCR-*](assets/SCR-*.svg)`)
-     * §3 Functional Component Inventory
-     * §4 Screen State Matrix
-     * §5 Interaction Rules and Data Flow (Single Source of Truth)
-     * §6 Industrial and Safety Considerations
-     * §7 Frontend Component Contract (Blazor / Razor)
-     * §8 Layout and Responsive Adaptability
-     * §9 Traceability and Requirements Matrix
-   * **[FAIL]** if sections are omitted, merged, or out of order.
-
-2. **Section 1 & Section 3 Anti-Redundancy (Clean Cataloging & Scoping):**
-   * Section 1 must state operational and environmental contexts qualitatively. **[FAIL]** if Section 1 embeds breakpoint tokens (`--dt-breakpoint-*`), container pixel/vh dimensions, or domain enum lists.
-   * Table cells in §3 must strictly serve as a catalog of visual roles, semantic tokens, and pointers to Section 5.
-   * **[FAIL]** if table cells in §3 contain detailed algorithms, mathematical formulas (e.g., coordinate calculations, clamping bounds), multi-step interaction workflows, hardware layout dimensions (e.g., `640px`, `45vh`), domain enum string lists, status strings, or NFR citations.
-   * Column 4 ("Semantic Token") must reference explicit Design System tokens (`--dt-*`). **[FAIL]** if placeholder text (e.g., `Color: Security Matrix Tokens`) is used.
-
-3. **Section 4 DOM/Visual-Only Delta Integrity:**
-   * State descriptions in §4 must define observable visual modifications in the DOM (e.g., muted typography, halo additions, container transitions).
-   * **[FAIL]** if §4 cells duplicate backend business rules, state machine transitions, or detailed interaction logic.
-
-4. **Section 5 Single Source of Truth (SSoT) & Presentation Boundary Integrity:**
-   * Section 5 is the sole SSoT for interaction mechanics, gesture physics, and calculations:
-     * Viewport math, focal zooming, bounding box clamping, and coordinate transformations.
-     * Layout shift invariants (e.g., fixed badge widths, fixed slot heights).
-     * Tactile mechanics: touch thresholds (e.g., $4\text{px}$ pan threshold), sheet snap heights, drag handle hysteresis, and minimize transitions.
-     * Real-time subscription policies, debouncing thresholds, and fail-safe diagnostic fallbacks.
-   * **[FAIL] Presentation Layer Sequence Diagram Leaks:** UI sequence diagrams in §5.1 must model interactions strictly between `Tech`, `UI`, `Interop`, and the boundary `API` Gateway. Flag any backend worker hops (e.g., `API ->> Worker`, `API ->> DB`) or internal backend self-calls (`API ->> API`).
-   * **[FAIL] Exhaustive Enum Duplication:** §5.3 must reference strongly-typed C# enums in §7.2.3. Flag exhaustive string literals in prose or LaTeX set equations enumerating enum literals.
-   * **[FAIL] Duplicate Outbox Flows:** If §5.3.5 exists, §5.3.4 command dispatch must point directly to §5.3.5 instead of repeating local outbox serialization and sync retry steps.
-   * **[FAIL] Parenthetical Type Contradictions:** Flag parenthetical fixtures in prose (e.g., `*(e.g., WorkOrderId = "WO-...")*`) that contradict strongly-typed DTOs (`Guid` vs `string`).
-
-5. **Section 7 Tripartite Contract Conformance:**
-   * Section 7 must follow the structured tripartite hierarchy:
-     * `7.1 Component Hierarchy & File Mapping` (ASCII tree of `.razor` components).
-     * `7.2 Physical Component Parameters & DTO Contracts (.NET 10 / C# 14)` (cleanly subdivided: 7.2.1 Root View, 7.2.2 Subcomponents, 7.2.3 DTO records).
-     * `7.3 Client-Side DOM & Interop Bridge` (JavaScript Interop, pointer tracking, SVG DOM manipulation, or touch gesture bridge).
-   * **Decoupled Namespaces:** Snippets define UI contracts, parameters, and DTO signatures without premature C# `namespace` declarations.
-   * **[FAIL]** if Section 7 dumps unstructured monolithic code, hardcodes speculative namespaces, or omits the client-side bridge (`7.3`).
-
-6. **Sections 8 & 9 Completeness & Consistency:**
-   * **Section 8 (Layout & Responsive Adaptability):** Must tabulate layout organization and ergonomic rules across all 3 standard viewports:
-     * Desktop Workstation ($\ge 1920\text{px}$, `--dt-breakpoint-xl`)
-     * Industrial Tablet Landscape ($1280\text{px} - 1919\text{px}$, `--dt-breakpoint-lg` / $1280\times 800\text{px}$)
-     * Industrial Tablet Portrait ($768\text{px} - 1279\text{px}$, `--dt-breakpoint-md` / $800\times 1280\text{px}$)
-   * **[FAIL] Component Responsibility Mismatch:** Verify that `CMP-XX` references in Section 8 match their cataloged roles in Section 3 (e.g., toolbar vs floating filter bar).
-   * **[FAIL] Raw CSS Expressions:** Section 8 must not contain raw CSS `calc()` expressions; use descriptive architectural offsets.
-   * **Section 9 (Traceability and Requirements Matrix):** Serves as the Single Source of Truth (SSoT) for screen-level requirements mapping. Must tabulate all functional and non-functional requirements associated with the screen's user story (sourced from Notion/backups: `srs.csv` / `transversal-requirements.csv`), mapping each requirement (`FR-*`, `NFR-*`, `TR-*`, `ADR-*`) to its implementing `CMP-*` component and concrete verification mechanism. The YAML frontmatter excludes raw requirement arrays to prevent duplicate bookkeeping.
-
-7. **Language and Persona Tone Guardrails:**
-   * Must be written in 100% Technical English. **[FAIL]** if Spanish words, accents, or untranslated domain phrases are present.
-   * Must maintain concise, senior engineering tone without parenthetical filler, conversational fluff, or premature design rationales.
-
-8. **Implementation Leak Prevention (Architectural Abstraction):**
-   * Screen specifications govern presentation behavior, ergonomic targets, client quality gates, and data contracts. They must remain strictly decoupled from backend persistence internals and transient frontend prototype artifacts:
-     * **[FAIL] Prototype CSS Artifacts:** Specification text (especially in §3, §5, and §6) must not reference HTML/CSS prototype class names (e.g., `.scope-timing-cards-grid`, `.btn-evidence-primary`, `.evidence-dropzone`, `.labor-timing-grid`). Layout and styling must be expressed strictly in terms of Blazor subcomponents and Design System semantic tokens (`tokens.css`).
-     * **[FAIL] Backend Database Transaction Orchestration:** In §5.3, the specification must declare the client command dispatch contract (`SubmitCommand`, endpoint, payload DTO, `X-Idempotency-Key`, HTTP 200 vs. offline/error handling). It is strictly forbidden from detailing backend SQL transactions, multi-table insert/update sequences (e.g., `INSERT INTO failure_records... UPDATE work_orders...`), or database index mechanics (e.g., GIN indexing in `adm.audit_logs`), which belong exclusively to `DT-ARQ-DB-DOC-001`.
-     * **[FAIL] Direct DB Writes in UI Workflows:** Workflows must describe data encapsulation into typed DTOs/commands, not direct database column mutations (e.g., *"stores metadata in `mtto.media_attachments: file_url, ...`"*).
-     * **[FAIL] Low-Level Runtime & Package Coupling:** Section 7.3 must define capability interfaces (`ICameraInterop`, `ICryptoInterop`, `IOfflineStorage`) rather than concrete JavaScript API call snippets (e.g., `SubtleCrypto.digest(...)`) or third-party NuGet package names (e.g., `sqlite-net-pcl`).
-
-9. **Domain Nomenclature & Anti-Meta-Text Guard (`TXT-001`):**
-   * Screen specifications, wireframes, and component catalogs must use authentic operational domain terminology from `DT-UL-DOC-001.md` and ISO 14224 (e.g., `Dismounted Asset`, `Replacement Asset`).
-   * **[FAIL] Drafting Variable Placeholders (`TXT-001`):** Generic variable aliases (`Asset A / Asset B`, `Activo A / Activo B`, `Entity X / Y`, `Record 1 / 2`) or software pipeline jargon are strictly prohibited in component names, wireframes, interaction workflows, and state matrices.
-
-10. **Status Badge & Counter Discipline (`BADGE-001` / Anti-Badge-Inflation):**
-    * In accordance with ANSI/ISA-101.01 §6.2 and `DT-UI-DS-DOC-001 §6.5`, badges, tags, and status pills are reserved exclusively for dynamic operational lifecycles (`[IN_PROGRESS]`, `[COMPLETE]`) or quantifiable counters (`5/7`, `3 items`).
-    * **[FAIL] Static Pseudo-Badges (`BADGE-001`):** Flag any static descriptive attributes or invariant text encased in badge/pill containers (e.g., `Immutable Record`, `Inmutable`, `Registro Inmutable`, `Required`, `Central Warehouse`). These must be modeled as subdued metadata text (`.card-meta-text`).
-
-11. **Companion HTML Prototype Hygiene (`HTML-EMOJI-001` & `HTML-SPEC-001`):**
-    * High-fidelity HTML prototypes in `ui-ux/prototype/` undergo deterministic inspection during Tier 0.
-    * **[FAIL] Unicode Emojis (`HTML-EMOJI-001`):** HTML prototypes must use standardized monochrome SVG sprite symbols (`<svg class="dt-icon"><use href="#icon-*" /></svg>`) per ANSI/ISA-101 and HPHMI. Unicode pictorial emojis (e.g., `💡`, `⚠️`, `🔍`, `✔`, `⚡`) are strictly prohibited in user-facing markup and trigger an immediate deterministic blocker.
-    * **[FAIL] Leaked Specification Codes (`HTML-SPEC-001`):** Requirement/architecture identifiers (`FR-*`, `AF-*`, `TR-*`, `NFR-*`, `ADR-*`, `Paso *`) are developer meta-text and MUST NEVER appear in user-facing prototype DOM, headers, badges, toasts, or action buttons. Prototypes must exclusively present authentic industrial operational vocabulary (ISO 14224 / RCM).
-
-12. **LaTeX Math & Code-Span Formatting Guardrails (`LTX-001` & `TOK-004`):**
-    * **LaTeX Math Delimiter & Syntax Integrity (`LTX-001`):** Mathematical expressions, dimensions, and percentages must preserve balanced unescaped `$` delimiters. LaTeX math macros (`\text{`, `\times`, `\ge`, `\le`, `\pm`, `\approx`, `\frac{`, `\cdot`) and mathematical percentage tokens (`\%$`) are strictly forbidden outside `$...$` math blocks.
-    * **Token and Component Code-Span Hygiene (`TOK-004`):** Design System tokens (`--dt-*`) and Component identifiers (`CMP-*`) in prose must always be enclosed in code backticks (e.g., `` `--dt-shadow-panel` ``, `` `CMP-05` ``) to prevent visual formatting erosion and shell corruption.
-
-13. **Companion Prototype Persona Voice & Domain Naturalness (`HTML-ENUM-001` & `HTML-META-001`):**
-    * Deterministic Tier 0 enforces `HTML-ENUM-001` (zero raw `SCREAMING_SNAKE_CASE` or `snake_case` enum/column strings in visible DOM text or user-facing JS messages; uppercase keys belong strictly inside `value="..."` or internal maps) and `HTML-META-001` (zero software/SRS jargon such as `instanciar`, `ingesta`, `monotonía`, `anti-drift`, `payload`, `outbox`, `single-commit`, or `DTO` in visible UI).
-    * During Tier 1 evaluation, the LLM auditor **MUST** read the companion `.html` + `.js` strings through the eyes of the **Primary Target Persona** (§1) and flag any copy that:
-      1. **Explains Algorithm Internals Instead of Plant Operations:** Flag labels describing how code enforces an invariant (e.g., *"control de deriva sin desplazamiento"*, *"validación estricta de monotonía"*) instead of authentic plant/maintenance outcomes (*"el contador no puede retroceder"*, *"posible reinicio o fallo de sensor"*).
-      2. **Exposes Academic / Developer Pedantry:** Flag mathematical proofs (`Target_{n+1}`), internal SRS rationales, or redundant taxonomic level tags (`Nivel 6/7/8`) in input labels where operators expect concise equipment/component names.
-      3. **Drifts from Sibling Gold Standard Vocabulary:** Verify consistency with locked prototypes (`Equipo Principal`, `Subunidad Operativa`, `Componente Mantenible`, `"Se generará / programará automáticamente"`).
-
----
-
-### Step 5: Tier 2 Deterministic Escalation Evaluation (Triggers G1 to G4)
-
-Before finalizing the audit verdict, the agent **MUST** systematically evaluate the 4 deterministic triggers for external escalation to Gemini Notebook (GN):
-
-| Trigger | Condition Description | Mandatory Escalation Criteria |
-| :--- | :--- | :--- |
-| **Trigger G1: Life Safety & Hazardous Energy Interlocks** | Isolation of hazardous electrical/hydraulic/pneumatic energy, LOTO verification, hot work in explosive zones, or emergency trip overrides. | Direct physical safety risk if UI state representation or confirmation flow fails (OSHA 1910.147, ISO 45001). |
-| **Trigger G2: Cognitive Overload & Alarm Flood Density** | High-density visual monitoring exceeding ISA-101.01 limits. | Simultaneous display of $>30$ active dynamic objects, concurrent multi-priority alarm flooding without clear suppression hierarchy, or complex visual clustering. |
-| **Trigger G3: Deep Normative Taxonomy Conflict** | Engineering taxonomy breakdown under ISO 14224 (Levels 6 to 9). | Boundary limits, failure mechanisms, or component maintainability hierarchies that conflict with or cannot be conclusively resolved by repository SSoTs. |
-| **Trigger G4: Novel Interaction Archetype / Paradigm Shift** | Unprecedented interaction modality or physics. | Spatial navigation gestures, continuous canvas transforms, or tactile physics not covered by codified Archetypes A, B, or C. |
-
-> **Mandatory Justification Rule:**  
-> The audit report **CANNOT** simply declare *"Tier 2: None required"*. It MUST evaluate all four triggers explicitly. If no escalation is needed, each trigger must provide a concrete 1-sentence technical justification stating which local repository SSoT resolves the requirement. If any trigger fires, prompt generation for Gemini Notebook is mandatory.
-
----
-
-### Step 6: Audit Report Generation & Persistence
-
-The agent **must persist** the complete audit report to the evidence repository at:
-`reports/audits/ui/AUD-UI-<SCREEN_ID>-<YYYYMMDD-HHMMSS>.md`
-
-*(Note: `<YYYYMMDD-HHMMSS>` represents the execution timestamp, e.g., `20261007-153520`, ensuring multiple audit runs and fix iterations are preserved without overwriting history).*
-
-The generated report must include the following structure:
-1. **Frontmatter:**
-   ```yaml
-   ---
-   id: AUD-UI-<SCREEN_ID>-<YYYYMMDD-HHMMSS>
-   screen_audited: <SCREEN_ID>
-   date: <YYYY-MM-DD HH:MM:SS>
-   verdict: PASSED | PASSED_WITH_OBSERVATIONS | BLOCKED
-   auditor: dteam-ui-coherence-audit
-   ---
-   ```
-2. **Screen Classification:** Detected Archetype (A, B, or C), ISA-101 Level, Target Devices, and Primary Persona.
-3. **Audit Findings & Evaluation:**
-   * **[PASS]:** Elements compliant with ERD, Domain Model, and Design System tokens.
-   * **[WARNING]:** Potential cognitive overload, missing ergonomic affordances, or ambiguous parameters.
-   * **[FAIL]:** Missing mandatory database fields, cardinality violations, structural/SSoT boundary violations, or breaches of HPHMI/ISA-101 rules.
-4. **Tier 2 Grounded Escalation Gate (Gemini Notebook):**
-   * Mandatory evaluation table of Triggers G1 through G4.
-   * Explicit technical justification for non-escalation OR reference to a generated prompt saved under `reports/prompts/`.
-5. **Chat Presentation:** Present a concise summary in the chat with the overall verdict and a markdown link to the persisted report file in `reports/audits/ui/`.
+Present a concise chat summary with the verdict, blockers/warnings, G1–G4 justifications, and report link.
