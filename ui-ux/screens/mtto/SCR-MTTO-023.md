@@ -248,7 +248,7 @@ sequenceDiagram
    * `GET /api/v1/taxonomy/equipment-units/{id}/boundaries` and `GET /api/v1/taxonomy/equipment-units/{id}/subunits` — verifies battery limits and hydrates cascading Level 7/8 taxonomy selectors.
    * `GET /api/v1/telemetry/equipment-units/{id}/signals` — returns mapped `TelemetrySignalDto` streams with current baselines.
    * `POST /api/v1/maintenance/plans/cbm` — dispatches `CreateCbmPlanCommand` with mandatory `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), returning HTTP 201 Created.
-   * `POST /api/v1/telemetry/signals/{id}/manual-readings` — dispatches `RecordManualReadingCommand` (`AF-003`) with mandatory `X-Idempotency-Key: {uuidv7}` (without `If-Match`, as `TelemetrySignal` (`telemetry_signals`) is an append-only hypertable exempt from PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)), preventing duplicate monotonic counter violations on retry.
+   * `POST /api/v1/telemetry/signals/{id}/manual-readings` — dispatches `RecordManualReadingCommand` (`AF-003`) with mandatory `X-Idempotency-Key: {uuidv7}` (without `If-Match`, as the append-only telemetry stream is exempt from optimistic concurrency headers per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)), preventing duplicate monotonic counter violations on retry.
 2. **Real-Time SignalR Contracts ([TR-010](../../../requirements/common/TR-010.md), [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)):**
    * Subscribes to `/hubs/telemetry` (`ITelemetryClient`) receiving `ReceiveTelemetryReading(TelemetryReadingDto)` and `CbmReadingRecorded(CbmTriggerEventDto)` for live baseline updates and monotonicity blocks (`AF-002`), while auto-instantiated CBM Work Orders broadcast `WorkOrderStatusChanged(WorkOrderTransitionEvent)` over `/hubs/operations` (`IOperationsClient`).
 
@@ -366,113 +366,13 @@ public string? PreselectedTagNumber { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-12`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-MTTO-023"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
+Shared Maintenance Planning Form Kit (`CMP-02` `FormBreadcrumbHeader.razor`, `CMP-03` `IsoHierarchyCascadingSelector.razor`, `CMP-05` `LaborEstimationCard.razor` [defaults: `6.0m`, `[MaintenanceCraft.CONDITION_MONITORING]`], `CMP-06` `PlanScopeEditor.razor`, `CMP-09` `RimePriorityPreview.razor` [default `WorkClassWeight = 5`], `CMP-10` `ProjectedWorkOrderCard.razor` [`TPreview = CbmWorkOrderPreviewDto`], `CMP-12` `FormActionFooter.razor`): see [DT-UI-CTR-001 §3.3](../../contracts/DT-UI-CTR-001.md#33-shared-maintenance-planning-form-kit).
+
+Shared Lookup Modal (`CMP-03 L4 Modal` `EquipmentLookupModal.razor`): see [DT-UI-CTR-001 §3.4](../../contracts/DT-UI-CTR-001.md#equipmentlookupmodalrazor).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string? ActiveRouteCode { get; set; } = "SCR-MTTO-023";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnMobileDrawerToggled { get; set; }
-
-// CMP-02: FormBreadcrumbHeader.razor
-[Parameter]
-public required string OperatorBadgeCode { get; set; }
-
-[Parameter]
-public required string OperatorDisplayName { get; set; }
-
-[Parameter]
-public string? ActiveAssetTag { get; set; }
-
-[Parameter]
-public string? ActiveSignalTag { get; set; }
-
-[Parameter]
-public decimal? InitialTargetLimit { get; set; }
-
-[Parameter]
-public MaintenancePlanStatus PlanStatus { get; set; } = MaintenancePlanStatus.DRAFT;
-
-[Parameter]
-public EventCallback OnBackToBacklogClicked { get; set; }
-
-// CMP-03: IsoHierarchyCascadingSelector.razor
-[Parameter]
-public IReadOnlyList<EquipmentUnitLookupDto>? AvailableEquipment { get; set; }
-
-[Parameter]
-public Guid? SelectedEquipmentUnitId { get; set; }
-
-[Parameter]
-public EventCallback<Guid?> SelectedEquipmentUnitIdChanged { get; set; }
-
-[Parameter]
-public EquipmentUnitLookupDto? SelectedEquipmentUnit { get; set; }
-
-[Parameter]
-public EventCallback OnOpenEquipmentLookupModal { get; set; }
-
-[Parameter]
-public required IReadOnlyList<SubunitLookupDto> AvailableSubunits { get; set; }
-
-[Parameter]
-public required IReadOnlyList<MaintainableItemLookupDto> AvailableMaintainableItems { get; set; }
-
-[Parameter]
-public Guid? SelectedSubunitId { get; set; }
-
-[Parameter]
-public EventCallback<Guid?> SelectedSubunitIdChanged { get; set; }
-
-[Parameter]
-public Guid? SelectedMaintainableItemId { get; set; }
-
-[Parameter]
-public EventCallback<Guid?> SelectedMaintainableItemIdChanged { get; set; }
-
-[Parameter]
-public bool HasDefinedBoundaries { get; set; }
-
-[Parameter]
-public string? BoundaryDescription { get; set; }
-
-[Parameter]
-public EventCallback OnInspectBoundariesRequested { get; set; }
-
-// CMP-03 (L4 Modal): EquipmentLookupModal.razor (Tier A Reference Contract per DT-UI-DS-DOC-001 §6.7)
-[Parameter]
-public bool IsOpen { get; set; }
-
-[Parameter]
-public required EquipmentUnitLookupQueryDto Query { get; set; }
-
-[Parameter]
-public EventCallback<EquipmentUnitLookupQueryDto> OnQueryChanged { get; set; }
-
-[Parameter]
-public required IReadOnlyList<EquipmentUnitLookupDto> SearchResults { get; set; }
-
-[Parameter]
-public int TotalCount { get; set; }
-
-[Parameter]
-public Guid? SelectedEquipmentUnitId { get; set; }
-
-[Parameter]
-public EventCallback<EquipmentUnitLookupDto> OnEquipmentUnitSelected { get; set; }
-
-[Parameter]
-public EventCallback OnCloseRequested { get; set; }
-
 // CMP-04: MappedTelemetrySignalSelector.razor
 [Parameter]
 public required IReadOnlyList<TelemetrySignalDto> AvailableSignals { get; set; }
@@ -494,26 +394,6 @@ public decimal IntervalValue { get; set; } = 1000.00m;
 
 [Parameter]
 public EventCallback<decimal> IntervalValueChanged { get; set; }
-
-// CMP-05: LaborEstimationCard.razor
-[Parameter]
-public decimal EstimatedLaborHours { get; set; } = 6.0m;
-
-[Parameter]
-public EventCallback<decimal> EstimatedLaborHoursChanged { get; set; }
-
-[Parameter]
-public IReadOnlyList<MaintenanceCraft> RequiredCrafts { get; set; } = [MaintenanceCraft.CONDITION_MONITORING];
-
-[Parameter]
-public EventCallback<IReadOnlyList<MaintenanceCraft>> RequiredCraftsChanged { get; set; }
-
-// CMP-06: PlanScopeEditor.razor
-[Parameter]
-public string TechnicalDescription { get; set; } = string.Empty;
-
-[Parameter]
-public EventCallback<string> TechnicalDescriptionChanged { get; set; }
 
 // CMP-07: BaselineAccumulationCard.razor
 [Parameter]
@@ -553,23 +433,6 @@ public decimal CalculatedTargetLimit { get; set; }
 [Parameter]
 public TelemetryMeasurementUnit TargetUnit { get; set; }
 
-// CMP-09: RimePriorityPreview.razor
-[Parameter]
-public int AssetCriticality { get; set; }
-
-[Parameter]
-public int WorkClassWeight { get; set; } = 5;
-
-[Parameter]
-public int CalculatedRimeScore { get; set; }
-
-// CMP-10: ProjectedWorkOrderCard.razor
-[Parameter]
-public required CbmWorkOrderPreviewDto ProjectedWorkOrder { get; set; }
-
-[Parameter]
-public EventCallback OnVerifySparePartsRequested { get; set; }
-
 // CMP-11: ContingencyReadingModal.razor
 [Parameter]
 public bool IsOpen { get; set; }
@@ -582,25 +445,13 @@ public EventCallback<RecordManualReadingCommand> OnSubmitManualReading { get; se
 
 [Parameter]
 public EventCallback OnCancelModal { get; set; }
-
-// CMP-12: FormActionFooter.razor
-[Parameter]
-public bool CanSubmit { get; set; }
-
-[Parameter]
-public bool IsSubmitting { get; set; }
-
-[Parameter]
-public string? ValidationMessage { get; set; }
-
-[Parameter]
-public EventCallback OnSavePlanConfirmed { get; set; }
-
-[Parameter]
-public EventCallback OnCancelClicked { get; set; }
 ```
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
+
+Shared Domain Enums (`TelemetrySignalType`, `MaintenanceMethod`, `MaintenanceCraft`, `MaintenancePlanStatus`, `WorkOrderStatus`, `EquipmentLifecycleStatus`, `MaintainableItemStatus`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
+Shared Lookup DTOs (`PagedLookupResultDto<T>`, `EquipmentUnitLookupQueryDto`, `EquipmentUnitLookupDto`, `SubunitLookupDto`, `MaintainableItemLookupDto`, `LinkedSparePartSummaryDto`): see [DT-UI-CTR-001 §2](../../contracts/DT-UI-CTR-001.md#2-shared-lookup-dtos).
 
 ```csharp
 /// <summary>
@@ -612,156 +463,6 @@ public enum TelemetryMeasurementUnit
     CYCLES,
     KILOMETERS,
     WEAR_DEPTH_MM
-}
-
-public enum TelemetrySignalType
-{
-    TEMPERATURE,
-    PRESSURE,
-    VIBRATION,
-    FLOW_RATE,
-    VOLTAGE,
-    CURRENT,
-    RPM,
-    OPERATING_HOURS,
-    CYCLES
-}
-
-/// <summary>
-/// Controlled maintenance plan methodology vocabulary per DT-DM-DOC-001 §4.15.
-/// When a CONDITION_BASED plan instantiates a WorkOrder, it maps to
-/// WorkOrderMaintenanceMethod.PREDICTIVE per WorkOrder.maintenanceMethod (DT-DM-DOC-001 §4.22).
-/// </summary>
-public enum MaintenanceMethod
-{
-    PREVENTIVE,
-    PREDICTIVE,
-    CONDITION_BASED
-}
-
-public enum MaintenanceCraft
-{
-    MECHANICAL,
-    ELECTRICAL,
-    INSTRUMENTATION_AND_CONTROL,
-    LUBRICATION,
-    CONDITION_MONITORING,
-    ELECTRONICS,
-    WELDING_FABRICATION,
-    FACILITIES
-}
-
-public enum MaintenancePlanStatus
-{
-    DRAFT,
-    ACTIVE,
-    INACTIVE,
-    ARCHIVED
-}
-
-public enum WorkOrderStatus
-{
-    PLANNING,
-    WAITING_PARTS,
-    SCHEDULED,
-    IN_PROGRESS,
-    SUSPENDED,
-    COMPLETE,
-    CLOSED
-}
-
-/// <summary>
-/// Controlled equipment lifecycle vocabulary per DT-DM-DOC-001 §4.2.
-/// </summary>
-public enum EquipmentLifecycleStatus
-{
-    IN_STORAGE,
-    INSTALLED,
-    COMMISSIONING,
-    DECOMMISSIONED
-}
-
-/// <summary>
-/// Controlled maintainable item health/lifecycle status vocabulary per DT-DM-DOC-001 §4.7.
-/// </summary>
-public enum MaintainableItemStatus
-{
-    OPERATIONAL,
-    DEGRADED,
-    FAILED,
-    UNDER_REPAIR,
-    REPLACED
-}
-
-public record PagedLookupResultDto<T>
-{
-    public required IReadOnlyList<T> Items { get; init; }
-    public required int TotalCount { get; init; }
-    public required int PageNumber { get; init; }
-    public required int PageSize { get; init; }
-}
-
-public record EquipmentUnitLookupQueryDto
-{
-    public string? SearchTerm { get; init; }
-    public Guid? FunctionalLocationId { get; init; }
-    public Guid? EquipmentClassId { get; init; }
-    public int? MinCriticality { get; init; }
-    public int? MaxCriticality { get; init; }
-    public bool? HasBoundariesFilter { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 25;
-}
-
-public record EquipmentUnitLookupDto
-{
-    public required Guid EquipmentUnitId { get; init; }
-    public required string TagNumber { get; init; }
-    public required string Name { get; init; }
-    public required string SerialNumber { get; init; }
-    public required string Model { get; init; }
-    public string? FunctionalLocationTag { get; init; }
-    public required string EquipmentClassName { get; init; }
-    public int? Criticality { get; init; }
-    public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
-    public int MappedSignalCount { get; init; }
-    public required bool HasBoundaries { get; init; }
-    public string? BoundaryStart { get; init; }
-    public string? BoundaryEnd { get; init; }
-    public required int SubunitCount { get; init; }
-    public required int MaintainableItemCount { get; init; }
-}
-
-public record SubunitLookupDto
-{
-    public required Guid SubunitId { get; init; }
-    public required Guid EquipmentUnitId { get; init; }
-    public required string SubunitName { get; init; }
-}
-
-/// <summary>
-/// Level 8 Maintainable Item lookup projection scoped under its mandatory parent <c>Subunit</c> (<c>subunit_id NOT NULL</c> per DT-ERD-001.sql).
-/// </summary>
-public record MaintainableItemLookupDto
-{
-    public required Guid MaintainableItemId { get; init; }
-    public required Guid SubunitId { get; init; }
-    public required string ComponentName { get; init; }
-    public required string SubunitType { get; init; }
-    public string? SparePartType { get; init; }
-    public required MaintainableItemStatus Status { get; init; }
-    public required Guid AssignedEquipmentUnitId { get; init; }
-    public string? AssignedEquipmentTag { get; init; }
-    public IReadOnlyDictionary<string, string> DesignAttributes { get; init; } = new Dictionary<string, string>();
-    public IReadOnlyList<LinkedSparePartSummaryDto> LinkedSpareParts { get; init; } = [];
-}
-
-public record LinkedSparePartSummaryDto
-{
-    public required Guid SparePartId { get; init; }
-    public required string Sku { get; init; }
-    public required string Description { get; init; }
-    public required string UnitOfMeasure { get; init; }
 }
 
 /// <summary>

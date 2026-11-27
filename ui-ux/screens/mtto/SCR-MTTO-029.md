@@ -294,7 +294,7 @@ sequenceDiagram
 
 #### 5.3.1. Physical Battery Limits & P&ID Metadata Alignment (`FR-092`, `FR-096`, `FR-102`)
 1. **Mandatory Boundary Pair (`FR-092`, `FR-096`):** Formalizing boundaries invokes `EquipmentUnit.DefineBoundaries(boundaryStart, boundaryEnd)` ([DT-DM-DOC-002 §2.2](../../../domain-models/class/DT-DM-DOC-002.md#22-equipmentunit-aggregate-root)), requiring non-empty technical specifications for both `BoundaryStart` (up to $150$ characters, e.g., *"DN200 ANSI 300# suction flange downstream of isolation valve MOV-0101A"*) and `BoundaryEnd` (up to $150$ characters, e.g., *"DN150 ANSI 600# discharge flange and MCC-02 feeder breaker M-0101A load terminals"*).
-2. **Governing P&ID Engineering Metadata (`FR-102`):** The governing P&ID drawing identifier (`PidReferenceCode`, e.g., *"PID-TFA-1045-REV3"*) is captured alongside the boundary limits as structured engineering boundary metadata persisted inside `MaintainableItem` `design_attributes` (JSONB key `pid_reference_code` per [DT-ERD-DOC-001 §6.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#61-taxmaintainable_itemsdesign_attributes)) and `SpatialMetadata` (`spatial_metadata`) rather than a dedicated column on `EquipmentUnit` (`equipment_units`).
+2. **Governing P&ID Engineering Metadata (`FR-102`):** The governing P&ID drawing identifier (`PidReferenceCode`, e.g., *"PID-TFA-1045-REV3"*) is captured alongside the boundary limits as structured engineering boundary metadata persisted inside `MaintainableItem` `design_attributes` (structured attribute `pid_reference_code` per [DT-ERD-DOC-001 §6.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#61-taxmaintainable_itemsdesign_attributes)) and `SpatialMetadata` (`spatial_metadata`) rather than a dedicated column on `EquipmentUnit` (`equipment_units`).
 
 #### 5.3.2. Tier A Equipment Lookup, Sub-Tree Structuring & Exclusivity (`NFR-093`, `NFR-094`, `NFR-099`, `AF-001`, `TR-008`)
 1. **Enterprise Equipment Lookup ([DT-UI-DS-DOC-001 §6.7](../../DT-UI-DS-DOC-001.md#67-relational-entity-lookup-modal-pattern-lov-list-of-values)):** Opening `EquipmentLookupModal` dispatches paged queries (`EquipmentUnitLookupQueryDto`) to `GET /api/v1/taxonomy/equipment-units/lookup` returning `PagedLookupResultDto<EquipmentUnitLookupDto>`, supporting multi-criteria filtering (`SearchTerm`, `FunctionalLocationId`, `EquipmentClassId`, `MinCriticality`, `MaxCriticality`, `HasBoundariesFilter`) and rendering `--dt-layout-table-row-height` rows with explicit boundary readiness status (`HasBoundaries`).
@@ -302,15 +302,14 @@ sequenceDiagram
    * `MaintainableItem` (`maintainable_items.subunit_id`) is `NOT NULL` (`DT-ERD-001.sql`): there is no unassigned `MaintainableItem` pool—every Level 8 `MaintainableItem` is always created and managed strictly under a parent Level 7 `Subunit` (`SubunitId`) belonging to an owning Level 6 `EquipmentUnit` (`AssignedEquipmentUnitId` is always a non-null `Guid`):
      $$\text{EquipmentUnit (L6)} \xrightarrow{1:N} \text{Subunit (L7)} \xrightarrow{1:N} \text{MaintainableItem (L8)}$$
    * `CMP-06` enables creating structured `Subunit` nodes (`SubunitType` + `Name`) and registering or inspecting `MaintainableItem` entries under the selected `Subunit` via `MaintainableItemLookupQueryDto`, displaying part family, Annex A `DesignAttributes`, and the owning unit (`Bound to [Tag]`) to prevent unauthorized cross-unit reassignment (`AF-001`).
-   * **P&ID Metadata Persistence (`FR-102`):** Within the sub-tree decomposition, `PidReferenceCode` is persisted inside `MaintainableItem` `design_attributes` (JSONB key `pid_reference_code` per [DT-ERD-DOC-001 §6.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#61-taxmaintainable_itemsdesign_attributes)) and `SpatialMetadata` (`spatial_metadata`) rather than a dedicated column on `EquipmentUnit` (`equipment_units`).
+   * **P&ID Metadata Persistence (`FR-102`):** Within the sub-tree decomposition, `PidReferenceCode` is persisted inside `MaintainableItem` `design_attributes` (structured attribute `pid_reference_code` per [DT-ERD-DOC-001 §6.1](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#61-taxmaintainable_itemsdesign_attributes)) and `SpatialMetadata` (`spatial_metadata`) rather than a dedicated column on `EquipmentUnit` (`equipment_units`).
 3. **Single-Asset Component Exclusivity (`NFR-093`, `TR-008-FR-414`, `AF-001`):** A `MaintainableItem` instance cannot belong to two `EquipmentUnits` simultaneously:
    $$\forall m \in \text{MaintainableItems}, \quad |\text{EquipmentUnits}(m)| \le 1$$
    When a candidate item is linked or validated, the system executes asynchronous uniqueness verification in $< 1\text{s}$ (`NFR-099`). Any conflict triggers State 7 (`AF-001`), highlighting the row with `--dt-color-alarm-critical` and `#icon-ban`, displaying the owning unit tag, and hard-disabling `[Save Boundary Definition]`.
 
 #### 5.3.3. Client Command Dispatch & Cryptographic Audit Chain (`FR-098`, `NFR-095`, `TR-001`, `ADR-003`)
-1. **Atomic Command Dispatch (`NFR-095`):** Clicking `[Save Boundary Definition]` in `CMP-12` requires a mandatory `AuditJustification` ($\ge 15$ characters) persisted inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), and dispatches `SaveEquipmentBoundariesCommand` (§7.2.3) to `PUT /api/v1/taxonomy/equipment-units/{id}/boundaries` with headers `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)). On `HTTP 200 OK`, the client clears local draft storage, updates `CMP-03` Commissioning Gate state, prepends the committed revision to `CMP-10`, and returns cleanly to Read-Only Consultation Mode; on concurrency conflict or validation failure (`HTTP 409` / `422`), `CMP-11` surfaces the server diagnostic without data loss.
-2. **Chained Cryptographic Digest Preview (`FR-098`, `TR-001`, `ADR-003`):** `ICryptoInterop` computes the candidate SHA-256 payload digest preview displayed in `CMP-10` without a client-supplied `PreviousHash`; inside the single-commit atomic transaction, `AuditSaveChangesInterceptor` resolves `audit_logs.previous_hash` server-side pre-commit ([DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)) and seals:
-   $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash}_{\text{server}} \parallel \text{EngineerUserId} \parallel \text{EquipmentUnitId} \parallel \text{BoundaryStart} \parallel \text{BoundaryEnd} \parallel \text{SubunitItemTreeHash} \parallel \text{AuditJustification} \parallel \text{TimestampUtc})$$
+1. **Atomic Command Dispatch (`NFR-095`):** Clicking `[Save Boundary Definition]` in `CMP-12` requires a mandatory `AuditJustification` ($\ge 15$ characters) persisted inside the immutable `AuditLog` structured state payload governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state), and dispatches `SaveEquipmentBoundariesCommand` (§7.2.3) to `PUT /api/v1/taxonomy/equipment-units/{id}/boundaries` with headers `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) and `If-Match: "{ConcurrencyToken}"` (optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)). On `HTTP 200 OK`, the client clears local draft storage, updates `CMP-03` Commissioning Gate state, prepends the committed revision to `CMP-10`, and returns cleanly to Read-Only Consultation Mode; on concurrency conflict (`HTTP 409 Conflict`) or validation failure (`HTTP 422`), `CMP-11` surfaces the server diagnostic without data loss.
+2. **Chained Cryptographic Digest Preview (`FR-098`, `TR-001`, `ADR-003`):** `ICryptoInterop` computes the client-side payload digest preview (`SHA-256(CanonicalJson(BoundaryMutationPayload))`, without client-supplied `PreviousHash`) displayed in `CMP-10`; inside the single-commit atomic transaction, the backend resolves the predecessor chain hash and seals the authoritative chain digest per [ADR-003 (Canonical Hash Formula)](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants) and [DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025).
 
 #### 5.3.4. Session Crash-Recovery & Field Read-Only Consultation (`NFR-097`, `NFR-101`, `AF-002`, `AF-003`)
 1. **Auto-Saved Local Configuration Drafts (`NFR-101`, `AF-002`):** During active editing in Configuration Mode, boundary and sub-tree mutations debounce ($500\text{ms}$) into encrypted local storage (`IOfflineStorage` / `TR-002`). Reopening `SCR-MTTO-029` with an uncommitted draft activates `CMP-09` (`[Restore Draft]` / `[Discard]`).
@@ -373,23 +372,10 @@ public BoundaryViewMode InitialMode { get; set; } = BoundaryViewMode.READ_ONLY;
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-12` + Modals/Sheets)
 
+* Shared Shell (`CMP-01`: `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-MTTO-029"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+* Shared Enterprise Lookup Modal (`CMP-02` L4 Modal: `EquipmentLookupModal.razor`): see [DT-UI-CTR-001 (`EquipmentLookupModal.razor`)](../../contracts/DT-UI-CTR-001.md#equipmentlookupmodalrazor).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string? ActiveRouteCode { get; set; } = "SCR-MTTO-029";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnMobileDrawerToggled { get; set; }
-
 // CMP-02: BoundaryHeaderBar.razor
 [Parameter]
 public required BoundaryViewMode ActiveMode { get; set; }
@@ -423,31 +409,6 @@ public EventCallback<BoundaryViewMode> OnModeChanged { get; set; }
 
 [Parameter]
 public EventCallback OnToggleMobileNavigation { get; set; }
-
-// CMP-02 (L4 Modal): EquipmentLookupModal.razor (Tier A Reference Contract per DT-UI-DS-DOC-001 §6.7)
-[Parameter]
-public bool IsOpen { get; set; }
-
-[Parameter]
-public required EquipmentUnitLookupQueryDto Query { get; set; }
-
-[Parameter]
-public EventCallback<EquipmentUnitLookupQueryDto> OnQueryChanged { get; set; }
-
-[Parameter]
-public required IReadOnlyList<EquipmentUnitLookupDto> SearchResults { get; set; }
-
-[Parameter]
-public int TotalCount { get; set; }
-
-[Parameter]
-public Guid? SelectedEquipmentUnitId { get; set; }
-
-[Parameter]
-public EventCallback<EquipmentUnitLookupDto> OnEquipmentUnitSelected { get; set; }
-
-[Parameter]
-public EventCallback OnCloseRequested { get; set; }
 
 // CMP-09: LocalDraftRecoveryBanner.razor (AF-002)
 [Parameter]
@@ -765,6 +726,10 @@ public string? ConflictMessage { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`EquipmentLifecycleStatus`, `MaintainableItemStatus`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
+Shared Lookup DTOs (`PagedLookupResultDto<T>`, `EquipmentUnitLookupQueryDto`, `EquipmentUnitLookupDto`, `MaintainableItemLookupQueryDto`, `MaintainableItemLookupDto`, `LinkedSparePartSummaryDto`): see [DT-UI-CTR-001 §2](../../contracts/DT-UI-CTR-001.md#2-shared-lookup-dtos).
+
 ```csharp
 public enum BoundaryViewMode
 {
@@ -777,29 +742,6 @@ public enum BoundaryDockTab
     DETAIL,
     SCHEMATIC,
     AUDIT
-}
-
-/// <summary>
-/// Controlled equipment lifecycle vocabulary per DT-DM-DOC-001 §4.2.
-/// </summary>
-public enum EquipmentLifecycleStatus
-{
-    IN_STORAGE,
-    INSTALLED,
-    COMMISSIONING,
-    DECOMMISSIONED
-}
-
-/// <summary>
-/// Controlled maintainable item health/lifecycle status vocabulary per DT-DM-DOC-001 §4.7.
-/// </summary>
-public enum MaintainableItemStatus
-{
-    OPERATIONAL,
-    DEGRADED,
-    FAILED,
-    UNDER_REPAIR,
-    REPLACED
 }
 
 public enum BoundaryValidationState
@@ -815,78 +757,6 @@ public enum BoundaryConflictType
     INCOMPLETE_BOUNDARY_FIELDS,
     COMPONENT_OWNERSHIP_COLLISION,
     HIERARCHY_COHERENCE_VIOLATION
-}
-
-public record PagedLookupResultDto<T>
-{
-    public required IReadOnlyList<T> Items { get; init; }
-    public required int TotalCount { get; init; }
-    public required int PageNumber { get; init; }
-    public required int PageSize { get; init; }
-}
-
-public record EquipmentUnitLookupQueryDto
-{
-    public string? SearchTerm { get; init; }
-    public Guid? FunctionalLocationId { get; init; }
-    public Guid? EquipmentClassId { get; init; }
-    public int? MinCriticality { get; init; }
-    public int? MaxCriticality { get; init; }
-    public bool? HasBoundariesFilter { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 25;
-}
-
-public record EquipmentUnitLookupDto
-{
-    public required Guid EquipmentUnitId { get; init; }
-    public required string TagNumber { get; init; }
-    public required string Name { get; init; }
-    public required string SerialNumber { get; init; }
-    public required string Model { get; init; }
-    public string? FunctionalLocationTag { get; init; }
-    public required string EquipmentClassName { get; init; }
-    public int? Criticality { get; init; }
-    public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
-    public int MappedSignalCount { get; init; }
-    public required bool HasBoundaries { get; init; }
-    public string? BoundaryStart { get; init; }
-    public string? BoundaryEnd { get; init; }
-    public required int SubunitCount { get; init; }
-    public required int MaintainableItemCount { get; init; }
-}
-
-/// <summary>
-/// Paged query for Subunit-scoped Maintainable Items. Because <c>maintainable_items.subunit_id</c> is <c>NOT NULL</c>
-/// (DT-ERD-001.sql), items are always created and managed under a parent <c>Subunit</c> (never an unassigned pool).
-/// </summary>
-public record MaintainableItemLookupQueryDto
-{
-    public string? SearchTerm { get; init; }
-    public string? SparePartType { get; init; }
-    public Guid? EquipmentUnitId { get; init; }
-    public Guid? SubunitId { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 25;
-}
-
-/// <summary>
-/// Level 8 Maintainable Item lookup projection. Because <c>maintainable_items.subunit_id</c> is <c>NOT NULL</c>
-/// (DT-ERD-001.sql) and <c>subunits.equipment_unit_id</c> is <c>NOT NULL</c>, every item always belongs to a parent
-/// <c>Subunit</c> and owning <c>EquipmentUnit</c> (<see cref="AssignedEquipmentUnitId"/> is non-null).
-/// </summary>
-public record MaintainableItemLookupDto
-{
-    public required Guid MaintainableItemId { get; init; }
-    public required Guid SubunitId { get; init; }
-    public required string ComponentName { get; init; }
-    public required string SubunitType { get; init; }
-    public string? SparePartType { get; init; }
-    public required MaintainableItemStatus Status { get; init; }
-    public required Guid AssignedEquipmentUnitId { get; init; }
-    public string? AssignedEquipmentTag { get; init; }
-    public IReadOnlyDictionary<string, string> DesignAttributes { get; init; } = new Dictionary<string, string>();
-    public IReadOnlyList<LinkedSparePartSummaryDto> LinkedSpareParts { get; init; } = [];
 }
 
 public record EquipmentBoundaryCardDto
@@ -943,14 +813,6 @@ public record MaintainableItemNodeDto
     public IReadOnlyList<LinkedSparePartSummaryDto> LinkedSpareParts { get; init; } = [];
     public bool HasOwnershipCollision { get; init; }
     public string? ConflictingEquipmentTag { get; init; }
-}
-
-public record LinkedSparePartSummaryDto
-{
-    public required Guid SparePartId { get; init; }
-    public required string Sku { get; init; }
-    public required string Description { get; init; }
-    public required string UnitOfMeasure { get; init; }
 }
 
 public record AddSubunitRequestDto

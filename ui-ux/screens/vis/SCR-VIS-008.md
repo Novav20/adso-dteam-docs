@@ -181,7 +181,7 @@ status: Stable
 
 ### 5.1. Spatial Resolution, Proximity Engine, and Layer Rendering
 1. Upon loading the view, the system retrieves the vector layout representing the facility's Functional Locations (ISO 14224 Levels 1 to 5) via `GET /api/v1/visualization/plot-plans/{facilityCode}` ([DT-ARQ-CMP-DOC-001 §6](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#6-rest-api-prefix-concurrency-numeric-precision-conventions)).
-2. When the Work Permits layer is active, the system queries all `WorkPermits` in the `APPROVED` lifecycle state via `GET /api/v1/safety/work-permits?status=APPROVED` and retrieves unmapped integrity anomalies via `GET /api/v1/safety/work-permits/orphans`. Spatial reassignment of an orphan permit's equipment mesh mapping (`FR-186`) dispatches `PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}` (`UpsertMeshMappingCommand`) carrying `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), and includes `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) only when updating an existing `MeshMapping` (`mesh_mappings`) row (omitted when creating an initial mapping for an unmapped orphan asset).
+2. When the Work Permits layer is active, the system queries all `WorkPermits` in the `APPROVED` lifecycle state via `GET /api/v1/safety/work-permits?status=APPROVED` and retrieves unmapped integrity anomalies via `GET /api/v1/safety/work-permits/orphans`. Spatial reassignment of an orphan permit's equipment mesh mapping (`FR-186`) dispatches `PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}` (`UpsertMeshMappingCommand`) carrying `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)), and includes `If-Match: "{ConcurrencyToken}"` (optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) only when updating an existing `MeshMapping` (`mesh_mappings`) row (omitted when creating an initial mapping for an unmapped orphan asset).
 3. **Referential Resolution & Pin Anchoring Path:**
    $$\text{WorkPermit} \xrightarrow{\text{EquipmentUnitId}} \text{EquipmentUnit} \xrightarrow{\text{MeshMapping}} \text{SVG Geometry / Pin Anchor}$$
    * For large containment footprints (e.g., atmospheric storage tanks and wide process vessels), the two-tone `CMP-05` spatial pin anchors cleanly **inside** the equipment footprint without occluding roof instruments. For compact equipment units (e.g., centrifugal pumps, gate valves, compact manifolds), the pin anchors immediately **adjacent** to the symbol edge with a subtle leader tick so mechanical nozzles remain unobscured.
@@ -295,6 +295,8 @@ public Guid? InitialPermitId { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts
 
+Shared Spatial HUD (`CMP-02`: `ViewportToolbar.razor` with `IsPtwLayerActive`, `SimopsConflictCount`, `OrphanPermitsCount`, `IsIntegrityDrawerOpen`, and PTW/SIMOPS callbacks; `CMP-03`: `UserProfileButton.razor`; `CMP-10`: `CartographicHud.razor`): see [DT-UI-CTR-001 §3.2](../../contracts/DT-UI-CTR-001.md#32-spatial-viewport-hud-kit).
+
 ```csharp
 // CMP-01: PlotPlanCanvas2D.razor
 [Parameter]
@@ -394,69 +396,9 @@ public required IReadOnlyDictionary<PermitType, int> PermitCounts { get; set; }
 [Parameter]
 public EventCallback<PermitType?> OnFilterChanged { get; set; }
 
-// CMP-02: ViewportToolbar.razor
-[Parameter]
-public string? SearchQuery { get; set; }
-
-[Parameter]
-public EventCallback<string?> OnSearchQueryChanged { get; set; }
-
-[Parameter]
-public double ZoomScale { get; set; } = 1.0;
-
-[Parameter]
-public bool? IsLayersActive { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnLayersToggled { get; set; }
-
-[Parameter]
-public bool? IsPtwLayerActive { get; set; }
-
-[Parameter]
-public int? SimopsConflictCount { get; set; }
-
-[Parameter]
-public int? OrphanPermitsCount { get; set; }
-
-[Parameter]
-public bool? IsIntegrityDrawerOpen { get; set; }
-
-[Parameter]
-public EventCallback OnZoomInRequested { get; set; }
-
-[Parameter]
-public EventCallback OnZoomOutRequested { get; set; }
-
-[Parameter]
-public EventCallback OnResetViewRequested { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnPtwLayerToggled { get; set; }
-
-[Parameter]
-public EventCallback OnSimopsConflictBadgeClicked { get; set; }
-
-[Parameter]
-public EventCallback OnOrphanBadgeClicked { get; set; }
-
-// CMP-03: UserProfileButton.razor
-[Parameter]
-public required string UserInitials { get; set; }
-
-[Parameter]
-public EventCallback OnProfileMenuRequested { get; set; }
-
 // CMP-04: FunctionalZonePolygon.razor
 [Parameter]
 public required PlantZoneDto Zone { get; set; }
-
-// CMP-10: CartographicHud.razor
-[Parameter]
-public double ZoomScale { get; set; } = 1.0;
-
-[Parameter]
-public double ScaleRatioMetersPerUnit { get; set; } = 0.2;
 
 // Diagnostic Banner: StaleCacheBanner.razor (AF-002)
 [Parameter]
@@ -468,34 +410,9 @@ public DateTimeOffset? LastSyncTimestamp { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs)
 
+Shared Domain Enums (`PermitType`, `WorkPermitStatus`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
-/// <summary>
-/// Controlled permit risk classification vocabulary per DT-DM-DOC-001 §4.34.
-/// </summary>
-public enum PermitType
-{
-    HOT_WORK,
-    COLD_WORK,
-    CONFINED_SPACE,
-    ELECTRICAL,
-    WORK_AT_HEIGHT,
-    EXCAVATION,
-    CHEMICAL
-}
-
-/// <summary>
-/// Controlled permit lifecycle status vocabulary per DT-DM-DOC-001 §4.35.
-/// </summary>
-public enum WorkPermitStatus
-{
-    DRAFT,
-    PENDING,
-    APPROVED,
-    EXPIRED,
-    REVOKED,
-    CLOSED
-}
-
 public record PtwOverlayDto
 {
     public required Guid Id { get; init; }
@@ -651,4 +568,4 @@ public record PlantZoneDto
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-06`, `CMP-07` | RBAC enforcement grants 2D canvas read and spatial navigation access to `HSEQ Inspector`, `Maintenance Supervisor`, `Maintenance Technician`, and `Reliability Engineer`, while restricting SIMOPS permit/conflict controls and orphan `MeshMapping` resolution (`CanResolveSimopsOrphans`) strictly to `HSEQ Inspector` and `Maintenance Supervisor`. |
 | [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-05`, `CMP-09` | Persistent real-time SignalR subscriptions on `/hubs/operations` (`PermitStatusChanged`) and `/hubs/telemetry` (`EmergencyEvacuationBroadcast`) update permit badges and cluster counts with $<1\text{s}$ publication latency and graceful polling fallback. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`, `CMP-05`, `CMP-09`, `CMP-10` | High-Performance HMI (ANSI/ISA-101): Neutral grayscale canvas (`--dt-color-bg-canvas`), reserving saturated tokens strictly for active permits and alarms. |
-| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-07` | Idempotency contract (`X-Idempotency-Key: {uuidv7}`) paired with conditional PostgreSQL `xmin` optimistic concurrency (`If-Match` when updating an existing `MeshMapping` row; omitted on initial insert) for `UpsertMeshMappingCommand` (`PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}`). |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-07` | Idempotency contract (`X-Idempotency-Key: {uuidv7}`) paired with conditional optimistic concurrency (`If-Match` when updating an existing `MeshMapping` row; omitted on initial insert) for `UpsertMeshMappingCommand` (`PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}`). |

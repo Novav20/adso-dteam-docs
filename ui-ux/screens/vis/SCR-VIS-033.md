@@ -324,47 +324,13 @@ public string? Level { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-12`)
+
+Shared Spatial Viewport & HUD (`CMP-01`: `CanvasViewport2D.razor` in inspection mode passing `Hotspots`, `SelectedEquipmentTag`, `OnEquipmentSelected`, `OnEmptyCanvasClicked`; `CMP-02`: `ViewportToolbar.razor`; `CMP-11`: `UserProfileButton.razor`; `CMP-12`: `CartographicHud.razor`): see [DT-UI-CTR-001 §3.2](../../contracts/DT-UI-CTR-001.md#32-spatial-viewport-hud-kit).
+
 ```csharp
 // Top Viewport Offline Guard Banner: OfflineModeBanner.razor (AF-003)
 [Parameter]
 public bool IsOfflineMode { get; set; }
-
-// CMP-01: CanvasViewport2D.razor
-[Parameter]
-public required string SvgContent { get; set; }
-
-[Parameter]
-public double ZoomScale { get; set; } = 1.0;
-
-[Parameter]
-public string? FunctionalLocationCode { get; set; }
-
-[Parameter]
-public IReadOnlyList<EquipmentHotspotDto>? Hotspots { get; set; }
-
-[Parameter]
-public string? SelectedEquipmentTag { get; set; }
-
-[Parameter]
-public EventCallback<string> OnEquipmentSelected { get; set; }
-
-[Parameter]
-public EventCallback OnEmptyCanvasClicked { get; set; }
-
-[Parameter]
-public string? TargetEquipmentTag { get; set; }
-
-[Parameter]
-public IReadOnlyList<CutoffPointStatusDto>? CutoffPoints { get; set; }
-
-[Parameter]
-public string? SelectedCutoffNodeId { get; set; }
-
-[Parameter]
-public bool IsFocalDeemphasisActive { get; set; } = true;
-
-[Parameter]
-public EventCallback<string> OnCutoffNodeSelected { get; set; }
 
 // CMP-04: EquipmentHotspot.razor
 [Parameter]
@@ -375,52 +341,6 @@ public bool IsSelected { get; set; }
 
 [Parameter]
 public EventCallback<string> OnHotspotSelected { get; set; }
-
-// CMP-02: ViewportToolbar.razor
-[Parameter]
-public string? SearchQuery { get; set; }
-
-[Parameter]
-public EventCallback<string?> OnSearchQueryChanged { get; set; }
-
-[Parameter]
-public double ZoomScale { get; set; } = 1.0;
-
-[Parameter]
-public bool? IsLayersActive { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnLayersToggled { get; set; }
-
-[Parameter]
-public bool? IsPtwLayerActive { get; set; }
-
-[Parameter]
-public int? SimopsConflictCount { get; set; }
-
-[Parameter]
-public int? OrphanPermitsCount { get; set; }
-
-[Parameter]
-public bool? IsIntegrityDrawerOpen { get; set; }
-
-[Parameter]
-public EventCallback OnZoomInRequested { get; set; }
-
-[Parameter]
-public EventCallback OnZoomOutRequested { get; set; }
-
-[Parameter]
-public EventCallback OnResetViewRequested { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnPtwLayerToggled { get; set; }
-
-[Parameter]
-public EventCallback OnSimopsConflictBadgeClicked { get; set; }
-
-[Parameter]
-public EventCallback OnOrphanBadgeClicked { get; set; }
 
 // CMP-03: CommandPaletteTrigger.razor
 [Parameter]
@@ -434,20 +354,6 @@ public EventCallback OnOpenPalette { get; set; }
 
 [Parameter]
 public EventCallback<string> OnTagSearchSubmitted { get; set; }
-
-// CMP-11: UserProfileButton.razor
-[Parameter]
-public required string UserInitials { get; set; }
-
-[Parameter]
-public EventCallback OnProfileMenuRequested { get; set; }
-
-// CMP-12: CartographicHud.razor
-[Parameter]
-public double ZoomScale { get; set; } = 1.0;
-
-[Parameter]
-public double ScaleRatioMetersPerUnit { get; set; } = 0.2;
 
 // CMP-05: AssetTaskFaceplate.razor
 [Parameter]
@@ -538,6 +444,9 @@ public EventCallback OnProceedToLotoVerification { get; set; }
 ```
 
 #### 7.2.3. Data Transfer Objects (DTOs)
+
+Shared Domain Enums (`EquipmentOperationalStatus`, `IsolationStatus`, `MeshMappingStatus`, `PermitType`, `WorkPermitStatus`, `WorkOrderMaintenanceMethod`, `WorkOrderStatus`, `TelemetrySignalType`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
 public record EquipmentHotspotDto
 {
@@ -621,106 +530,6 @@ public record ActiveWorkOrderSummaryDto
     public WorkPermitStatus? LinkedPermitStatus { get; init; }
     public bool IsLotoZeroEnergyVerified { get; init; }
     public bool HasValidOfflineLease { get; init; }
-}
-
-/// <summary>
-/// Controlled equipment operational status vocabulary per DT-DM-DOC-001 §4.4.
-/// </summary>
-public enum EquipmentOperationalStatus
-{
-    UP,
-    DOWN,
-    STANDBY
-}
-
-/// <summary>
-/// Controlled LOTO isolation status vocabulary per DT-DM-DOC-001 §4.32.
-/// </summary>
-public enum IsolationStatus
-{
-    PENDING_ISOLATION,
-    ISOLATED,
-    VERIFIED_ZERO_ENERGY,
-    LEASED_OFFLINE,
-    RELEASED
-}
-
-/// <summary>
-/// Controlled spatial mesh linkage status vocabulary per DT-DM-DOC-001 §4.29.
-/// </summary>
-public enum MeshMappingStatus
-{
-    MAPPED,
-    UNMAPPED,
-    SYNC_ERROR
-}
-
-/// <summary>
-/// Controlled permit risk classification vocabulary per DT-DM-DOC-001 §4.34.
-/// </summary>
-public enum PermitType
-{
-    HOT_WORK,
-    COLD_WORK,
-    CONFINED_SPACE,
-    ELECTRICAL,
-    WORK_AT_HEIGHT,
-    EXCAVATION,
-    CHEMICAL
-}
-
-/// <summary>
-/// Controlled permit lifecycle status vocabulary per DT-DM-DOC-001 §4.35.
-/// </summary>
-public enum WorkPermitStatus
-{
-    DRAFT,
-    PENDING,
-    APPROVED,
-    EXPIRED,
-    REVOKED,
-    CLOSED
-}
-
-/// <summary>
-/// Controlled work order maintenance methodology vocabulary per DT-DM-DOC-001 §4.22.
-/// </summary>
-public enum WorkOrderMaintenanceMethod
-{
-    CORRECTIVE,
-    PREVENTIVE,
-    PREDICTIVE,
-    IMPROVEMENT
-}
-
-/// <summary>
-/// Controlled work order execution status vocabulary per DT-DM-DOC-001 §4.21.
-/// </summary>
-public enum WorkOrderStatus
-{
-    PLANNING,
-    WAITING_PARTS,
-    SCHEDULED,
-    IN_PROGRESS,
-    SUSPENDED,
-    COMPLETE,
-    CLOSED
-}
-
-/// <summary>
-/// Controlled sensor signal classification vocabulary per DT-DM-DOC-001 §4.30.
-/// </summary>
-public enum TelemetrySignalType
-{
-    TEMPERATURE,
-    PRESSURE,
-    VIBRATION,
-    FLOW_RATE,
-    VOLTAGE,
-    CURRENT,
-    RPM,
-    OPERATING_HOURS,
-    CYCLES
 }
 
 /// <summary>

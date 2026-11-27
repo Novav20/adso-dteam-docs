@@ -295,8 +295,7 @@ sequenceDiagram
 1. **Trigger:** The Planner clicks a backlog row; the right dock opens with `CMP-09` displaying the selected request.
 2. **Latency Requirement:** The UI recalculates the new RIME score in $< 100\text{ms}$ ([NFR-070](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr)), dynamically updating the preview badge.
 3. **Mandatory Justification:** The confirmation button remains disabled until the Planner enters a technical justification containing at least $15$ non-whitespace characters.
-4. **Cryptographic Integrity Hash, Idempotency & Optimistic Concurrency ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md), [ADR-007](../../../architecture/adr/ADR-007.md), [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):** Upon confirmation, the client dispatches `POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class` with headers `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"` (PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) carrying `AdjustWorkClassCommand` without a client-supplied `PreviousHash`. Inside the single-commit atomic transaction, the backend validates concurrency (returning HTTP 409 Conflict if concurrently modified), rescores the backlog item, resolves `audit_logs.previous_hash` server-side pre-commit via `AuditSaveChangesInterceptor` ([DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)), and seals `TechnicalJustification` inside the immutable `AuditLog` JSONB envelope governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state):
-   $$\text{PayloadHash} = \text{SHA-256}(\text{PreviousHash}_{\text{server}} \parallel \text{PlannerUserId} \parallel \text{WorkRequestId} \parallel \text{PreviousScore} \parallel \text{CalculatedScore} \parallel \text{TechnicalJustification} \parallel \text{TimestampUtc})$$
+4. **Cryptographic Integrity Hash, Idempotency & Optimistic Concurrency ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants), [ADR-007](../../../architecture/adr/ADR-007.md), [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):** Upon confirmation, the client dispatches `POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class` with headers `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"` (optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)) carrying `AdjustWorkClassCommand` without a client-supplied `PreviousHash`. Inside the single-commit atomic transaction, the backend validates concurrency (returning HTTP 409 Conflict if concurrently modified), rescores the backlog item, resolves the predecessor chain hash and seals `TechnicalJustification` inside the immutable audit chain per [ADR-003 (Canonical Hash Formula)](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants) and [DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025).
 5. **Re-sorting & Enterprise Audit Handoff:** The backlog grid automatically re-sorts descending, moving the modified request to its new objective position without page reload. Inside `CMP-11`, clicking `[View RIME Calibration Audit]` navigates to [SCR-ADM-032](../adm/SCR-ADM-032.md) with query `?actionType=ADJUST&entityType=BacklogItem` ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)).
 
 ---
@@ -383,23 +382,9 @@ public string? ReturnUrl { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` – `CMP-13`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-MTTO-026"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string? ActiveRouteCode { get; set; } = "SCR-MTTO-026";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnMobileDrawerToggled { get; set; }
-
 // CMP-02: BacklogHeaderBar.razor
 [Parameter]
 public required string OperatorBadgeCode { get; set; }
@@ -569,6 +554,8 @@ public EventCallback<BacklogExportFormat> OnExportRequested { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) & Commands
 
+Shared Domain Enums (`BacklogItemStatus`, `WorkClassCode` [weights `1..10`]): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
 /// <summary>
 /// RIME backlog row projection. <see cref="MaintainableItemName"/>, <see cref="EstimatedWrenchHours"/>,
@@ -684,16 +671,6 @@ public record RimeCalculationBreakdownDto
 }
 
 /// <summary>
-/// Controlled backlog prioritization lifecycle vocabulary per DT-DM-DOC-001 §4.8.
-/// </summary>
-public enum BacklogItemStatus
-{
-    PENDING,
-    READY,
-    DEFERRED
-}
-
-/// <summary>
 /// Standardized 4-tier RIME priority bands per NFR-061.
 /// </summary>
 public enum RimePriorityBand
@@ -702,23 +679,6 @@ public enum RimePriorityBand
     SCHEDULE,   // 50 - 79
     PLAN,       // 20 - 49
     WISH        // 1 - 19
-}
-
-/// <summary>
-/// Controlled RIME Work Class weights (1..10) per DT-DM-DOC-001 §4.24.
-/// </summary>
-public enum WorkClassCode
-{
-    SAFETY_ENVIRONMENTAL_EMERGENCY = 10,
-    PRODUCTION_SHUTDOWN = 9,
-    HIGH_PRIORITY_PROCESS = 8,
-    REGULATED_PREVENTIVE = 7,
-    SYSTEMATIC_PREVENTIVE = 6,
-    PREDICTIVE_MAINTENANCE = 5,
-    NON_CRITICAL_CORRECTIVE = 4,
-    ENGINEERING_MODIFICATION = 3,
-    AESTHETIC_ORDER_CLEANLINESS = 2,
-    OPERATIONAL_CONVENIENCE = 1
 }
 
 /// <summary>

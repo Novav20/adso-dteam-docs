@@ -226,7 +226,7 @@ sequenceDiagram
    * `GET /api/v1/taxonomy/equipment-units/lookup` — paginated Level 6 equipment lookup accepting `EquipmentUnitLookupQueryDto` and returning `PagedLookupResultDto<EquipmentUnitLookupDto>`.
    * `GET /api/v1/taxonomy/equipment-units/{id}/boundaries` — verifies physical battery limits (`BoundaryStart`, `BoundaryEnd`).
    * `GET /api/v1/taxonomy/equipment-units/{id}/subunits` — loads cascading Level 7 Subunits and Level 8 Maintainable Items (`FR-001`).
-   * `POST /api/v1/maintenance/plans` — dispatches `CreateMaintenancePlanCommand` with mandatory `X-Idempotency-Key: {uuidv7}` header ([ADR-007](../../../architecture/adr/ADR-007.md)), returning HTTP 201 Created with `MaintenancePlanSummaryDto` and `ETag: "{ConcurrencyToken}"` (PostgreSQL `xmin` concurrency standard per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)). Subsequent edits to existing plans use `PUT /api/v1/maintenance/plans/{id}` with `X-Idempotency-Key` and `If-Match: "{ConcurrencyToken}"`.
+   * `POST /api/v1/maintenance/plans` — dispatches `CreateMaintenancePlanCommand` with mandatory `X-Idempotency-Key: {uuidv7}` header ([ADR-007](../../../architecture/adr/ADR-007.md)), returning HTTP 201 Created with `MaintenancePlanSummaryDto` and `ETag: "{ConcurrencyToken}"` (optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169)). Subsequent edits to existing plans use `PUT /api/v1/maintenance/plans/{id}` with `X-Idempotency-Key` and `If-Match: "{ConcurrencyToken}"`.
 2. **Taxonomic Hierarchy Loading:** When an Equipment Unit (Level 6) is selected, the system filters `AvailableSubunits` where `EquipmentUnitId` matches the selected unit. Selecting a Subunit dynamically loads `AvailableMaintainableItems` associated with the selected `SubunitId` (`FR-001`).
 3. **Deterministic Next Date Calculation (`FR-003`):** The system calculates:
    $$\text{NextWorkOrderDate} = \text{CurrentDate} + (\text{IntervalValue} \times \text{UnitMultiplier})$$
@@ -315,88 +315,11 @@ public string? PreselectedTagNumber { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-12`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-MTTO-001"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
+Shared Maintenance Planning Form Kit (`CMP-02` `FormBreadcrumbHeader.razor`, `CMP-03` `IsoHierarchyCascadingSelector.razor`, `CMP-07` `LaborEstimationCard.razor` [defaults: `4.0m`, `[MaintenanceCraft.MECHANICAL]`], `CMP-08` `PlanScopeEditor.razor`, `CMP-09` `RimePriorityPreview.razor` [default `WorkClassWeight = 6`], `CMP-11` `ProjectedWorkOrderCard.razor` [`TPreview = CalendarWorkOrderPreviewDto`], `CMP-12` `FormActionFooter.razor`): see [DT-UI-CTR-001 §3.3](../../contracts/DT-UI-CTR-001.md#33-shared-maintenance-planning-form-kit).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string? ActiveRouteCode { get; set; } = "SCR-MTTO-001";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
-[Parameter]
-public EventCallback<bool> OnMobileDrawerToggled { get; set; }
-
-// CMP-02: FormBreadcrumbHeader.razor
-[Parameter]
-public required string OperatorBadgeCode { get; set; }
-
-[Parameter]
-public required string OperatorDisplayName { get; set; }
-
-[Parameter]
-public string? ActiveAssetTag { get; set; }
-
-[Parameter]
-public string? ActiveSignalTag { get; set; }
-
-[Parameter]
-public decimal? InitialTargetLimit { get; set; }
-
-[Parameter]
-public MaintenancePlanStatus PlanStatus { get; set; } = MaintenancePlanStatus.DRAFT;
-
-[Parameter]
-public EventCallback OnBackToBacklogClicked { get; set; }
-
-// CMP-03: IsoHierarchyCascadingSelector.razor
-[Parameter]
-public IReadOnlyList<EquipmentUnitLookupDto>? AvailableEquipment { get; set; }
-
-[Parameter]
-public Guid? SelectedEquipmentUnitId { get; set; }
-
-[Parameter]
-public EventCallback<Guid?> SelectedEquipmentUnitIdChanged { get; set; }
-
-[Parameter]
-public EquipmentUnitLookupDto? SelectedEquipmentUnit { get; set; }
-
-[Parameter]
-public EventCallback OnOpenEquipmentLookupModal { get; set; }
-
-[Parameter]
-public required IReadOnlyList<SubunitLookupDto> AvailableSubunits { get; set; }
-
-[Parameter]
-public required IReadOnlyList<MaintainableItemLookupDto> AvailableMaintainableItems { get; set; }
-
-[Parameter]
-public Guid? SelectedSubunitId { get; set; }
-
-[Parameter]
-public EventCallback<Guid?> SelectedSubunitIdChanged { get; set; }
-
-[Parameter]
-public Guid? SelectedMaintainableItemId { get; set; }
-
-[Parameter]
-public EventCallback<Guid?> SelectedMaintainableItemIdChanged { get; set; }
-
-[Parameter]
-public bool HasDefinedBoundaries { get; set; }
-
-[Parameter]
-public string? BoundaryDescription { get; set; }
-
-[Parameter]
-public EventCallback OnInspectBoundariesRequested { get; set; }
-
 // CMP-04: BoundaryComplianceBadge.razor
 [Parameter]
 public bool HasDefinedBoundaries { get; set; }
@@ -424,35 +347,6 @@ public EventCallback<CalendarIntervalUnit> IntervalUnitChanged { get; set; }
 [Parameter]
 public DateOnly CalculatedNextDate { get; set; }
 
-// CMP-07: LaborEstimationCard.razor
-[Parameter]
-public decimal EstimatedLaborHours { get; set; } = 4.0m;
-
-[Parameter]
-public EventCallback<decimal> EstimatedLaborHoursChanged { get; set; }
-
-[Parameter]
-public IReadOnlyList<MaintenanceCraft> RequiredCrafts { get; set; } = [MaintenanceCraft.MECHANICAL];
-
-[Parameter]
-public EventCallback<IReadOnlyList<MaintenanceCraft>> RequiredCraftsChanged { get; set; }
-
-// CMP-08: PlanScopeEditor.razor
-[Parameter]
-public string TechnicalDescription { get; set; } = string.Empty;
-
-[Parameter]
-public EventCallback<string> TechnicalDescriptionChanged { get; set; }
-
-// CMP-09: RimePriorityPreview.razor
-[Parameter]
-public int AssetCriticality { get; set; }
-
-[Parameter]
-public int WorkClassWeight { get; set; } = 6;
-
-[Parameter]
-public int CalculatedRimeScore { get; set; }
 
 // CMP-10: HighCriticalityAlertBanner.razor
 [Parameter]
@@ -475,32 +369,13 @@ public EventCallback OnConfirmOverride { get; set; }
 
 [Parameter]
 public EventCallback OnCancelModal { get; set; }
-
-// CMP-11: ProjectedWorkOrderCard.razor
-[Parameter]
-public required CalendarWorkOrderPreviewDto ProjectedWorkOrder { get; set; }
-
-[Parameter]
-public EventCallback OnVerifySparePartsRequested { get; set; }
-
-// CMP-12: FormActionFooter.razor
-[Parameter]
-public bool CanSubmit { get; set; }
-
-[Parameter]
-public bool IsSubmitting { get; set; }
-
-[Parameter]
-public string? ValidationMessage { get; set; }
-
-[Parameter]
-public EventCallback OnSavePlanConfirmed { get; set; }
-
-[Parameter]
-public EventCallback OnCancelClicked { get; set; }
 ```
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
+
+Shared Domain Enums (`MaintenanceMethod`, `MaintenanceCraft`, `MaintenancePlanStatus`, `WorkOrderStatus`, `EquipmentLifecycleStatus`, `MaintainableItemStatus`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
+Shared Lookup DTOs (`PagedLookupResultDto<T>`, `EquipmentUnitLookupQueryDto`, `EquipmentUnitLookupDto`, `SubunitLookupDto`, `MaintainableItemLookupDto`, `LinkedSparePartSummaryDto`): see [DT-UI-CTR-001 §2](../../contracts/DT-UI-CTR-001.md#2-shared-lookup-dtos).
 
 ```csharp
 /// <summary>
@@ -512,140 +387,6 @@ public enum CalendarIntervalUnit
     WEEKS,
     MONTHS,
     YEARS
-}
-
-/// <summary>
-/// Controlled maintenance plan methodology vocabulary per DT-DM-DOC-001 §4.15.
-/// When a CONDITION_BASED plan instantiates a WorkOrder, it maps to
-/// WorkOrderMaintenanceMethod.PREDICTIVE per WorkOrder.maintenanceMethod (DT-DM-DOC-001 §4.22).
-/// </summary>
-public enum MaintenanceMethod
-{
-    PREVENTIVE,
-    PREDICTIVE,
-    CONDITION_BASED
-}
-
-public enum MaintenanceCraft
-{
-    MECHANICAL,
-    ELECTRICAL,
-    INSTRUMENTATION_AND_CONTROL,
-    LUBRICATION,
-    CONDITION_MONITORING,
-    ELECTRONICS,
-    WELDING_FABRICATION,
-    FACILITIES
-}
-
-public enum MaintenancePlanStatus
-{
-    DRAFT,
-    ACTIVE,
-    INACTIVE,
-    ARCHIVED
-}
-
-public enum WorkOrderStatus
-{
-    PLANNING,
-    WAITING_PARTS,
-    SCHEDULED,
-    IN_PROGRESS,
-    SUSPENDED,
-    COMPLETE,
-    CLOSED
-}
-
-/// <summary>
-/// Controlled equipment lifecycle vocabulary per DT-DM-DOC-001 §4.2.
-/// </summary>
-public enum EquipmentLifecycleStatus
-{
-    IN_STORAGE,
-    INSTALLED,
-    COMMISSIONING,
-    DECOMMISSIONED
-}
-
-/// <summary>
-/// Controlled maintainable item health/lifecycle status vocabulary per DT-DM-DOC-001 §4.7.
-/// </summary>
-public enum MaintainableItemStatus
-{
-    OPERATIONAL,
-    DEGRADED,
-    FAILED,
-    UNDER_REPAIR,
-    REPLACED
-}
-
-public record PagedLookupResultDto<T>
-{
-    public required IReadOnlyList<T> Items { get; init; }
-    public required int TotalCount { get; init; }
-    public required int PageNumber { get; init; }
-    public required int PageSize { get; init; }
-}
-
-public record EquipmentUnitLookupQueryDto
-{
-    public string? SearchTerm { get; init; }
-    public Guid? FunctionalLocationId { get; init; }
-    public Guid? EquipmentClassId { get; init; }
-    public int? MinCriticality { get; init; }
-    public int? MaxCriticality { get; init; }
-    public bool? HasBoundariesFilter { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 25;
-}
-
-public record EquipmentUnitLookupDto
-{
-    public required Guid EquipmentUnitId { get; init; }
-    public required string TagNumber { get; init; }
-    public required string Name { get; init; }
-    public required string SerialNumber { get; init; }
-    public required string Model { get; init; }
-    public string? FunctionalLocationTag { get; init; }
-    public required string EquipmentClassName { get; init; }
-    public int? Criticality { get; init; }
-    public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
-    public int MappedSignalCount { get; init; }
-    public required bool HasBoundaries { get; init; }
-    public string? BoundaryStart { get; init; }
-    public string? BoundaryEnd { get; init; }
-    public required int SubunitCount { get; init; }
-    public required int MaintainableItemCount { get; init; }
-}
-
-public record SubunitLookupDto
-{
-    public required Guid SubunitId { get; init; }
-    public required Guid EquipmentUnitId { get; init; }
-    public required string SubunitName { get; init; }
-}
-
-public record MaintainableItemLookupDto
-{
-    public required Guid MaintainableItemId { get; init; }
-    public required Guid SubunitId { get; init; }
-    public required string ComponentName { get; init; }
-    public required string SubunitType { get; init; }
-    public string? SparePartType { get; init; }
-    public required MaintainableItemStatus Status { get; init; }
-    public required Guid AssignedEquipmentUnitId { get; init; }
-    public string? AssignedEquipmentTag { get; init; }
-    public IReadOnlyDictionary<string, string> DesignAttributes { get; init; } = new Dictionary<string, string>();
-    public IReadOnlyList<LinkedSparePartSummaryDto> LinkedSpareParts { get; init; } = [];
-}
-
-public record LinkedSparePartSummaryDto
-{
-    public required Guid SparePartId { get; init; }
-    public required string Sku { get; init; }
-    public required string Description { get; init; }
-    public required string UnitOfMeasure { get; init; }
 }
 
 public record CalendarWorkOrderPreviewDto

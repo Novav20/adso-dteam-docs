@@ -152,8 +152,8 @@ status: Stable
    - **Visual Modification:** Header displays `IN_PROGRESS` in neutral high-contrast capsule badge (`--dt-color-surface-base`, `--dt-color-border-subtle`, `--dt-color-text-primary`). Checklist editable. Stopwatch counter increments. Tab 3 shows incomplete taxonomy. `CMP-09` `[Finalize Work Order]` is hard-disabled via the ISO Lock.
 
 2. **Loading / Synchronizing**
-   - **Activation Condition:** Initial data hydration from local SQLCipher cache or background delta synchronization in progress.
-   - **Visual Modification:** Skeleton shimmer on form fields and spares table (`--dt-color-surface-raised`). Taxonomy dropdowns show animated loading indicator while hydrating local SQLite cache. Controls locked.
+   - **Activation Condition:** Initial data hydration from local encrypted offline storage (`IOfflineStorage`) or background delta synchronization in progress.
+   - **Visual Modification:** Skeleton shimmer on form fields and spares table (`--dt-color-surface-raised`). Taxonomy dropdowns show animated loading indicator while hydrating the local offline cache. Controls locked.
 
 3. **Taxonomy Incomplete / Missing Fields (AF-001)**
    - **Activation Condition:** When `WorkOrder.maintenanceMethod == CORRECTIVE` (or failure reporting is explicitly enabled) and the technician attempts to finalize or navigates away while any of the 7 mandatory ISO fields or downtime is empty.
@@ -169,7 +169,7 @@ status: Stable
 
 6. **Offline Mode (AF-002)**
    - **Activation Condition:** Device loses Wi-Fi/cellular connectivity in field process areas (`ASR-001`).
-   - **Visual Modification:** Zero layout shift (CLS = 0). Header telemetry chip updates to `OFFLINE · [HH:MM]`, `[1 PENDING SYNC]` amber badge illuminates, and `[DE-ENERGIZED EQUIPMENT]` capsule is automatically hidden to avoid false certainty of unverified live telemetry. Local SQLCipher cache active.
+   - **Visual Modification:** Zero layout shift (CLS = 0). Header telemetry chip updates to `OFFLINE · [HH:MM]`, `[1 PENDING SYNC]` amber badge illuminates, and `[DE-ENERGIZED EQUIPMENT]` capsule is automatically hidden to avoid false certainty of unverified live telemetry. Local encrypted offline cache (`IOfflineStorage`) active.
 
 7. **Ready to Finalize (Unlocked)**
    - **Activation Condition:** Quality gates satisfied: (when `WorkOrder.maintenanceMethod == CORRECTIVE` or a failure is explicitly reported, all 7 ISO 14224 fields selected + Downtime specified; for routine `PREVENTIVE` work orders with no failure reported, ISO 14224 failure coding is optional) + Photo evidence captured with valid hash + Checklist attested + Positive Actual Labor Hours logged.
@@ -195,7 +195,7 @@ sequenceDiagram
     actor Tech as Maintenance Technician
     participant VIS as SCR-VIS-011 LOTO
     participant UI as SCR-MTTO-002 Execution View
-    participant Store as IOfflineStorage / SQLCipher
+    participant Store as IOfflineStorage (Encrypted Cache)
     participant Crypto as ICryptoInterop (Web Worker)
     participant API as Work Order Application Service
 
@@ -242,7 +242,7 @@ sequenceDiagram
 1. **Gloved Touch Target Invariant (ISO 9241-110 Clause 5.3 / `--dt-touch-target-mobile`):**
    * All interactive controls (checkboxes, dropdown triggers, camera buttons, tab headers, spare parts quantity steppers) enforce a minimal bounding box governed by `--dt-touch-target-mobile` with `--dt-space-2` separation, ensuring error-free operation with nitrile and leather field gloves.
    * Step navigation directional arrow buttons enforce an enlarged footprint governed by `--dt-control-width-nav-step` $\times$ `--dt-control-height-nav-step` (and `--dt-control-width-nav-step-mobile` $\times$ `--dt-control-height-nav-step-mobile` on mobile) with subtle neutral secondary surface fill (`--dt-color-surface-btn-secondary`), subtle perimeter ring (`--dt-color-border-subtle`), standard curvature (`--dt-radius-md`), and explicit SVG chevrons (`#icon-chevron-left`, `#icon-chevron-right`).
-   * Custom scope checklist implements a frameless list layout bound to the JSONB contract in [DT-ERD-DOC-001 §6.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#62-mttowork_ordersscope_checklist) with tactile circular check indicators (`--dt-control-size-checkbox`, `--dt-radius-full`): unselected items render a neutral hairline perimeter ring, while verified items fill with high-contrast monochromatic fill (`--dt-color-text-primary`) and an embedded checkmark in surface color. Individual item bounding boxes are purged in favor of subtle baseline dividers (`--dt-color-border-subtle`) and full-width touch hit rows.
+   * Custom scope checklist implements a frameless list layout bound to the structured checklist payload contract in [DT-ERD-DOC-001 §6.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#62-mttowork_ordersscope_checklist) with tactile circular check indicators (`--dt-control-size-checkbox`, `--dt-radius-full`): unselected items render a neutral hairline perimeter ring, while verified items fill with high-contrast monochromatic fill (`--dt-color-text-primary`) and an embedded checkmark in surface color. Individual item bounding boxes are purged in favor of subtle baseline dividers (`--dt-color-border-subtle`) and full-width touch hit rows.
 2. **Asymmetric Layout Grids & Continuous Workspace Dividers (`CMP-03` & `CMP-04`):**
    * **Continuous Data Architecture (Zero Card Plague):** Adheres to the frameless HPHMI surface discipline ([DT-UI-DS-DOC-001 §3.2](../../DT-UI-DS-DOC-001.md#32-semantic-tokens-for-light-and-dark-themes) and [§6.6](../../DT-UI-DS-DOC-001.md#66-tactile-field-controls-high-velocity-touch-primitives)). Primary content sections render directly on the workspace surface (`--dt-color-surface-card`) without redundant outer card wrappers. Initial sections within a tab have no top border, while subsequent stacked sections are separated by a subtle top divider (`--dt-color-border-subtle`).
    * **Scope & Timing Grid (`CMP-03`):** Enforces an asymmetric two-column desktop/landscape grid expanding across the full vertical workspace height: The primary left column provides expansive breadth for frameless procedural task checklist items, while the secondary right column (`--dt-color-border-subtle`) hosts the enclosed timing cockpit master card. In portrait mode, the vertical divider transitions into an edge-to-edge full-width horizontal divider (`--dt-color-border-subtle` with zero side gaps).
@@ -296,24 +296,21 @@ sequenceDiagram
 #### 5.3.4. Atomic Technical Closure Command Dispatch (`CMP-09`, `TR-001`)
 * Upon pressing `[Finalize Work Order]`, the application dispatches an atomic technical closure command (`SubmitTechnicalClosureCommand`) against the backend API endpoint `POST /api/v1/maintenance/work-orders/{id}/technical-closure`.
 * **Client Command Contract:**
-  * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries, plus `If-Match: "{ConcurrencyToken}"` on live online commits enforcing PostgreSQL `xmin` optimistic concurrency per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169) (offline-queued replays omit stale `If-Match` per §5.3.5).
+  * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries, plus `If-Match: "{ConcurrencyToken}"` on live online commits enforcing optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column-inv-027-nfr-169) (offline-queued replays omit stale `If-Match` per §5.3.5).
   * **Command Payload:** Serializes optional/conditional `FailureRecordInputDto?` (mandatory 7-tier ISO 14224 classifications, downtime, and technician notes when `WorkOrder.maintenanceMethod == CORRECTIVE` or a failure is explicitly reported; `null` for routine `PREVENTIVE` closure with no failure), `ActualLaborHours`, `ConcurrencyToken`, and `IReadOnlyList<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
   * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (concurrency verification, conditional failure record insertion when `FailureRecord` is supplied/required, Work Order status update to `COMPLETE`, history logging, cryptographic audit chaining, and `/hubs/operations` `WorkOrderStatusChanged` broadcast) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
   * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates back to `returnUrl` / Level 3 Equipment Task Faceplate ([SCR-VIS-033](../vis/SCR-VIS-033.md)) for `Maintenance Technician`, while routing `Maintenance Planner`, `Maintenance Supervisor`, and `Reliability Engineer` roles to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
   * **Failure / Disconnected Handling:** On network timeout or HTTP 5xx error, transitions to the Zero-Shift Offline Outbox Protocol (§5.3.5, [TR-007](../../../requirements/common/TR-007.md)).
 
-#### 5.3.5. Zero-Shift Offline Telemetry and Outbox Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-006`, `ADR-007`, `ADR-008`)
-* If network connection is lost or heartbeat timeout occurs:
-  1. Telemetry indicator in header transitions from `ONLINE · [HH:MM]` to `OFFLINE · [HH:MM]` with disconnected network glyph.
-  2. Amber badge `[1 PENDING SYNC]` illuminates directly in the header context.
-  3. **Fail-Safe Zero-Energy Masking:** The safety capsule `[DE-ENERGIZED EQUIPMENT]` is automatically suppressed from the header UI during offline operation. While mechanical padlocks remain locked, real-time electrical zero-voltage and zero-current attestation cannot be confirmed via disconnected DCS telemetry; displaying a stale positive safety confirmation during telemetry blackout violates process safety integrity principles.
-  4. Zero layout shift is incurred (CLS = 0), preventing disorienting viewport jumps or content displacement on tablet screens.
-  5. **Local Outbox & Encrypted Binary Persistence:** The full `SubmitTechnicalClosureCommand` payload is serialized into JSON and written to the encrypted local outbox (`IOfflineStorage`, AES-256 via SQLCipher per [TR-002](../../../requirements/common/TR-002.md)), while any offline-captured media binaries are persisted encrypted locally alongside their SHA-256 digests (`TR-003`) pending Valet Key upload (`ADR-008`).
-  6. Assigns a unique `X-Idempotency-Key` (UUIDv7) per [ADR-005](../../../architecture/adr/ADR-005.md) and [ADR-007](../../../architecture/adr/ADR-007.md), omitting stale `If-Match` headers on offline replay.
-  7. Marks the local UI view as `COMPLETE (Pending Sync)`.
-  8. **Two-Phase Reconnect Sync (`ADR-008` & `ADR-006`):** Background synchronization worker monitors connectivity and drains the outbox in chronological **FIFO** order upon restoration:
-     * **Phase 1 — Valet Key Direct Blob Upload (`ADR-008`):** For each locally encrypted media binary, the worker calls `POST /api/v1/maintenance/work-orders/{id}/media-upload-sas` (`RequestMediaUploadSasCommand` $\to$ `MediaUploadSasResponseDto`, §7.2.3) to obtain a short-lived Azure Blob SAS Valet Key URL and executes a direct `HTTPS PUT` of the binary payload directly to Azure Blob Storage, bypassing the API monolith.
-     * **Phase 2 — Idempotent Command Replay (`ADR-006`, `TR-007-NFR-407`):** With the remote Azure Blob `FileUrl` values populated in `EvidenceAttachments`, the worker dispatches `POST /api/v1/maintenance/work-orders/{id}/technical-closure` carrying `X-Idempotency-Key: {uuidv7}` and **omitting stale `If-Match`**, using server-side command-sourced reconciliation so the field closure is preserved and any concurrent state discrepancy triggers an administrative reconciliation alert rather than silent rejection.
+#### 5.3.5. Zero-Shift Offline Telemetry & Offline Delta Card (`AF-002`, `TR-002`, `TR-007`, `ADR-006`, `ADR-007`, `ADR-008`)
+* **Fail-Safe Zero-Energy Masking & UI Continuity (`CLS = 0`):** On wireless connectivity loss or heartbeat timeout, `CMP-08` transitions from `ONLINE · [HH:MM]` to `OFFLINE · [HH:MM]` with `[1 PENDING SYNC]` without shifting layout geometry, and **automatically suppresses `[DE-ENERGIZED EQUIPMENT]`** from the header UI (preventing false certainty from stale SCADA telemetry while disconnected) before marking the local view `COMPLETE (Pending Sync)`.
+* **Offline Delta Card (`TR-007`, `ADR-006`, `ADR-008`):** Encrypted outbox persistence (`IOfflineStorage`, `TR-002`), UUIDv7 idempotency (`ADR-007`), and FIFO two-phase reconnection sync follow [ADR-006 (Canonical 5-Step Offline Outbox Lifecycle)](../../../architecture/adr/ADR-006.md#canonical-5-step-offline-outbox-two-phase-media-sync-lifecycle) and [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues-tr-007). Screen-specific deltas:
+
+| Delta Dimension | `SCR-MTTO-002` Specification |
+| :--- | :--- |
+| **Queued Command DTO** | `SubmitTechnicalClosureCommand` (`POST /api/v1/maintenance/work-orders/{id}/technical-closure`, `X-Idempotency-Key: {uuidv7}`, omitting stale `If-Match`) alongside locally encrypted media binaries + SHA-256 digests (`TR-003`) |
+| **Local Pre-Validation Rule** | ISO 14224 Hard Lock (`AF-001`, 7-tier failure taxonomy + downtime required when `CORRECTIVE` or failure reported), positive `ActualLaborHours`, checked scope tasks, verified media SHA-256 checksums (`TR-003`), and automatic suppression of `[DE-ENERGIZED EQUIPMENT]` capsule while offline (`AF-002`) |
+| **Screen-Specific Conflict Policy** | Two-phase reconnect sync per [ADR-008](../../../architecture/adr/ADR-008.md): Phase 1 uploads locally encrypted media via `POST /api/v1/maintenance/work-orders/{id}/media-upload-sas` (`RequestMediaUploadSasCommand` $\to$ `MediaUploadSasResponseDto` direct `HTTPS PUT` to Azure Blob Storage); Phase 2 replays `SubmitTechnicalClosureCommand` with populated `FileUrl`s omitting stale `If-Match` for server-side command-sourced reconciliation (raising an administrative alert on state divergence rather than silent rejection) |
 
 #### 5.3.6. Rotable Asset Swap Branching (`CMP-04`)
 * If the physical repair requires unmounting the pump unit, tapping `[Rotate Dismounted Equipment]` preserves the in-flight form draft in local memory and deploys the in-situ overlay modal [SCR-INV-025](../inv/SCR-INV-025.md). Upon completing the asset swap, `SCR-INV-025` returns the new mounted equipment serial number (`P-0101B`) and stamps the replacement reference into technical observations.
@@ -611,86 +608,9 @@ public EventCallback OnReturnToBacklog { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`DetectionMethod`, `OperationalCondition`, `OperationalImpact`, `MediaAttachmentFileType`, `WorkOrderStatus`, `WorkOrderMaintenanceMethod`, `IsolationStatus`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
-/// <summary>
-/// Controlled failure detection method vocabulary per DT-DM-DOC-001 §4.9.
-/// </summary>
-public enum DetectionMethod
-{
-    PERIODIC_MAINTENANCE,
-    FUNCTIONAL_TESTING,
-    INSPECTION,
-    PERIODIC_CBM,
-    PRESSURE_TESTING,
-    CONTINUOUS_CBM,
-    PRODUCTION_INTERFERENCE,
-    CASUAL_OBSERVATION,
-    CORRECTIVE_MAINTENANCE,
-    ON_DEMAND,
-    OTHER
-}
-
-/// <summary>
-/// Controlled equipment operational condition at failure vocabulary per DT-DM-DOC-001 §4.10.
-/// </summary>
-public enum OperationalCondition
-{
-    RUNNING,
-    START_UP,
-    RUN_DOWN,
-    HOT_STANDBY,
-    COLD_STANDBY,
-    IDLE,
-    TESTING
-}
-
-/// <summary>
-/// Controlled failure operational impact vocabulary per DT-DM-DOC-001 §4.11.
-/// </summary>
-public enum OperationalImpact
-{
-    EXTENSIVE_STOP,
-    STOP_ABOVE_ACCEPTABLE,
-    STOP_BELOW_ACCEPTABLE,
-    STOP_MINOR
-}
-
-/// <summary>
-/// Controlled media attachment format vocabulary per DT-DM-DOC-001 §4.19.
-/// </summary>
-public enum MediaAttachmentFileType
-{
-    PDF,
-    JPG,
-    PNG
-}
-
-/// <summary>
-/// Controlled work order execution status vocabulary per DT-DM-DOC-001 §4.21.
-/// </summary>
-public enum WorkOrderStatus
-{
-    PLANNING,
-    WAITING_PARTS,
-    SCHEDULED,
-    IN_PROGRESS,
-    SUSPENDED,
-    COMPLETE,
-    CLOSED
-}
-
-/// <summary>
-/// Controlled work order isolation lifecycle vocabulary per DT-DM-DOC-001 §4.32.
-/// </summary>
-public enum IsolationStatus
-{
-    PENDING_ISOLATION,
-    ISOLATED,
-    VERIFIED_ZERO_ENERGY,
-    LEASED_OFFLINE,
-    RELEASED
-}
-
 /// <summary>
 /// Hydrated via GET /api/v1/maintenance/work-orders/{id}/closing-context (or local IOfflineStorage cache fallback).
 /// </summary>
@@ -810,7 +730,7 @@ public record SubmitTechnicalClosureCommand
 2. **Web Crypto SHA-256 Hashing Bridge (`ICryptoInterop`):**
    * Dispatches cryptographic SHA-256 checksum computation asynchronously to a dedicated Web Worker to prevent UI thread stuttering or frame drops on industrial tablets during binary processing.
 3. **Encrypted Offline Storage Interop (`IOfflineStorage`):**
-   * Interfaces with client-side encrypted relational storage (AES-256 via SQLCipher) for immediate transactional outbox queuing and encrypted local media binary persistence during disconnected field operations ([TR-002](../../../requirements/common/TR-002.md), [TR-007](../../../requirements/common/TR-007.md), [ADR-008](../../../architecture/adr/ADR-008.md)).
+   * Interfaces with client-side AES-256 encrypted local storage (`TR-002`, `TR-007`) for immediate transactional outbox queuing and encrypted local media binary persistence during disconnected field operations ([TR-002](../../../requirements/common/TR-002.md), [TR-007](../../../requirements/common/TR-007.md), [ADR-008](../../../architecture/adr/ADR-008.md)).
 
 ---
 
@@ -839,11 +759,11 @@ public record SubmitTechnicalClosureCommand
 | [FR-012](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-06`, `CMP-09` | **ISO 14224 Hard Lock:** Hard-disables finalization button until all mandatory taxonomy fields and downtime are complete whenever failure classification is required (`CORRECTIVE` or reported failure). |
 | [FR-013](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-07` | Multimedia photographic attachment capture, preview thumbnail generation, and persistent linkage to media attachment records. |
 | [FR-014](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-09` | Atomic transition of Work Order state to `COMPLETE` and dispatch of domain event notification to Reliability Engineer. |
-| [NFR-015](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-09` | Offline-First persistence using encrypted SQLCipher local storage with crash-resilient transactional journaling. |
+| [NFR-015](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-09` | Offline-First persistence using AES-256 encrypted local storage (`IOfflineStorage`) with crash-resilient transactional journaling. |
 | [NFR-016](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-02`, `CMP-05` | Mobile response latency $< 2\text{s}$ achieved via pre-hydrated local taxonomy caches and Web Worker SHA-256 hashing. |
 | [NFR-017](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-01` to `CMP-10` | Cross-platform mobile suitability on Android industrial tablets and iOS/Windows devices via responsive CSS tokens. |
 | [TR-001](../../../requirements/common/TR-001.md) | `CMP-09` | Append-only immutable audit trail logging with SHA-256 hash chaining upon Work Order technical closure. |
-| [TR-002](../../../requirements/common/TR-002.md) | `CMP-08` | Local database encryption at rest using AES-256 (SQLCipher) for all cached work orders, failure records, and media payloads. |
+| [TR-002](../../../requirements/common/TR-002.md) | `CMP-08` | Local database encryption at rest using AES-256 (`IOfflineStorage`) for all cached work orders, failure records, and media payloads. |
 | [TR-003](../../../requirements/common/TR-003.md) | `CMP-07` | Client-side asynchronous SHA-256 hash evaluation of all captured media files stored in metadata for tamper detection. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-08`, `CMP-09` | Enforces TLS/HTTPS and WSS encryption across all technical closure command dispatches and background outbox synchronization. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-03`, `CMP-04`, `CMP-05`, `CMP-07`, `CMP-09` | Enforces RBAC role authorization, `SOD-MTTO-01` read-only inspection (`IsReadOnly`) for approver roles lacking `MAINTENANCE:EXECUTE`, and role-scoped post-closure return routing (`returnUrl` / `SCR-VIS-033` for `Maintenance Technician`; `SCR-MTTO-026` for `Maintenance Planner`, `Maintenance Supervisor`, `Reliability Engineer`). |
