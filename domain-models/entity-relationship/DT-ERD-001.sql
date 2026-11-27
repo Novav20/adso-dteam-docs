@@ -431,6 +431,22 @@ CREATE TABLE IF NOT EXISTS vis.work_permits (
     CONSTRAINT pk_work_permits PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS vis.plant_layout_revisions (
+    id                             UUID NOT NULL DEFAULT uuidv7(),
+    functional_location_id         UUID NOT NULL,
+    revision_code                  VARCHAR(40) NOT NULL,
+    blob_storage_uri               VARCHAR(512) NOT NULL,
+    checksum_sha256                VARCHAR(64) NOT NULL,
+    status                         VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+    approved_by_user_id            UUID,
+    approved_at                    TIMESTAMPTZ,
+    created_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+
+    CONSTRAINT uq_plant_layout_revisions_revision_code UNIQUE (revision_code),
+    CONSTRAINT ck_plant_layout_revisions_status CHECK (status IN ('DRAFT', 'ACTIVE', 'SUPERSEDED')),
+    CONSTRAINT pk_plant_layout_revisions PRIMARY KEY (id)
+);
+
 -- ==========================================
 -- SCHEMA: ADM
 -- ==========================================
@@ -632,6 +648,8 @@ CREATE INDEX IF NOT EXISTS idx_work_order_isolations_telemetry_snapshot ON vis.w
 CREATE INDEX IF NOT EXISTS idx_work_order_isolations_lease_holder_user_id ON vis.work_order_isolations (lease_holder_user_id);
 CREATE INDEX IF NOT EXISTS idx_work_permits_equipment_unit_id ON vis.work_permits (equipment_unit_id);
 CREATE INDEX IF NOT EXISTS idx_work_permits_issuer_user_id ON vis.work_permits (issuer_user_id);
+CREATE INDEX IF NOT EXISTS idx_plant_layout_revisions_functional_location_id ON vis.plant_layout_revisions (functional_location_id);
+CREATE INDEX IF NOT EXISTS idx_plant_layout_revisions_approved_by_user_id ON vis.plant_layout_revisions (approved_by_user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON adm.audit_logs (user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_previous_state ON adm.audit_logs USING GIN (previous_state jsonb_path_ops);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_new_state ON adm.audit_logs USING GIN (new_state jsonb_path_ops);
@@ -827,6 +845,14 @@ ALTER TABLE vis.work_permits
 ALTER TABLE vis.work_permits
     ADD CONSTRAINT fk_work_permits_issuer_user FOREIGN KEY (issuer_user_id) REFERENCES adm.users (id)
     ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE vis.plant_layout_revisions
+    ADD CONSTRAINT fk_plant_layout_revisions_functional_location FOREIGN KEY (functional_location_id) REFERENCES tax.functional_locations (id)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE vis.plant_layout_revisions
+    ADD CONSTRAINT fk_plant_layout_revisions_approved_by_user FOREIGN KEY (approved_by_user_id) REFERENCES adm.users (id)
+    ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE adm.audit_logs
     ADD CONSTRAINT fk_audit_logs_user FOREIGN KEY (user_id) REFERENCES adm.users (id)

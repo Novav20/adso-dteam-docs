@@ -94,6 +94,7 @@ This segregation allows for:
 | WorkPermit | Aggregate Root | Safety authorization boundary that validates the execution of specific work orders in the field. | ISO 55000 competence and LOTO guidance |
 | IsolationPoint | Entity | Permanent lockout point belonging to an EquipmentUnit, required to be isolated during work orders. | ISO 55000 LOTO guidance; ISO 14224 governance |
 | VisualLayer | Entity | Presentation record associated with a work order and visual state. | ISO 9000 record behavior |
+| PlantLayoutRevision | Aggregate Root | Versioned spatial layout revision (MOC) bound to a Level 4 Functional Location, Blob Storage URI, and SHA-256 checksum. | ISO 55001 Management of Change |
 | SpatialMetadata | Value Object | Immutable descriptor of location and geometry for a visual artifact ([DT-ERD-DOC-001 §6.3–§6.5](../entity-relationship/DT-ERD-DOC-001.md#63-visspatial_metadataposition)). | ISO 9000 data vs. information separation |
 | User | Aggregate Root | Root of the account, password, lockout, and token lifecycle. | ISO 55000 audit governance; ISO 9000 audit control |
 | WorkOrderIsolation | Entity | Represents the state and temporal record of a safety lockout on an isolation point for a Work Order. | ISO 55000 LOTO guidance; ISO 14224 |
@@ -563,6 +564,14 @@ This segregation allows for:
 | VERIFIED_INTACT | Partition anchor hash matches the final sealed audit record within the retention window. | ISO 27001 A.8.16 / ADR-003 (`FR-350`) |
 | VERIFYING_IN_PROGRESS | Asynchronous cryptographic anchor verification is executing on the partition segment. | Forensic Integrity Check (`FR-351`) |
 | TAMPER_BREACH_DETECTED | Cryptographic anchor mismatch or missing chained link detected within the partition window. | Tamper Quarantine (`TR-003-NFR-377`) |
+
+#### 4.44 PlantLayoutRevision.status
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| DRAFT | Uploaded spatial layout revision awaiting MOC engineering validation and approval. | ISO 55001 Management of Change |
+| ACTIVE | Approved spatial layout revision currently serving as the authoritative plant representation for the Level 4 Functional Location. | ISO 55001 Clause 7.5 |
+| SUPERSEDED | Historical spatial layout revision replaced by a newer approved revision, retained for audit traceability. | ISO 9000 Record Retention |
 
 ## 5. Domain Safety & Segregation of Duties (SoD) Constants
 

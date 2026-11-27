@@ -41,6 +41,7 @@ TableGroup vis {
   "vis"."visual_layers"
   "vis"."work_order_isolations"
   "vis"."work_permits"
+  "vis"."plant_layout_revisions"
 }
 
 TableGroup adm {
@@ -363,6 +364,18 @@ Table "vis"."work_permits" {
   "status" "VARCHAR(20)" [not null, note: 'Controlled permit lifecycle status vocabulary (DT-DM-DOC-001 §4.35).']
 }
 
+Table "vis"."plant_layout_revisions" {
+  "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (PK).']
+  "functional_location_id" "UUID" [not null, note: 'Foreign key to the Level 4 Functional Location (`functional_locations`).']
+  "revision_code" "VARCHAR(40)" [unique, not null, note: 'Management of Change (MOC) layout revision identifier (e.g. MOC-2026-REV01).']
+  "blob_storage_uri" "VARCHAR(512)" [not null, note: 'Immutable Object Storage URI of the spatial layout artifact (`DT-UI-SVG-DOC-001`).']
+  "checksum_sha256" "VARCHAR(64)" [not null, note: 'Hex-encoded SHA-256 integrity digest verifying layout artifact immutability.']
+  "status" "VARCHAR(20)" [not null, default: `'DRAFT'`, note: 'Controlled MOC layout revision status vocabulary (DT-DM-DOC-001 §4.44).']
+  "approved_by_user_id" "UUID" [note: 'Foreign key to `adm.users(id)` for the MOC approver (`NULL` while in `DRAFT`).']
+  "approved_at" "TIMESTAMPTZ" [note: 'UTC timestamp when the revision was approved and activated.']
+  "created_at" "TIMESTAMPTZ" [not null, default: `clock_timestamp()`, note: 'UTC creation timestamp of the layout revision record.']
+}
+
 Table "adm"."audit_logs" {
   "id" "UUID" [pk, not null, default: `uuidv7()`, note: 'Unique identifier of the entity (composite PK `(id, timestamp)` for PostgreSQL 18 declarative range partitioning per FR-350).']
   "user_id" "UUID" [note: 'Foreign key to the related table.']
@@ -515,6 +528,8 @@ Ref: "mtto"."work_orders"."id" < "vis"."visual_layers"."work_order_id" [delete: 
 Ref: "mtto"."work_orders"."id" < "vis"."work_order_isolations"."work_order_id" [delete: cascade, update: cascade]
 Ref: "vis"."isolation_points"."id" < "vis"."work_order_isolations"."isolation_point_id" [delete: restrict, update: cascade]
 Ref: "adm"."users"."id" < "vis"."work_order_isolations"."lease_holder_user_id" [delete: set null, update: cascade]
+Ref: "tax"."functional_locations"."id" < "vis"."plant_layout_revisions"."functional_location_id" [delete: restrict, update: cascade]
+Ref: "adm"."users"."id" < "vis"."plant_layout_revisions"."user_id" [delete: set null, update: cascade]
 Ref: "adm"."users"."id" < "adm"."user_roles"."user_id" [delete: cascade, update: cascade]
 Ref: "adm"."roles"."id" < "adm"."user_roles"."role_id" [delete: cascade, update: cascade]
 Ref: "adm"."roles"."id" < "adm"."role_permissions"."role_id" [delete: cascade, update: cascade]

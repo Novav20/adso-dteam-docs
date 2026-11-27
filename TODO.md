@@ -142,12 +142,12 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Document the Cross-DbContext Unit of Work / Shared `DbConnection` transaction pattern in [`DT-ARQ-DB-DOC-001.md`](architecture/DT-ARQ-DB-DOC-001.md).
   - [ ] Define the canonical multi-project `.sln` structure (`Dteam.Contracts`, shared `Dteam.Ui` Razor Class Library, `Dteam.Web`, `Dteam.Mobile`) in [`DT-ARQ-TECH-001.md`](architecture/DT-ARQ-TECH-001.md).
 
-- [ ] **MOC Layout Revision Entity (`vis.plant_layout_revisions`)**
-  - [ ] Add relational entity to `DT-ERD-DOC-001.md`: UUIDv7, FK to Level 4 Functional Location, revision code, Blob Storage URI, SHA-256 checksum, lifecycle status (`DRAFT`, `ACTIVE`, `SUPERSEDED`), and approver ID.
-  - [ ] Document MOC audit trail for spatial additions/deletions.
+- [x] **MOC Layout Revision Entity (`vis.plant_layout_revisions`)**
+  - [x] Add relational entity to `DT-ERD-DOC-001.md`: UUIDv7, FK to Level 4 Functional Location, revision code, Blob Storage URI, SHA-256 checksum, lifecycle status (`DRAFT`, `ACTIVE`, `SUPERSEDED`), and approver ID.
+  - [x] Document MOC audit trail for spatial additions/deletions.
 
-- [ ] **C4 Component Model Update (`DT-ARQ-CMP-DOC-001.md`)**
-  - [ ] Formalize spatial ingestion port (`ISpatialIngestionService` / `SpatialIngestionWorker`).
+- [x] **C4 Component Model Update (`DT-ARQ-CMP-DOC-001.md`)**
+  - [x] Formalize spatial ingestion port (`ISpatialIngestionService` / `SpatialIngestionWorker`).
 
 ---
 

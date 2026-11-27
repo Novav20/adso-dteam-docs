@@ -12,6 +12,7 @@ ENUM_ALIASES = {
 EXPLICIT_FK_TARGETS = {
     "issuer_user_id": "users",
     "lease_holder_user_id": "users",
+    "approved_by_user_id": "users",
     "subunit_id": "subunits",
     "maintainable_item_id": "maintainable_items",
     "equipment_class_id": "equipment_classes",

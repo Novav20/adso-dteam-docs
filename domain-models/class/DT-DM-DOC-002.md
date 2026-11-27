@@ -233,6 +233,11 @@ Additionally, the document justifies the existence of each method under the prin
 ## **Architectural Notes**
 
 - The `EquipmentClass` and `InventoryTransaction` classes do not expose mutation methods in this model, as they act as immutable historical records (Ledger) and strict taxonomy catalogs respectively.
+### 6.6. `PlantLayoutRevision` (`<<Aggregate Root>>`)
+- `CreateDraft(Guid functionalLocationId, string revisionCode, string blobStorageUri, string checksumSha256)`: Instantiates a new spatial layout revision in `DRAFT` status bound to a Level 4 `FunctionalLocation` with a verified SHA-256 checksum.
+- `ApproveAndActivate(Guid approverUserId)`: Transitions the revision from `DRAFT` to `ACTIVE`, automatically transitioning any prior `ACTIVE` revision for the same `FunctionalLocation` to `SUPERSEDED` (preserving at most one `ACTIVE` revision per Level 4 site/area) and recording an immutable MOC `AuditLog` entry.
+- `Supersede()`: Transitions an `ACTIVE` revision to `SUPERSEDED` when replaced by a newer approved layout.
+
 - The `MeshMapping`, `TelemetrySignal`, `VisualLayer`, and `SpatialMetadata` classes function as read projections, immutable telemetry reception, or frontend graphical metadata ([DT-ERD-DOC-001 §6.3–§6.5](../entity-relationship/DT-ERD-DOC-001.md#63-visspatial_metadataposition)), so they do not expose complex mutating behavior in this MVP model.
 - The `WorkOrderAssignment` class does not expose mutating behavior, as it acts purely as an immutable associative entity that captures the moment and role in which a user was linked to a work order.
 - The `UserPasswordHistory` (`<<Entity>>`, `adm.user_password_histories`) class is an append-only credential digest record written atomically whenever `User.UpdatePassword(newPasswordHash)` executes (`FR-266`); it exposes no post-creation mutation methods and cascades deletion strictly with its owning `User`.

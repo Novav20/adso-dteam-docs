@@ -406,6 +406,20 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | valid_to | TIMESTAMPTZ | NOT NULL | | - | Permit validity end (UTC). |
 | status | VARCHAR(20) | NOT NULL | CHECK | - | Controlled permit lifecycle status vocabulary (DT-DM-DOC-001 §4.35). |
 
+#### 3.4.8 plant_layout_revisions
+
+| Physical Field | PostgreSQL Type | Nullability | Constraints / Keys | Default Value | Justification |
+| --- | --- | --- | --- | --- | --- |
+| id | UUID | NOT NULL | PK | uuidv7() | Unique identifier of the entity (PK). |
+| functional_location_id | UUID | NOT NULL | FK | - | Foreign key to the Level 4 Functional Location (`functional_locations`). |
+| revision_code | VARCHAR(40) | NOT NULL | UNIQUE | - | Management of Change (MOC) layout revision identifier (e.g. MOC-2026-REV01). |
+| blob_storage_uri | VARCHAR(512) | NOT NULL | | - | Immutable Object Storage URI of the spatial layout artifact (`DT-UI-SVG-DOC-001`). |
+| checksum_sha256 | VARCHAR(64) | NOT NULL | | - | Hex-encoded SHA-256 integrity digest verifying layout artifact immutability. |
+| status | VARCHAR(20) | NOT NULL | CHECK | 'DRAFT' | Controlled MOC layout revision status vocabulary (DT-DM-DOC-001 §4.44). |
+| approved_by_user_id | UUID | NULL | FK | - | Foreign key to `adm.users(id)` for the MOC approver (`NULL` while in `DRAFT`). |
+| approved_at | TIMESTAMPTZ | NULL | | - | UTC timestamp when the revision was approved and activated. |
+| created_at | TIMESTAMPTZ | NOT NULL | | clock_timestamp() | UTC creation timestamp of the layout revision record. |
+
 ### 3.5 Schema `adm`
 
 #### 3.5.1 audit_logs
@@ -587,6 +601,8 @@ All tables and columns follow the `snake_case` naming standard. The database is 
 | work_orders | 1 : 1..N | work_order_isolations | requires | CASCADE | CASCADE |
 | isolation_points | 1 : 1..N | work_order_isolations | locked by | RESTRICT | CASCADE |
 | users | 1 : 0..N | work_order_isolations | leases offline | SET NULL | CASCADE |
+| functional_locations | 1 : 0..N | plant_layout_revisions | versioned by | RESTRICT | CASCADE |
+| users | 1 : 0..N | plant_layout_revisions | approves | SET NULL | CASCADE |
 | users | 1 : 1..N | user_roles | associated to | CASCADE | CASCADE |
 | roles | 1 : 1..N | user_roles | granted to | CASCADE | CASCADE |
 | roles | 1 : 0..N | role_permissions | contains | CASCADE | CASCADE |

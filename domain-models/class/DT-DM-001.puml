@@ -348,6 +348,20 @@ package "Digital Twin Convergence (VIS)" <<Folder>> #F0F0F0 {
         - OpacityLevel: Decimal
         - Status: String
     }
+    class PlantLayoutRevision <<Aggregate Root>> {
+        - Id: UUID
+        - FunctionalLocationId: UUID
+        - RevisionCode: String
+        - BlobStorageUri: String
+        - ChecksumSha256: String
+        - Status: String
+        - ApprovedByUserId: UUID
+        - ApprovedAt: DateTime
+        - CreatedAt: DateTime
+        --
+        + ApproveAndActivate(approverUserId: UUID): void
+        + Supersede(): void
+    }
     class SpatialMetadata <<Value Object>> {
         - MeshMappingId: UUID
         - Position: JSON
@@ -537,6 +551,8 @@ EquipmentUnit "1" --> "0..*" WorkPermit : targets
 User "1" --> "0..*" WorkPermit : authorizes / issues
 WorkPermit "1" --> "0..*" WorkOrder : validates execution of
 WorkOrder "1" *-- "0..*" VisualLayer : visualized in
+FunctionalLocation "1" --> "0..*" PlantLayoutRevision : versioned by
+User "1" --> "0..*" PlantLayoutRevision : approves
 WorkOrder "1" *-- "1..*" WorkOrderIsolation : requires
 IsolationPoint "1" --> "1..*" WorkOrderIsolation : locked by
 User "1" o-- "0..*" WorkOrderIsolation : leases offline
