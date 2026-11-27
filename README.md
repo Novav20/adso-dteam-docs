@@ -57,7 +57,7 @@ adso-dteam-docs/
 ├── scripts/              # Generators (DDL, DBML, Structurizr, Tokens, Sprite, Requirements), verifiers & plot_plan_generator/
 ├── TODO.md               # Engineering roadmap, milestone log, and pre-implementation backlog
 └── ui-ux/                # User interface design and information architecture
-    ├── assets/           # Generated tokens.css, tokens_penpot.json, icons.svg sprite, portal-shell.css & schematics
+    ├── assets/           # Generated tokens.css, icons.svg sprite, MAI figures & Affinity design sources
     ├── screens/          # 16 canonical screen specification blueprints (SCR-*.md)
     ├── DT-UI-DS-DOC-001  # Design Tokens, HPHMI principles, and Visual Style Guide
     ├── DT-UI-NAV-DOC-001 # Global Navigation Specification, Transition Matrix, and Safety Guards

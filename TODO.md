@@ -57,7 +57,7 @@ All documentation and specifications referenced here reside in `adso-dteam-docs/
   - [x] Pre-flight Use Case Audit and CAP execution: [`UC-INV-005.md`](domain-models/use-cases/inv/UC-INV-005.md) (v1.1 Stable / PASSED).
   - [x] Canonical specification finalized: [`SCR-INV-005.md`](ui-ux/screens/inv/SCR-INV-005.md) (v1.3 Stable — Screen #6, Level 3 Master Datasheet & Audited Governance Archetype, `EquipmentTechnicalSchematicCard.razor` `CMP-13`, 100% C# 14 / .NET 10 contracts, `TR-001`–`TR-011`, `ADR-003`/`ADR-005`/`ADR-010` traceability).
   - [x] Execute Tier 0/1/2 UI audit, capture 1080p screenshot, and persist report (`PASSED`).
-  - [x] Modernize visual ergonomics & tablet landscape responsiveness, extract shared [`portal-shell.css`](ui-ux/assets/portal-shell.css), and update high-res visual artifact.
+  - [x] Modernize visual ergonomics & tablet landscape responsiveness, extract shared `portal-shell.css` in the prototype workspace, and update high-res visual artifact.
 
 - [x] **SCR-INV-027: Functional Locations Hierarchy Tree**
   - [x] Canonical specification finalized for ISO 14224 Level 1 to Level 5 navigation tree: [`SCR-INV-027.md`](ui-ux/screens/inv/SCR-INV-027.md) (v1.1 Stable).

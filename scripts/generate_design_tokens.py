@@ -162,7 +162,12 @@ def extract_font_weight(raw_weight: str) -> str:
     return "400"
 
 
-def generate(source: Path, target: Path, penpot_target: Path) -> None:
+def generate(
+    source: Path,
+    target: Path,
+    penpot_target: Path = DEFAULT_PENPOT_TARGET,
+    emit_penpot: bool = False,
+) -> None:
     text = source.read_text(encoding="utf-8")
     tables = markdown_tables(text)
     spacing = table_for(tables, "Spacing Scale", "CSS Token")
@@ -304,6 +309,9 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines), encoding="utf-8")
     print(f"Generated: {target}")
+
+    if not emit_penpot:
+        return
 
     # 2. Generate ui-ux/assets/tokens_penpot.json
     penpot: dict[str, Any] = {
@@ -500,9 +508,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
     parser.add_argument("--target", type=Path, default=DEFAULT_TARGET)
+    parser.add_argument("--penpot", action="store_true", help="Also emit tokens_penpot.json for manual Penpot import.")
     parser.add_argument("--penpot-target", type=Path, default=DEFAULT_PENPOT_TARGET)
     args = parser.parse_args()
-    generate(args.source.resolve(), args.target.resolve(), args.penpot_target.resolve())
+    generate(args.source.resolve(), args.target.resolve(), args.penpot_target.resolve(), emit_penpot=args.penpot)
 
 
 if __name__ == "__main__":

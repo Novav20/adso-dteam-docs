@@ -20,10 +20,9 @@ python -m unittest discover -s scripts/tests
 
 ## `generate_design_tokens.py`
 
-Generates `ui-ux/assets/tokens.css` and `ui-ux/assets/tokens_penpot.json` from
-the tables and definitions in `ui-ux/DT-UI-DS-DOC-001.md`. Both are generated
-artifacts; changes must be made in the Markdown source document and then
-regenerated:
+Generates `ui-ux/assets/tokens.css` (and optionally `tokens_penpot.json` when `--penpot` is passed) from
+the tables and definitions in `ui-ux/DT-UI-DS-DOC-001.md`. Generated CSS should not be edited by hand;
+changes must be made in the Markdown source document and then regenerated:
 
 ```bash
 python3 scripts/generate_design_tokens.py
@@ -38,7 +37,7 @@ It also accepts explicit paths for validations or alternative sources:
 python3 scripts/generate_design_tokens.py \
 	--source ui-ux/DT-UI-DS-DOC-001.md \
 	--target ui-ux/assets/tokens.css \
-	--penpot-target ui-ux/assets/tokens_penpot.json
+	--penpot --penpot-target ui-ux/assets/tokens_penpot.json
 ```
 
 ---
