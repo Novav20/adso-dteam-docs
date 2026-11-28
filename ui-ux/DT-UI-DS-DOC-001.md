@@ -2,7 +2,7 @@
 code: DT-UI-DS-DOC-001
 version: 2.3
 date: 2026-11-24
-status: In Review
+status: Approved
 author: Juan David Julio
 standard:
   - ISA-101.01-2015 (Human Machine Interfaces for Process Automation Systems)

@@ -2,7 +2,7 @@
 code: DT-UC-TRC-001
 version: 1.4
 date: 2026-10-05
-status: In Review
+status: Approved
 author: Juan David Julio
 standard:
   - ISO 9001:2015
