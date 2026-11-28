@@ -624,8 +624,9 @@ def evaluate_grd_16(index: RepoIndex) -> list[Finding]:
 
         if rel.startswith("architecture/") and rel != SSOT_PATHS.adr_006:
             ttl_re = re.compile(r"\b(?:15[-\s]*min(?:ute)?s?|8[-\s]*hours?)\b", re.IGNORECASE)
+            ttl_ctx_re = re.compile(r"(?:session|timeout|ttl|lock|inactiv|shift|jwt|token)", re.IGNORECASE)
             for line_no, line in enumerate(doc.raw_text.splitlines(), start=1):
-                if ttl_re.search(line):
+                if ttl_re.search(line) and ttl_ctx_re.search(line):
                     findings.append(
                         Finding(
                             rule_id="GRD-16",
@@ -653,6 +654,41 @@ def evaluate_grd_16(index: RepoIndex) -> list[Finding]:
                         line=line_no,
                         message=f"Obsolete architecture term '{om.group(0)}' detected in Structurizr DSL '{rel}'.",
                         remediation="Update Structurizr DSL to reflect approved architecture.",
+                    )
+                )
+
+    # 3b. Verify every Component ID declared in DT-ARQ-CMP-DOC-001 §2 appears in DT-ARQ-CMP-001-component-model.dsl
+    cmp_doc = index.markdown_docs.get(SSOT_PATHS.arq_cmp_doc)
+    cmp_dsl = index.raw_texts.get(SSOT_PATHS.arq_cmp_dsl)
+    if cmp_doc is not None and cmp_dsl is not None:
+        in_sec2 = False
+        for line_no, raw_line in enumerate(cmp_doc.raw_text.splitlines(), start=1):
+            stripped = raw_line.strip()
+            if stripped.startswith("## 2."):
+                in_sec2 = True
+                continue
+            if in_sec2 and stripped.startswith("## "):
+                break
+            if not in_sec2 or not stripped.startswith("|"):
+                continue
+            if re.match(r"^\|[\s:-]+\|", stripped) or stripped.startswith("| Component ID"):
+                continue
+            first_cell = stripped.strip("|").split("|", 1)[0].replace("**", "").strip("` ").strip()
+            if not first_cell:
+                continue
+            if not re.search(rf"\b{re.escape(first_cell)}\s*=", cmp_dsl):
+                findings.append(
+                    Finding(
+                        rule_id="GRD-16",
+                        severity=SEVERITY_BLOCKER,
+                        scope="arch",
+                        file=SSOT_PATHS.arq_cmp_dsl,
+                        line=None,
+                        message=(
+                            f"Component ID '{first_cell}' declared in '{SSOT_PATHS.arq_cmp_doc}:{line_no}' "
+                            f"is missing from '{SSOT_PATHS.arq_cmp_dsl}'."
+                        ),
+                        remediation="Regenerate DT-ARQ-CMP-001-component-model.dsl via scripts/generate_component_structurizr.py.",
                     )
                 )
 

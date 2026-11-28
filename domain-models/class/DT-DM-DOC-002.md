@@ -176,6 +176,14 @@ Additionally, the document justifies the existence of each method under the prin
 | `AcquireOfflineLease(leaseHolderUserId: UUID, leasedUntil: DateTime): void` | Transitions `IsolationStatus` to `LEASED_OFFLINE` and assigns a bounded cryptographic safety lease (`LeaseHolderUserId`, `LeasedUntil`) to the disconnected technician device. | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>NFR-238<br>[ADR-006](../../architecture/adr/ADR-006.md) | **Distributed Safety Lock:** Delegates bounded offline LOTO authority while preventing concurrent central mutations until lease reconciliation or expiry. |
 | `ReleaseOfflineLease(): void` | Clears `LeaseHolderUserId` and `LeasedUntil` upon online outbox reconciliation or lease expiration, restoring standard synchronous lock evaluation. | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>NFR-238<br>[ADR-006](../../architecture/adr/ADR-006.md) | **State Reconciliation:** Ends the disconnected lease window cleanly once offline commands are ingested. |
 
+### 5.4. `PlantLayoutRevision` (`<<Aggregate Root>>`)
+
+| Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
+| :--- | :--- | :--- | :--- |
+| `CreateDraft(functionalLocationId: UUID, revisionCode: String, blobStorageUri: String, checksumSha256: String): void` | Instantiates a new spatial layout revision in `DRAFT` status bound to a Level 4 `FunctionalLocation` with a verified SHA-256 checksum. | ISO 55001 Management of Change | **Spatial Version Control:** Enforces immutable checksum integrity and Level 4 spatial binding before layout activation. |
+| `ApproveAndActivate(approverUserId: UUID): void` | Transitions the revision from `DRAFT` to `ACTIVE`, automatically transitioning any prior `ACTIVE` revision for the same `FunctionalLocation` to `SUPERSEDED` (preserving at most one `ACTIVE` revision per Level 4 site/area) and recording an immutable MOC `AuditLog` entry. | ISO 55001 Management of Change | **Single Active Layout Invariant:** Atomically enforces at most one `ACTIVE` layout per `FunctionalLocation` with MOC audit traceability. |
+| `Supersede(): void` | Transitions an `ACTIVE` revision to `SUPERSEDED` when replaced by a newer approved layout. | ISO 55001 Management of Change | **Lifecycle Governance:** Preserves historical spatial revisions for auditability without deleting superseded blueprints. |
+
 ---
 
 ## 6. Layer 5: Safety and Governance (ADM)
@@ -233,11 +241,6 @@ Additionally, the document justifies the existence of each method under the prin
 ## **Architectural Notes**
 
 - The `EquipmentClass` and `InventoryTransaction` classes do not expose mutation methods in this model, as they act as immutable historical records (Ledger) and strict taxonomy catalogs respectively.
-### 6.6. `PlantLayoutRevision` (`<<Aggregate Root>>`)
-- `CreateDraft(Guid functionalLocationId, string revisionCode, string blobStorageUri, string checksumSha256)`: Instantiates a new spatial layout revision in `DRAFT` status bound to a Level 4 `FunctionalLocation` with a verified SHA-256 checksum.
-- `ApproveAndActivate(Guid approverUserId)`: Transitions the revision from `DRAFT` to `ACTIVE`, automatically transitioning any prior `ACTIVE` revision for the same `FunctionalLocation` to `SUPERSEDED` (preserving at most one `ACTIVE` revision per Level 4 site/area) and recording an immutable MOC `AuditLog` entry.
-- `Supersede()`: Transitions an `ACTIVE` revision to `SUPERSEDED` when replaced by a newer approved layout.
-
 - The `MeshMapping`, `TelemetrySignal`, `VisualLayer`, and `SpatialMetadata` classes function as read projections, immutable telemetry reception, or frontend graphical metadata ([DT-ERD-DOC-001 §6.3–§6.5](../entity-relationship/DT-ERD-DOC-001.md#63-visspatial_metadataposition)), so they do not expose complex mutating behavior in this MVP model.
 - The `WorkOrderAssignment` class does not expose mutating behavior, as it acts purely as an immutable associative entity that captures the moment and role in which a user was linked to a work order.
 - The `UserPasswordHistory` (`<<Entity>>`, `adm.user_password_histories`) class is an append-only credential digest record written atomically whenever `User.UpdatePassword(newPasswordHash)` executes (`FR-266`); it exposes no post-creation mutation methods and cascades deletion strictly with its owning `User`.

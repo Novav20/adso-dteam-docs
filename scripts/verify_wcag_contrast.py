@@ -97,6 +97,7 @@ def main() -> int:
         ("--dt-color-alarm-warning", 3.0, "UI/Graph"),
         ("--dt-color-state-info", 3.0, "UI/Graph"),
         ("--dt-color-state-success", 3.0, "UI/Graph"),
+        ("--dt-color-quality-bad", 3.0, "UI/Graph"),
         ("--dt-color-border-focus", 3.0, "UI/Graph"),
     ]
 
