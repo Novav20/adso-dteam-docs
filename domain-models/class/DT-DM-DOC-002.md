@@ -2,8 +2,8 @@
 code: DT-DM-DOC-002
 version: 1.6
 date: 2026-11-06
-status: Full Traceability Audit Completed (ISO 9001:2015 / ISO 14224 / ISO 55001)
-author: Juan David Julio Serrano
+status: Approved
+author: Juan David Julio
 standard:
   - ISO 9001:2015
   - ISO 14224:2016
@@ -76,7 +76,7 @@ Additionally, the document justifies the existence of each method under the prin
 
 | Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
 | :--- | :--- | :--- | :--- |
-| `GenerateWorkOrder(targetDate: DateTime): WorkOrder` | Acts as a Factory to instantiate a new `WorkOrder` inheriting the tasks, spare parts, and specialties from the plan. | [MTTO-001](../../requirements/user-stories/mtto/MTTO-001.md)<br>FR-003, FR-005 | **Factory Method:** Centralizes the recurring logic. The plan knows exactly how to clone its specifications into an executable instance. |
+| `GenerateWorkOrder(targetDate: DateTime): WorkOrder` | Acts as a Factory to instantiate a new `WorkOrder` inheriting the tasks, spare parts, and specialties from the plan. When `maintenanceMethod == CONDITION_BASED`, `GenerateWorkOrder()` maps the resulting `WorkOrder.maintenanceMethod` to `PREDICTIVE` (satisfying `ck_work_orders_maintenance_method`). | [MTTO-001](../../requirements/user-stories/mtto/MTTO-001.md)<br>FR-003, FR-005 | **Factory Method:** Centralizes the recurring logic. The plan knows exactly how to clone its specifications into an executable instance. |
 | `Suspend(reason: String): void` | Changes the plan to an `INACTIVE` state, temporarily stopping the generation of new WOs with a documented reason. | [MTTO-001](../../requirements/user-stories/mtto/MTTO-001.md)<br>FR-006, NFR-007 | **State Machine:** Useful during general plant shutdowns or operational changes without deleting the plan configuration. |
 | `Archive(): void` | Changes the plan to an `ARCHIVED` state marking it as obsolete, preserving the full execution history. | [MTTO-001](../../requirements/user-stories/mtto/MTTO-001.md)<br>FR-006<br>[ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>FR-350, FR-358<br>ISO 55001:2014 § 7.6 | **Document Retention:** ISO 55001 compliance regarding the retention of obsolete maintenance strategies without physical deletion. |
 | `CalculateNextTriggerLimit(currentUsage: Decimal): void` | Calculates the next telemetry trigger threshold by adding the `IntervalValue` to the current cumulative usage reading. | [MTTO-023](../../requirements/user-stories/mtto/MTTO-023.md)<br>FR-583, FR-585, FR-590 | **Telemetry (Usage):** Defines the target of the next WO based on physical variable accumulation (hour meters/cycles) maintaining high-precision decimals. |
@@ -172,9 +172,17 @@ Additionally, the document justifies the existence of each method under the prin
 | Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
 | :--- | :--- | :--- | :--- |
 | `VerifyIsolation(padlockTagId: String): void` | Sets `IsIsolated` to `true`, transitions `IsolationStatus` to `ISOLATED`, records `IsolatedAt` timestamp, and binds the physical lock/tag ID. | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>FR-228, FR-230 | **LOTO Sequencing:** Enforces positive mechanical or electrical lockout before Try-Out verification. |
-| `ConfirmTryOut(method: TryOutMethod, observedReading: String, technicianSignatureHash: String, telemetrySnapshot: JSON): void` | Sets `TryOutConfirmed` to `true`, transitions `IsolationStatus` to `VERIFIED_ZERO_ENERGY`, records `TryOutAt`, physical `TryOutMethod`, observed reading metric, and captures the tamper-evident signature hash and IoT sensor snapshot. | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>FR-230, FR-231, TR-001 | **OSHA 1910.147 (d)(6) Compliance:** Mandates immutable evidence of physical absence-of-energy test before work order can enter execution. |
+| `ConfirmTryOut(method: TryOutMethod, observedReading: String, technicianSignatureHash: String, telemetrySnapshot: JSON): void` | Sets `TryOutConfirmed` to `true`, transitions `IsolationStatus` to `VERIFIED_ZERO_ENERGY`, records `TryOutAt`, physical `TryOutMethod`, observed reading metric, and captures the tamper-evident signature hash and IoT sensor snapshot ([DT-ERD-DOC-001 §6.6](../entity-relationship/DT-ERD-DOC-001.md#66-viswork_order_isolationstelemetry_snapshot)). | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>FR-230, FR-231, TR-001 | **OSHA 1910.147 (d)(6) Compliance:** Mandates immutable evidence of physical absence-of-energy test before work order can enter execution. |
 | `AcquireOfflineLease(leaseHolderUserId: UUID, leasedUntil: DateTime): void` | Transitions `IsolationStatus` to `LEASED_OFFLINE` and assigns a bounded cryptographic safety lease (`LeaseHolderUserId`, `LeasedUntil`) to the disconnected technician device. | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>NFR-238<br>[ADR-006](../../architecture/adr/ADR-006.md) | **Distributed Safety Lock:** Delegates bounded offline LOTO authority while preventing concurrent central mutations until lease reconciliation or expiry. |
 | `ReleaseOfflineLease(): void` | Clears `LeaseHolderUserId` and `LeasedUntil` upon online outbox reconciliation or lease expiration, restoring standard synchronous lock evaluation. | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>NFR-238<br>[ADR-006](../../architecture/adr/ADR-006.md) | **State Reconciliation:** Ends the disconnected lease window cleanly once offline commands are ingested. |
+
+### 5.4. `PlantLayoutRevision` (`<<Aggregate Root>>`)
+
+| Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
+| :--- | :--- | :--- | :--- |
+| `CreateDraft(functionalLocationId: UUID, revisionCode: String, blobStorageUri: String, checksumSha256: String): void` | Instantiates a new spatial layout revision in `DRAFT` status bound to a Level 4 `FunctionalLocation` with a verified SHA-256 checksum. | ISO 55001 Management of Change | **Spatial Version Control:** Enforces immutable checksum integrity and Level 4 spatial binding before layout activation. |
+| `ApproveAndActivate(approverUserId: UUID): void` | Transitions the revision from `DRAFT` to `ACTIVE`, automatically transitioning any prior `ACTIVE` revision for the same `FunctionalLocation` to `SUPERSEDED` (preserving at most one `ACTIVE` revision per Level 4 site/area) and recording an immutable MOC `AuditLog` entry. | ISO 55001 Management of Change | **Single Active Layout Invariant:** Atomically enforces at most one `ACTIVE` layout per `FunctionalLocation` with MOC audit traceability. |
+| `Supersede(): void` | Transitions an `ACTIVE` revision to `SUPERSEDED` when replaced by a newer approved layout. | ISO 55001 Management of Change | **Lifecycle Governance:** Preserves historical spatial revisions for auditability without deleting superseded blueprints. |
 
 ---
 
@@ -199,12 +207,14 @@ Additionally, the document justifies the existence of each method under the prin
 | `AddPermission(module: String, action: String): void` | Adds an atomic authorization rule to the role. | [ADM-013](../../requirements/user-stories/adm/ADM-013.md)<br>FR-247, FR-248 | **RBAC Management:** The role, as an aggregate root, encapsulates and protects its permission list (Value Objects). |
 | `RemovePermission(module: String, action: String): void` | Removes an authorization rule from the role. | [ADM-013](../../requirements/user-stories/adm/ADM-013.md)<br>FR-248, FR-250, NFR-257 | **RBAC Management:** Allows restricting erroneously configured privileges while protecting the Root Administrator role against restrictive edits. |
 | `ValidateSoD(): void` | Reviews the internal permission matrix to guarantee that no Segregation of Duties conflicts exist (e.g., creator vs. approver). | [ADM-013](../../requirements/user-stories/adm/ADM-013.md)<br>FR-249, NFR-255 | **Critical Invariant:** ISO 55001/27001 regulatory compliance to prevent internal fraud or unaudited manipulations. |
+| `Deactivate(reason: String): void` | Sets `isActive = false` (`adm.roles.is_active = FALSE`) to logically deactivate a custom role while preserving historical traceability; hard-blocked when `isSystemRoot == true`. | [ADM-013](../../requirements/user-stories/adm/ADM-013.md)<br>FR-250, FR-254, NFR-257 | **Audit Retention & Lockout Guard:** Withdraws active role privileges without deleting historical references or touching immutable System Root roles. |
+| `Activate(): void` | Restores `isActive = true` (`adm.roles.is_active = TRUE`) on a previously deactivated custom role. | [ADM-013](../../requirements/user-stories/adm/ADM-013.md)<br>FR-254 | **State Recovery:** Enables controlled reactivation of custom roles with full audit trail continuity. |
 
 ### 6.3. `AuditLog` (`<<Entity>>`)
 
 | Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
 | :--- | :--- | :--- | :--- |
-| `VerifyIntegrity(): boolean` | Recalculates the SHA-256 payload digest chaining `PreviousHash` with the record's immutable state fields and compares it against `IntegrityHash` to detect database-level tampering or row deletion. | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>FR-346, FR-351<br>[TR-001](../../requirements/common/TR-001.md)<br>NFR-362, NFR-363<br>[ADR-003](../../architecture/adr/ADR-003.md) | **Immutable Security:** Cryptographically validates both individual record purity and chronological hash-chain continuity during audits or exports. |
+| `VerifyIntegrity(): boolean` | Recalculates the SHA-256 payload digest chaining `PreviousHash` with the record's immutable state fields and JSONB envelope ([DT-ERD-DOC-001 §6.7](../entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)) and compares it against `IntegrityHash` to detect database-level tampering or row deletion. | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>FR-346, FR-351<br>[TR-001](../../requirements/common/TR-001.md)<br>NFR-362, NFR-363<br>[ADR-003](../../architecture/adr/ADR-003.md) | **Immutable Security:** Cryptographically validates both individual record purity and chronological hash-chain continuity during audits or exports. |
 
 ### 6.4. `AuthToken` (`<<Entity>>`)
 
@@ -213,10 +223,24 @@ Additionally, the document justifies the existence of each method under the prin
 | `Revoke(): void` | Forcibly invalidates the token before its natural expiration. | [ADM-014](../../requirements/user-stories/adm/ADM-014.md)<br>FR-262<br>[TR-006](../../requirements/common/TR-006.md)<br>NFR-394, NFR-395 | **Access Control:** Fundamental for instantly killing active sessions when an account is suspended due to security risk. |
 | `MarkAsUsed(): void` | Invalidates the token by marking it as used. | [ADM-014](../../requirements/user-stories/adm/ADM-014.md)<br>FR-261<br>[TR-006](../../requirements/common/TR-006.md)<br>NFR-394 | **Single-Use Rule:** Prevents replay attacks on sensitive tokens such as password reset links or onboarding invitations. |
 
+### 6.5. `AuditRetentionPartition` (`<<Entity>>`)
+
+| Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
+| :--- | :--- | :--- | :--- |
+| `SealColdArchive(anchorHash: String, sealedRecordCount: long): void` | Transitions `IsColdArchived` to `true`, locks `RecordCount` and `PartitionAnchorHash` (final SHA-256 `IntegrityHash` of the closed quarterly window), and stamps `SealedAt` in UTC. | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>FR-350, FR-358<br>[TR-001](../../requirements/common/TR-001.md)<br>TR-001-FR-367 | **7-Year Retention Lifecycle:** Preserves unbroken cryptographic continuity (`ADR-003`) across quarterly hot-to-cold archival boundaries per ISO 55001 Clause 7.5. |
+| `VerifyPartitionAnchor(recalculatedAnchorHash: String): boolean` | Compares the stored `PartitionAnchorHash` against the recalculated digest at the partition boundary and updates `IntegrityStatus` (`VERIFIED_INTACT` or `TAMPER_BREACH_DETECTED`). | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>FR-350, FR-351<br>[TR-003](../../requirements/common/TR-003.md) | **Tamper-Evident Continuity:** Detects unauthorized manipulation or deletion of archived segments across multi-year retention windows. |
+
+### 6.6. `PasswordPolicy` (`<<Aggregate Root>>`)
+
+| Method | Purpose / Business Rule | Origin (Story / FR) | Architectural Justification (DDD) |
+| :--- | :--- | :--- | :--- |
+| `UpdatePolicy(minLength: int, requireUppercase: bool, requireDigit: bool, requireSpecialChar: bool, maxAgeDays: int, historyNonReuseCount: int, lockoutThreshold: int, lockoutDurationMinutes: int): void` | Validates NIST SP 800-63B bounds on the singleton security configuration (`adm.password_policies`) and stamps `updatedAt` in UTC under underlying relational database optimistic concurrency. | [ADM-014](../../requirements/user-stories/adm/ADM-014.md)<br>FR-259, FR-260, FR-266, NFR-272 | **Singleton Configuration Root:** Centralizes complexity, rotation, non-reuse depth, and anti-brute-force lockout invariants rather than hardcoding thresholds across IAM services. |
+
 ---
 
 ## **Architectural Notes**
 
 - The `EquipmentClass` and `InventoryTransaction` classes do not expose mutation methods in this model, as they act as immutable historical records (Ledger) and strict taxonomy catalogs respectively.
-- The `MeshMapping`, `TelemetrySignal`, `VisualLayer`, and `SpatialMetadata` classes function as read projections, immutable telemetry reception, or frontend graphical metadata, so they do not expose complex mutating behavior in this MVP model.
+- The `MeshMapping`, `TelemetrySignal`, `VisualLayer`, and `SpatialMetadata` classes function as read projections, immutable telemetry reception, or frontend graphical metadata ([DT-ERD-DOC-001 §6.3–§6.5](../entity-relationship/DT-ERD-DOC-001.md#63-visspatial_metadataposition)), so they do not expose complex mutating behavior in this MVP model.
 - The `WorkOrderAssignment` class does not expose mutating behavior, as it acts purely as an immutable associative entity that captures the moment and role in which a user was linked to a work order.
+- The `UserPasswordHistory` (`<<Entity>>`, `adm.user_password_histories`) class is an append-only credential digest record written atomically whenever `User.UpdatePassword(newPasswordHash)` executes (`FR-266`); it exposes no post-creation mutation methods and cascades deletion strictly with its owning `User`.

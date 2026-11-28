@@ -17,67 +17,84 @@ user_stories:
   - "[[INV-027]]"
 use_cases:
   - "[[UC-INV-027]]"
-version: 1
-date: 2026-11-11
-status: Draft
+version: 1.1
+date: 2026-11-15
+status: Stable
 ---
 
 # SCR-INV-027: ISO 14224 Functional Locations Hierarchy Tree and Taxonomic Governance
 
 ## 1. Purpose and Operational Context
 
-* **View Objective:** Centralized Level 2 taxonomic explorer and governance workspace for structuring, reorganizing, and auditing the plant's ISO 14224 Functional Location hierarchy across Levels 1 to 5 (`Industry` $\to$ `Business Category` $\to$ `Installation` $\to$ `Plant / Unit` $\to$ `Section / System`). Decouples permanent process slots from physical rotating machinery ([ADR-008](../../../architecture/adr/ADR-008.md)), governs process criticality ($1..10$) and environmental exposure inheritance, enforces cycle-free re-parenting (`FR-162`, `NFR-167`), and blocks deletion of occupied or parent nodes (`FR-163`).
+* **View Objective:** Centralized Level 2 taxonomic explorer and governance workspace for structuring, reorganizing, and auditing the plant's ISO 14224 Functional Location hierarchy across Levels 1 to 5 (`Industry` $\to$ `Business Category` $\to$ `Installation` $\to$ `Plant / Unit` $\to$ `Section / System`). Decouples permanent process slots from physical rotating machinery ([ADR-010](../../../architecture/adr/ADR-010.md)), governs process criticality ($1..10$) and environmental exposure inheritance, enforces cycle-free re-parenting (`FR-162`, `NFR-167`), and blocks deletion of occupied or parent nodes (`FR-163`).
 * **Primary Target Persona:** Project Engineer and Reliability Engineer defining root and child Functional Locations, calibrating process criticality indices, reorganizing plant branches, and exporting taxonomic coverage reports (`FR-165`).
 * **Secondary Personas:**
   * **Maintenance Planner & Supervisor:** Navigates the process hierarchy to inspect installed equipment units, verify RIME criticality multipliers, and drill down into Level 3 Equipment Master Data Cards ([SCR-INV-005](SCR-INV-005.md)).
   * **Maintenance Technician & Warehouse Manager:** Searches operational positions by Tag (`FR-164`) to verify currently mounted serial numbers or initiate rotable equipment swaps ([SCR-INV-025](SCR-INV-025.md)).
   * **Auditor:** Inspects the chronological SHA-256 audit ledger of structural tree changes and installation history ([TR-001](../../../requirements/common/TR-001.md)).
-* **Operational Context:** Deployed in engineering and planning offices on desktop workstations, and accessible in supervisory tablet environments. Responsive adaptations across breakpoints are governed in Section 8.
+* **Operational Context:** Deployed in engineering and planning offices on desktop workstations and accessible on industrial tablets during field taxonomic verification and asset slot audits ([DT-UI-NAV-DOC-001 §4.1–§4.2](../../DT-UI-NAV-DOC-001.md#42-navigation-structure-web-portal-client)). Responsive adaptations across breakpoints are governed in Section 8.
 * **Mode of Operation:** Taxonomic Supervision and Governance mode. Direct DCS/SCADA process control manipulation is strictly excluded. Structural mutations (creating, editing, re-parenting, or deleting nodes) are restricted via RBAC to `Project Engineer` and `Reliability Engineer`, while tree navigation and Level 3 drill-down to [SCR-INV-005](SCR-INV-005.md) are available to all roles ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)).
-* **Web Portal Workspace Invariant:** Operates within the unified Blazor Web Portal shell alongside a persistent right-hand workspace dock (`CMP-12` hosting `CMP-06`/`CMP-07` and `CMP-10`) using the Blender N-panel vertical tab spine pattern established in [SCR-MTTO-026](../mtto/SCR-MTTO-026.md) to prevent horizontal layout shift (`CLS = 0`).
+* **Web Portal Workspace Invariant:** Operates within the unified Blazor Web Portal shell alongside an **on-demand, closed-by-default** right-hand workspace dock (`CMP-12` hosting `CMP-06`/`CMP-07` and `CMP-10`) using the Blender N-panel vertical tab spine pattern established in [SCR-MTTO-026](../mtto/SCR-MTTO-026.md). The dock opens automatically upon selecting a tree node or triggering node creation, and closes cleanly on outside click, close trigger, or `Escape` (`CLS = 0`).
 
 ---
 
 ## 2. Visual Artifact
 
-![SCR-INV-027 Functional Locations Hierarchy Tree Screenshot](assets/SCR-INV-027-screenshot.png)
+![SCR-INV-027 Desktop Baseline Closed Dock](assets/SCR-INV-027-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the Functional Locations Hierarchy Tree workstation layout, collapsible navigation sidebar, 5-card ISO 14224 level summary strip, multi-criteria filter bar, virtualized recursive tree grid with level badges and equipment occupancy links, persistent right dock with node inspector, mounted equipment slot card, and sticky governance footer.*
+> *Figure 2.1 — Desktop Workstation (Dark Theme, Closed Dock by Default): Illustrates the collapsible sidebar (`CMP-01`), single-primary-CTA header with `[Export]` menu (`CMP-02`), 5-card ISO 14224 level summary strip (`CMP-03`), 3-selector and paired search/expand/reset toolbar (`CMP-04`), 7-column hierarchical tree explorer with borderless level tags and zero badge inflation (`CMP-05`), closed-by-default right dock spine (`CMP-12`), and sticky taxonomic governance footer (`CMP-13`).*
+
+![SCR-INV-027 Node Inspector Dock](assets/SCR-INV-027-dock-detail.png)
+
+> *Figure 2.2 — Desktop Workstation (Dark Theme, On-Demand Node & Level 5 Slot Inspector Dock Open): Illustrates selecting a Level 5 Functional Location row (`TFA-CSS-P-0101A`) to open `CMP-12` to `CMP-06` (`Node Detail`) and `CMP-07` (`L5 Slot Occupancy`), exposing mounted serial `SN-SULZ-2024-8841`, quick handoffs to `SCR-INV-005` / `SCR-INV-025`, and editable ISO 14224 metadata without shifting the grid container.*
+
+![SCR-INV-027 Light Theme AF-002 Cycle Modal](assets/SCR-INV-027-light.png)
+
+> *Figure 2.3 — Desktop Workstation (Light Theme, `AF-002` Tree Re-Parenting Cycle Detection Block `CMP-08`): Illustrates `ReorganizeLocationModal` during `AF-002`, issuing a redundant `--dt-color-alarm-critical` alert and locking submission when a descendant node is selected as candidate parent.*
+
+![SCR-INV-027 Tablet Landscape](assets/SCR-INV-027-tablet-landscape.png)
+
+> *Figure 2.4 — Industrial Tablet Landscape (Collapsed Sidebar & Lateral Inspector Dock): Illustrates the collapsed icon sidebar (`CMP-01`), responsive 3-column KPI strip (`Total Taxonomy` spanning 2 columns for an orphan-free layout), prioritized 5-column hierarchy tree (`Tag`, `Level`, `Name`, `Criticality`, `Occupancy`), and slide-over inspection dock (`CMP-12`).*
+
+![SCR-INV-027 Tablet Portrait Bottom Sheet](assets/SCR-INV-027-tablet-portrait.png)
+
+> *Figure 2.5 — Industrial Tablet Portrait (Adaptive Bottom Sheet Modality): Illustrates the top-left drawer toggle for off-canvas navigation (`CMP-01`), prioritized 4-column tree grid (`Tag`, `Level`, `Name`, `Occupancy`), and adaptive Bottom Sheet dock (`--dt-radius-2xl` upper curvature, tactile grip handle, and single-tap `Node Detail | SHA-256 Audit` tab switching).*
 
 ---
 
 ## 3. Functional Component Inventory
 
-> The base grid, typography, neutral palettes, and minimal tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This inventory defines the canonical components present on the screen, their design tokens, and their architectural scope. Interaction rules and geometric algorithms are specified in Section 5; responsive container adaptations are governed by Section 8.
+> The base grid, typography (`--dt-font-caption` minimum floor), neutral HPHMI palettes, and tactile contact areas are inherited from [DT-UI-DS-DOC-001](../../DT-UI-DS-DOC-001.md). This inventory defines the canonical components present on the screen, their design tokens, and their architectural scope. Interaction rules and geometric algorithms are specified in Section 5; responsive container adaptations are governed by Section 8.
 
 1. **`CMP-01`: Web Portal Shell & Sidebar**
-   - **Visual Role:** Collapsible navigation sidebar hosting global modules, module hierarchy, and route markers.
+   - **Visual Role:** Collapsible navigation sidebar hosting global modules, module hierarchy, and route markers, transitioning to an off-canvas drawer on portrait tablets.
    - **Design Tokens:**
      - Surface: `--dt-color-surface-base`
      - Border: `--dt-color-border-subtle`
      - Width: `--dt-layout-sidebar-width-expanded` (Desktop) / `--dt-layout-sidebar-width-collapsed` (Tablet Landscape)
-   - **Architectural Scope:** Hosts global module navigation per [DT-UI-NAV-DOC-001](../../DT-UI-NAV-DOC-001.md), highlighting "Functional Locations Tree" under Inventory & Taxonomy. Responsive widths in Section 8.
+   - **Architectural Scope:** Hosts global module navigation per [DT-UI-NAV-DOC-001 §4](../../DT-UI-NAV-DOC-001.md#4-information-architecture-tree), highlighting "Functional Locations" under Inventory & Taxonomy. Responsive widths in Section 8.
 
 2. **`CMP-02`: Top Workstation Header & Action Bar**
-   - **Visual Role:** Sticky top header hosting breadcrumbs, quick search shortcut (`Ctrl + K`), `[+ New Root Location (L1)]` trigger (`FR-160`), `[Export Architecture]` menu (`FR-165`), and operator session badge.
+   - **Visual Role:** Sticky top header hosting portrait drawer trigger, breadcrumbs, `[Export]` dropdown (`CSV` / `JSON`, `FR-165`), contextual secondary `[+ Child Location]` trigger (enabled when an `L1`–`L4` node is selected), single primary `[+ New Root Location (L1)]` CTA (`FR-160`), and operator session badge.
    - **Design Tokens:**
      - Surface: `--dt-color-surface-card`
      - Border: `--dt-color-border-subtle`
      - Elevation: `--dt-z-header-sticky`
      - Primary Button: `--dt-color-state-info`
-   - **Architectural Scope:** Top navigation bar managing root node creation, taxonomy report generation (`CSV` / `JSON`), and operator session presence. Detailed in §5.2 and §5.3.4.
+   - **Architectural Scope:** Enforces single primary CTA discipline, governs root and child node creation entry points, and dispatches taxonomy architecture exports. Detailed in §5.2 and §5.3.4.
 
 3. **`CMP-03`: ISO 14224 Level Summary & Coverage Cards**
-   - **Visual Role:** 5-card interactive summary strip displaying node counts across ISO 14224 Levels 1 to 5 (`L1: Industry`, `L2: Business`, `L3: Installation`, `L4: Plant / Unit`, `L5: Section / System`) plus Level 5 equipment occupancy coverage (`TR-008-FR-418`).
+   - **Visual Role:** 5-card interactive summary strip displaying node counts across ISO 14224 taxonomic hierarchy levels (`Total Taxonomy`, `Macrostructure`, `Plants / Units (Level 4)`, `Equipment Positions (Level 5)` with occupied/vacant breakdown, and `Unconfigured Criticality` alert card activating RIME floor `75`).
    - **Design Tokens:**
      - Surface: `--dt-color-surface-card`
      - Border: `--dt-color-border-subtle`
      - Radius: `--dt-radius-md`
      - Active Filter Ring: `--dt-color-state-info`
-   - **Architectural Scope:** Provides one-click level filtering and taxonomic coverage metrics without duplicate filter chips ([DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle)). Detailed in §5.1.
+     - Alert Count Accent: `--dt-color-alarm-warning`
+   - **Architectural Scope:** Provides one-click level/unconfigured-criticality filtering and taxonomic coverage metrics without duplicate filter chips ([DT-UI-DS-DOC-001 §6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle)). Detailed in §5.1.
 
 4. **`CMP-04`: Multi-Criteria Taxonomy Filter Toolbar**
-   - **Visual Role:** Flat toolbar hosting debounced Tag/Name search input (`FR-164`), Criticality band selector (`1..10`), Environmental Exposure selector, slot occupancy filter (`Occupied` / `Vacant`), and `[Expand All]` / `[Collapse All]` tree triggers.
+   - **Visual Role:** Flat toolbar hosting Criticality band selector (`1..10`), Environmental Exposure selector, Level 5 slot occupancy filter (`Occupied` / `Vacant`), debounced `Tag` / `Name` / `SerialNumber` search input (`Ctrl+K`, `FR-164`), and `[Expand All]` / `[Collapse L3]` / `[Reset]` triggers.
    - **Design Tokens:**
      - Surface: `--dt-color-surface-base`
      - Controls: `--dt-color-surface-card`
@@ -87,17 +104,17 @@ status: Draft
    - **Architectural Scope:** Executes $< 500\text{ms}$ indexed tree filtering (`TR-008-NFR-419`). Detailed in §5.2.
 
 5. **`CMP-05`: Interactive ISO 14224 Hierarchy Tree Explorer**
-   - **Visual Role:** Virtualized multi-column hierarchical tree grid rendering parent-child connector guides, expand/collapse chevrons, monospace level tags (`L1`–`L5`), `TagNumber`, `Name`, `Criticality` index, `EnvironmentalExposure`, mounted `EquipmentUnit` serial reference, and contextual `[+ Child]` / `[Move]` triggers.
+   - **Visual Role:** Virtualized 7-column hierarchical tree grid rendering continuous parent-child orthogonal connector guides, expand/collapse chevrons, borderless monospace ISO tier tags (Levels 1–5), `TagNumber`, `Name`, `ParentTagNumber`, `Criticality`, `EnvironmentalExposure`, mounted `EquipmentUnit` serial reference (or `VACANT`), and contextual child-node creation triggers.
    - **Design Tokens:**
      - Header Surface: `--dt-color-surface-base`
      - Row Surface: `--dt-color-surface-card`
      - Connector Guides: `--dt-color-border-subtle`
      - Row Height: `--dt-layout-table-row-height`
      - Selected Row Indicator: `--dt-color-state-info`
-   - **Architectural Scope:** Core Adjacency List tree explorer hydrated via recursive CTE projections (`WITH RECURSIVE` per [DT-ARQ-DB-DOC-001 §3.5](../../../architecture/DT-ARQ-DB-DOC-001.md#35-iso-14224-hierarchy-resolution-inv-027)) in $< 3\text{s}$ (`NFR-166`). Detailed in §5.1 and §5.2.
+   - **Architectural Scope:** Enforces zero badge inflation by rendering `L1`–`L5` and normal environmental exposures in neutral monospace/body text, reserving `--dt-color-alarm-warning` (`#icon-warning Floor 75`) solely for unconfigured criticality. Hydrated via recursive CTE projections ([DT-ARQ-DB-DOC-001 §3.5](../../../architecture/DT-ARQ-DB-DOC-001.md#35-iso-14224-hierarchy-resolution)) in $< 3\text{s}$ (`NFR-166`). Detailed in §5.1 and §5.2.
 
 6. **`CMP-06`: Functional Location Node Inspector & Form**
-   - **Visual Role:** Master-detail inspector hosted inside dock `CMP-12` displaying or editing the selected node's attributes (`TagNumber`, `Name`, `Description`, `HierarchyLevel`, `ParentLocationTag`, `Criticality`, `GeographicLocation`, `EnvironmentalExposure`) in a 2-column stacked key-value grid.
+   - **Visual Role:** Master-detail inspector hosted inside dock `CMP-12` displaying or editing the selected node's attributes (`ParentTagNumber`, `HierarchyLevel`, `TagNumber`, `Name`, `Criticality`, `EnvironmentalExposure`, `GeographicLocation`, `Description`), mandatory `AuditJustification`, pre-commit SHA-256 preview, and `[Cancel]` / `[Save Functional Location]` commit triggers in `CREATE`/`EDIT` modes.
    - **Design Tokens:**
      - Surface: `--dt-color-surface-card`
      - Border: `--dt-color-border-subtle`, `--dt-color-border-panel` (Edit Mode)
@@ -105,30 +122,30 @@ status: Draft
    - **Architectural Scope:** Governs `FunctionalLocation.AddChild(child)` (`FR-160`, `FR-161`) and node metadata calibration while maintaining zero layout shift (`CLS = 0`) between View and Edit modes. Detailed in §5.3.1.
 
 7. **`CMP-07`: Mounted Equipment Unit & Slot Occupancy Card**
-   - **Visual Role:** Contextual card inside `CMP-06` (for Level 5 nodes) displaying the currently mounted Level 6 `EquipmentUnit` (`SerialNumber`, `EquipmentClassName`, `OperationalStatus`, `InstalledAtUtc`) or `VACANT SLOT` status, with direct handoff triggers (`[Inspect Master Card]`, `[Rotable Swap]`, `[+ Register Equipment]`).
+   - **Visual Role:** Contextual card inside `CMP-06` (for Level 5 nodes) displaying the currently mounted Level 6 `EquipmentUnit` (`SerialNumber`, `EquipmentClassName`, `ManufacturerModel`, `OperationalStatus`, `InstalledAtUtc`) or `VACANT SLOT` status, with direct handoff triggers (`[Master Card]`, `[Rotable Swap]`, `[+ Register Equipment]`).
    - **Design Tokens:**
      - Surface: `--dt-color-surface-base`
      - Border: `--dt-color-border-subtle`
      - Button Surface: `--dt-color-surface-btn-secondary`
      - Radius: `--dt-radius-md`
-   - **Architectural Scope:** Bridges the Level 5 `FunctionalLocation` slot to its mounted Level 6 `EquipmentUnit` ([SCR-INV-005](SCR-INV-005.md)) and Rotable Asset Swap modal ([SCR-INV-025](SCR-INV-025.md)) per [ADR-008](../../../architecture/adr/ADR-008.md). Detailed in §5.2.
+   - **Architectural Scope:** Bridges the Level 5 `FunctionalLocation` slot to its mounted Level 6 `EquipmentUnit` ([SCR-INV-005](SCR-INV-005.md)) and Rotable Asset Swap modal ([SCR-INV-025](SCR-INV-025.md)) per [ADR-010](../../../architecture/adr/ADR-010.md). Detailed in §5.2.
 
 8. **`CMP-08`: Tree Re-Parenting & Cycle Prevention Modal**
-   - **Visual Role:** Centered transactional modal dialog for moving a Functional Location node (`ReorganizeTree`) to a new parent node, featuring a target parent picker, live level-coherence preview, cycle detection status pill, and mandatory audit justification input.
+   - **Visual Role:** Centered transactional modal dialog for moving a Functional Location node (`ReorganizeTree`) to a new parent node, featuring a target parent picker, live level-coherence preview, neutral grayscale ready validation state, critical red cycle detection alert (`AF-002`), and mandatory `AuditJustification` input.
    - **Design Tokens:**
      - Surface: `--dt-color-surface-card`
      - Backdrop: `--dt-color-surface-overlay`
-     - Width & Max-Height: `--dt-layout-modal-width`, `--dt-layout-modal-max-height`
+     - Pre-Commit Valid Validation Box: `--dt-color-surface-base`, `--dt-color-border-panel` (strictly neutral grayscale per ANSI/ISA-101)
      - Radius: `--dt-radius-xl`
      - Elevation: `--dt-z-modal`
      - Cycle Alert: `--dt-color-alarm-critical`
-   - **Architectural Scope:** Enforces `FunctionalLocation.ReorganizeTree(newParentId)` (`FR-162`, `NFR-167`, `NFR-168`, `AF-002`), blocking descendant self-parenting cycles and level inversions in $< 1\text{s}$. Detailed in §5.3.2.
+   - **Architectural Scope:** Enforces `FunctionalLocation.ReorganizeTree(newParentId)` (`FR-162`, `NFR-167`, `NFR-168`, `AF-002`), blocking descendant self-parenting cycles and level inversions in $< 1\text{s}$ and strictly prohibiting green/teal highlights prior to transaction commit. Detailed in §5.3.2.
 
 9. **`CMP-09`: Dependency-Gated Node Deletion Modal**
-   - **Visual Role:** Safety-gated confirmation modal inspecting child node count and mounted equipment occupancy before permitting node removal (`RemoveChild`).
+   - **Visual Role:** Safety-gated confirmation modal inspecting child node count and mounted equipment occupancy before permitting node removal (`RemoveChild`), enforcing neutral grayscale validation when eligible for deletion or a critical red interlock alert (`AF-003`) when blocked.
    - **Design Tokens:**
      - Surface: `--dt-color-surface-card`
-     - Width: `--dt-layout-modal-width`
+     - Eligible Pre-Commit Box: `--dt-color-surface-base`, `--dt-color-border-panel`
      - Radius: `--dt-radius-xl`
      - Elevation: `--dt-z-modal`
      - Blocked Alert: `--dt-color-alarm-critical`
@@ -143,35 +160,33 @@ status: Draft
     - **Architectural Scope:** Satisfies [TR-001](../../../requirements/common/TR-001.md), [TR-008-NFR-422](../../../requirements/common/TR-008.md), and [ADR-003](../../../architecture/adr/ADR-003.md). Detailed in §5.3.1.
 
 11. **`CMP-11`: Inline Validation & Concurrency Status Slot**
-    - **Visual Role:** Permanent `CLS = 0` diagnostic slot on the left side of sticky footer `CMP-13` displaying 4-channel WCAG 2.1 AA redundant alerts (`#icon-ban`, `#icon-warning`, `#icon-check` + text).
+    - **Visual Role:** Permanent `CLS = 0` diagnostic slot on the left side of sticky footer `CMP-13` displaying neutral hierarchy health or 4-channel WCAG 2.1 AA redundant alerts (`#icon-ban`, `#icon-warning`, `#icon-check` + text).
     - **Design Tokens:**
-      - Surface: `--dt-color-surface-card`
+      - Surface: `--dt-color-surface-base`
       - Critical Conflict: `--dt-color-alarm-critical`
       - Warning: `--dt-color-alarm-warning`
-      - Documentary Success: `--dt-color-state-success`
+      - Post-Commit Confirmation: `--dt-color-state-success` (reserved exclusively for committed transactions)
     - **Architectural Scope:** Surfaces `AF-001` duplicate Tag errors, `FR-161` level mismatches, `AF-004` optimistic concurrency conflicts (`NFR-169`), and post-commit documentary confirmation. Detailed in §5.3.
 
-12. **`CMP-12`: Persistent Workspace Dock & Vertical Tab Strip**
-    - **Visual Role:** Right-hand workspace dock with vertical spine tabs (`NODE DETAIL` / `SHA-256 AUDIT`) hosting `CMP-06`/`CMP-07` and `CMP-10`.
+12. **`CMP-12`: On-Demand Workspace Dock & Vertical Tab Strip**
+    - **Visual Role:** Closed-by-default right-hand workspace dock with vertical spine tabs (`Node Detail` / `SHA-256 Audit`) hosting `CMP-06`/`CMP-07` and `CMP-10`, transitioning to a discrete-tap adaptive Bottom Sheet on portrait tablets.
     - **Design Tokens:**
       - Track Surface: `--dt-color-surface-base`
       - Panel Surface: `--dt-color-surface-card`
       - Active Tab: `--dt-color-surface-raised`
-      - Width: `--dt-layout-drawer-width-desktop` / `--dt-layout-drawer-width-tablet`
       - Elevation: `--dt-shadow-panel`
       - Active Indicator: `--dt-color-state-info`
-    - **Architectural Scope:** Preserves tree expansion state and row selection across inspection and audit tab switches without horizontal layout shift. Detailed in §5.2 and Section 8.
+    - **Architectural Scope:** Opens automatically on tree node selection or creation without causing layout shifts, closing on outside click, `Escape`, or header dismiss trigger. Detailed in §5.2 and Section 8.
 
 13. **`CMP-13`: Sticky Taxonomy Governance & Handoff Footer**
-    - **Visual Role:** Permanent sticky bottom bar hosting `CMP-11` status slot, Level 3 equipment drill-down (`[Open Equipment Master Card]`), `[Reorganize Node]`, `[Delete Node]`, mandatory `AuditJustification` input, and `[Save Functional Location]`.
+    - **Visual Role:** Permanent sticky bottom bar hosting `CMP-11` status slot on the left and contextual governance/handoff actions on the right (`[Reorganize Branch]`, `[Delete Node]`, and `[Open Equipment Master Card]`).
     - **Design Tokens:**
       - Surface: `--dt-color-surface-card`
       - Border: `--dt-color-border-hairline`
       - Height: `--dt-layout-footer-height`
       - Elevation: `--dt-z-header-sticky`
-      - Primary CTA: `--dt-color-state-info`
       - Secondary Button: `--dt-color-surface-btn-secondary`
-    - **Architectural Scope:** Coordinates atomic taxonomic mutations (`NFR-168`) and L2 $\to$ L3 navigation handoffs ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)). Detailed in §5.2 and §5.3.
+    - **Architectural Scope:** Coordinates atomic taxonomic branch reorganization/deletion triggers (`NFR-168`) and L2 $\to$ L3 navigation handoffs ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)). Detailed in §5.2 and §5.3.
 
 ---
 
@@ -179,35 +194,35 @@ status: Draft
 
 1. **Tree Inspection Mode (Default)**
    - **Activation Condition:** User navigates to `SCR-INV-027` from the Web Portal sidebar.
-   - **Visual Modification:** Neutral grayscale surfaces (`--dt-color-surface-card`). Tree grid `CMP-05` renders expanded to Level 3 by default with monospace level tags (`L1`–`L5`) and plain text metadata. Right dock `CMP-12` displays the selected node's read-only specifications in `CMP-06` and mounted equipment summary in `CMP-07`.
+   - **Visual Modification:** Neutral grayscale surfaces (`--dt-color-surface-card`). Tree grid `CMP-05` renders expanded to Tier 3 by default with borderless monospace ISO tier tags (Levels 1–5) and plain text metadata. Right dock `CMP-12` initializes collapsed to its vertical tab spine (`CLS = 0`) and footer context actions (`[Reorganize Branch]`, `[Delete Node]`, `[+ Child Location]`) remain disabled until a node is selected. Clicking any row opens `CMP-12` displaying read-only details in `CMP-06` and mounted equipment summary in `CMP-07`.
 
 2. **Loading / Hydrating Hierarchy (`NFR-166`)**
    - **Activation Condition:** Initial recursive tree query or bulk branch expansion.
    - **Visual Modification:** Skeleton shimmer (`--dt-color-surface-raised`) across `CMP-03` summary cards and `CMP-05` tree rows; mutation triggers disabled.
 
 3. **Create Child / Root Node Mode (`FR-160`, `FR-161`)**
-   - **Activation Condition:** Engineer clicks `[+ New Root Location (L1)]` in `CMP-02` or `[+ Add Child]` on a parent node (Levels 1 to 4) in `CMP-05`/`CMP-06`.
-   - **Visual Modification:** `CMP-06` transitions to editable creation mode (`TaxonomyInspectorMode.CREATE`), locking `HierarchyLevel` to `1` (for root) or `Parent.HierarchyLevel + 1` (`FR-161`). Footer `CMP-13` displays validation slot `CMP-11`, `[Cancel]`, and `[Save Functional Location]`.
+   - **Activation Condition:** Engineer clicks `[+ New Root Location (L1)]` in `CMP-02`, `[+ Child Location]`, or an inline row `[+ L2..L5]` button in `CMP-05`.
+   - **Visual Modification:** `CMP-12` opens automatically to `CMP-06` in `TaxonomyInspectorMode.CREATE`, locking `HierarchyLevel` to `1` (for root) or `Parent.HierarchyLevel + 1` (`FR-161`) and revealing the inline governance justification field, pre-commit SHA-256 preview, `[Cancel]`, and `[Save Functional Location]`.
 
 4. **Duplicate Tag or Level Incoherence (`AF-001`)**
-   - **Activation Condition:** Debounced uniqueness check (`< 500ms`) detects that the entered `TagNumber` already exists in `tax.functional_locations` or violates parent-child level progression (`FR-161`).
-   - **Visual Modification:** `TagNumber` input highlights with a critical red border (`--dt-color-alarm-critical`) and `#icon-ban` glyph. `CMP-11` displays in the footer status slot: *"Taxonomic Integrity Error: Functional Location Tag already exists in the master catalog."* Commit button hard-disabled (`CLS = 0`).
+   - **Activation Condition:** Debounced uniqueness check (`< 500ms`) detects that the entered `TagNumber` already exists in the master functional location catalog or violates parent-child level progression (`FR-161`).
+   - **Visual Modification:** `TagNumber` input highlights with a critical red border (`--dt-color-alarm-critical`) and `#icon-ban` glyph, while `CMP-11` displays in the footer status slot: *"Taxonomic Integrity Error: Functional Location Tag already exists in the master catalog."* Commit button hard-disabled (`CLS = 0`).
 
 5. **Tree Re-Parenting & Cycle Detection (`AF-002` / `FR-162`)**
-   - **Activation Condition:** Engineer clicks `[Reorganize Node]` and selects a candidate destination parent in modal `CMP-08`.
-   - **Visual Modification:** If the candidate parent is a descendant of the node being moved or causes a subtree depth $> 5$, `CMP-08` highlights the target selector in `--dt-color-alarm-critical` with `#icon-ban` and displays: *"Hierarchy Integrity Violation: Moving this Functional Location to the selected target would create a circular reference or exceed ISO 14224 Level 5 depth."* Confirm button remains hard-disabled.
+   - **Activation Condition:** Engineer clicks `[Reorganize Branch]` in `CMP-13` and selects a candidate destination parent in modal `CMP-08`.
+   - **Visual Modification:** Valid candidate moves render inside a neutral grayscale confirmation box (`--dt-color-border-panel`, strictly zero green before commit). If the candidate parent is a descendant of the node being moved or causes subtree depth $> 5$, `CMP-08` highlights the validation box in `--dt-color-alarm-critical` with `#icon-ban` and displays: *"Hierarchy Integrity Violation: Moving this Functional Location to the selected target would create a circular reference or exceed ISO 14224 Level 5 depth."* Confirm button remains hard-disabled.
 
 6. **Occupied or Parent Node Deletion Blocked (`AF-003` / `FR-163`)**
    - **Activation Condition:** Engineer clicks `[Delete Node]` on a Functional Location that has `ChildLocationsCount > 0` or an active mounted `EquipmentUnit` (`MountedEquipmentId != null`).
    - **Visual Modification:** Modal `CMP-09` renders a critical red interlock banner (`--dt-color-alarm-critical`, `#icon-ban`) listing the blocking child count or mounted equipment serial number, hard-disabling the delete confirmation button and offering a direct link to [SCR-INV-025](SCR-INV-025.md) (*"Dismount via Rotable Asset Swap"*).
 
 7. **Concurrent Modification Conflict (`AF-004` / `NFR-169`)**
-   - **Activation Condition:** Engineer submits a node edit or re-parenting command whose optimistic concurrency token (`RowVersion`) mismatches the server state due to a simultaneous edit by another engineer.
+   - **Activation Condition:** Engineer submits a node edit or re-parenting command whose optimistic concurrency token (`ConcurrencyToken` / `If-Match`) mismatches the server state due to a simultaneous edit by another engineer.
    - **Visual Modification:** `CMP-11` renders an amber concurrency warning (`--dt-color-alarm-warning`, `#icon-warning`) in the footer status slot: *"Concurrent Modification Detected: Target branch was updated by another engineer. Tree refreshed; please review before re-applying."*
 
-8. **Documentary Confirmation (Success)**
-   - **Activation Condition:** Atomic creation, update, or re-parenting command commits successfully (`NFR-168`).
-   - **Visual Modification:** `CMP-11` displays a Teal confirmation pill (`--dt-color-state-success`, `#icon-check`) with the committed `TagNumber` and SHA-256 integrity hash (`CLS = 0`), refreshing `CMP-05` in place.
+8. **Documentary Confirmation (Post-Commit Success)**
+   - **Activation Condition:** Atomic creation, update, deletion, or re-parenting command commits successfully (`NFR-168`).
+   - **Visual Modification:** `CMP-11` displays a post-commit Teal confirmation pill (`--dt-color-state-success`, `#icon-check`) with the committed `TagNumber` and SHA-256 integrity hash (`CLS = 0`), refreshing `CMP-05` and KPI counts in place.
 
 ---
 
@@ -224,28 +239,28 @@ sequenceDiagram
     participant API as Taxonomy API Gateway
 
     Eng->>UI: Navigates to "Functional Locations Tree" (L2)
-    UI->>API: GET /api/v1/taxonomy/functional-locations/tree (WITH RECURSIVE CTE)
+    UI->>API: GET /api/v1/taxonomy/functional-locations/tree
     API-->>UI: Returns FunctionalLocationTreeResponseDto (< 3s, NFR-166)
     UI->>UI: Populates L1-L5 summary cards (CMP-03) & virtualized tree (CMP-05)
-    Eng->>UI: Selects node "TFA-TKF-SW" (L4) & clicks [+ Add Child (L5)]
-    UI->>UI: Opens CMP-06 in CREATE mode (locks HierarchyLevel = 5)
+    Eng->>UI: Selects node "TFA-TKF-SW" (L4) & clicks [+ Child (Level 5)]
+    UI->>UI: Opens CMP-12 -> CMP-06 in CREATE mode (locks HierarchyLevel = 5)
     Eng->>UI: Enters TagNumber, Name, Criticality (8), EnvironmentalExposure (SEVERE)
     UI->>API: GET /api/v1/taxonomy/functional-locations/verify-tag?tag={tag} (< 500ms)
     API-->>UI: Returns TagUniquenessResultDto (IsUnique = true)
-    UI->>Crypto: ComputeSha256Digest(PreviousHash, LocationPayload)
+    UI->>Crypto: ComputePayloadSha256Digest(LocationPayload)
     Crypto-->>UI: Updates candidate SHA-256 preview
-    Eng->>UI: Clicks [Save Functional Location] (CMP-13)
+    Eng->>UI: Clicks [Save Functional Location] (CMP-06)
     UI->>API: POST /api/v1/taxonomy/functional-locations (CreateFunctionalLocationCommand + X-Idempotency-Key)
     API-->>UI: HTTP 201 Created (FunctionalLocationCreatedEvent)
-    UI-->>Eng: Inserts L5 node into CMP-05 & displays Teal confirmation in CMP-11
+    UI-->>Eng: Inserts L5 node into CMP-05 & displays post-commit confirmation in CMP-11
 ```
 
-1. **Recursive CTE Tree Hydration (`NFR-166`, [DT-ARQ-DB-DOC-001 §3.5](../../../architecture/DT-ARQ-DB-DOC-001.md#35-iso-14224-hierarchy-resolution-inv-027)):**
-   * On initialization, the backend resolves the Adjacency List (`parent_id`) using a PostgreSQL `WITH RECURSIVE` Common Table Expression, returning the ordered tree projection with precomputed breadcrumb paths (`FullPathTag`), child counts (`ChildLocationsCount`), and active Level 6 equipment occupancy (`MountedEquipmentSerialNumber`) in $< 3\text{s}$. In-memory full-table assembly on the client is prohibited.
+1. **Server-Projected Hierarchy Hydration (`NFR-166`, [DT-ARQ-DB-DOC-001 §3.5](../../../architecture/DT-ARQ-DB-DOC-001.md#35-iso-14224-hierarchy-resolution)):**
+   * On initialization, the backend resolves parent-child hierarchy links (`ParentId`) via a server-side tree projection (`FunctionalLocationTreeResponseDto`), returning the ordered hierarchy with precomputed breadcrumb paths (`FullPathTag`), child counts (`ChildLocationsCount`), and active Level 6 equipment occupancy (`MountedEquipment.SerialNumber`) in $< 3\text{s}$. In-memory full-table assembly on the client is prohibited.
 2. **ISO 14224 Five-Level Taxonomic Model (`FR-160`, `TR-008-FR-413`):**
    * Every node is classified into one of the five canonical ISO 14224 spatial levels (`IsoFunctionalLocationLevel`, §7.2.3):
-     * **Level 1 (`L1_INDUSTRY`):** Industry sector (e.g., *Petroleum Refining & Terminals*).
-     * **Level 2 (`L2_BUSINESS_CATEGORY`):** Business stream (e.g., *Downstream Crude & Product Storage*).
+     * **Level 1 (`L1_INDUSTRY`):** Industry sector (e.g., *Hydrocarbons, Refining & Maritime Logistics*).
+     * **Level 2 (`L2_BUSINESS_CATEGORY`):** Business stream (e.g., *Crude Transport, Storage & Dispatch*).
      * **Level 3 (`L3_INSTALLATION`):** Facility / Terminal (e.g., *Cartagena Maritime Terminal — TFA*).
      * **Level 4 (`L4_PLANT_UNIT`):** Process unit / Area (e.g., *Crude Transfer Pumping Station — CSS*).
      * **Level 5 (`L5_SECTION_SYSTEM`):** Functional equipment slot (e.g., *Crude Export Booster Pump Slot A — TFA-CSS-P-0101A*). Physical Level 6 `EquipmentUnits` mount exclusively at Level 5 slots.
@@ -256,42 +271,42 @@ sequenceDiagram
 
 1. **Virtualized Tree Grid & Keyboard Navigation (`CMP-05`):**
    * Employs UI virtualization (`Virtualize<FunctionalLocationTreeNodeDto>`) with fixed row height (`--dt-layout-table-row-height`) to maintain 60 FPS scrolling across multi-thousand-node plant trees (`NFR-166`).
-   * Supports full keyboard tree traversal: `ArrowDown` / `ArrowUp` moves focus between visible nodes; `ArrowRight` expands a collapsed branch; `ArrowLeft` collapses an expanded branch; `Enter` inspects the focused node in `CMP-06`.
+   * Supports full keyboard tree traversal: `ArrowDown` / `ArrowUp` moves focus between visible nodes; `ArrowRight` expands a collapsed branch; `ArrowLeft` collapses an expanded branch; `Enter` or `Space` opens dock `CMP-12` to inspect the focused node in `CMP-06`; `Escape` dismisses open modals or closes `CMP-12`.
 2. **Search & Multi-Criteria Ancestor Path Expansion (`FR-164`, `TR-008-FR-418`):**
-   * Typing in the debounced search input ($250\text{ms}$) or selecting a Criticality / Environmental Exposure / Level filter in `CMP-03`/`CMP-04` filters the tree in $< 500\text{ms}$ (`TR-008-NFR-419`), automatically expanding ancestor branches (`L1` $\to$ `L4`) of matching leaf nodes so their hierarchical context remains visible.
+   * Typing in the debounced search input ($250\text{ms}$, shortcut `Ctrl+K`) or selecting a Level / Criticality / Environmental Exposure / Occupancy filter in `CMP-03`/`CMP-04` filters the tree in $< 500\text{ms}$ (`TR-008-NFR-419`), automatically expanding ancestor branches (`L1` $\to$ `L4`) of matching leaf nodes so their hierarchical context remains visible.
 3. **Level 2 $\to$ Level 3 Equipment Master Card Handoff ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)):**
-   * Selecting a Level 5 node in `CMP-05` populates `CMP-07` (`MountedEquipmentSlotCard.razor`). Clicking `[Inspect Master Card]` (or `[Open Equipment Master Card]` in `CMP-13`) transitions to [SCR-INV-005](SCR-INV-005.md) (`L2` $\to$ `L3`) passing `EquipmentUnitId` (if occupied) or `PreselectedFunctionalLocationId` with `mode=CREATE` (if vacant).
+   * Selecting a Level 5 node in `CMP-05` populates `CMP-07` (`MountedEquipmentSlotCard.razor`). Clicking `[Master Card]` (or `[Open Equipment Master Card]` in `CMP-13`) transitions to [SCR-INV-005](SCR-INV-005.md) (`L2` $\to$ `L3`) passing `EquipmentUnitId` (if occupied) or `PreselectedFunctionalLocationId` with `mode=CREATE` (if vacant).
 
 ---
 
 ### 5.3. Domain Workflows & Structural Integrity Rules
 
 #### 5.3.1. Parent-Child Level Coherence & Tag Uniqueness (`FR-160`, `FR-161`, `AF-001`)
-1. **Strict Level Progression (`FR-161`):** Invoking `FunctionalLocation.AddChild(child)` ([DT-DM-DOC-002 §2.1](../../../domain-models/class/DT-DM-DOC-002.md#21-functionallocation-aggregate-root)) enforces:
+1. **Strict Level Progression (`FR-161`):** Invoking `FunctionalLocation.AddChild(child)` ([DT-DM-DOC-002 §2](../../../domain-models/class/DT-DM-DOC-002.md#2-layer-1-asset-taxonomy-iso-14224)) enforces:
    $$\text{Child.HierarchyLevel} == \text{Parent.HierarchyLevel} + 1 \quad \land \quad 1 \le \text{HierarchyLevel} \le 5$$
    Root nodes (`ParentId == null`) are restricted strictly to `L1_INDUSTRY` (`HierarchyLevel = 1`). Level 5 nodes (`L5_SECTION_SYSTEM`) cannot have child Functional Locations; instead, they host Level 6 `EquipmentUnits`.
 2. **Global Tag Uniqueness (`AF-001`):** As the Engineer enters `TagNumber` in `CMP-06`, the client executes a debounced uniqueness check ($250\text{ms}$). Duplicate tags trigger State 4 (`AF-001`), applying `--dt-color-alarm-critical` and `#icon-ban` in `CMP-11` (`CLS = 0`).
 
 #### 5.3.2. Tree Reorganization & Recursive Cycle Prevention (`FR-162`, `NFR-167`, `NFR-168`, `AF-002`)
 1. **Cycle Detection Invariant (`NFR-167`, `TR-008-NFR-417`):** When moving node $u$ to candidate parent $v$ in modal `CMP-08` (`FunctionalLocation.ReorganizeTree(newParentId)`), the system validates in $< 1\text{s}$ using a recursive ancestor check that $v$ is not $u$ and $v \notin \text{Descendants}(u)$, and that moving $u$'s subtree preserves valid level depth ($\text{MaxDepth}(u) + \text{Level}(v) \le 5$).
-2. **Atomic Subtree Re-Parenting (`NFR-168`):** Upon confirmation with mandatory `AuditJustification` ($\ge 15$ characters), the backend updates `parent_id`, recalculates materialized/recursive paths, and logs the SHA-256 audit entry within a single ACID transaction.
+2. **Atomic Subtree Re-Parenting (`NFR-168`):** Upon confirmation with mandatory `AuditJustification` ($\ge 15$ characters), the client dispatches `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` carrying `ReorganizeFunctionalLocationCommand`, `X-Idempotency-Key: {uuidv7}`, and `If-Match: "{ConcurrencyToken}"`. The backend updates hierarchy links, recalculates materialized/recursive paths, and seals the justification and state diff inside the SHA-256 `AuditLog` structured state payload per [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) within a single ACID transaction.
 
 #### 5.3.3. Dependency-Gated Node Deletion (`FR-163`, `AF-003`)
-1. Invoking `FunctionalLocation.RemoveChild(childId)` ([DT-DM-DOC-002 §2.1](../../../domain-models/class/DT-DM-DOC-002.md#21-functionallocation-aggregate-root)) evaluates the deletion guard:
+1. Invoking `FunctionalLocation.RemoveChild(childId)` ([DT-DM-DOC-002 §2](../../../domain-models/class/DT-DM-DOC-002.md#2-layer-1-asset-taxonomy-iso-14224)) evaluates the deletion guard before dispatching `DELETE /api/v1/taxonomy/functional-locations/{id}` (carrying `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"`):
    $$\text{CanDelete}(u) \iff (\text{ChildLocationsCount}(u) == 0) \land (\text{MountedEquipmentUnitId}(u) == \varnothing)$$
-2. If either condition is false, `CMP-09` blocks deletion (`ON DELETE RESTRICT` per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)) and directs the user to relocate child nodes or execute a Rotable Asset Swap ([SCR-INV-025](SCR-INV-025.md)).
+2. If either condition is false, `CMP-09` blocks dependency-protected deletion (referential integrity per [DT-ERD-DOC-001 §4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#4-referential-relationships-and-cascading-fks)) and directs the user to relocate child nodes or execute a Rotable Asset Swap ([SCR-INV-025](SCR-INV-025.md)).
 
 #### 5.3.4. Concurrency Isolation & Architecture Export (`FR-165`, `NFR-169`, `AF-004`)
-1. **Optimistic Concurrency Guard (`NFR-169`, `AF-004`):** Every mutation command carries the node's concurrency token (`RowVersion`) and `X-Idempotency-Key`. Concurrent modifications by another engineer return HTTP 409 Conflict, triggering State 7 (`AF-004`) and refreshing the affected branch without silent data loss.
-2. **Taxonomic Architecture Export (`FR-165`):** Clicking `[Export Architecture]` in `CMP-02` exports the full or filtered hierarchy (`CSV` / `JSON`) including ISO level paths, criticality indices, environmental exposures, and mounted equipment serial numbers.
+1. **Optimistic Concurrency Guard (`NFR-169`, `AF-004`):** Every mutation endpoint—metadata updates via `PUT /api/v1/taxonomy/functional-locations/{id}` (`UpdateFunctionalLocationCommand`), subtree reorganizations via `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` (`ReorganizeFunctionalLocationCommand`), and dependency-gated deletions via `DELETE /api/v1/taxonomy/functional-locations/{id}`—carries the node's optimistic `ConcurrencyToken` (`If-Match: "{ConcurrencyToken}"` header per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column)) and `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)). Concurrent modifications by another engineer return HTTP 409 Conflict, triggering State 7 (`AF-004`) and refreshing the affected branch without silent data loss.
+2. **Taxonomic Architecture Export (`FR-165`):** Clicking `[Export]` in `CMP-02` calls `GET /api/v1/taxonomy/functional-locations/export` (`CSV` / `JSON` via `TaxonomyExportFormat`), downloading the full or filtered hierarchy including ISO level paths, criticality indices, environmental exposures, and mounted equipment serial numbers.
 
 ---
 
 ## 6. Industrial and Safety Considerations
 
-* **Process Slot vs. Physical Machine Decoupling (ISO 14224 §8.1 / [ADR-008](../../../architecture/adr/ADR-008.md)):** Separating the Level 5 `FunctionalLocation` (where process criticality and environmental exposure reside) from the serialized Level 6 `EquipmentUnit` ensures that RIME backlog prioritization ([SCR-MTTO-026](../mtto/SCR-MTTO-026.md)) and SIMOPS spatial mapping ([SCR-VIS-008](../vis/SCR-VIS-008.md)) remain intact across rotable equipment swaps.
+* **Process Slot vs. Physical Machine Decoupling (ISO 14224 §8.1 / [ADR-010](../../../architecture/adr/ADR-010.md)):** Separating the Level 5 `FunctionalLocation` (where process criticality and environmental exposure reside) from the serialized Level 6 `EquipmentUnit` ensures that RIME backlog prioritization ([SCR-MTTO-026](../mtto/SCR-MTTO-026.md)) and SIMOPS spatial mapping ([SCR-VIS-008](../vis/SCR-VIS-008.md)) remain intact across rotable equipment swaps.
 * **Criticality Inheritance & RIME Fail-Safe Prevention ([DT-DM-DOC-001 §4.5](../../../domain-models/class/DT-DM-DOC-001.md#45-functionallocationcriticality)):** Configuring the `Criticality` index ($1..10$) on Level 4 and Level 5 Functional Locations directly feeds the RIME prioritization engine, eliminating unconfigured criticality fail-safe alerts (`AF-002` in `SCR-MTTO-026`).
-* **HPHMI Grayscale & Anti-Badge-Inflation Discipline ([TR-011](../../../requirements/common/TR-011.md)):** In accordance with [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope) and [§6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle), taxonomic level markers (`L1`–`L5`), environmental exposure labels, and normal equipment occupancy states render in neutral grayscale typography (`--dt-font-mono-data`, `--dt-color-text-body`, `--dt-color-text-muted`), reserving `--dt-color-alarm-critical` and `--dt-color-alarm-warning` strictly for high-criticality alerts ($9..10$), `AF-001`–`AF-004` validation conflicts, and unconfigured criticality warnings.
+* **HPHMI Grayscale & Anti-Badge-Inflation Discipline ([TR-011](../../../requirements/common/TR-011.md)):** In accordance with [DT-UI-DS-DOC-001 §1](../../DT-UI-DS-DOC-001.md#1-scope) and [§6.5](../../DT-UI-DS-DOC-001.md#65-status-badge-counter-discipline-anti-badge-inflation-principle), taxonomic level markers (`L1`–`L5`), environmental exposure labels, normal equipment occupancy states, and pre-commit ready states (`CMP-08`/`CMP-09`) render in strictly neutral grayscale (`--dt-font-mono-data`, `--dt-color-text-body`, `--dt-color-text-muted`). Saturated `--dt-color-alarm-warning` and `--dt-color-alarm-critical` are reserved exclusively for unconfigured criticality warnings and `AF-001`–`AF-004` validation blocks, while `--dt-color-state-success` appears strictly on post-commit documentary confirmations (`CMP-11`).
 
 ---
 
@@ -303,11 +318,11 @@ sequenceDiagram
 Pages/Inventory/
 └── FunctionalLocationsTreePage.razor                  # Root View (SCR-INV-027)
     ├── PortalSidebarNav.razor                         # CMP-01: Collapsible desktop navigation sidebar
-    ├── FunctionalLocationHeaderBar.razor              # CMP-02: Breadcrumbs, root creation, export & session badge
+    ├── FunctionalLocationHeaderBar.razor              # CMP-02: Breadcrumbs, root/child creation, export & session badge
     ├── TaxonomyLevelSummaryCards.razor                # CMP-03: 5-card ISO 14224 L1-L5 interactive filter strip
     ├── FunctionalLocationFilterToolbar.razor          # CMP-04: Search, criticality, exposure & occupancy filters
     ├── FunctionalLocationTreeExplorer.razor           # CMP-05: Virtualized recursive Adjacency List tree grid
-    ├── TaxonomyWorkspaceDock.razor                    # CMP-12: Persistent right dock with vertical tab spine
+    ├── TaxonomyWorkspaceDock.razor                    # CMP-12: On-demand closed-by-default dock / portrait bottom sheet
     │   ├── FunctionalLocationNodeInspector.razor      # CMP-06: Node metadata inspector & create/edit form
     │   │   └── MountedEquipmentSlotCard.razor         # CMP-07: Level 5 slot occupancy & L3 handoff card
     │   └── LocationAuditLogPane.razor                 # CMP-10: Chained SHA-256 taxonomic audit trail pane
@@ -333,20 +348,9 @@ public int? InitialLevelFilter { get; set; }
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-13`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-INV-027"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string ActiveRouteCode { get; set; } = "SCR-INV-027";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
 // CMP-02: FunctionalLocationHeaderBar.razor
 [Parameter]
 public required string OperatorBadgeCode { get; set; }
@@ -358,7 +362,13 @@ public required string OperatorDisplayName { get; set; }
 public bool CanMutateTaxonomy { get; set; }
 
 [Parameter]
+public bool CanAddChildToSelected { get; set; }
+
+[Parameter]
 public EventCallback OnCreateRootLocationClicked { get; set; }
+
+[Parameter]
+public EventCallback OnCreateChildForSelectedClicked { get; set; }
 
 [Parameter]
 public EventCallback<TaxonomyExportFormat> OnExportRequested { get; set; }
@@ -371,10 +381,10 @@ public EventCallback OnToggleMobileNavigation { get; set; }
 public required TaxonomyCoverageMetricsDto Metrics { get; set; }
 
 [Parameter]
-public IsoFunctionalLocationLevel? ActiveLevelFilter { get; set; }
+public string? ActiveLevelFilterKey { get; set; }
 
 [Parameter]
-public EventCallback<IsoFunctionalLocationLevel?> OnLevelFilterSelected { get; set; }
+public EventCallback<string?> OnLevelFilterSelected { get; set; }
 
 // CMP-04: FunctionalLocationFilterToolbar.razor
 [Parameter]
@@ -405,7 +415,7 @@ public EventCallback<bool?> OnOccupiedFilterChanged { get; set; }
 public EventCallback OnExpandAllClicked { get; set; }
 
 [Parameter]
-public EventCallback OnCollapseAllClicked { get; set; }
+public EventCallback OnCollapseToLevel3Clicked { get; set; }
 
 [Parameter]
 public EventCallback OnResetFiltersClicked { get; set; }
@@ -432,18 +442,21 @@ public EventCallback<Guid> OnNodeExpandToggled { get; set; }
 [Parameter]
 public EventCallback<FunctionalLocationTreeNodeDto> OnAddChildRequested { get; set; }
 
-[Parameter]
-public EventCallback<FunctionalLocationTreeNodeDto> OnReorganizeNodeRequested { get; set; }
-
 // CMP-12: TaxonomyWorkspaceDock.razor
 [Parameter]
-public bool IsOpen { get; set; }
+public bool IsOpen { get; set; } = false;
+
+[Parameter]
+public bool IsBottomSheetExpanded { get; set; } = false;
 
 [Parameter]
 public TaxonomyDockTab ActiveTab { get; set; } = TaxonomyDockTab.NODE_DETAIL;
 
 [Parameter]
 public EventCallback<TaxonomyDockTab> OnTabChanged { get; set; }
+
+[Parameter]
+public EventCallback OnBottomSheetExpandToggled { get; set; }
 
 [Parameter]
 public EventCallback OnClosed { get; set; }
@@ -466,6 +479,27 @@ public EventCallback<UpsertFunctionalLocationFormDto> FormModelChanged { get; se
 
 [Parameter]
 public bool IsTagUnique { get; set; } = true;
+
+[Parameter]
+public bool CanSubmit { get; set; }
+
+[Parameter]
+public bool IsSubmitting { get; set; }
+
+[Parameter]
+public string AuditJustification { get; set; } = string.Empty;
+
+[Parameter]
+public EventCallback<string> AuditJustificationChanged { get; set; }
+
+[Parameter]
+public EventCallback OnEnterEditModeClicked { get; set; }
+
+[Parameter]
+public EventCallback OnCancelMutationClicked { get; set; }
+
+[Parameter]
+public EventCallback OnSaveLocationClicked { get; set; }
 
 // CMP-07: MountedEquipmentSlotCard.razor
 [Parameter]
@@ -530,19 +564,10 @@ public required IReadOnlyList<TaxonomyAuditEntryDto> AuditEntries { get; set; }
 
 // CMP-13: TaxonomyActionFooter.razor
 [Parameter]
-public required TaxonomyInspectorMode Mode { get; set; }
-
-[Parameter]
 public FunctionalLocationTreeNodeDto? SelectedNode { get; set; }
 
 [Parameter]
 public bool CanMutateTaxonomy { get; set; }
-
-[Parameter]
-public bool CanSubmit { get; set; }
-
-[Parameter]
-public bool IsSubmitting { get; set; }
 
 [Parameter]
 public TaxonomyConflictType? ActiveConflict { get; set; }
@@ -551,28 +576,13 @@ public TaxonomyConflictType? ActiveConflict { get; set; }
 public string? ConflictMessage { get; set; }
 
 [Parameter]
-public string AuditJustification { get; set; } = string.Empty;
-
-[Parameter]
-public EventCallback<string> AuditJustificationChanged { get; set; }
-
-[Parameter]
 public EventCallback<Guid> OnNavigateToEquipmentMasterCard { get; set; }
-
-[Parameter]
-public EventCallback OnEnterEditModeClicked { get; set; }
 
 [Parameter]
 public EventCallback OnOpenReorganizeModalClicked { get; set; }
 
 [Parameter]
 public EventCallback OnOpenDeleteModalClicked { get; set; }
-
-[Parameter]
-public EventCallback OnCancelMutationClicked { get; set; }
-
-[Parameter]
-public EventCallback OnSaveLocationClicked { get; set; }
 
 // CMP-11: TaxonomyValidationAlertSlot.razor
 [Parameter]
@@ -583,6 +593,8 @@ public string? ConflictMessage { get; set; }
 ```
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
+
+Shared Domain Enums (`EnvironmentalExposureLevel`, `EquipmentOperationalStatus`, `AuditActionType`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
 
 ```csharp
 /// <summary>
@@ -595,27 +607,6 @@ public enum IsoFunctionalLocationLevel
     L3_INSTALLATION = 3,
     L4_PLANT_UNIT = 4,
     L5_SECTION_SYSTEM = 5
-}
-
-/// <summary>
-/// Controlled environmental exposure vocabulary per DT-DM-DOC-001 §4.6 (ISO 14224 Table A.70).
-/// </summary>
-public enum EnvironmentalExposureLevel
-{
-    SEVERE,
-    MODERATE,
-    LOW,
-    UNKNOWN
-}
-
-/// <summary>
-/// Controlled equipment operational status vocabulary per DT-DM-DOC-001 §4.4.
-/// </summary>
-public enum EquipmentOperationalStatus
-{
-    UP,
-    DOWN,
-    STANDBY
 }
 
 public enum TaxonomyInspectorMode
@@ -659,11 +650,11 @@ public record FunctionalLocationTreeNodeDto
     public required string FullPathTag { get; init; }
     public int? Criticality { get; init; }
     public string? GeographicLocation { get; init; }
-    public required EnvironmentalExposureLevel EnvironmentalExposure { get; init; }
+    public EnvironmentalExposureLevel? EnvironmentalExposure { get; init; }
     public required int ChildLocationsCount { get; init; }
     public required int MaxSubtreeDepth { get; init; }
     public MountedEquipmentSummaryDto? MountedEquipment { get; init; }
-    public required string RowVersion { get; init; }
+    public required uint ConcurrencyToken { get; init; }
     public required string LatestIntegrityHash { get; init; }
 }
 
@@ -680,12 +671,11 @@ public record MountedEquipmentSummaryDto
 public record TaxonomyCoverageMetricsDto
 {
     public required int TotalLocationsCount { get; init; }
-    public required int Level1Count { get; init; }
-    public required int Level2Count { get; init; }
-    public required int Level3Count { get; init; }
+    public required int MacroStructureCount { get; init; }
     public required int Level4Count { get; init; }
     public required int Level5TotalSlots { get; init; }
     public required int Level5OccupiedSlots { get; init; }
+    public required int UnconfiguredCriticalityCount { get; init; }
 }
 
 public record UpsertFunctionalLocationFormDto
@@ -699,7 +689,7 @@ public record UpsertFunctionalLocationFormDto
     public int? Criticality { get; set; }
     public string? GeographicLocation { get; set; }
     public EnvironmentalExposureLevel EnvironmentalExposure { get; set; } = EnvironmentalExposureLevel.MODERATE;
-    public string? RowVersion { get; set; }
+    public uint? ConcurrencyToken { get; set; }
 }
 
 public record TreeReorganizationValidationDto
@@ -713,6 +703,9 @@ public record TreeReorganizationValidationDto
     public string? DiagnosticMessage { get; init; }
 }
 
+/// <summary>
+/// Functional location creation payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record CreateFunctionalLocationCommand
 {
     public Guid? ParentId { get; init; }
@@ -725,17 +718,32 @@ public record CreateFunctionalLocationCommand
     public required EnvironmentalExposureLevel EnvironmentalExposure { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid EngineerUserId { get; init; }
-    public required string PreviousHash { get; init; }
 }
 
+public record UpdateFunctionalLocationCommand
+{
+    public required Guid FunctionalLocationId { get; init; }
+    public required string TagNumber { get; init; }
+    public required string Name { get; init; }
+    public string? Description { get; init; }
+    public int? Criticality { get; init; }
+    public string? GeographicLocation { get; init; }
+    public EnvironmentalExposureLevel? EnvironmentalExposure { get; init; }
+    public required uint ConcurrencyToken { get; init; }
+    public required string AuditJustification { get; init; }
+    public required Guid EngineerUserId { get; init; }
+}
+
+/// <summary>
+/// Subtree reorganization payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record ReorganizeFunctionalLocationCommand
 {
     public required Guid FunctionalLocationId { get; init; }
     public required Guid NewParentId { get; init; }
-    public required string RowVersion { get; init; }
+    public required uint ConcurrencyToken { get; init; }
     public required string AuditJustification { get; init; }
     public required Guid EngineerUserId { get; init; }
-    public required string PreviousHash { get; init; }
 }
 
 public record TaxonomyAuditEntryDto
@@ -743,7 +751,7 @@ public record TaxonomyAuditEntryDto
     public required Guid AuditLogId { get; init; }
     public required DateTimeOffset TimestampUtc { get; init; }
     public required string OperatorBadgeCode { get; init; }
-    public required string ActionType { get; init; }
+    public required AuditActionType ActionType { get; init; }
     public required string LocationTag { get; init; }
     public required string ChangeSummary { get; init; }
     public required string AuditJustification { get; init; }
@@ -757,7 +765,7 @@ public record TaxonomyAuditEntryDto
 ### 7.3. Client-Side DOM & Interop Bridge
 
 1. **Virtualized Tree & Keyboard Navigation Interop (`ITreeVirtualizationInterop`):**
-   * Lazily renders visible flattened tree rows within the scroll container while maintaining keyboard focus state (`ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`), achieving $< 3\text{s}$ initial load (`NFR-166`) and 60 FPS scroll performance across large catalogs.
+   * Lazily renders visible flattened tree rows within the scroll container while maintaining keyboard focus state (`ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`, `Enter`, `Space`, `Escape`), achieving $< 3\text{s}$ initial load (`NFR-166`) and 60 FPS scroll performance across large catalogs.
 2. **Sub-Second Cycle & Uniqueness Validator (`ITaxonomyValidationInterop`):**
    * Evaluates subtree cycle prevention ($v \notin \text{Descendants}(u)$) and level-depth bounds synchronously on the loaded tree projection in $< 50\text{ms}$ and dispatches debounced ($250\text{ms}$) global `TagNumber` uniqueness checks in $< 500\text{ms}$ (`NFR-167`, `TR-008-NFR-419`).
 3. **Web Cryptography SHA-256 Digest Bridge (`ICryptoInterop`):**
@@ -768,15 +776,15 @@ public record TaxonomyAuditEntryDto
 ## 8. Layout and Responsive Adaptability
 
 ### 8.1. Desktop Workstation (`--dt-breakpoint-xl`)
-* **Layout Organization:** Asymmetric 3-column workstation split ([DT-UI-DS-DOC-001 §2.3](../../DT-UI-DS-DOC-001.md#23-responsive-breakpoints-and-reference-frames)): left navigation sidebar `CMP-01` expanded at `--dt-layout-sidebar-width-expanded`, central hierarchy workspace hosting the 5 summary cards `CMP-03`, filter toolbar `CMP-04`, and virtualized tree explorer `CMP-05`, paired with the persistent right workspace dock `CMP-12` sized by `--dt-layout-drawer-width-desktop` (`--dt-shadow-panel`). Modals `CMP-08` and `CMP-09` center at `--dt-layout-modal-width-desktop` bounded by `--dt-layout-modal-max-height`. Sticky footer `CMP-13` (`--dt-layout-footer-height`) spans the bottom workspace.
+* **Layout Organization:** Asymmetric flex workstation split ([DT-UI-DS-DOC-001 §2.3](../../DT-UI-DS-DOC-001.md#23-responsive-breakpoints-and-reference-frames)): left navigation sidebar `CMP-01` expanded at `--dt-layout-sidebar-width-expanded`, central hierarchy workspace hosting the 5 summary cards `CMP-03`, filter toolbar `CMP-04`, and virtualized tree explorer `CMP-05`, paired with the closed-by-default on-demand right workspace dock `CMP-12` opening at `--dt-layout-drawer-width-desktop` (`--dt-shadow-panel`). Modals `CMP-08` and `CMP-09` center at `--dt-layout-modal-width-desktop` bounded by `--dt-layout-modal-max-height`. Sticky footer `CMP-13` (`--dt-layout-footer-height`) spans the bottom workspace.
 * **Ergonomic Rules:** Mouse and keyboard navigation; dense tree row height governed by `--dt-layout-table-row-height`; single-click node inspection in `CMP-06` without horizontal layout shift (`CLS = 0`).
 
 ### 8.2. Industrial Tablet Landscape (`--dt-breakpoint-lg`)
-* **Layout Organization:** Navigation sidebar `CMP-01` collapses to an icon-only rail sized by `--dt-layout-sidebar-width-collapsed`; workspace dock `CMP-12` operates as a slide-over lateral panel sized by `--dt-layout-drawer-width-tablet`; summary cards `CMP-03` remain in a fluid horizontal strip; modals `CMP-08` and `CMP-09` size to `--dt-layout-modal-width-tablet`.
-* **Ergonomic Rules:** Tree expand/collapse chevrons and action triggers enforce `--dt-touch-target-mobile` hit areas; sticky footer `CMP-13` (`--dt-layout-footer-height`) remains permanently pinned.
+* **Layout Organization:** Navigation sidebar `CMP-01` collapses to an icon-only rail sized by `--dt-layout-sidebar-width-collapsed`; workspace dock `CMP-12` operates as a lateral panel sized by `--dt-layout-drawer-width-tablet`; summary cards `CMP-03` arrange in an orphan-free 3-column grid with Card 1 (`Total Taxonomy`) spanning 2 columns; tree explorer `CMP-05` prioritizes `Tag`, `ISO Tier`, `Name`, `Criticality`, and `Equipment Occupancy`; modals `CMP-08` and `CMP-09` size to `--dt-layout-modal-width-tablet`.
+* **Ergonomic Rules:** Filter controls enforce `--dt-control-height-md` and modal/footer triggers enforce `--dt-touch-target-mobile` hit areas; sticky footer `CMP-13` (`--dt-layout-footer-height`) remains permanently pinned.
 
 ### 8.3. Industrial Tablet Portrait (`--dt-breakpoint-md`)
-* **Layout Organization:** Navigation sidebar `CMP-01` transitions to an off-canvas drawer; summary cards `CMP-03` wrap into a compact grid; workspace dock `CMP-12` transitions to an adaptive **Bottom Sheet** initializing at `--dt-layout-bottom-sheet-height-initial` and expanding up to `--dt-layout-bottom-sheet-height-expanded` (`--dt-radius-2xl` top curvature) with a header tab switcher (`NODE DETAIL` / `SHA-256 AUDIT`).
+* **Layout Organization:** Navigation sidebar `CMP-01` transitions to an off-canvas drawer triggered by the top-left emblem; summary cards `CMP-03` arrange in an orphan-free 2-column grid with Card 1 spanning 2 columns; tree explorer `CMP-05` prioritizes `Tag`, `ISO Tier`, `Name`, and `Equipment Occupancy`; workspace dock `CMP-12` transitions to an adaptive **Bottom Sheet** initializing at `--dt-layout-bottom-sheet-height-initial` and expanding up to `--dt-layout-bottom-sheet-height-expanded` (`--dt-radius-2xl` upper curvature) with a header tab switcher (`Node Detail` / `SHA-256 Audit`).
 * **Ergonomic Rules:** Touch targets governed by `--dt-touch-target-mobile` with `--dt-space-2` separation; discrete single-tap toggling on the bottom-sheet handle ([DT-UI-DS-DOC-001 §6.3](../../DT-UI-DS-DOC-001.md#63-sliding-containers-pattern-bottom-sheets-and-drawers)).
 
 ---
@@ -787,19 +795,19 @@ public record TaxonomyAuditEntryDto
 | :--- | :--- | :--- |
 | [FR-160](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr) | `CMP-02`, `CMP-05`, `CMP-06` | Enables creation of Level 1 root nodes and Levels 2–5 child Functional Locations complying with ISO 14224. |
 | [FR-161](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr) | `CMP-06`, `CMP-11` | Enforces sequential parent-child level coherence ($\text{Child.Level} == \text{Parent.Level} + 1$) and blocks disordered levels (`AF-001`). |
-| [FR-162](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr) | `CMP-05`, `CMP-08` | Provides dynamic tree re-parenting (`ReorganizeTree`) with recursive cycle and depth validation (`AF-002`). |
-| [FR-163](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr) | `CMP-09`, `CMP-11` | Blocks deletion of Functional Locations with child nodes or actively mounted Equipment Units (`AF-003`). |
+| [FR-162](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr) | `CMP-08`, `CMP-13` | Provides dynamic tree re-parenting (`ReorganizeTree`) with recursive cycle and depth validation (`AF-002`). |
+| [FR-163](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr) | `CMP-09`, `CMP-11`, `CMP-13` | Blocks deletion of Functional Locations with child nodes or actively mounted Equipment Units (`AF-003`). |
 | [FR-164](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr) | `CMP-03`, `CMP-04`, `CMP-05` | Debounced fuzzy search and multi-criteria filtering by Level, Criticality, Environmental Exposure, and Occupancy with ancestor auto-expansion. |
 | [FR-165](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr) | `CMP-02`, `CMP-03` | Generates and exports structured Functional Location architecture and coverage reports (`CSV` and `JSON`). |
-| [NFR-166](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-05` | Recursive CTE projection (`WITH RECURSIVE`) and UI row virtualization load and render extensive hierarchies in $< 3\text{s}$. |
+| [NFR-166](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-05` | Recursive hierarchy resolution and UI row virtualization load and render extensive hierarchies in $< 3\text{s}$. |
 | [NFR-167](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-06`, `CMP-08`, `CMP-11` | Tag uniqueness, level coherence, and circular reference detection execute in $< 1\text{s}$ (`< 500ms` indexed lookup). |
-| [NFR-168](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-13` | All-or-nothing ACID transaction guarantees tree creations and re-parenting operations never leave partial or orphaned branches. |
-| [NFR-169](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-06`, `CMP-08`, `CMP-11` | Optimistic concurrency token (`RowVersion`) prevents simultaneous edits by multiple engineers from overwriting tree changes (`AF-004`). |
-| [TR-001](../../../requirements/common/TR-001.md) | `CMP-10`, `CMP-13` | Immutable append-only audit trail logging with SHA-256 hash chaining on all taxonomic mutations. |
-| [TR-005](../../../requirements/common/TR-005.md) | `CMP-05`, `CMP-08`, `CMP-13` | Enforces TLS/HTTPS encryption in transit across all recursive tree queries, uniqueness checks, and mutation commands. |
+| [NFR-168](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-06`, `CMP-08`, `CMP-09` | All-or-nothing ACID transaction guarantees tree creations and re-parenting operations never leave partial or orphaned branches. |
+| [NFR-169](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | `CMP-06`, `CMP-08`, `CMP-11` | Optimistic concurrency token (`ConcurrencyToken` backed by PostgreSQL `xmin` via `If-Match`) prevents simultaneous edits by multiple engineers from overwriting tree changes (`AF-004`). |
+| [TR-001](../../../requirements/common/TR-001.md) | `CMP-06`, `CMP-10`, `CMP-11` | Immutable append-only audit trail logging with SHA-256 hash chaining on all taxonomic mutations. |
+| [TR-005](../../../requirements/common/TR-005.md) | `CMP-05`, `CMP-06`, `CMP-08` | Enforces TLS/HTTPS encryption in transit across all recursive tree queries, uniqueness checks, and mutation commands. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-06`, `CMP-13` | Enforces RBAC role authorization (`Project Engineer` and `Reliability Engineer` for mutations; read/navigation access for all roles). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-03` to `CMP-09` | Enforces ISO 14224 taxonomic hierarchy (Levels 1 to 5), cycle prevention, and taxonomic coverage reporting. |
-| [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-13` | ANSI/ISA-101 HPHMI 90/10 grayscale baseline, zero badge inflation on static level tags, and WCAG 2.1 AA redundant coding. |
-| [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-10`, `CMP-13` | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on taxonomic audit records. |
-| [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-06`, `CMP-13` | Time-sequential UUIDv7 identifier generation for newly created `FunctionalLocation` entities. |
-| [ADR-008](../../../architecture/adr/ADR-008.md) | `CMP-07` | Decouples permanent Level 5 `FunctionalLocation` slots from physical Level 6 `EquipmentUnit` installation history. |
+| [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-13` | ANSI/ISA-101 HPHMI 90/10 grayscale baseline, zero green before commit, zero badge inflation on static level tags, and WCAG 2.1 AA redundant coding. |
+| [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-06`, `CMP-10` | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `IntegrityHash`) on taxonomic audit records. |
+| [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-06` | Time-sequential UUIDv7 identifier generation for newly created `FunctionalLocation` entities. |
+| [ADR-010](../../../architecture/adr/ADR-010.md) | `CMP-07` | Decouples permanent Level 5 `FunctionalLocation` slots from physical Level 6 `EquipmentUnit` installation history. |

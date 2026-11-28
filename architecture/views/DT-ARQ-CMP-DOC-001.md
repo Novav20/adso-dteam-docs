@@ -2,8 +2,8 @@
 code: DT-ARQ-CMP-DOC-001
 version: 1.6
 date: 2026-11-07
-status: Active
-author: Juan David Julio Serrano
+status: Approved
+author: Juan David Julio
 standard:
   - ISO/IEC 42010:2011 (Architecture — C4 Level 3 Views)
   - ISO 9001:2015 (Document Control)
@@ -17,7 +17,7 @@ standard:
 
 ## 1. Scope and Objective
 
-This document constitutes the detailed design specification (C4 Level 3) that complements the component diagram (`DT-ARQ-CMP-001-component-model.puml`). Its purpose is to serve as the single source of truth (SSoT) for the development team, translating the boundaries and functional ports of the diagram into physical C# (.NET 10) code interfaces and PostgreSQL relational storage schemas.
+This document constitutes the detailed design specification (C4 Level 3) that complements the component diagram (`DT-ARQ-CMP-001-component-model.dsl`). Its purpose is to serve as the single source of truth (SSoT) for the development team, translating the boundaries and functional ports of the diagram into physical C# (.NET 10) code interfaces and PostgreSQL relational storage schemas.
 
 The specification is strictly limited to the scope of the **Minimum Viable Product (MVP)**, consolidating the logic of immutable logs without collisions, automatic backlog prioritization based on the RIME industrial standard, reactive telemetry synchronization for safety, and physical inventory control for Asset Swaps.
 
@@ -32,10 +32,10 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **loto_watchdog** | LOTO Safety Watchdog | Component | C# Background Service | Real-time verification of Zero Energy thresholds on the mobile client. |
 | **object_storage** | Azure Blob Storage | External System | Storage Account | Binary evidence persistence for ISO 14224 photographs. |
 | **web_admin** | Web Admin Portal | Client Application | Blazor Web App | HSEQ supervision, planning, and dashboards. |
-| **idempotency_filter** | Idempotency Filter | Driving Adapter | IActionFilter | Intercepts requests with the Idempotency-Key header; prevents reprocessing critical transitions resent after reconnection (TR-007). |
+| **idempotency_filter** | Idempotency Filter | Driving Adapter | IEndpointFilter | Intercepts Minimal API mutating requests with the canonical `X-Idempotency-Key` header; prevents reprocessing critical transitions resent after reconnection (TR-007, ADR-007). |
 | **idempotency_repo** | Idempotency Repository | Secondary Port (Out) | IIdempotencyRepository | Abstracts relational persistence of the IdempotencyLog to join the Domain's Unit of Work (ADR-007). |
 | **media_repo** | Media Repository | Secondary Port (Out) | IMediaRepository | Manages SAS token issuance for external evidence storage (ADR-008). |
-| **api_controllers** | REST API Controllers | Driving Adapter | Minimal APIs | Exposes HTTPS endpoints; handles optimistic concurrency control using row version marks (RowVersion/ETag). |
+| **api_controllers** | REST API Controllers | Driving Adapter | Minimal APIs | Exposes HTTPS `/api/v1/...` endpoints; enforces optimistic concurrency control using PostgreSQL `xmin` mapped to EF Core `ConcurrencyToken` (`ETag` / `If-Match`, `DT-ARQ-DB-DOC-001 §3.12`). |
 | **signalr_hub** | SignalR Hub | Driving Adapter | SignalR.Hub | Persistent bidirectional channel over WebSockets (WSS); degrades to polling if the industrial network fails. |
 | **telemetry_listener** | Telemetry Listener (IoT) | Driving Adapter | IHostedService | Asynchronous consumer (AMQP) of the Azure IoT Hub broker; injects telemetry to the LOTO port. |
 | **sync_worker** | Background Sync Worker | Driving Adapter | IHostedService | Asynchronously and idempotently processes offline queues transmitted from mobile clients after recovering connection (TR-007). |
@@ -43,6 +43,7 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **mtto_port** | Maintenance Port | Primary Port (In) | IWorkOrderService | Backlog administration, priority calculations, preventive scheduling, and failure reporting. |
 | **inv_port** | Inventory Port | Primary Port (In) | IInventoryService | Warehouse transactions, critical stock control, and physical equipment rotation (Asset Swap). |
 | **loto_port** | Safety & LOTO Port | Primary Port (In) | ILotoService | Secure job authorization: permit approval, physical lockouts, and Zero Energy condition. |
+| **spatial_ingestion_port** | Spatial Ingestion Port | Primary Port (In) | ISpatialIngestionService / SpatialIngestionWorker | Validates MOC plant layout revisions (`DT-UI-SVG-DOC-001`), verifies SHA-256 checksums, and persists `vis.plant_layout_revisions` + MOC audit trail. |
 | **sec_port** | Security Port | Primary Port (In) | ISecurityService | IAM governance: authentication, session renewal, RBAC validations, and immutable auditing. |
 | **rime_calc** | RIME Calculator | Domain Service | IRimeCalculator | Encapsulates the RIME prioritization calculation using the Strategy pattern (ADR-002). |
 | **event_bus** | Event Bus Port | Domain Service | IEventBus | Decouples internal logic between monolith modules via in-memory domain events. |
@@ -114,6 +115,8 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **loto_watchdog** | **local_db** | SQLite P/Invoke | Writes emergency lockout states directly to local storage upon connection loss. |
 | **loto_watchdog** | **signalr_hub** | WSS (WebSockets) | Maintains continuous heartbeat to verify safety perimeter integrity. |
 | **web_admin** | **api_controllers** | HTTPS / JSON | Executes administrative commands and fetches master data. |
+| **api_controllers** | **spatial_ingestion_port** | In-Process Method Call | Routes MOC spatial layout uploads, structural validation, and revision approvals. |
+| **spatial_ingestion_port** | **asset_repo** | C# Interface (DI) | Verifies Level 4 Functional Location & ISO 14224 tag bindings during layout ingestion. |
 
 ---
 
@@ -121,12 +124,12 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 
 | Module / Port | C# Method Signature and Parameters | Requirement / US | Safety Invariant / Business Rule to Validate |
 | :--- | :--- | :--- | :--- |
-| **ITelemetryBus** | `IDisposable SubscribeToSafetyChannel(Guid equipmentUnitId, Action<TelemetryReading> onReading);` | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>[TR-010-FR-431](../../requirements/common/TR-010.md#functional-requirements-fr) | **Real-Time Synchronization:** Propagates permit revocations and energy spikes in sub-seconds. **Concurrency Control:** The client must apply a $300\text{ ms}$ debounce on asset selection to prevent race conditions due to simultaneous multiple subscriptions. |
+| **ITelemetryBus** | `IDisposable SubscribeToSafetyChannel(Guid equipmentUnitId, Action<TelemetryReading> onReading);` | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>[TR-010-NFR-431](../../requirements/common/TR-010.md#non-functional-requirements-nfr) | **Real-Time Synchronization:** Propagates permit revocations and energy spikes in sub-seconds. **Concurrency Control:** The client must apply a $300\text{ ms}$ debounce on asset selection to prevent race conditions due to simultaneous multiple subscriptions. |
 | **ITaxonomyService** | `Task<Guid> RegisterEquipmentAsync(RegisterEquipmentCommand command);` | [INV-005](../../requirements/user-stories/inv/INV-005.md)<br>[FR-119](../../requirements/user-stories/inv/INV-005.md#functional-requirements-fr) | Validates chronological milestone coherence (`ValidateChronology`) and ISO 14224 L6-L8 taxonomic placement before persisting a new serialized `EquipmentUnit`. |
 | **ITaxonomyService** | `Task ActivateEquipmentAsync(Guid equipmentUnitId);` | [INV-007](../../requirements/user-stories/inv/INV-007.md)<br>[FR-139](../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr), [FR-140](../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr) | **Commissioning Gate:** Validates mandatory physical boundaries (`boundary_start`, `boundary_end`) and mapped LOTO isolation points before transitioning `lifecycle_status` from `COMMISSIONING` to `INSTALLED`. |
-| **ITaxonomyService** | `Task ReorganizeTree(Guid locationId, Guid newParentId);` | [INV-027](../../requirements/user-stories/inv/INV-027.md)<br>[FR-162](../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr), [NFR-167](../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | Validates that the movement does not generate infinite cycles (a node cannot be its own ancestor, TR-008-FR-417) and remains within the boundaries of Functional Locations (L1 to L5 of the ISO 14224 taxonomy). |
+| **ITaxonomyService** | `Task ReorganizeTree(Guid locationId, Guid newParentId);` | [INV-027](../../requirements/user-stories/inv/INV-027.md)<br>[FR-162](../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr), [NFR-167](../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr) | Validates that the movement does not generate infinite cycles (a node cannot be its own ancestor, [TR-008-NFR-417](../../requirements/common/TR-008.md#non-functional-requirements-nfr)) and remains within the boundaries of Functional Locations (L1 to L5 of the ISO 14224 taxonomy). |
 | **IWorkOrderService** | `Task<Guid> CreateWorkRequest(CreateWorkRequestDto request);` | [MTTO-026](../../requirements/user-stories/mtto/MTTO-026.md)<br>[FR-059](../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr) | Mandates the entry of the Work Class (`workClassCode`) and the asset identifier to admit the request into the backlog. |
-| **IWorkOrderService** | `Task UpdatePriorityScore(Guid workRequestId);` | [MTTO-026](../../requirements/user-stories/mtto/MTTO-026.md)<br>[FR-060](../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr), [NFR-074](../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr) | Invokes `IRimeCalculator.Calculate(asset.Criticality, request.WorkClass)`; the calculation is deterministic and immutable to external inventory factors. |
+| **IWorkOrderService** | `Task UpdatePriorityScore(Guid workRequestId);` | [MTTO-026](../../requirements/user-stories/mtto/MTTO-026.md)<br>[FR-060](../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr), [NFR-074](../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr) | Invokes `IRimeCalculator.Calculate(functionalLocation.Criticality, workRequest.WorkClassCode)`; the calculation is deterministic and immutable to external inventory factors. |
 | **IWorkOrderService** | `Task CalculateNextTriggerLimit(Guid planId, decimal currentUsage);` | [MTTO-023](../../requirements/user-stories/mtto/MTTO-023.md)<br>[FR-583](../../requirements/user-stories/mtto/MTTO-023.md#functional-requirements-fr), [FR-584](../../requirements/user-stories/mtto/MTTO-023.md#functional-requirements-fr) | Rejects telemetry readings lower than the historical accumulated (counters); maintains the last valid value and generates an alert for possible sensor tampering. |
 | **IWorkOrderService** | `Task StartExecution(Guid workOrderId);` | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>[NFR-229](../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr), [NFR-238](../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | **FAIL-SAFE:** Blocks the transition if the associated permit is not `APPROVED` or if any `WorkOrderIsolation.isIsolated` is false. Blocks if there is telemetry loss. |
 | **IWorkOrderService** | `Task CloseAdministratively(Guid workOrderId);` | [MTTO-002](../../requirements/user-stories/mtto/MTTO-002.md)<br>[FR-012](../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | Validates the filling of ISO 14224 failure codes (`FailureRecord`) and actual spare parts consumption before marking the WO as `CLOSED`. |
@@ -134,15 +137,175 @@ The specification is strictly limited to the scope of the **Minimum Viable Produ
 | **IWorkOrderService** | `Task<Guid> PromoteToWorkOrderAsync(Guid workRequestId);` | Cross-cutting (WorkRequest) | **Backlog Admission:** Calculates the `RIME Score` via the `IRimeCalculator` service prior to creating the WO; rejects if `workClassCode` is not parameterized. |
 | **IInventoryService** | `Task ReserveStock(Guid sparePartId, decimal quantity);` | [INV-006](../../requirements/user-stories/inv/INV-006.md)<br>[FR-126](../../requirements/user-stories/inv/INV-006.md#functional-requirements-fr) | Decrements available virtual stock (`QuantityOnHand - ReservedQuantity`); rejects reservation if the resulting value is below zero. |
 | **IInventoryService** | `Task RecordConsumption(Guid workOrderId, Guid sparePartId, decimal quantity);` | [INV-006](../../requirements/user-stories/inv/INV-006.md)<br>[FR-127](../../requirements/user-stories/inv/INV-006.md#functional-requirements-fr) | Crosses parts consumption with `SparePart.IssueStock()`; atomically updates the WO maintenance cost table in the DB. |
-| **IInventoryService** | `Task<AssetSwapCompletedEvent> SwapAssetAsync(ExecuteAssetSwapCommand command);` | [INV-025](../../requirements/user-stories/inv/INV-025.md)<br>[FR-591 to FR-595](../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr), [NFR-596](../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | **Atomic Asset Swap (Single Orchestrator):** Coordinates `FunctionalLocation.UninstallEquipment()`, `EquipmentUnit.TransitionToStorage/Repair/Damaged()`, and `FunctionalLocation.InstallEquipment()` across `TaxonomyDbContext`, `InventoryDbContext`, and `SecurityDbContext` over a single shared `DbTransaction` ([DT-ARQ-DB-DOC-001 §3.9](../DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing-tr-001-tr-005-inv-025)). |
+| **IInventoryService** | `Task<AssetSwapCompletedEvent> SwapAssetAsync(ExecuteAssetSwapCommand command);` | [INV-025](../../requirements/user-stories/inv/INV-025.md)<br>[FR-591 to FR-595](../../requirements/user-stories/inv/INV-025.md#functional-requirements-fr), [NFR-596](../../requirements/user-stories/inv/INV-025.md#non-functional-requirements-nfr) | **Atomic Asset Swap (Single Orchestrator):** Coordinates `FunctionalLocation.UninstallEquipment()`, `EquipmentUnit.TransitionToStorage/Repair/Damaged()`, and `FunctionalLocation.InstallEquipment()` across `TaxonomyDbContext`, `InventoryDbContext`, and `SecurityDbContext` over a single shared `DbTransaction` ([DT-ARQ-DB-DOC-001 §3.9](../DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing)). |
 | **ILotoService** | `Task RequireIsolation(Guid workOrderId, Guid isolationPointId);` | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>[FR-228](../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr), [FR-230](../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr) | Inserts the tuple into the intermediate `work_order_isolations` table; prevents authorizing general isolation if checklist items remain unconfirmed. |
 | **ILotoService** | `Task EvaluateEnergyState(Guid isolationPointId, decimal telemetryValue);` | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>[NFR-229](../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr), [NFR-237](../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | If the sensor reading value exceeds the safe Zero Energy limits, forces danger state; physical lockout cannot be bypassed from the technician's UI. |
 | **ILotoService** | `Task ConfirmZeroEnergyAsync(Guid workOrderId);` | [VIS-011](../../requirements/user-stories/vis/VIS-011.md)<br>[FR-230](../../requirements/user-stories/vis/VIS-011.md#functional-requirements-fr), [NFR-233](../../requirements/user-stories/vis/VIS-011.md#non-functional-requirements-nfr) | **Active Lockout:** Enables Zero Energy confirmation only when port telemetry confirms there is no active flow at the isolation points; latency <1s. |
-| **ISecurityService** | `Task<AuthToken> Authenticate(string username, string password);` | [TR-006-FR-394](../../requirements/common/TR-006.md#functional-requirements-fr) | Generates an immutable JWT token with a maximum validity of 8 hours; increments the login failure counter in `User` if the password does not match. |
-| **ISecurityService** | `Task AppendAuditEntry(string entityType, string entityId, string action, object previous, object next);` | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>[FR-346](../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [TR-001](../../requirements/common/TR-001.md) | Persists in PostgreSQL JSONB format via an asynchronous interceptor; the destination table denies `UPDATE`/`DELETE` commands at the SQL engine level. |
+| **ISpatialIngestionService** | `Task<Guid> IngestLayoutRevisionAsync(Guid functionalLocationId, string revisionCode, Stream layoutPayload);` | [DT-UI-SVG-DOC-001](../../ui-ux/DT-UI-SVG-DOC-001.md), [ADR-003](../adr/ADR-003.md) | **MOC Spatial Ingestion:** Validates 7-layer SVG/spatial structure and ISO 14224 tag bindings (`data-func-loc`, `data-equip-id`), computes SHA-256 checksum, and records `PlantLayoutRevision` + MOC `AuditLog` diff (`SpatialIngestionWorker`). |
+| **ISecurityService** | `Task<AuthToken> Authenticate(string username, string password);` | [TR-006-NFR-394](../../requirements/common/TR-006.md#non-functional-requirements-nfr) | Issues a short-lived Access JWT paired with a rotating Session Refresh Token stored in `adm.auth_tokens` (canonical TTLs per [ADR-006](../adr/ADR-006.md#canonical-offline-watchdog-session-constants)); increments the login failure counter in `User` if the password does not match. |
+| **ISecurityService** | `Task AppendAuditEntry(string entityType, Guid entityId, AuditActionType action, object? previous, object? next);` | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>[FR-346](../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr), [TR-001](../../requirements/common/TR-001.md) | Persists in PostgreSQL `JSONB` format conforming to [DT-ERD-DOC-001 §6.7](../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state) synchronously inside the active shared `DbTransaction` via `AuditSaveChangesInterceptor` pre-commit ([DT-ARQ-DB-DOC-001 §3.9](../DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing)); the destination table denies `UPDATE`/`DELETE` commands at the SQL engine level. |
 | **ISecurityService** | `Task<bool> VerifyAuditIntegrity(Guid logId);` | [ADM-032](../../requirements/user-stories/adm/ADM-032.md)<br>[FR-351](../../requirements/user-stories/adm/ADM-032.md#functional-requirements-fr) | Recalculates the cryptographically chained SHA-256 hash with the previous record and validates the match; immediately notifies HSEQ if there is a discrepancy. |
-| **ISecurityService** | `Task<bool> AuthorizeAsync(Guid userId, string module, string action);` | [TR-006-FR-396](../../requirements/common/TR-006.md#functional-requirements-fr)<br>[TR-006-NFR-401](../../requirements/common/TR-006.md#non-functional-requirements-nfr) | **RBAC Security:** Evaluates the assigned role's permission matrix in <5ms latency; records access denials as suspicious events in `audit_logs` (TR-006-FR-397). |
-| **IEquipmentRepository** | `Task<IReadOnlyList<FunctionalLocation>> GetHierarchyPathAsync(Guid assetId);` | [TR-008](../../requirements/common/TR-008.md), [FR-416](../../requirements/common/TR-008.md#functional-requirements-fr) | **Taxonomic Consistency:** Must guarantee an uninterrupted hierarchical path from Level 1 to the queried asset; with a load response in <500ms (TR-008-NFR-419). |
-| **ISecurityRepository** | `Task<IReadOnlyList<AuthToken>> GetActiveSessionsAsync(Guid userId);` | [TR-006-NFR-402](../../requirements/common/TR-006.md#non-functional-requirements-nfr) | **Access Revocation:** Allows querying and immediately invalidating active sessions (burning JWT tokens) when a user's status changes to inactive due to risk. |
+| **ISecurityService** | `Task<bool> AuthorizeAsync(Guid userId, string module, string action);` | [TR-006-NFR-396](../../requirements/common/TR-006.md#non-functional-requirements-nfr)<br>[TR-006-NFR-401](../../requirements/common/TR-006.md#non-functional-requirements-nfr) | **RBAC Security:** Evaluates the assigned role's permission matrix in <5ms latency; records access denials as suspicious events in `audit_logs` ([TR-006-NFR-397](../../requirements/common/TR-006.md#non-functional-requirements-nfr)). |
+| **IEquipmentRepository** | `Task<IReadOnlyList<FunctionalLocation>> GetHierarchyPathAsync(Guid assetId);` | [TR-008](../../requirements/common/TR-008.md), [TR-008-FR-416](../../requirements/common/TR-008.md#functional-requirements-fr) | **Taxonomic Consistency:** Must guarantee an uninterrupted hierarchical path from Level 1 to the queried asset; with a load response in <500ms (TR-008-NFR-419). |
+| **ISecurityRepository** | `Task<IReadOnlyList<AuthToken>> GetActiveSessionsAsync(Guid userId);` | [TR-006-NFR-402](../../requirements/common/TR-006.md#non-functional-requirements-nfr) | **Access Revocation:** Allows querying and immediately invalidating active sessions (revoking refresh tokens and pushing `SessionRevoked` over `/hubs/security`) when a user's status changes to inactive due to risk. |
 | **IWorkOrderRepository** | `Task SaveWithHistoryAsync(WorkOrder workOrder, string oldStatus);` | Cross-cutting (`WorkOrderHistory`) | **Traceability:** Each state transition must atomically generate a row in the `work_order_histories` history table in a single-commit database transaction. |
 | **IInventoryRepository** | `Task<StockSnapshot> GetAvailabilityAsync(Guid sparePartId);` | [TR-008](../../requirements/common/TR-008.md) (connected structural consistency) | **Warehouse Integrity:** Returns the physical inventory (`QuantityOnHand`) and committed (`ReservedQuantity`) without dirty reads, ensuring transactional consistency. |
+
+---
+
+## 5. SignalR Hub and Real-Time Event Contract Registry (`TR-010`)
+
+To prevent event-name drift across Blazor Web App and .NET MAUI Blazor Hybrid clients, all server-to-client WebSocket broadcasts via `signalr_broadcaster` MUST bind strictly to the three canonical SignalR hubs and strongly typed client contracts below:
+
+| Hub Endpoint | Typed Client Interface | Canonical Server-to-Client Event Signature | Producers | Authorized Subscribers & Consuming Screens |
+| :--- | :--- | :--- | :--- | :--- |
+| **`/hubs/telemetry`** | `ITelemetryClient` | `ReceiveTelemetryReading(TelemetryReadingDto reading)` | `telemetry_listener` (Azure IoT Hub / SCADA), `SCR-MTTO-023` (manual readings) | `SCR-VIS-033`, `SCR-VIS-011`, `SCR-MTTO-023` (live sensor updates & Zero Energy monitoring). |
+| **`/hubs/telemetry`** | `ITelemetryClient` | `EmergencyEvacuationBroadcast(EvacuationAlertDto alert)` | `telemetry_listener`, `loto_port`, `SCR-VIS-011` (Zero Energy breach / fail-safe interrupt) | `SCR-VIS-008`, `SCR-VIS-011`, `SCR-VIS-033`, `SCR-MTTO-002` (plant-wide red priority alert & fail-safe interrupt). |
+| **`/hubs/telemetry`** | `ITelemetryClient` | `CbmReadingRecorded(CbmTriggerEventDto triggerEvent)` | `telemetry_listener`, `mtto_port`, `SCR-MTTO-023` (CBM counter ingestion) | `SCR-MTTO-023` (live condition-based trigger recalculation & counter tamper alerts). |
+| **`/hubs/telemetry`** | `ITelemetryClient` | `LotoHeartbeatAck(DateTimeOffset utcTimestamp)` | `signalr_hub`, `loto_port` (watchdog heartbeat ack) | `SCR-VIS-011`, `SCR-MTTO-002`, `loto_watchdog` (2-second cadence; 30-second Grace Window before fail-safe lockout). |
+| **`/hubs/security`** | `ISecuritySessionClient` | `PermissionsUpdated(RolePermissionsUpdatedEvent evt)` | `SCR-ADM-013` (role matrix), `SCR-ADM-014` (user role assignments) | `SCR-ADM-013`, `SCR-ADM-014`, all authenticated Blazor sessions (real-time RBAC matrix cache refresh). |
+| **`/hubs/security`** | `ISecuritySessionClient` | `SessionRevoked(SessionRevocationEvent evt)` | `SCR-ADM-013` (role deactivation), `SCR-ADM-014` (user suspension / token revocation) | `SCR-ADM-014`, all active sessions for revoked/locked user (immediate forced logout & local cache wipe). |
+| **`/hubs/operations`** | `IOperationsClient` | `PermitStatusChanged(WorkPermitStatusEvent evt)` | `loto_port`, `SCR-VIS-008`, `SCR-VIS-011` (PTW lifecycle transitions) | `SCR-VIS-008`, `SCR-VIS-011` (unified PTW lifecycle transitions: `APPROVED`, `REVOKED`, `CLOSED`, `EXPIRING_SOON`). |
+| **`/hubs/operations`** | `IOperationsClient` | `WorkOrderStatusChanged(WorkOrderTransitionEvent evt)` | `SCR-MTTO-001`, `SCR-MTTO-023`, `SCR-MTTO-026`, `SCR-VIS-011`, `SCR-MTTO-002` | `SCR-MTTO-026`, `SCR-MTTO-002`, `SCR-VIS-011`, `SCR-VIS-033` (RIME backlog board refresh and work-order FSM sync). |
+| **`/hubs/operations`** | `IOperationsClient` | `AssetSwapCompleted(AssetSwapCompletedEvent evt)` | `SCR-INV-025` (`IInventoryService.SwapAssetAsync`) | `SCR-INV-025`, `SCR-INV-005`, `SCR-VIS-033` (rotable slot re-mount notification across connected viewports). |
+
+### 5.1. Canonical SignalR Event Payload Contracts
+
+The 8 typed SignalR event records (`LotoHeartbeatAck` emits a scalar `DateTimeOffset utcTimestamp`) expose the following canonical fields:
+
+| Event Record | Canonical Payload Fields |
+| :--- | :--- |
+| **`TelemetryReadingDto`** | `SignalId` (`Guid`), `EquipmentUnitId` (`Guid`), `SignalType` (`TelemetrySignalType`), `Value` (`decimal`), `Unit` (`string`), `Threshold` (`decimal?`), `IsSafetyCritical` (`bool`), `TimestampUtc` (`DateTimeOffset`). |
+| **`EvacuationAlertDto`** | `AlertId` (`Guid`), `EquipmentUnitId` (`Guid`), `FunctionalLocationTag` (`string`), `WorkOrderId` (`Guid?`), `SignalType` (`TelemetrySignalType`), `MeasuredValue` (`decimal`), `ThresholdValue` (`decimal`), `EngineeringUnit` (`string`), `Reason` (`string`), `TriggeredAtUtc` (`DateTimeOffset`). |
+| **`CbmTriggerEventDto`** | `MaintenancePlanId` (`Guid`), `EquipmentUnitId` (`Guid`), `SignalType` (`TelemetrySignalType`), `ReadingValue` (`decimal`), `NextTriggerLimit` (`decimal?`), `IsMonotonicityViolation` (`bool`), `TriggeredWorkOrderId` (`Guid?`), `RecordedAtUtc` (`DateTimeOffset`). |
+| **`RolePermissionsUpdatedEvent`** | `RoleId` (`Guid`), `RoleName` (`string`), `AffectedUserIds` (`IReadOnlyList<Guid>`), `UpdatedByUserId` (`Guid`), `UpdatedAtUtc` (`DateTimeOffset`). |
+| **`SessionRevocationEvent`** | `TargetUserId` (`Guid`), `RevokedTokenId` (`Guid?`), `Reason` (`string`), `RevokedByUserId` (`Guid`), `RevokedAtUtc` (`DateTimeOffset`). |
+| **`WorkPermitStatusEvent`** | `WorkPermitId` (`Guid`), `PermitIdentifier` (`string`), `EquipmentUnitId` (`Guid`), `PreviousStatus` (`WorkPermitStatus`), `NewStatus` (`WorkPermitStatus`), `IsExpiringSoon` (`bool`), `OccurredAtUtc` (`DateTimeOffset`). |
+| **`WorkOrderTransitionEvent`** | `WorkOrderId` (`Guid`), `WorkOrderNumber` (`string`), `EquipmentUnitId` (`Guid`), `OldStatus` (`WorkOrderStatus`), `NewStatus` (`WorkOrderStatus`), `TriggeredByUserId` (`Guid`), `OccurredAtUtc` (`DateTimeOffset`). |
+| **`AssetSwapCompletedEvent`** | `InstallationId` (`Guid`), `FunctionalLocationTag` (`string`), `DismountedSerialNumber` (`string`), `InstalledSerialNumber` (`string`), `CryptographicHash` (`string`), `Timestamp` (`DateTimeOffset`). |
+
+---
+
+## 6. REST API Prefix, Concurrency & Numeric Precision Conventions
+
+1. **Bounded-Context REST Prefixes:** All HTTPS endpoints exposed by `api_controllers` follow the canonical prefix `/api/v1/{context}/...` mapped cleanly by domain bounded context:
+   * `/api/v1/taxonomy/...` — ISO 14224 Functional Locations, Equipment Units, Commissioning Gate, Boundaries, Subunits (`SCR-INV-005`, `SCR-INV-027`, `SCR-MTTO-029`, `SCR-MTTO-001`, `SCR-MTTO-023`).
+   * `/api/v1/maintenance/...` — Maintenance Plans (Time-Based & CBM), Work Requests, RIME Backlog, Work Orders (`SCR-MTTO-001`, `SCR-MTTO-002`, `SCR-MTTO-023`, `SCR-MTTO-026`, `SCR-VIS-011`, `SCR-VIS-033`).
+   * `/api/v1/inventory/...` — Spare Parts Catalog, Inventory Movements / Kardex, Atomic Rotable Swaps (`SCR-INV-006`, `SCR-INV-025`, `SCR-INV-031`).
+   * `/api/v1/safety/...` — Work Permits (PTW) and LOTO Isolation Plans / Try-Out Verification (`SCR-VIS-008`, `SCR-VIS-011`).
+   * `/api/v1/visualization/...` — 2D Plot Plan SVG revisions, Mesh Mappings, and Spatial Faceplate projections (`SCR-VIS-008`, `SCR-VIS-033`).
+   * `/api/v1/telemetry/...` — Telemetry Signal lookups and Manual Counter Readings (`SCR-MTTO-023`; SignalR-only for `SCR-VIS-033`).
+   * `/api/v1/security/...` — RBAC Roles, User Lifecycle, Active Sessions, and WORM Audit Logs (`SCR-ADM-013`, `SCR-ADM-014`, `SCR-ADM-032`).
+2. **Idempotency & Optimistic Concurrency Headers:** Every mutating `POST`/`PUT`/`PATCH`/`DELETE` command MUST include `X-Idempotency-Key` (`ADR-007`), whereas read-only query/validation `POST` routes (such as `POST /api/v1/taxonomy/maintainable-items/validate-exclusivity` and `POST /api/v1/security/audit-logs/query`) are exempt from `idempotency_filter`. Every update or state-transition on a mutable entity MUST enforce PostgreSQL `xmin` optimistic concurrency via `ETag` / `If-Match` headers and `uint ConcurrencyToken` (`DT-ARQ-DB-DOC-001 §3.12`).
+3. **Numeric Precision Boundary:** All domain, telemetry, engineering, financial, and inventory quantities MUST use C# `decimal` (mapped to PostgreSQL `DECIMAL`). IEEE-754 `double` is strictly permitted only in non-persisted 2D/3D SVG presentation viewport DTOs/view-models (`SCR-VIS-008`, `SCR-VIS-011`, `SCR-VIS-033`) for screen pan/zoom transforms, pixel coordinates, and cartographic scale factors (`DT-ARQ-DB-DOC-001 §2`).
+
+### 6.1. Canonical REST Endpoint Catalog
+
+The catalog below consolidates all **72 normalized Minimal API endpoints** (**74 verbatim `VERB /api/v1/...` route references** across the 16 `SCR-*.md` screen contracts, accounting for the optional `?from={isoDate}&to={isoDate}` query parameters on `commissioning-report` and the `?serial={sn}` / `?serial={serialNumber}` parameter alias on `verify-uniqueness`) grouped by bounded context:
+
+#### 6.1.1. `taxonomy` Context (21 Normalized / 23 Verbatim Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `POST /api/v1/taxonomy/functional-locations` | `CreateFunctionalLocationCommand` $\to$ `FunctionalLocationCreatedEvent` | `X-Idempotency-Key` | `SCR-INV-027` |
+| `GET /api/v1/taxonomy/functional-locations/tree` | `FunctionalLocationTreeResponseDto` | Read-only (`GET`) | `SCR-INV-027` |
+| `GET /api/v1/taxonomy/functional-locations/verify-tag?tag={tag}` | `TagUniquenessResultDto` | Read-only (`GET`) | `SCR-INV-027` |
+| `PUT /api/v1/taxonomy/functional-locations/{id}` | `UpdateFunctionalLocationCommand` $\to$ `FunctionalLocationTreeNodeDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-027` |
+| `PATCH /api/v1/taxonomy/functional-locations/{id}/reorganize` | `ReorganizeFunctionalLocationCommand` $\to$ `FunctionalLocationTreeNodeDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-027` |
+| `DELETE /api/v1/taxonomy/functional-locations/{id}` | `TaxonomyAuditEntryDto` / `204 No Content` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-027` |
+| `GET /api/v1/taxonomy/functional-locations/export` | `TaxonomyExportFormat` (`CSV` / `JSON` stream) | Read-only (`GET`) | `SCR-INV-027` |
+| `GET /api/v1/taxonomy/functional-locations/{locId}/installed-asset` | `InstalledAssetDetailsDto` | Read-only (`GET`) | `SCR-INV-025` |
+| `POST /api/v1/taxonomy/equipment-units` | `RegisterEquipmentUnitCommand` $\to$ `EquipmentUnitMasterCardDto` | `X-Idempotency-Key` | `SCR-INV-005` |
+| `GET /api/v1/taxonomy/equipment-units/{id}` | `EquipmentUnitMasterCardDto` | Read-only (`GET`) | `SCR-INV-005` |
+| `PUT /api/v1/taxonomy/equipment-units/{id}` | `UpdateEquipmentMasterRecordCommand` $\to$ `EquipmentUnitMasterCardDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-005` |
+| `GET /api/v1/taxonomy/equipment-units/lookup` | `EquipmentUnitLookupQueryDto` $\to$ `PagedLookupResultDto<EquipmentUnitLookupDto>` | Read-only (`GET`) | `SCR-MTTO-001`, `SCR-MTTO-023`, `SCR-MTTO-029` |
+| `GET /api/v1/taxonomy/equipment-units/verify-uniqueness?serial={serialNumber}` (alias `?serial={sn}`) | `SerialUniquenessResultDto` | Read-only (`GET`) | `SCR-INV-005` |
+| `GET /api/v1/taxonomy/equipment-units/pending-commissioning` | `IReadOnlyList<PendingCommissioningItemDto>` | Read-only (`GET`) | `SCR-INV-005` |
+| `POST /api/v1/taxonomy/equipment-units/{id}/commission` | `CommissionEquipmentUnitCommand` $\to$ `EquipmentUnitMasterCardDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-005` |
+| `POST /api/v1/taxonomy/equipment-units/{id}/reject-commissioning` | `RejectEquipmentCommissioningCommand` $\to$ `EquipmentUnitMasterCardDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-005` |
+| `GET /api/v1/taxonomy/equipment-units/commissioning-report` (`?from={isoDate}&to={isoDate}`) | Structured `CSV` / `JSON` compliance report | Read-only (`GET`) | `SCR-INV-005` |
+| `GET /api/v1/taxonomy/equipment-units/{id}/boundaries` | `EquipmentBoundaryCardDto` | Read-only (`GET`) | `SCR-MTTO-001`, `SCR-MTTO-023`, `SCR-MTTO-029` |
+| `PUT /api/v1/taxonomy/equipment-units/{id}/boundaries` | `SaveEquipmentBoundariesCommand` $\to$ `EquipmentBoundaryCardDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-MTTO-029` |
+| `GET /api/v1/taxonomy/equipment-units/{id}/subunits` | `IReadOnlyList<SubunitLookupDto>` / `SubunitNodeDto` | Read-only (`GET`) | `SCR-MTTO-001`, `SCR-MTTO-023` |
+| `POST /api/v1/taxonomy/maintainable-items/validate-exclusivity` | `MaintainableItemLookupQueryDto` $\to$ `ComponentExclusivityValidationResultDto` | Exempt (`POST` read-only validation) | `SCR-MTTO-029` |
+
+#### 6.1.2. `maintenance` Context (13 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `POST /api/v1/maintenance/plans` | `CreateMaintenancePlanCommand` $\to$ `MaintenancePlanSummaryDto` | `X-Idempotency-Key` | `SCR-MTTO-001` |
+| `PUT /api/v1/maintenance/plans/{id}` | `UpdateMaintenancePlanCommand` $\to$ `MaintenancePlanSummaryDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-MTTO-001` |
+| `POST /api/v1/maintenance/plans/cbm` | `CreateCbmPlanCommand` $\to$ `CbmTriggerEventDto` | `X-Idempotency-Key` | `SCR-MTTO-023` |
+| `GET /api/v1/maintenance/backlog-items?status=NEW` | `IReadOnlyList<BacklogItemDto>` (`BacklogSummaryMetricsDto`) | Read-only (`GET`) | `SCR-MTTO-026` |
+| `POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class` | `AdjustWorkClassCommand` $\to$ `BacklogItemDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-MTTO-026` |
+| `POST /api/v1/maintenance/backlog-items/{id}/notify-reliability` | `DispatchReliabilityNotificationCommand` | `X-Idempotency-Key` | `SCR-MTTO-026` |
+| `POST /api/v1/maintenance/backlog-items/weekly-distribution` | `ConfirmWeeklyDistributionCommand` | `X-Idempotency-Key` | `SCR-MTTO-026` |
+| `GET /api/v1/maintenance/backlog-items/export` | `BacklogExportFormat` (`CSV` / `JSON` stream) | Read-only (`GET`) | `SCR-MTTO-026` |
+| `GET /api/v1/maintenance/work-orders?equipmentUnitId={id}&status=ACTIVE` | `IReadOnlyList<ActiveWorkOrderSummaryDto>` | Read-only (`GET`) | `SCR-VIS-033` |
+| `GET /api/v1/maintenance/work-orders/{id}/closing-context` | `WorkOrderClosingContextDto` | Read-only (`GET`) | `SCR-MTTO-002` |
+| `POST /api/v1/maintenance/work-orders/{id}/start-execution` | `StartWorkOrderExecutionCommand` $\to$ `WorkOrderTransitionEvent` | `X-Idempotency-Key` + `SELECT ... FOR UPDATE NOWAIT` (online) / `CryptographicOfflineLeaseDto` (offline) | `SCR-VIS-011`, `SCR-MTTO-002` |
+| `POST /api/v1/maintenance/work-orders/{id}/media-upload-sas` | `RequestMediaUploadSasCommand` $\to$ `MediaUploadSasResponseDto` | Valet Key SAS issuance ([ADR-008](../adr/ADR-008.md)) | `SCR-MTTO-002` |
+| `POST /api/v1/maintenance/work-orders/{id}/technical-closure` | `SubmitTechnicalClosureCommand` $\to$ `WorkOrderTransitionEvent` | `X-Idempotency-Key` + `If-Match` (`xmin` online; omitted on offline FIFO replay per [ADR-006](../adr/ADR-006.md)) | `SCR-MTTO-002` |
+
+#### 6.1.3. `inventory` Context (9 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `GET /api/v1/inventory/spare-parts?page=1&pageSize=100` | `IReadOnlyList<SparePartMasterItemDto>` (`PartMasterSummaryMetricsDto`) | Read-only (`GET`) | `SCR-INV-031` |
+| `GET /api/v1/inventory/spare-parts/verify-sku?sku={sku}` | `SkuUniquenessResultDto` | Read-only (`GET`) | `SCR-INV-031` |
+| `POST /api/v1/inventory/spare-parts` | `RegisterSparePartCommand` $\to$ `SparePartMasterItemDto` | `X-Idempotency-Key` | `SCR-INV-031` |
+| `PUT /api/v1/inventory/spare-parts/{id}/policy` | `UpdateSparePartPolicyCommand` $\to$ `SparePartMasterItemDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-INV-031` |
+| `GET /api/v1/inventory/spare-parts/rotables` | `IReadOnlyList<RotableSpareSummaryDto>` | Read-only (`GET`) | `SCR-INV-025` |
+| `GET /api/v1/inventory/spare-parts/{id}/availability?warehouseId={wh}` | `SparePartAvailabilityDto` | Read-only (`GET`) | `SCR-INV-006` |
+| `GET /api/v1/inventory/kardex?equipmentUnitId={id}&sparePartId={partId}` | `KardexSummaryMetricsDto` + `IReadOnlyList<KardexTransactionRowDto>` | Read-only (`GET`) | `SCR-INV-006` |
+| `POST /api/v1/inventory/transactions` | `RegisterInventoryTransactionCommand` $\to$ `InventoryTransactionVoucherDto` | `X-Idempotency-Key` + `If-Match` (`xmin` online; omitted on offline FIFO replay) | `SCR-INV-006` |
+| `POST /api/v1/inventory/rotable-swaps` | `ExecuteAssetSwapCommand` $\to$ `AssetSwapCompletedEvent` | `X-Idempotency-Key` + `If-Match` (`xmin` dual-unit online; omitted on offline replay) | `SCR-INV-025` |
+
+#### 6.1.4. `safety` Context (7 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `GET /api/v1/safety/work-permits?status=APPROVED` | `IReadOnlyList<PtwOverlayDto>` | Read-only (`GET`) | `SCR-VIS-008` |
+| `GET /api/v1/safety/work-permits/orphans` | `IReadOnlyList<OrphanPermitDto>` | Read-only (`GET`) | `SCR-VIS-008` |
+| `GET /api/v1/safety/loto-plans/work-orders/{workOrderId}` | `LotoIsolationPlanDto` | Read-only (`GET`) | `SCR-VIS-011` |
+| `POST /api/v1/safety/loto-plans/{workOrderId}/offline-lease` | `CryptographicOfflineLeaseDto` | `X-Idempotency-Key` | `SCR-VIS-011` |
+| `POST /api/v1/safety/loto-plans/{workOrderId}/cutoffs/{isolationPointId}/confirm` | `ConfirmCutoffStepRequestDto` $\to$ `CutoffPointStatusDto` | `X-Idempotency-Key` + `SELECT ... FOR UPDATE NOWAIT` (online) / `CryptographicOfflineLeaseDto` (offline) | `SCR-VIS-011` |
+| `POST /api/v1/safety/loto-plans/{workOrderId}/try-out` | `TryOutAttestationDto` $\to$ `LotoIsolationPlanDto` | `X-Idempotency-Key` + `SELECT ... FOR UPDATE NOWAIT` (online) / `CryptographicOfflineLeaseDto` (offline) | `SCR-VIS-011` |
+| `POST /api/v1/safety/loto-plans/{workOrderId}/supervisor-override` | `SupervisorLotoOverrideCommand` $\to$ `LotoIsolationPlanDto` | `X-Idempotency-Key` | `SCR-VIS-011` |
+
+#### 6.1.5. `visualization` Context (4 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `GET /api/v1/visualization/plot-plans/{facilityCode}` | `PlantPlotPlanDto` | Read-only (`GET`) | `SCR-VIS-008` |
+| `GET /api/v1/visualization/plot-plans/{functionalLocationCode}` | `PlantPlotPlanDto` | Read-only (`GET`) | `SCR-VIS-033` |
+| `GET /api/v1/visualization/equipment-units/{tagNumber}/faceplate` | `EquipmentFaceplateDto` | Read-only (`GET`) | `SCR-VIS-033` |
+| `PUT /api/v1/visualization/mesh-mappings/{equipmentUnitId}` | `UpsertMeshMappingCommand` | `X-Idempotency-Key` + conditional `If-Match` (`xmin` on update; omitted on create) | `SCR-VIS-008` |
+
+#### 6.1.6. `telemetry` Context (2 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `GET /api/v1/telemetry/equipment-units/{id}/signals` | `IReadOnlyList<TelemetrySignalDto>` | Read-only (`GET`) | `SCR-MTTO-023` |
+| `POST /api/v1/telemetry/signals/{id}/manual-readings` | `RecordManualReadingCommand` $\to$ `CbmTriggerEventDto` | `X-Idempotency-Key` (no `If-Match`; append-only hypertable) | `SCR-MTTO-023` |
+
+#### 6.1.7. `security` Context (16 Routes)
+
+| Method + Route | Command / Response DTO | Idempotency / Concurrency | Consuming Screens |
+| :--- | :--- | :--- | :--- |
+| `GET /api/v1/security/roles/matrix` | `RoleMatrixDetailDto` + `RbacSummaryMetricsDto` | Read-only (`GET`) | `SCR-ADM-013` |
+| `GET /api/v1/security/roles/export` | RBAC matrix & SoD export (`CSV` / `JSON`) | Read-only (`GET`) | `SCR-ADM-013` |
+| `POST /api/v1/security/roles` | `CreateCustomRoleCommand` $\to$ `RoleSummaryDto` | `X-Idempotency-Key` | `SCR-ADM-013` |
+| `PUT /api/v1/security/roles/{id}/permissions` | `UpdateRolePermissionsCommand` $\to$ `RoleMatrixDetailDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-013` |
+| `POST /api/v1/security/roles/{id}/deactivate` | `DeactivateCustomRoleCommand` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-013` |
+| `GET /api/v1/security/users` | `UserDirectoryMetricsDto` + `IReadOnlyList<UserDirectoryRowDto>` | Read-only (`GET`) | `SCR-ADM-014` |
+| `GET /api/v1/security/users/verify-identity?username={u}&email={e}` | `IdentityUniquenessResultDto` | Read-only (`GET`) | `SCR-ADM-014` |
+| `POST /api/v1/security/users` | `ProvisionUserAccountCommand` $\to$ `UserDetailProfileDto` | `X-Idempotency-Key` | `SCR-ADM-014` |
+| `PUT /api/v1/security/users/{id}/roles` | `AssignUserRolesCommand` $\to$ `RoleUnionEvaluationDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-014` |
+| `POST /api/v1/security/users/{id}/lifecycle` | `ExecuteUserLifecycleTransitionCommand` $\to$ `UserDetailProfileDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-014` |
+| `POST /api/v1/security/users/{id}/password-reset` | `IssuePasswordResetCommand` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-014` |
+| `POST /api/v1/security/users/{id}/tokens/revoke` | `RevokeUserTokensCommand` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-014` |
+| `PUT /api/v1/security/password-policy` | `UpdatePasswordSecurityPolicyCommand` $\to$ `PasswordSecurityPolicyDto` | `X-Idempotency-Key` + `If-Match` (`xmin`) | `SCR-ADM-014` |
+| `GET /api/v1/security/audit-logs` | `AuditLogWorkspaceDto` | Read-only (`GET`; logs `QUERY` Meta-Audit) | `SCR-ADM-032` |
+| `POST /api/v1/security/audit-logs/query` | `AuditLogQueryFilterDto` $\to$ `IReadOnlyList<AuditLogEntryDto>` | Exempt (`POST` read-only GIN `@>` query; logs `QUERY` Meta-Audit) | `SCR-ADM-032` |
+| `POST /api/v1/security/audit-logs/report-tamper-breach` | `ChainTamperBreachDetailsDto` | `X-Idempotency-Key` | `SCR-ADM-032` |

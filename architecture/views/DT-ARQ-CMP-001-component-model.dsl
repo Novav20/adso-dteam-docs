@@ -15,8 +15,8 @@ workspace "System Component Model" {
         monolith = softwareSystem "Modular Monolith" "Central Maintenance and LOTO System (.NET 10)" {
             appContainer = container "Backend Web API" "Modular Monolith Runtime" ".NET 10" {
                 group "Driving Adapters" {
-                    idempotency_filter = component "Idempotency Filter" "Intercepts requests with the Idempotency-Key header; prevents reprocessing critical transitions resent after reconnection (TR-007)." "IActionFilter" "ComponentShape"
-                    api_controllers = component "REST API Controllers" "Exposes HTTPS endpoints; handles optimistic concurrency control using row version marks (RowVersion/ETag)." "Minimal APIs" "ComponentShape"
+                    idempotency_filter = component "Idempotency Filter" "Intercepts Minimal API mutating requests with the canonical `X-Idempotency-Key` header; prevents reprocessing critical transitions resent after reconnection (TR-007, ADR-007)." "IEndpointFilter" "ComponentShape"
+                    api_controllers = component "REST API Controllers" "Exposes HTTPS `/api/v1/...` endpoints; enforces optimistic concurrency control using PostgreSQL `xmin` mapped to EF Core `ConcurrencyToken` (`ETag` / `If-Match`, `DT-ARQ-DB-DOC-001 §3.12`)." "Minimal APIs" "ComponentShape"
                     signalr_hub = component "SignalR Hub" "Persistent bidirectional channel over WebSockets (WSS); degrades to polling if the industrial network fails." "SignalR.Hub" "ComponentShape"
                     telemetry_listener = component "Telemetry Listener (IoT)" "Asynchronous consumer (AMQP) of the Azure IoT Hub broker; injects telemetry to the LOTO port." "IHostedService" "ComponentShape"
                     sync_worker = component "Background Sync Worker" "Asynchronously and idempotently processes offline queues transmitted from mobile clients after recovering connection (TR-007)." "IHostedService" "ComponentShape"
@@ -26,6 +26,7 @@ workspace "System Component Model" {
                     mtto_port = component "Maintenance Port" "Backlog administration, priority calculations, preventive scheduling, and failure reporting." "IWorkOrderService" "ComponentShape"
                     inv_port = component "Inventory Port" "Warehouse transactions, critical stock control, and physical equipment rotation (Asset Swap)." "IInventoryService" "ComponentShape"
                     loto_port = component "Safety & LOTO Port" "Secure job authorization: permit approval, physical lockouts, and Zero Energy condition." "ILotoService" "ComponentShape"
+                    spatial_ingestion_port = component "Spatial Ingestion Port" "Validates MOC plant layout revisions (`DT-UI-SVG-DOC-001`), verifies SHA-256 checksums, and persists `vis.plant_layout_revisions` + MOC audit trail." "ISpatialIngestionService / SpatialIngestionWorker" "ComponentShape"
                     sec_port = component "Security Port" "IAM governance: authentication, session renewal, RBAC validations, and immutable auditing." "ISecurityService" "ComponentShape"
                     rime_calc = component "RIME Calculator" "Encapsulates the RIME prioritization calculation using the Strategy pattern (ADR-002)." "IRimeCalculator" "ComponentShape"
                     event_bus = component "Event Bus Port" "Decouples internal logic between monolith modules via in-memory domain events." "IEventBus" "Broker"
@@ -95,6 +96,8 @@ workspace "System Component Model" {
         loto_watchdog -> local_db "Writes emergency lockout states directly to local storage upon connection loss." "SQLite P/Invoke"
         loto_watchdog -> signalr_hub "Maintains continuous heartbeat to verify safety perimeter integrity." "WSS (WebSockets)"
         web_admin -> api_controllers "Executes administrative commands and fetches master data." "HTTPS / JSON"
+        api_controllers -> spatial_ingestion_port "Routes MOC spatial layout uploads, structural validation, and revision approvals." "In-Process Method Call"
+        spatial_ingestion_port -> asset_repo "Verifies Level 4 Functional Location & ISO 14224 tag bindings during layout ingestion." "C# Interface (DI)"
     }
 
     views {

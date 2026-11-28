@@ -1,64 +1,52 @@
 ---
 name: dteam-srs-quality-audit
-description: >-
-  Quality and DDD (Domain-Driven Design) auditor for the master database 
-  of requirements (srs.csv) of the DTEAM project. Verifies the rigorousness of 
-  the normative references (ISO, NIST), the correct use of ISO 25010:2023, and 
-  the absence of legacy or generic terms (like "activo" instead of 
-  "Equipment Unit"). Use it when the user says "audit the requirements", 
-  "review the srs.csv dataset" or "verify the quality of the requirements".
+description: Quality, ISO 25010:2023, TR-* sync, and dimension-agnostic Ubiquitous Language auditor for requirements/data/srs.csv and generated TR-*.md artifacts via scripts/verify_all.py.
 ---
 
 # DTEAM Docs-as-Code — SRS Quality Auditor
 
-## General Description
+## 1. General Description
 
-This skill executes a programmatic analysis directly over the file 
-`requirements/data/srs.csv` to guarantee that the requirements engineering 
-is maintained at the highest standard required by the DTEAM project.
+This skill audits `requirements/data/srs.csv` and generated `requirements/common/TR-*.md` artifacts against repository SSoTs:
 
-It evaluates three fundamental axes:
-1. **ISO 25010:2023:** Guarantees that deprecated categories are not used 
-   (like *Usability* or *Portability*) in favor of current ones (*Interaction Capability*, *Flexibility*, etc.).
-2. **Domain-Driven Design (DDD):** Scans the descriptions looking for 
-   forbidden generic terms (e.g. "activo" / "asset") to force the use of the 
-   Ubiquitous Language (e.g. "Equipment Unit" / "Maintainable Item" per ISO 14224).
-3. **Normative References:** Validates with regular expressions that the column 
-   `Normative Reference` cites actionable standards (ISO, NIST, OWASP, ACID, etc.) 
-   instead of generic text (like "UX Best Practices").
+1. **SRS Integrity & `TR-*` Synchronization (`GRD-21`):** Validates required columns (`Req ID`, `Global ID`, `Description`, `Type`, `Status`, `TR ID`), uniqueness, `total_requirements` parity, and bidirectional `srs.csv` <-> `TR-*.md` consistency.
+2. **ISO 25010:2023 & Normative Citations:** Flags deprecated quality categories (*Usability*, *Portability* -> use *Interaction Capability*, *Flexibility*) and vague standards citations instead of actionable ISO/NIST/OSHA/ISA/ACID references.
+3. **Domain-Driven Ubiquitous Language Purity (`GRD-18`):** Detects rendering-coupled terms (`2D`, `3D`, `WebGL`, `SVG`, `CanvasViewport2D`) and generic asset phrasing across `srs.csv`, `DT-UL-DOC-001.md`, `DT-DM-DOC-001 §5`, and `UC-*.md`.
 
-## Chat Activation
+---
 
-The agent must activate this skill when detecting:
-- "Audit the srs.csv dataset"
-- "Review the quality of the requirements"
-- "Verify if we use the domain language correctly in the CSV"
-- "Check SRS quality"
+## 2. Deterministic CLI Execution
 
-## Workflow
-
-### Step 1 — Execute the Audit Script
-
-From the repository root, execute the Python script that will analyze the CSV:
+Run from the repository root (`adso-dteam-docs/`). Standard library `Python >= 3.11` only:
 
 ```bash
-cd <repository-root>
-uv run .agents/skills/dteam-srs-quality-audit/scripts/srs_audit.py
+# Audit srs.csv integrity, TR-* sync, framework bans, and MVP index alignment
+python3 scripts/verify_all.py --scope srs --format console
+
+# Check dimension-agnostic Ubiquitous Language findings on srs.csv
+python3 scripts/verify_all.py --scope ul --files requirements/data/srs.csv --format console
+
+# Check domain constants and safety invariants (SOD-*, 0.0 V, 0.5 psig, 15 m, 13 m, 5 m)
+python3 scripts/verify_all.py --scope domain --format console
+
+# Strict gate (treat WARNING findings in srs.csv as exit code 2)
+python3 scripts/verify_all.py --scope srs --strict --format console
 ```
 
-### Step 2 — Present Results
+---
 
-The script will return a summary with BLOCKER, WARNING and INFO severities.
-1. Show the user the verdict.
-2. If there are **BLOCKERS** (e.g. invalid ISO categories or missing references in TRs), 
-   report that the CSV must be corrected before being able to regenerate the User Stories.
-3. If there are **WARNINGS** (domain language violations or weak references), 
-   list them and ask the user if they want to correct them.
+## 3. Workflow & SSoT Governance
 
-### Step 3 — Interpret Exit Codes
+1. Run `python3 scripts/verify_all.py --scope srs` and inspect findings grouped by `BLOCKER` and `WARNING`.
+2. Verify ISO 25010:2023 category names, actionable normative standards, and alignment with `ADR-003` (7-year audit retention / `TR-001`) and `ADR-006` (offline sync / `TR-007`).
+3. **Never edit `requirements/common/TR-*.md` manually:** Remediate findings directly in `requirements/data/srs.csv` (and source CSVs) and regenerate `TR-*.md` before re-running `verify_all.py`.
+
+---
+
+## 4. Exit Codes
 
 | Exit Code | Meaning |
 | :--- | :--- |
-| `0` | Approved (may contain Warnings/Infos but does not break the system) |
-| `1` | Catastrophic error (CSV not found or missing key columns) |
-| `2` | BLOCKER found — Invalid categories or broken architectural rules |
+| `0` | Passed (`0` blockers, and `0` warnings under `--strict`) |
+| `1` | Execution/configuration error (missing CSV or invalid path) |
+| `2` | Guardrail failure (`BLOCKER`, or `WARNING` under `--strict`) |

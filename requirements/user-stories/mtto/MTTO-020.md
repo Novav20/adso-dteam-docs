@@ -24,10 +24,7 @@ applicable_trs:
 | Maintenance Technician | I want to search and consult technical manuals and blueprints linked to the equipment hierarchy directly from the operational application. | So that I can consult the necessary information at the repair site without having to travel to the office or look for physical folders, ensuring the documentation is relevant to the component I am intervening on. |
 
 ## Acceptance Criteria
-| Scenario | Given (Context) | When (Action) | Then (Result) |
-|---|---|---|---|
-| Usage-based WO generation | Given a preventive plan is set to trigger every 500 operating hours. | When the equipment unit's telemetry counter crosses the 500-hour threshold. | Then the system automatically generates the Work Order and resets the cycle counter. |
-| Counter reset tracking | Given a preventive Work Order triggered by usage has been closed. | When the Technician confirms the replacement of the component. | Then the system records the reset of the cycle counter and logs the zero-point for the next iteration. |
+_No acceptance criteria in gherkin.csv for this US._
 
 ## Functional Requirements (FR)
 | ID | Description | ISO 25010 Category | Priority | Source |

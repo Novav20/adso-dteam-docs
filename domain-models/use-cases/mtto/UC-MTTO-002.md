@@ -13,20 +13,20 @@ secondary_actors:
 # UC-MTTO-002: Execute and Finalize Work Order
 
 ## 1. Description
-Governs the mobile execution workflow of an active Work Order on the plant floor. It enforces task checklist completion, material and spare parts consumption (including rotable asset swap modal handoffs), multi-evidence photographic capture with client-side cryptographic hashing, and comprehensive failure recording adhering strictly to the 7-tier ISO 14224 reliability taxonomy. Finalization enforces a composite Hard Lock completion gate and preserves de-isolation safety boundaries prior to formal Operations Handover.
+Governs the mobile execution workflow of an active Work Order on the plant floor. It enforces task checklist completion, material and spare parts consumption (including rotable asset swap workflow handoffs), multi-evidence photographic capture with client-side cryptographic hashing, and comprehensive failure recording adhering strictly to the 7-tier ISO 14224 reliability taxonomy. Finalization enforces a composite Hard Lock completion gate and preserves de-isolation safety boundaries prior to formal Operations Handover.
 
 ## 2. Preconditions
 * The Maintenance Technician is authenticated on an authorized mobile terminal ([TR-006](../../../requirements/common/TR-006.md)).
 * The target Work Order is in `IN_PROGRESS` status, formally assigned to the Technician, and linked to an active Work Permit in `APPROVED` status ([FR-182](../../../requirements/user-stories/vis/VIS-008.md#functional-requirements-fr)).
-* The Actor enters the execution interface ([SCR-MTTO-002](../../../ui-ux/screens/mtto/SCR-MTTO-002.md)) from Zero Energy LOTO verification ([SCR-VIS-011](../../../ui-ux/screens/vis/SCR-VIS-011.md)), Level 3 Equipment Task Faceplate ([SCR-VIS-033](../../../ui-ux/screens/vis/SCR-VIS-033.md)), or the Mobile Assigned Work Orders list.
+* The Actor initiates Work Order execution from Zero Energy LOTO verification ([UC-VIS-011](../vis/UC-VIS-011.md)), Level 3 Equipment Task inspection ([UC-VIS-033](../vis/UC-VIS-033.md)), or the assigned Work Orders queue.
 * Isolation points (LOTO) associated with the target Equipment Unit are physically locked, tagged, and attested, ensuring field safety throughout the intervention.
 
 ## 3. Main Flow
-1. The Technician accesses the Mobile Work Order execution interface.
-2. The System displays the intervention tabs: Scope Checklist, Spares Consumption, Multimedia Evidence, and ISO 14224 Failure Coding.
+1. The Technician opens the Work Order execution session.
+2. The System presents the required execution sections: Scope Checklist, Spares Consumption, Multimedia Evidence, and ISO 14224 Failure Coding.
 3. The Technician physically executes planned tasks on the target Equipment Unit (e.g., Centrifugal Pump `P-0101A` at Functional Location `TFA-CSS-P-0101A`) and attests completion of mandatory scope checklist items.
 4. The Technician records actual spare parts consumed against allocated reservations, or initiates a rotable equipment swap if replacing a serialized machine (branching to AF-004).
-5. The Technician navigates to the ISO 14224 Failure Coding tab; the System presents categorized dropdowns constrained by the equipment class.
+5. The Technician accesses the ISO 14224 Failure Coding section; the System constrains selectable taxonomy values according to the Equipment Class.
 6. The Technician records the complete ISO 14224 Failure Taxonomy tiers ([FR-011](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr)):
    1. Maintainable Item (ISO 14224 Level 8, e.g., Mechanical Seal `SM-02`).
    2. Failure Mode (e.g., External Leakage - Utility `ELU`).
@@ -36,8 +36,8 @@ Governs the mobile execution workflow of an active Work Order on the plant floor
    6. Operational Condition (e.g., Operating `OPE`).
    7. Operational Impact (e.g., Degraded Operation `DEG`).
    8. Quantitative Downtime Hours (e.g., `1.5` hrs) and Technical Observations.
-7. The Technician navigates to the Multimedia Evidence tab and captures one or more field photographs ($1..N$ evidence array); the System generates client-side SHA-256 cryptographic hashes and responsive thumbnails ([TR-003](../../../requirements/common/TR-003.md)).
-8. The Technician records actual Wrench Time (positive labor hours) and clicks "Finalize Work Order".
+7. The Technician captures one or more field photographs ($1..N$ evidence array) in the multimedia evidence section; the System generates client-side SHA-256 cryptographic hashes for each evidence artifact ([TR-003](../../../requirements/common/TR-003.md)).
+8. The Technician records actual Wrench Time (positive labor hours) and submits Work Order finalization.
 9. The System evaluates the composite Hard Lock Completion Invariant ([NFR-015](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr)):
    $$\text{CanFinalize} = \mathcal{T}_{\text{complete}} \land \mathcal{E}_{\text{valid}} \land \mathcal{W}_{\text{valid}}$$
    Verifying that all 7 failure tiers and downtime hours are complete, at least one valid photographic evidence with SHA-256 hash exists, actual labor hours are positive, and all mandatory scope checklist items are confirmed.
@@ -46,7 +46,7 @@ Governs the mobile execution workflow of an active Work Order on the plant floor
     2. Enforces the De-Isolation Safety Boundary Invariant: Physical LOTO padlocks remain attached and the machine remains de-energized; equipment operational status is NOT freed until formal Operations De-Isolation Handover.
     3. Persists failure classification, actual material consumption, labor hours, and multimedia attachments with cryptographic hashes.
     4. Records an append-only work order history log entry and an immutable audit trail record with chained SHA-256 hash.
-11. The System displays a confirmation notice: *"Work Order successfully completed and pending supervisory review"*, and returns the Technician to the Work Orders Backlog ([SCR-MTTO-026](../../../ui-ux/screens/mtto/SCR-MTTO-026.md)).
+11. The System displays a confirmation notice: *"Work Order successfully completed and pending supervisory review"*, returning `Maintenance Technician` users to their invoking operational inspection context ([UC-VIS-033](../vis/UC-VIS-033.md)), while routing `Maintenance Planner`, `Maintenance Supervisor`, and `Reliability Engineer` roles to the RIME Work Orders Backlog ([UC-MTTO-026](UC-MTTO-026.md)).
 
 ## 4. Alternate Flows
 
@@ -54,14 +54,14 @@ Governs the mobile execution workflow of an active Work Order on the plant floor
 In step 9, if any mandatory taxonomic tier, Downtime Hours, positive labor hours, scope checklist item, or photographic evidence is missing or invalid:
 1. The System interrupts the state transition, enforcing the Hard Lock gate.
 2. The System highlights the missing or invalid fields using redundant Shape + Color indicators (amber contrast warning) per WCAG 2.1 AA and displays a specific validation error notice.
-3. The flow returns to the corresponding tab for correction.
+3. The flow returns to the corresponding section for correction.
 
 ### AF-002: Field Network Partition & Deferred Synchronization (Offline-First)
 In step 1, if operating in plant zones lacking wireless connectivity ([TR-007](../../../requirements/common/TR-007.md)):
 1. The System displays the offline indicator ("OFFLINE · LOCALLY QUEUED").
-2. The System applies Fail-Safe Zero-Energy Telemetry Masking, rendering neutral diagnostic status banners.
+2. The System applies Fail-Safe Zero-Energy Telemetry Masking, presenting neutral diagnostic status indicators.
 3. The Technician executes steps 1 through 8 normally; data, photos, and failure classifications are persisted in encrypted local storage ([TR-002](../../../requirements/common/TR-002.md)).
-4. In step 10, the System marks the order as locally completed, queues the command payload using client-side UUIDv7 identifiers ([ADR-005](../../../architecture/adr/ADR-005.md)), and displays: *"Work locally completed. Synchronization pending."*
+4. In step 10, the System marks the order as locally completed, queues the command payload using unique client-generated correlation identifiers ([ADR-005](../../../architecture/adr/ADR-005.md)), and displays: *"Work locally completed. Synchronization pending."*
 5. Upon network recovery, the background synchronization service dispatches the transaction queue to the central server using idempotency verification ([ADR-007](../../../architecture/adr/ADR-007.md)).
 
 ### AF-003: Corrupt Evidence File or Cryptographic Hash Mismatch
@@ -72,10 +72,10 @@ In step 7, if cryptographic integrity verification ([TR-003](../../../requiremen
 
 ### AF-004: Rotable Equipment Replacement (Asset Swap Branching)
 In step 4, if the Technician determines that a serialized rotable equipment unit must be physically replaced with a warehouse spare:
-1. The Technician clicks "Rotate Dismounted Equipment" on the Spares tab.
-2. The System deploys the contextual modal dialog for Asset Swap ([SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md) / [UC-INV-025](../../../domain-models/use-cases/inv/UC-INV-025.md)).
+1. The Technician triggers serialized equipment rotation from the spares consumption step.
+2. The System invokes the Asset Swap workflow ([UC-INV-025](../inv/UC-INV-025.md)).
 3. The Technician executes the asset swap workflow: selects dismount destination, scans replacement unit, and confirms rotation.
-4. Upon modal completion, control returns to the active Work Order execution view with the replacement serial number reflected in the active session.
+4. Upon swap completion, control returns to the active Work Order execution session with the replacement serial number updated.
 5. The Technician resumes the main workflow at step 5.
 
 ### AF-005: Safety Interlock Breach / Active Hazardous Energy Detected
@@ -95,3 +95,4 @@ During active field execution, if plant telemetry or boundary sensors detect res
 * **Non-Functional Requirements:** [NFR-015](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr), [NFR-016](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr), [NFR-017](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr)
 * **Transversal Requirements:** [TR-001](../../../requirements/common/TR-001.md), [TR-002](../../../requirements/common/TR-002.md), [TR-003](../../../requirements/common/TR-003.md), [TR-005](../../../requirements/common/TR-005.md), [TR-006](../../../requirements/common/TR-006.md), [TR-007](../../../requirements/common/TR-007.md), [TR-008](../../../requirements/common/TR-008.md), [TR-010](../../../requirements/common/TR-010.md), [TR-011](../../../requirements/common/TR-011.md)
 * **Architectural Decisions:** [ADR-005](../../../architecture/adr/ADR-005.md), [ADR-006](../../../architecture/adr/ADR-006.md), [ADR-007](../../../architecture/adr/ADR-007.md)
+* **Related Screens:** [SCR-MTTO-002](../../../ui-ux/screens/mtto/SCR-MTTO-002.md), [SCR-VIS-011](../../../ui-ux/screens/vis/SCR-VIS-011.md), [SCR-VIS-033](../../../ui-ux/screens/vis/SCR-VIS-033.md), [SCR-MTTO-026](../../../ui-ux/screens/mtto/SCR-MTTO-026.md), [SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md)

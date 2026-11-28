@@ -1,0 +1,30 @@
+name: Docs-as-Code Guardrails
+
+on:
+  pull_request:
+    branches:
+      - main
+      - 'feature/*'
+  push:
+    branches:
+      - main
+      - 'feature/*'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-guardrails:
+    name: Run DTEAM Guardrails Suite (GRD-01..GRD-21)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Execute all architectural and documentation guardrails
+        run: python3 -B scripts/verify_all.py --scope all --strict --format console

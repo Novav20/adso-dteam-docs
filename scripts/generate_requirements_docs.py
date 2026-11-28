@@ -143,13 +143,13 @@ def find_csv_file(data_dir: Path, possible_names: list[str]) -> Path:
 def parse_tr_title(raw_tr: str, tr_id: str) -> str:
     text = clean(raw_tr)
     if not text:
-        return f"{tr_id} - Requisito Transversal"
+        return f"{tr_id} - Transversal Requirement"
     match = re.match(r"^(TR-\d+):\s*(.+?)(?:\s*\(https?://[^)]+\))?$", text)
     if match:
         return match.group(2).strip()
     cleaned = re.sub(r"^TR-\d+:\s*", "", text).strip()
     cleaned = re.sub(r"\(https?://\S+\)", "", cleaned).strip()
-    return cleaned or f"{tr_id} - Requisito Transversal"
+    return cleaned or f"{tr_id} - Transversal Requirement"
 
 
 def normalize_refs(value: str) -> str:
@@ -216,19 +216,19 @@ def build_tr_markdown(
     parts = [
         "---",
         f"id: {tr_id}",
-        f'nombre: "{title}"',
+        f'title: "{title}"',
         'epic: "COMMON"',
-        'tipo: "Requisito Transversal"',
-        f"total_requisitos: {total}",
+        'type: "Transversal Requirement"',
+        f"total_requirements: {total}",
         f"fr: {fr_total}",
         f"nfr: {nfr_total}",
         "---",
         "",
         f"# {tr_id}: {title}",
         "",
-        "## Contexto transversal",
+        "## Transversal Context",
         "",
-        "| Description general | Scope | Normative References |",
+        "| General Description | Scope | Normative References |",
         "| --- | --- | --- |",
         f"| {md_escape(desc)} | {md_escape(scope)} | {refs} |",
         "",

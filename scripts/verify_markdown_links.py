@@ -47,25 +47,35 @@ def gfm_slug(text: str) -> str:
     Rules:
     - Downcase
     - Strip inline markdown formatting (links, bold, italics, code, HTML)
+    - Preserve angle-bracket tokens inside inline code spans (e.g. `<<Aggregate Root>>`)
     - Remove punctuation (characters other than alphanumeric, space, hyphen, underscore)
-    - Replace spaces with hyphens
+    - Replace whitespace runs with hyphens
     """
     # Remove markdown links: [foo](url) -> foo
     text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
     # Remove markdown images: ![alt](url) -> alt
     text = re.sub(r"!\[([^\]]*)\]\([^)]+\)", r"\1", text)
+    # Protect inline backtick spans so literal <<Stereotype>> text is not stripped as HTML
+    code_spans: list[str] = []
+
+    def _save_code(match: re.Match[str]) -> str:
+        code_spans.append(match.group(1))
+        return f"__CODE_SPAN_{len(code_spans) - 1}__"
+
+    text = re.sub(r"`([^`]+)`", _save_code, text)
+    # Remove actual HTML tags outside inline code spans
+    text = re.sub(r"<[^>]+>", "", text)
+    # Restore inline code text
+    for idx, val in enumerate(code_spans):
+        text = text.replace(f"__CODE_SPAN_{idx}__", val)
     # Remove bold/italics with asterisks: ***text*** -> text, **text** -> text, *text* -> text
     text = re.sub(r"\*{1,3}([^*]+)\*{1,3}", r"\1", text)
     # Remove strikethrough
     text = re.sub(r"~~([^~]+)~~", r"\1", text)
-    # Remove inline backticks: `code` -> code
-    text = re.sub(r"`([^`]+)`", r"\1", text)
-    # Remove HTML tags
-    text = re.sub(r"<[^>]+>", "", text)
     # Lowercase
     text = text.strip().lower()
-    # Remove any character not in [a-zA-Z0-9_ -]
-    text = re.sub(r"[^\w\s-]", "", text)
+    # Remove any character not in [a-zA-Z0-9_ -] and trim edge whitespace left by stripped tokens
+    text = re.sub(r"[^\w\s-]", "", text).strip()
     # Replace whitespace sequences with hyphens
     text = re.sub(r"[\s]+", "-", text)
     return text

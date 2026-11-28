@@ -83,15 +83,33 @@ def css_value(value: str) -> str:
 
 def semantic_value(value: str) -> str:
     value = css_value(value)
+    at_match = re.match(r"^(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%$", value)
+    if at_match:
+        prim, pct = at_match.group(1), at_match.group(2)
+        return f"color-mix(in srgb, var({prim}) {pct}%, transparent)"
     if value.startswith("--"):
         return f"var({value})"
     return value
 
 
-def penpot_reference(value: str) -> str:
+def penpot_reference(value: str, primitive_hex_map: dict[str, str] | None = None) -> str:
     value = css_value(value)
     if value.startswith("--dt-primitive-"):
         return "{" + value.removeprefix("--dt-primitive-") + "}"
+    mix_match = re.match(
+        r"^(?:color-mix\(\s*in\s+srgb\s*,\s*var\((--dt-primitive-[a-z0-9-]+)\)\s+(\d+(?:\.\d+)?)%\s*,\s*transparent\s*\)|(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%)$",
+        value,
+    )
+    if mix_match and primitive_hex_map:
+        prim_name = mix_match.group(1) or mix_match.group(3)
+        pct_str = mix_match.group(2) or mix_match.group(4)
+        hex_val = primitive_hex_map.get(prim_name, "").lstrip("#")
+        if len(hex_val) == 6:
+            r = int(hex_val[0:2], 16)
+            g = int(hex_val[2:4], 16)
+            b = int(hex_val[4:6], 16)
+            alpha = round(float(pct_str) / 100.0, 4)
+            return f"rgba({r}, {g}, {b}, {alpha:g})"
     return value
 
 
@@ -144,7 +162,12 @@ def extract_font_weight(raw_weight: str) -> str:
     return "400"
 
 
-def generate(source: Path, target: Path, penpot_target: Path) -> None:
+def generate(
+    source: Path,
+    target: Path,
+    penpot_target: Path = DEFAULT_PENPOT_TARGET,
+    emit_penpot: bool = False,
+) -> None:
     text = source.read_text(encoding="utf-8")
     tables = markdown_tables(text)
     spacing = table_for(tables, "Spacing Scale", "CSS Token")
@@ -155,9 +178,10 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     primitives = table_for(tables, "Primitive Palette", "Primitive Token")
     semantic = table_for(tables, "Semantic Tokens", "Semantic Token")
     alarms = table_for(tables, "Alarm and Safety Semantics", "State / Severity")
-    mai_tokens = table_for(tables, "Dual-Theme Semantic Token Table for MAI", "Semantic CSS")
+    mai_tokens = table_for(tables, "Moving Analog Indicator (MAI) Semantic Tokens", "Semantic Token")
     spatial_tokens = table_for(tables, "Spatial and Physical Material", "Spatial Material Token")
     typography = table_for(tables, "Typographic Scale", "Typographic Token")
+    shadows = table_for(tables, "Elevation Shadows", "Dark Theme Value")
     radii = table_for(tables, "Border Radii", "Token")
     zindex = table_for(tables, "Layers and Stacking", "Z-Index Token")
     font_base_penpot, font_base_css, font_mono_penpot, font_mono_css = parse_font_families(tables)
@@ -225,40 +249,49 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
         ]
     )
 
+    light_semantic: dict[str, str] = {}
+    dark_semantic: dict[str, str] = {}
+
     for row in semantic:
         if row and row[0].startswith("--"):
             token, dark, light = row[:3]
-            lines.append(f"  {token}: {semantic_value(light)};")
+            light_semantic[token] = semantic_value(light)
+            dark_semantic[token] = semantic_value(dark)
     for row in mai_tokens:
         if row and len(row) > 3 and row[1].startswith("--"):
-            _, token, light, dark = row[:4]  # MAI table has Light in col 2 and Dark in col 3
-            lines.append(f"  {token}: {semantic_value(light)};")
+            _, token, dark, light = row[:4]
+            light_semantic[token] = semantic_value(light)
+            dark_semantic[token] = semantic_value(dark)
     for row in spatial_tokens:
         if row and row[0].startswith("--"):
             token, dark, light = row[:3]
-            lines.append(f"  {token}: {semantic_value(light)};")
+            light_semantic[token] = semantic_value(light)
+            dark_semantic[token] = semantic_value(dark)
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--"):
             _, token, dark, light = row[:4]
-            lines.append(f"  {token}: {semantic_value(light)};")
+            light_semantic[token] = semantic_value(light)
+            dark_semantic[token] = semantic_value(dark)
+    for row in shadows:
+        if row and len(row) > 2 and row[0].startswith("--"):
+            token, dark, light = row[:3]
+            light_semantic[token] = re.sub(
+                r"(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%",
+                lambda m: f"color-mix(in srgb, var({m.group(1)}) {m.group(2)}%, transparent)",
+                css_value(light),
+            )
+            dark_semantic[token] = re.sub(
+                r"(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%",
+                lambda m: f"color-mix(in srgb, var({m.group(1)}) {m.group(2)}%, transparent)",
+                css_value(dark),
+            )
+
+    for token, val in light_semantic.items():
+        lines.append(f"  {token}: {val};")
     lines.append("}")
     lines.extend(["", "/* Dark theme semantic tokens */", '[data-theme="dark"] {'])
-    for row in semantic:
-        if row and row[0].startswith("--"):
-            token, dark, _ = row[:3]
-            lines.append(f"  {token}: {semantic_value(dark)};")
-    for row in mai_tokens:
-        if row and len(row) > 3 and row[1].startswith("--"):
-            _, token, _, dark = row[:4]
-            lines.append(f"  {token}: {semantic_value(dark)};")
-    for row in spatial_tokens:
-        if row and row[0].startswith("--"):
-            token, dark, _ = row[:3]
-            lines.append(f"  {token}: {semantic_value(dark)};")
-    for row in alarms:
-        if row and len(row) > 3 and row[1].startswith("--"):
-            _, token, dark, _ = row[:4]
-            lines.append(f"  {token}: {semantic_value(dark)};")
+    for token, val in dark_semantic.items():
+        lines.append(f"  {token}: {val};")
     lines.extend(["}", ""])
     lines.extend(
         [
@@ -276,6 +309,9 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines), encoding="utf-8")
     print(f"Generated: {target}")
+
+    if not emit_penpot:
+        return
 
     # 2. Generate ui-ux/assets/tokens_penpot.json
     penpot: dict[str, Any] = {
@@ -355,7 +391,7 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
                     val, "dimension"
                 )
     for row in zoom:
-        if row and row[0].startswith("--dt-zoom-"):
+        if row and (row[0].startswith("--dt-zoom-") or row[0].startswith("--dt-cad-")):
             penpot["Global"][row[0].removeprefix("--dt-")] = penpot_token(
                 css_value(row[1]), "number"
             )
@@ -392,10 +428,13 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             }
 
     # Color Primitives
+    primitive_hex_map: dict[str, str] = {}
     for row in primitives:
         if row and row[0].startswith("--dt-primitive-"):
+            hex_val = css_value(row[1])
+            primitive_hex_map[row[0]] = hex_val
             penpot["Primitives"][row[0].removeprefix("--dt-primitive-")] = penpot_token(
-                css_value(row[1]), "color"
+                hex_val, "color"
             )
 
     # Semantic Color Tokens
@@ -404,37 +443,60 @@ def generate(source: Path, target: Path, penpot_target: Path) -> None:
             token, dark, light = row[:3]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
-                penpot_reference(dark), "color"
+                penpot_reference(dark, primitive_hex_map), "color"
             )
             penpot["Semantic-Light"][name] = penpot_token(
-                penpot_reference(light), "color"
+                penpot_reference(light, primitive_hex_map), "color"
             )
     for row in mai_tokens:
         if row and len(row) > 3 and row[1].startswith("--dt-"):
-            _, token, light, dark = row[:4]
+            _, token, dark, light = row[:4]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
-                penpot_reference(dark), "color"
+                penpot_reference(dark, primitive_hex_map), "color"
+            )
+            penpot["Semantic-Light"][name] = penpot_token(
+                penpot_reference(light, primitive_hex_map), "color"
             )
     for row in spatial_tokens:
         if row and row[0].startswith("--dt-"):
             token, dark, light = row[:3]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
-                penpot_reference(dark), "color"
+                penpot_reference(dark, primitive_hex_map), "color"
             )
             penpot["Semantic-Light"][name] = penpot_token(
-                penpot_reference(light), "color"
+                penpot_reference(light, primitive_hex_map), "color"
             )
     for row in alarms:
         if row and len(row) > 3 and row[1].startswith("--dt-"):
             _, token, dark, light = row[:4]
             name = penpot_semantic_name(token)
             penpot["Semantic-Dark"][name] = penpot_token(
-                penpot_reference(dark), "color"
+                penpot_reference(dark, primitive_hex_map), "color"
             )
             penpot["Semantic-Light"][name] = penpot_token(
-                penpot_reference(light), "color"
+                penpot_reference(light, primitive_hex_map), "color"
+            )
+    for row in shadows:
+        if row and len(row) > 2 and row[0].startswith("--dt-"):
+            token, dark, light = row[:3]
+            name = penpot_semantic_name(token)
+            penpot["Semantic-Dark"][name] = penpot_token(
+                re.sub(
+                    r"(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%",
+                    lambda m: penpot_reference(m.group(0), primitive_hex_map),
+                    css_value(dark),
+                ),
+                "boxShadow",
+            )
+            penpot["Semantic-Light"][name] = penpot_token(
+                re.sub(
+                    r"(--dt-primitive-[a-z0-9-]+)\s*@\s*(\d+(?:\.\d+)?)%",
+                    lambda m: penpot_reference(m.group(0), primitive_hex_map),
+                    css_value(light),
+                ),
+                "boxShadow",
             )
 
     penpot_target.parent.mkdir(parents=True, exist_ok=True)
@@ -446,9 +508,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
     parser.add_argument("--target", type=Path, default=DEFAULT_TARGET)
+    parser.add_argument("--penpot", action="store_true", help="Also emit tokens_penpot.json for manual Penpot import.")
     parser.add_argument("--penpot-target", type=Path, default=DEFAULT_PENPOT_TARGET)
     args = parser.parse_args()
-    generate(args.source.resolve(), args.target.resolve(), args.penpot_target.resolve())
+    generate(args.source.resolve(), args.target.resolve(), args.penpot_target.resolve(), emit_penpot=args.penpot)
 
 
 if __name__ == "__main__":

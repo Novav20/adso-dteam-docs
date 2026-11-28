@@ -18,10 +18,10 @@ Enables defining, reorganizing, and auditing the master hierarchical structure o
 ## 2. Preconditions
 * The Actor is authenticated in the platform with the `Project Engineer` or `Reliability Engineer` role for taxonomic mutations, or any authorized operational role for hierarchical navigation and consultation ([TR-006](../../../requirements/common/TR-006.md)).
 * Standardized ISO 14224 taxonomic level definitions (Levels 1 to 5) and environmental exposure categories are registered in the system.
-* The Actor accesses the Functional Locations Tree ([SCR-INV-027](../../../ui-ux/screens/inv/SCR-INV-027.md)) via the Web Portal Inventory and Taxonomy navigation menu ([DT-UI-NAV-DOC-001 §3.2](../../../ui-ux/DT-UI-NAV-DOC-001.md#32-level-2-process-supervision-and-planning-l2---unit-process)).
+* The Actor accesses the Functional Locations Hierarchy workflow in an authorized platform session.
 
 ## 3. Main Flow
-1. The Project Engineer accesses the Functional Locations Tree interface ([SCR-INV-027](../../../ui-ux/screens/inv/SCR-INV-027.md)); the System loads and renders the complete plant hierarchy in under 3 seconds ([NFR-166](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr)), providing search and multi-criteria filtering across operational positions ([FR-164](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr)).
+1. The Project Engineer opens the Functional Locations Hierarchy; the System loads and displays the complete plant hierarchy in under 3 seconds ([NFR-166](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr)), providing search and multi-criteria filtering across operational positions ([FR-164](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr)).
 2. The Engineer selects the action to create a root Functional Location (Level 1) or a child Functional Location under an existing parent node ([FR-160](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr)).
 3. The System displays the taxonomic registration form, dynamically constraining the target ISO 14224 Hierarchy Level ($1..5$) to be strictly one level below the selected parent node ([FR-161](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr)).
 4. The Engineer enters the unique alphanumeric Tag identifier, human-readable Name, technical Description, Operational Criticality index ($1..10$), Geographic Location, and Environmental Exposure classification (`SEVERE`, `MODERATE`, `LOW`, or `UNKNOWN`).
@@ -33,7 +33,7 @@ Enables defining, reorganizing, and auditing the master hierarchical structure o
 8. Within a single atomic transactional boundary ([NFR-168](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr)), the System:
    1. Persists the new Functional Location node in the master taxonomic catalog.
    2. Records an append-only entry in the immutable audit trail ([TR-001](../../../requirements/common/TR-001.md)) with a chained SHA-256 cryptographic integrity hash ([ADR-003](../../../architecture/adr/ADR-003.md)).
-9. The System updates the hierarchical tree view, enables the new Level 5 operational position to receive physical Equipment Unit mounting ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md), [SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md)), and allows exporting the updated taxonomic architecture report ([FR-165](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr)).
+9. The System updates the hierarchical plant structure, enables the new Level 5 operational position to receive physical Equipment Unit mounting ([UC-INV-005](UC-INV-005.md), [UC-INV-025](UC-INV-025.md)), and allows exporting the updated taxonomic architecture report ([FR-165](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr)).
 
 ## 4. Alternate Flows
 
@@ -45,7 +45,7 @@ In step 5, if the System detects that the entered Tag identifier already exists 
 
 ### AF-002: Tree Reorganization and Circular Reference Prevention
 When the Engineer reorganizes the hierarchy by moving an existing Functional Location subtree to a new parent node ([FR-162](../../../requirements/user-stories/inv/INV-027.md#functional-requirements-fr)):
-1. The Engineer selects the target Functional Location node, initiates the re-parenting dialog, selects the candidate parent node, and enters an audit justification.
+1. The Engineer selects the target Functional Location node, initiates subtree re-parenting, selects the candidate parent node, and enters an audit justification.
 2. The System evaluates structural integrity and cycle prevention in under 1 second ([NFR-167](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr), [TR-008](../../../requirements/common/TR-008.md)).
 3. If the candidate parent node is a direct or indirect descendant of the node being moved, or if the move would violate ISO 14224 level depth ($1..5$), the System immediately blocks the operation and issues a critical alert: *"Hierarchy Integrity Violation: Moving this Functional Location to the selected target would create a circular reference or invalid level depth."*
 4. If the validation succeeds, the System applies the reorganization atomically ([NFR-168](../../../requirements/user-stories/inv/INV-027.md#non-functional-requirements-nfr)) and seals the structural mutation in the immutable SHA-256 audit trail ([TR-001](../../../requirements/common/TR-001.md)).
@@ -63,7 +63,7 @@ In step 8 or during tree reorganization, if another engineer has modified the sa
 
 ## 5. Postconditions
 * The ISO 14224 Functional Location tree (Levels 1 to 5) is updated and mathematically consistent, with zero orphan nodes, level inversions, or circular references.
-* Level 5 Functional Locations are available for physical Equipment Unit onboarding ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)) and Rotable Asset Swaps ([SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md)).
+* Level 5 Functional Locations are available for physical Equipment Unit onboarding ([UC-INV-005](UC-INV-005.md)) and Rotable Asset Swaps ([UC-INV-025](UC-INV-025.md)).
 * All taxonomic creations, re-parenting movements, and criticality updates are permanently recorded in the SHA-256 chained audit trail ([TR-001](../../../requirements/common/TR-001.md)).
 
 ## 6. Associated Requirements
@@ -88,4 +88,5 @@ In step 8 or during tree reorganization, if another engineer has modified the sa
 * **Architectural Decision Records:**
   * [ADR-003](../../../architecture/adr/ADR-003.md): Tamper-evident cryptographic SHA-256 hash chaining for audit logs.
   * [ADR-005](../../../architecture/adr/ADR-005.md): Sequential UUIDv7 primary key generation for taxonomic entities.
-  * [ADR-008](../../../architecture/adr/ADR-008.md): Chronological installation history decoupling Functional Locations from physical Equipment Units.
+  * [ADR-010](../../../architecture/adr/ADR-010.md): Chronological installation history decoupling Functional Locations from physical Equipment Units.
+* **Related Screens:** [SCR-INV-027](../../../ui-ux/screens/inv/SCR-INV-027.md), [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md), [SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md)

@@ -1,13 +1,28 @@
-# 🛠️ Docs-as-Code Automation and Generators
+# Docs-as-Code Automation, Guardrails, and Generators
 
-This directory contains the support scripts for synchronization and automated generation of Markdown documents from tabular master data (`requirements/data/`).
+This directory contains the unified guardrail verification suite (`verify_all.py`) and support scripts for synchronization and automated generation of Markdown documents from tabular master data (`requirements/data/`).
+
+## `verify_all.py` (Primary Verification Entry Point)
+
+Runs the modular architectural & documentation guardrails (`GRD-01`–`GRD-21`) across the repository:
+
+```bash
+python scripts/verify_all.py --scope all --strict
+```
+
+Unit tests for the guardrail suite live in `scripts/tests/`:
+
+```bash
+python -m unittest discover -s scripts/tests
+```
+
+---
 
 ## `generate_design_tokens.py`
 
-Generates `ui-ux/assets/tokens.css` and `ui-ux/assets/tokens_penpot.json` from
-the tables and definitions in `ui-ux/DT-UI-DS-DOC-001.md`. Both are generated
-artifacts; changes must be made in the Markdown source document and then
-regenerated:
+Generates `ui-ux/assets/tokens.css` (and optionally `tokens_penpot.json` when `--penpot` is passed) from
+the tables and definitions in `ui-ux/DT-UI-DS-DOC-001.md`. Generated CSS should not be edited by hand;
+changes must be made in the Markdown source document and then regenerated:
 
 ```bash
 python3 scripts/generate_design_tokens.py
@@ -22,7 +37,7 @@ It also accepts explicit paths for validations or alternative sources:
 python3 scripts/generate_design_tokens.py \
 	--source ui-ux/DT-UI-DS-DOC-001.md \
 	--target ui-ux/assets/tokens.css \
-	--penpot-target ui-ux/assets/tokens_penpot.json
+	--penpot --penpot-target ui-ux/assets/tokens_penpot.json
 ```
 
 ---
@@ -118,5 +133,16 @@ Audits WCAG 2.1 / ISO 9241-110 contrast ratios for design tokens in `ui-ux/DT-UI
 
 ```bash
 python scripts/verify_wcag_contrast.py
+```
+
+---
+
+## 📦 `import_notion_backup.py`
+
+Cross-platform (Windows & Linux) Notion export importer. Extracts nested `.zip` archives from `scripts/temp/`, maps `*_all.csv` files into `requirements/data/`, and cleans up processed archives:
+
+```bash
+python scripts/import_notion_backup.py
+python scripts/import_notion_backup.py --dry-run
 ```
 

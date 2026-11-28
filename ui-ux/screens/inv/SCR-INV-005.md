@@ -15,8 +15,10 @@ roles:
   - Auditor
 user_stories:
   - "[[INV-005]]"
+  - "[[INV-007]]"
 use_cases:
   - "[[UC-INV-005]]"
+  - "[[UC-INV-007]]"
 version: 1.2
 date: 2026-11-11
 status: Stable
@@ -26,9 +28,10 @@ status: Stable
 
 ## 1. Purpose and Operational Context
 
-* **View Objective:** Consolidated ISO 14224 Level 6 Equipment Unit technical master card and digital onboarding interface. Supports two operational modalities within a unified view architecture:
-  1. **Inspection & Audited Governance Mode (View Mode):** Presents the authoritative technical record of an existing physical machine, including nameplate identification, inherited Level 5 Functional Location tag and operational criticality (or warehouse custody when in storage), the five-stage lifecycle stepper and operational telemetry strip, Safety Critical Element (SCE) designation, physical battery limits, lifecycle chronological milestones, active installation timeline, and cryptographic audit history. Exposes contextual navigation handoffs for boundary definition ([SCR-MTTO-029](../mtto/SCR-MTTO-029.md)), spare parts Kardex ledger inspection ([SCR-INV-006](SCR-INV-006.md)), and rotable physical replacement ([SCR-INV-025](SCR-INV-025.md)).
+* **View Objective:** Consolidated ISO 14224 Level 6 Equipment Unit technical master card and digital onboarding interface. Supports three operational modalities within a unified view architecture:
+  1. **Inspection & Audited Governance Mode (View Mode):** Presents the authoritative technical record of an existing physical machine, including nameplate identification, inherited Level 5 Functional Location tag and operational criticality (or warehouse custody when in storage), the five-stage lifecycle stepper and operational telemetry strip, Safety Critical Element (SCE) designation, physical battery limits, lifecycle chronological milestones, active installation timeline, and cryptographic audit history. Exposes contextual navigation handoffs for boundary definition ([SCR-MTTO-029](../mtto/SCR-MTTO-029.md)), spare parts Kardex ledger inspection ([SCR-INV-006](SCR-INV-006.md)), rotable physical replacement ([SCR-INV-025](SCR-INV-025.md)), and cryptographic audit ledger deep-link ([SCR-ADM-032](../adm/SCR-ADM-032.md), `?entityType=EquipmentUnit&entityId={EquipmentUnitId}`).
   2. **Master Record Registration Mode (Onboarding Mode):** Enables formal onboarding of a new serialized Equipment Unit into the master catalog, enforcing global Serial Number uniqueness, hierarchical Level 5 Functional Location linkage with single-equipment occupancy verification, physical battery limit capture, ISO 45001 Safety Critical Element attestation, and four-milestone chronological progression validation within an atomic, cryptographically audited transaction.
+  3. **Commissioning Gate Validation Mode (`UC-INV-007`, `?mode=commissioning`):** Enables authorized Maintenance Supervisors and Reliability Engineers to inspect pending assets in `COMMISSIONING` status, perform controlled editing of technical parameters during validation (`FR-139`), validate mandatory ISO 14224 completeness, Level 5 Functional Location linkage, Level 8 `MaintainableItem` structure, and mapped LOTO isolation points (`FR-137`–`FR-140`, `FR-144`, `UC-INV-007 AF-002`), approve operational activation (`EquipmentLifecycleStatus.INSTALLED` / `EquipmentOperationalStatus.STANDBY` with initial operating hours baseline), execute documented technical rejection (`RejectionReason`, `UC-INV-007 AF-001` / `FR-141`), and export periodic commissioning compliance reports (`FR-143`).
 * **Primary Target Persona:** Project Engineer and Reliability Engineer formalizing new machinery acquisitions, auditing nameplate parameters, verifying physical battery limits, and governing reliability master data in compliance with ISO 14224 and ISO 55001.
 * **Secondary Personas:**
   * **Maintenance Planner:** Consults nameplate specifications, inherited criticality, and operating hour accumulators when structuring preventive plans.
@@ -43,7 +46,7 @@ status: Stable
 
 ![SCR-INV-005 Equipment Master Data Card Screenshot](assets/SCR-INV-005-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the Equipment Master Data Card layout, collapsible navigation sidebar, contextual Level 3 handoff toolbar, the five-stage lifecycle stepper and operational telemetry strip, inherited Functional Location linkage, nameplate and physical boundary cards, chronological milestone timeline validator, SCE safety governance card, and chained SHA-256 cryptographic audit strip.*
+> *Figure 2.1 — Desktop Workstation (Equipment Master Data Card): Illustrates the collapsible navigation sidebar (`CMP-01`), contextual Level 3 header & mode switcher (`CMP-02`), five-stage lifecycle stepper and operational telemetry strip (`CMP-04`), inherited Functional Location linkage (`CMP-05`), nameplate and physical boundary cards (`CMP-06`, `CMP-07`), SCE safety governance card (`CMP-08`), chronological milestone timeline validator (`CMP-09`), chained SHA-256 cryptographic audit strip (`CMP-11`), technical schematic card (`CMP-13`), and sticky action footer (`CMP-12`).*
 
 ---
 
@@ -145,7 +148,7 @@ status: Stable
       - Surface: `--dt-color-surface-raised`
       - Border: `--dt-color-border-subtle`
       - Hash Typography: `--dt-font-mono-data`
-    - **Architectural Scope:** Displays the active installation record (`InstallationId`, `InstalledAtUtc`) and the append-only SHA-256 cryptographic integrity hash chain ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md), [ADR-008](../../../architecture/adr/ADR-008.md)). Detailed in §5.3.5.
+    - **Architectural Scope:** Displays the active installation record (`InstallationId`, `InstalledAtUtc`) and the append-only SHA-256 cryptographic integrity hash chain ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md), [ADR-010](../../../architecture/adr/ADR-010.md)). Detailed in §5.3.5.
 
 12. **`CMP-12`: Unified Sticky Action & Governance Footer**
     - **Visual Role:** Permanent sticky bottom toolbar hosting contextual navigation handoffs, validation status slot `CMP-10`, audit justification input, and transaction commit actions.
@@ -156,7 +159,7 @@ status: Stable
       - Elevation: `--dt-z-header-sticky`
       - Primary CTA: `--dt-color-state-info`
       - Secondary Button: `--dt-color-surface-btn-secondary`
-    - **Architectural Scope:** Permanently visible bottom action controller. In Inspection Mode, hosts Level 3 contextual navigation handoffs (`[Define Boundaries]`, `[Check Kardex]`, `[Physical Replacement]`) on the left and `[Audited Edit]` on the right. In Onboarding/Edit Mode, hosts validation status slot `CMP-10` and justification input on the left, and `[Cancel]` / `[Formalize Equipment Unit]` on the right. Detailed in §5.2 and §5.3.6.
+    - **Architectural Scope:** Permanently visible bottom action controller. In Inspection Mode, hosts Level 3 contextual navigation handoffs (`[Define Boundaries]`, `[Check Kardex]`, `[Physical Replacement]`, `[Inspect Audit Trail]`) on the left and `[Commissioning Queue]` / `[Audited Edit]` on the right. In Commissioning Mode (`UC-INV-007`), hosts checklist verification status in `CMP-10` (or `RejectionReason` input per `UC-INV-007 AF-001` / `FR-141`) on the left and `[Reject Commissioning]` / `[Approve Operational Release]` on the right. In Onboarding/Edit Mode, hosts validation status slot `CMP-10` and justification input on the left, and `[Cancel]` / `[Formalize Equipment Unit]` on the right. Detailed in §5.2 and §5.3.6.
 
 13. **`CMP-13`: Technical Schematic Blueprint Card**
     - **Visual Role:** Vector technical schematic preview card in the right governance rail displaying the ISO 14224 equipment class diagram and class code badge (e.g., `CLS-PMP-CENT`).
@@ -211,6 +214,14 @@ status: Stable
     - **Activation Condition:** Field tablet loses network connectivity while inspecting equipment master sheets ([DT-UI-NAV-DOC-001 §6.1](../../DT-UI-NAV-DOC-001.md#61-offline-operation-guard)).
     - **Visual Modification:** Top diagnostic strip (`--dt-layout-banner-diagnostic-height`) renders Priority 4 muted slate banner (`--dt-color-surface-raised`, `--dt-color-text-muted`, `#icon-wifi-off`): *"Offline Mode — Inspecting Local Encrypted Master Catalog"*. Onboarding and mutation actions disabled.
 
+11. **Commissioning Gate Validation Mode (`UC-INV-007`, `FR-137`–`FR-144`)**
+    - **Activation Condition:** Maintenance Supervisor or Reliability Engineer activates `[Commissioning Queue]` (`?mode=commissioning`) or opens an Equipment Unit currently in `EquipmentLifecycleStatus.COMMISSIONING`.
+    - **Visual Modification:** `CMP-02` displays the pending commissioning queue selector and `[Export Commissioning Report]` trigger (`FR-143`). `CMP-04` highlights the `COMMISSIONING` transitional step (`--dt-color-alarm-warning`). `CMP-05`–`CMP-09` allow **controlled parameter editing** (`FR-139`) of mutable technical attributes (`FunctionalLocationId`, `EquipmentClassId`, `BoundaryStart`, `BoundaryEnd`, `IsSce`, `IsSceAttested`, `OperationStartDate`, and initial operating hours baseline) while locking immutable registration fields (`SerialNumber`, `PurchaseDate`, `AcquisitionDate`), rendered alongside the inline Commissioning Gate checklist (`FunctionalLocation` linkage, inherited `Criticality` & `IsSce` attestation, `BoundaryStart`/`BoundaryEnd` & Level 8 `MaintainableItem` structure verification via `MaintainableItemCount >= 1`, mapped LOTO isolation point count via `ConfiguredIsolationPointCount >= 1`, and initial operating hours baseline). Sticky footer `CMP-12` exposes `[Reject Commissioning]` (`--dt-color-surface-btn-secondary`) and `[Approve Operational Release]` (`--dt-color-state-info`), requiring independent reviewer RBAC clearance (`TR-006`, `NFR-146`).
+
+12. **Commissioning Gate Technical Rejection / Activation Block (`UC-INV-007 AF-001` / `AF-002`)**
+    - **Activation Condition:** Approving Maintenance Supervisor or Reliability Engineer triggers `[Reject Commissioning]` due to unrecoverable engineering inconsistencies (`UC-INV-007 AF-001`, `FR-141`), or automated pre-commissioning gate validation detects missing mandatory ISO 14224 fields, unassigned Level 5 Functional Location, missing Level 8 `MaintainableItem` decomposition (`MaintainableItemCount == 0`), or unmapped LOTO isolation points (`ConfiguredIsolationPointCount == 0`) (`UC-INV-007 AF-002`, `FR-144`).
+    - **Visual Modification:** Upon selecting `[Reject Commissioning]` (`UC-INV-007 AF-001`), `CMP-12` reveals the mandatory `RejectionReason` input ($\ge 15$ characters) in the left slot, persisting the rejection reason and SHA-256 audit hash while returning the asset to onboarding remediation without activating operational status. Upon gate failure (`UC-INV-007 AF-002`), incomplete fields and missing Level 8 / LOTO prerequisites highlight with `--dt-color-alarm-warning` and `#icon-warning`, hard-disabling `[Approve Operational Release]` (`CLS = 0`).
+
 ---
 
 ## 5. Interaction Rules and Data Flow
@@ -237,7 +248,7 @@ sequenceDiagram
     Engineer->>UI: Selects Functional Location (CMP-05) & Milestone Dates (CMP-09)
     UI->>UI: Validates single-occupancy (AF-004) & date progression (AF-003)
     Engineer->>UI: Toggles SCE flag & confirms ISO 45001 attestation (AF-005)
-    UI->>Interop: ComputeSha256Digest(PreviousHash, RegistrationPayload)
+    UI->>Interop: ComputePayloadSha256Digest(RegistrationPayload)
     Interop-->>UI: Returns candidate PayloadHash preview (CMP-11)
     Engineer->>UI: Clicks [Formalize Equipment Unit] (CMP-12)
     UI->>API: POST /api/v1/taxonomy/equipment-units (RegisterEquipmentUnitCommand + X-Idempotency-Key)
@@ -273,7 +284,8 @@ sequenceDiagram
      * **Define Boundaries (`CMP-12`):** Navigates to [SCR-MTTO-029](../mtto/SCR-MTTO-029.md) (`L3` $\to$ `L3`) passing `EquipmentUnitId` to configure ISO 14224 Level 7 Subunits and Level 8 Maintainable Items within the physical battery limits.
      * **Check Kardex (`CMP-12`):** Navigates to [SCR-INV-006](SCR-INV-006.md) (`L3` $\to$ `L3`) passing `EquipmentUnitId` and `SerialNumber` to inspect chronological spare part movements and rotable custody transactions.
      * **Physical Replacement (`CMP-12`):** Opens [SCR-INV-025](SCR-INV-025.md) (`L3` $\to$ `L4` modal) passing `FunctionalLocationId` and `FunctionalLocationTag` to execute an atomic rotable asset swap.
-     * **Audited Edit (`CMP-12`):** Located on the right side of `CMP-12`, unlocks non-critical attributes for audited modification ([FR-120](../../../requirements/user-stories/inv/INV-005.md#functional-requirements-fr)).
+     * **Inspect Audit Trail (`CMP-12`):** Navigates to [SCR-ADM-032](../adm/SCR-ADM-032.md) (`L3` $\to$ `L2`) with query `?entityType=EquipmentUnit&entityId={EquipmentUnitId}` to inspect the complete SHA-256 cryptographic audit ledger for the equipment unit.
+     * **Commissioning Queue & Audited Edit (`CMP-12`):** Located on the right side of `CMP-12`, `[Commissioning Queue]` switches to `MasterCardMode.COMMISSIONING` (`?mode=commissioning`, `UC-INV-007`), and `[Audited Edit]` unlocks non-critical attributes for audited modification ([FR-120](../../../requirements/user-stories/inv/INV-005.md#functional-requirements-fr)).
 4. **Header Space Ergonomics, Unified Top Sheet & Asymmetric Workstation Layout (`CMP-02` to `CMP-12`):**
    * The catalog unit selector is embedded directly as an active breadcrumb segment (`CMP-02`) using a seamless text-link pattern (pure text with color transition on hover and underline when selected/open, opening a flat popover menu styled with design tokens without shadow elevation, removing redundant header dropdowns and reserving header controls strictly for primary navigation (`[+ Register Equipment Unit]` or `[< Back to Card]`) and user identity.
    * To prevent "Card Overload" (*Bento-Box Fatigue*), `CMP-03` and `CMP-04` are fused into a single unified top header sheet (`--dt-color-surface-card`, outer border with `--dt-color-border-subtle`). `CMP-04` features a tactile five-stage sequential lifecycle stepper (Purchase $\to$ Storage $\to$ Installed $\to$ Operational $\to$ Decommissioned) and a compact four-metric orthogonal telemetry strip (Operational, Maintenance, Health score, and Operating Hours).
@@ -288,7 +300,7 @@ sequenceDiagram
 ### 5.3. Domain Workflows & Validation Rules
 
 #### 5.3.1. Mandatory ISO 14224 Attributes & Real-Time Serial Uniqueness (FR-117, FR-118, NFR-121, AF-001, AF-002)
-1. **Mandatory Technical Completeness (`FR-118`, `AF-001`):** Formalizing an Equipment Unit requires non-empty values for `SerialNumber`, `Manufacturer`, `Model`, `EquipmentClassId` (mapped to catalog items in `EquipmentClassLookupDto`, §7.2.3), `BoundaryStart`, `BoundaryEnd`, `PurchaseDate`, `AcquisitionDate`, `InstallationDate`, and `OperationStartDate`. Attempting to submit with any omitted required field blocks finalization, highlights each missing input with redundant coding (`#icon-warning` + `--dt-color-alarm-warning` outline + inline diagnostic label), and deploys the `AF-001` alert indicator in `CMP-10` inside the sticky footer (`CLS = 0`).
+1. **Mandatory Technical Completeness (`FR-118`, `AF-001`):** Formalizing an Equipment Unit requires non-empty values for `SerialNumber`, `Manufacturer`, `Model`, `EquipmentClassId` (mapped to catalog items in `EquipmentClassLookupDto`, [DT-UI-CTR-001 §2](../../contracts/DT-UI-CTR-001.md#2-shared-lookup-dtos)), `BoundaryStart`, `BoundaryEnd`, `PurchaseDate`, `AcquisitionDate`, `InstallationDate`, and `OperationStartDate`. Attempting to submit with any omitted required field blocks finalization, highlights each missing input with redundant coding (`#icon-warning` + `--dt-color-alarm-warning` outline + inline diagnostic label), and deploys the `AF-001` alert indicator in `CMP-10` inside the sticky footer (`CLS = 0`).
 2. **Debounced Global Uniqueness Verification (`FR-117`, `NFR-121`, `AF-002`):** As the Engineer enters or scans the `SerialNumber` in `CMP-06`, the client debounces input ($300\text{ms}$) and queries `GET /api/v1/taxonomy/equipment-units/verify-uniqueness?serial={serialNumber}` without blocking the UI thread. If a collision is detected in the master catalog, `CMP-06` and `CMP-10` immediately render the `AF-002` duplicate conflict state (`#icon-ban` + `--dt-color-alarm-critical`) in the footer status slot and lock the commit button (`CLS = 0`).
 
 #### 5.3.2. Chronological Milestone Sequence Invariant (FR-119, AF-003)
@@ -299,8 +311,9 @@ sequenceDiagram
 
 #### 5.3.3. Hierarchical Functional Location Linkage & Single-Occupancy Rule (FR-116, AF-004)
 1. In `CMP-05`, the Engineer selects a target Level 5 Functional Location from the hierarchical plant taxonomy (`FunctionalLocationOptionDto`, §7.2.3). In Inspection Mode, if the unit is unmounted in warehouse custody (`EquipmentLifecycleStatus.IN_STORAGE`), `CMP-05` displays the assigned `WarehouseName` (`WarehouseId`).
-2. Upon selecting a Functional Location, the UI automatically previews the **inherited** process `TagNumber`, `Criticality` classification, and `EnvironmentalExposure` (mapped to enum `EnvironmentalExposureLevel`, §7.2.3) governed by that Functional Location. In Onboarding Mode, these three inherited attributes retain the identical modular two-column stacked Key-Top / Value-Bottom structure as in Inspection Mode, ensuring consistent visual alignment.
+2. Upon selecting a Functional Location, the UI automatically previews the **inherited** process `TagNumber`, `Criticality` classification, and `EnvironmentalExposure` (mapped to enum `EnvironmentalExposureLevel`, [DT-DM-DOC-001 §4.6](../../../domain-models/class/DT-DM-DOC-001.md#46-functionallocationenvironmentalexposure)) governed by that Functional Location. In Onboarding Mode, these three inherited attributes retain the identical modular two-column stacked Key-Top / Value-Bottom structure as in Inspection Mode, ensuring consistent visual alignment.
 3. **Single-Occupancy Invariant (`AF-004`):** If the selected Functional Location has `IsCurrentlyOccupied == true` (hosting an active mounted Equipment Unit where `RemovedAtUtc == null`), the system blocks direct mounting, displays the `AF-004` allocation alert (`#icon-ban` + `--dt-color-alarm-critical`) in `CMP-10` inside the sticky footer, and offers a direct trigger to execute a regulated Rotable Asset Swap ([SCR-INV-025](SCR-INV-025.md)) or select an unoccupied Functional Location (`CLS = 0`).
+4. **Real-Time Asset Swap Synchronization (`/hubs/operations`, `TR-010`):** In Inspection Mode, the view subscribes to `/hubs/operations` (`IOperationsClient`) for `AssetSwapCompleted(AssetSwapCompletedEvent)` ([DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)) so lifecycle status, warehouse custody, and functional location occupancy slots refresh automatically when a rotable swap is committed from [SCR-INV-025](SCR-INV-025.md) or another connected session.
 
 #### 5.3.4. Safety Critical Element (SCE) Attestation Guard (AF-005)
 1. In **Inspection Mode (View Mode)**, the SCE Governance Card (`CMP-08`) renders with neutral border (`--dt-color-border-subtle`), displaying the static `ACTIVE SCE BARRIER` pill badge (`--dt-color-alarm-warning`) in a dedicated status row beneath the card header title (avoiding flex compression and omitting redundant inner glyphs), alongside navigation trigger `[#icon-loto-locked] Verify LOTO Points (4)` ([SCR-VIS-011](../vis/SCR-VIS-011.md)), while completely hiding the attestation checkbox to prevent static alarm fatigue. When `IsSce == false`, the classification renders as neutral plain text (`--dt-color-text-muted`) without a pill badge.
@@ -308,20 +321,25 @@ sequenceDiagram
 
 #### 5.3.5. Cryptographic Audit Trail Chaining & Historical Preservation (TR-001, NFR-123, ADR-005)
 1. **No Hard-Delete Invariant (`NFR-123`):** Physical deletion of Equipment Unit master records is strictly prohibited by the presentation and domain layers to preserve historical MTBF and reliability records. Retirement is handled exclusively via controlled decommissioning state transitions (`DisposalDate`, `DisposalReason`).
-2. **Chained SHA-256 Digest (`TR-001`, `ADR-003`):** Before dispatching creation or audited update commands, the client computes and previews the candidate cryptographic audit hash in `CMP-11`:
-   $$\text{IntegrityHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{EngineerUserId} \parallel \text{SerialNumber} \parallel \text{InheritedTagNumber} \parallel \text{EquipmentClassId} \parallel \text{IsSce} \parallel \text{FunctionalLocationId} \parallel \text{TimestampUtc})$$
-   Both the previous hash (`PreviousIntegrityHash`) and the candidate or committed integrity hash (`CandidateOrLatestIntegrityHash`) are presented in a vertical stacked layout with full 64-character monospace data wrapping (`--dt-font-mono-data`, neutral body text), preventing horizontal overflow and eliding decorative pseudo-badges in compliance with Section 6. Active installation timeline records are tracked under `AssetInstallation` per [ADR-008](../../../architecture/adr/ADR-008.md).
+2. **Chained SHA-256 Digest (`TR-001`, `ADR-003`):** Before dispatching creation or audited update commands, the client previews the candidate payload digest in `CMP-11` without supplying `PreviousHash`; the server resolves and seals the authoritative SHA-256 chain hash atomically pre-commit per [ADR-003 (Canonical Hash Formula)](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants) and [DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing).
+   Both the previous hash (`PreviousIntegrityHash`) and the candidate or committed integrity hash (`CandidateOrLatestIntegrityHash`) are presented in a vertical stacked layout with full 64-character monospace data wrapping (`--dt-font-mono-data`, neutral body text), preventing horizontal overflow and eliding decorative pseudo-badges in compliance with Section 6. Active installation timeline records are tracked under `AssetInstallation` per [ADR-010](../../../architecture/adr/ADR-010.md).
 
-#### 5.3.6. Atomic Registration & Audited Update Command Dispatch (`CMP-12`, NFR-122, NFR-124, ADR-007)
+#### 5.3.6. Atomic Registration, Audited Update & Commissioning Gate Dispatch (`CMP-12`, NFR-122, NFR-124, FR-137–FR-144, ADR-007)
 1. **Permanent Sticky Footer Dual Mechanics (`CMP-12`):**
-   * **Inspection Mode Layout:** The footer bar spans `--dt-layout-footer-height` permanently at the bottom of the viewport. The left side hosts Level 3 operational navigation triggers (`[Define Boundaries]` to [SCR-MTTO-029](../mtto/SCR-MTTO-029.md), `[Check Kardex]` to [SCR-INV-006](SCR-INV-006.md), and `[Physical Replacement]` opening [SCR-INV-025](SCR-INV-025.md)). The right side hosts the `[Audited Edit]` button ([FR-120](../../../requirements/user-stories/inv/INV-005.md#functional-requirements-fr)), unlocking mutable attributes for authorized maintenance and reliability engineers.
+   * **Inspection Mode Layout:** The footer bar spans `--dt-layout-footer-height` permanently at the bottom of the viewport. The left side hosts Level 3 operational navigation triggers (`[Define Boundaries]` to [SCR-MTTO-029](../mtto/SCR-MTTO-029.md), `[Check Kardex]` to [SCR-INV-006](SCR-INV-006.md), `[Physical Replacement]` opening [SCR-INV-025](SCR-INV-025.md), and `[Inspect Audit Trail]` to [SCR-ADM-032](../adm/SCR-ADM-032.md)). The right side hosts `[Commissioning Queue]` (`UC-INV-007`) and `[Audited Edit]` ([FR-120](../../../requirements/user-stories/inv/INV-005.md#functional-requirements-fr)), unlocking mutable attributes for authorized maintenance and reliability engineers.
    * **Onboarding & Audited Edit Mode Layout:** The footer maintains identical height and geometry (`CLS = 0`). The left side hosts the inline validation status slot (`CMP-10`), displaying real-time redundant feedback (`AF-001` to `AF-005`) and the occupancy conflict resolution trigger (`[Go to Rotable Swap]` in `AF-004`). In Audited Edit Mode, the left slot additionally hosts the mandatory `TechnicalJustification` input field ($\ge 15$ characters). The right side hosts `[Cancel]` (returning to Inspection Mode) and the primary transaction commit button (`[Formalize Equipment Unit]` or `[Save Audited Modifications]`).
+   * **Commissioning Gate Mode Layout (`UC-INV-007`):** The left side displays the automated completeness checklist verdict in `CMP-10` (verifying Level 5 Functional Location, `IsSce` attestation, Level 8 `MaintainableItemCount >= 1`, and LOTO `ConfiguredIsolationPointCount >= 1` per `UC-INV-007 AF-002` / `FR-144`, or mandatory `RejectionReason` input when rejecting per `UC-INV-007 AF-001` / `FR-141`), and the right side hosts `[Reject Commissioning]` and `[Approve Operational Release]` while supporting controlled inline parameter editing (`FR-139`).
 2. **Master Record Creation Dispatch:** Clicking `[Formalize Equipment Unit]` in Onboarding Mode dispatches:
    `POST /api/v1/taxonomy/equipment-units`
    * **Headers:** `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)).
    * **Payload:** Serializes `RegisterEquipmentUnitCommand` (§7.2.3).
    * **Atomic Persistence Guarantee (`NFR-122`, `NFR-124`):** The backend executes a single-commit atomic transaction completing in $< 2\text{s}$: creating the Equipment Unit in commissioning baseline states, instantiating the active installation timeline record at the target Functional Location, and appending the SHA-256 chained audit log entry. Upon HTTP 201 confirmation, `CMP-10` renders a documentary confirmation banner (`--dt-color-state-success`, `#icon-check`) in the footer and transitions the view to Inspection Mode.
-3. **Audited Non-Critical Attribute Update (`FR-120`):** In Audited Edit Mode, clicking `[Commit Audited Update]` dispatches `PUT /api/v1/taxonomy/equipment-units/{id}` with `UpdateEquipmentMasterRecordCommand` (§7.2.3), requiring a mandatory `TechnicalJustification` ($\ge 15$ characters) sealed into the cryptographic audit trail.
+3. **Audited Non-Critical Attribute Update (`FR-120`, `FR-139`):** In Audited Edit Mode (or during controlled technical parameter editing in Commissioning Gate Mode per `FR-139`), clicking `[Commit Audited Update]` dispatches `PUT /api/v1/taxonomy/equipment-units/{id}` with headers `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"` (optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column)) and `UpdateEquipmentMasterRecordCommand` (§7.2.3), requiring a mandatory `TechnicalJustification` ($\ge 15$ characters) persisted inside the immutable `AuditLog` structured state payload governed by [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state). Concurrent updates return HTTP 409 Conflict.
+4. **Asset Commissioning Gate Endpoints (`UC-INV-007`, `FR-137`–`FR-144`, `NFR-145`–`NFR-147`):**
+   * `GET /api/v1/taxonomy/equipment-units/pending-commissioning` — retrieves the prioritized list of `PendingCommissioningItemDto` records awaiting technical release (`FR-137`).
+   * `POST /api/v1/taxonomy/equipment-units/{id}/commission` — dispatches `CommissionEquipmentUnitCommand` with `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"`, enforcing the Commissioning Gate checklist (valid Level 5 Functional Location linkage, Criticality & `IsSce` attestation, physical battery limits & Level 8 `MaintainableItem` structure `MaintainableItemCount >= 1`, and mapped LOTO isolation points `ConfiguredIsolationPointCount >= 1` per `FR-138`, `FR-144`, blocking on `UC-INV-007 AF-002`), transitioning the asset to operational readiness (`EquipmentLifecycleStatus.INSTALLED`, `EquipmentOperationalStatus.STANDBY`), initializing operating hours baseline (`FR-140`), and sealing the SHA-256 audit entry (`FR-144`, `NFR-145`, `NFR-147`).
+   * `POST /api/v1/taxonomy/equipment-units/{id}/reject-commissioning` — dispatches `RejectEquipmentCommissioningCommand` with `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"`, persisting `RejectionReason` (`UC-INV-007 AF-001`, `FR-141`) and notifying the registering engineer.
+   * `GET /api/v1/taxonomy/equipment-units/commissioning-report?from={isoDate}&to={isoDate}` — exports structured periodic commissioning compliance reports (`CSV` / `JSON`, `FR-143`).
 
 ---
 
@@ -363,7 +381,7 @@ Pages/Inventory/
 #### 7.2.1. `EquipmentMasterDataCardPage.razor` (Root View)
 
 ```csharp
-[Parameter]
+[Parameter, SupplyParameterFromQuery(Name = "equipId")]
 public Guid? EquipmentUnitId { get; set; }
 
 [Parameter, SupplyParameterFromQuery(Name = "locId")]
@@ -371,24 +389,19 @@ public Guid? PreselectedFunctionalLocationId { get; set; }
 
 [Parameter, SupplyParameterFromQuery(Name = "mode")]
 public MasterCardMode InitialMode { get; set; } = MasterCardMode.INSPECT;
+
+[Parameter, SupplyParameterFromQuery(Name = "status")]
+public EquipmentLifecycleStatus? InitialStatusFilter { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "returnUrl")]
+public string? ReturnUrl { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameters (`CMP-01` to `CMP-13`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-INV-005"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public bool IsMobileDrawerOpen { get; set; }
-
-[Parameter]
-public string ActiveRouteCode { get; set; } = "SCR-INV-005";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
 // CMP-02: EquipmentMasterHeaderBar.razor
 [Parameter]
 public required MasterCardMode ActiveMode { get; set; }
@@ -441,10 +454,10 @@ public required EquipmentMaintenanceStatus MaintenanceStatus { get; set; }
 public required EquipmentHealthStatus HealthStatus { get; set; }
 
 [Parameter]
-public long OperatingHours { get; set; }
+public decimal OperatingHours { get; set; }
 
 [Parameter]
-public long SurveillanceHours { get; set; }
+public decimal SurveillanceHours { get; set; }
 
 // CMP-05: FunctionalLocationLinkageCard.razor
 [Parameter]
@@ -653,6 +666,12 @@ public EventCallback OnNavigateCheckKardex { get; set; }
 public EventCallback OnOpenPhysicalReplacementModal { get; set; }
 
 [Parameter]
+public EventCallback OnNavigateInspectAuditTrail { get; set; }
+
+[Parameter]
+public EventCallback OnEnterCommissioningMode { get; set; }
+
+[Parameter]
 public EventCallback OnEnterAuditedEditMode { get; set; }
 
 [Parameter]
@@ -674,53 +693,17 @@ public string? SchematicSvgContent { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`EquipmentLifecycleStatus`, `EquipmentOperationalStatus`, `EquipmentMaintenanceStatus`, `EquipmentHealthStatus`, `EnvironmentalExposureLevel`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
+Shared Lookup DTOs (`EquipmentClassLookupDto`): see [DT-UI-CTR-001 §2](../../contracts/DT-UI-CTR-001.md#2-shared-lookup-dtos).
+
 ```csharp
 public enum MasterCardMode
 {
     INSPECT,
     CREATE,
-    AUDITED_EDIT
-}
-
-public enum EquipmentLifecycleStatus
-{
-    IN_STORAGE,
-    INSTALLED,
-    COMMISSIONING,
-    DECOMMISSIONED
-}
-
-public enum EquipmentOperationalStatus
-{
-    UP,
-    DOWN,
-    STANDBY
-}
-
-public enum EquipmentMaintenanceStatus
-{
-    OPERATIONAL,
-    UNDER_MAINTENANCE,
-    UNDER_TEST
-}
-
-public enum EquipmentHealthStatus
-{
-    UNDETERMINED,
-    GOOD,
-    FAIR,
-    SERIOUS_BUT_STABLE,
-    SERIOUS,
-    CRITICAL_BUT_STABLE,
-    CRITICAL
-}
-
-public enum EnvironmentalExposureLevel
-{
-    SEVERE,
-    MODERATE,
-    LOW,
-    UNKNOWN
+    AUDITED_EDIT,
+    COMMISSIONING
 }
 
 public enum ValidationConflictType
@@ -733,21 +716,13 @@ public enum ValidationConflictType
     REGISTRATION_CONFIRMED
 }
 
-public record EquipmentClassLookupDto
-{
-    public required Guid EquipmentClassId { get; init; }
-    public required string ClassName { get; init; }
-    public string? Description { get; init; }
-    public string? ManufacturerStandard { get; init; }
-}
-
 public record FunctionalLocationOptionDto
 {
     public required Guid FunctionalLocationId { get; init; }
     public required string TagNumber { get; init; }
     public required string Name { get; init; }
     public int? Criticality { get; init; }
-    public required EnvironmentalExposureLevel EnvironmentalExposure { get; init; }
+    public EnvironmentalExposureLevel? EnvironmentalExposure { get; init; }
     public short HierarchyLevel { get; init; }
     public bool IsCurrentlyOccupied { get; init; }
     public string? MountedEquipmentSerialNumber { get; init; }
@@ -782,8 +757,8 @@ public record EquipmentUnitMasterCardDto
     public required Guid EquipmentClassId { get; init; }
     public required string EquipmentClassName { get; init; }
     public string? ManufacturerStandard { get; init; }
-    public required string BoundaryStart { get; init; }
-    public required string BoundaryEnd { get; init; }
+    public string? BoundaryStart { get; init; }
+    public string? BoundaryEnd { get; init; }
     public required DateOnly PurchaseDate { get; init; }
     public required DateOnly AcquisitionDate { get; init; }
     public DateOnly? InstallationDate { get; init; }
@@ -791,14 +766,18 @@ public record EquipmentUnitMasterCardDto
     public DateOnly? DisposalDate { get; init; }
     public string? DisposalReason { get; init; }
     public string? RejectionReason { get; init; }
-    public long OperatingHours { get; init; }
-    public long SurveillanceHours { get; init; }
+    public decimal OperatingHours { get; init; }
+    public decimal SurveillanceHours { get; init; }
     public required EquipmentOperationalStatus OperationalStatus { get; init; }
     public required EquipmentLifecycleStatus LifecycleStatus { get; init; }
     public required EquipmentMaintenanceStatus MaintenanceStatus { get; init; }
-    public required EquipmentHealthStatus HealthStatus { get; init; }
+    /// <summary>
+    /// Defaults to <see cref="EquipmentHealthStatus.UNDETERMINED"/> when unassessed (null health status in persistence).
+    /// </summary>
+    public EquipmentHealthStatus HealthStatus { get; init; } = EquipmentHealthStatus.UNDETERMINED;
     public bool IsSce { get; init; }
     public int ConfiguredIsolationPointCount { get; init; }
+    public int MaintainableItemCount { get; init; }
     public Guid? FunctionalLocationId { get; init; }
     public string? InheritedTagNumber { get; init; }
     public string? InheritedLocationName { get; init; }
@@ -811,6 +790,7 @@ public record EquipmentUnitMasterCardDto
     public required string PreviousIntegrityHash { get; init; }
     public required DateTimeOffset LastAuditedAtUtc { get; init; }
     public required string LastAuditedByBadge { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record SerialUniquenessResultDto
@@ -821,6 +801,9 @@ public record SerialUniquenessResultDto
     public string? ConflictingLocationTag { get; init; }
 }
 
+/// <summary>
+/// Equipment onboarding payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record RegisterEquipmentUnitCommand
 {
     public required string SerialNumber { get; init; }
@@ -837,9 +820,11 @@ public record RegisterEquipmentUnitCommand
     public bool IsSceAttested { get; init; }
     public required Guid FunctionalLocationId { get; init; }
     public required Guid EngineerUserId { get; init; }
-    public required string PreviousHash { get; init; }
 }
 
+/// <summary>
+/// Audited master record update payload; TechnicalJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7, and <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record UpdateEquipmentMasterRecordCommand
 {
     public required Guid EquipmentUnitId { get; init; }
@@ -850,7 +835,43 @@ public record UpdateEquipmentMasterRecordCommand
     public bool IsSceAttested { get; init; }
     public required string TechnicalJustification { get; init; }
     public required Guid EngineerUserId { get; init; }
-    public required string PreviousHash { get; init; }
+    public required uint ConcurrencyToken { get; init; }
+}
+
+public record PendingCommissioningItemDto
+{
+    public required Guid EquipmentUnitId { get; init; }
+    public required string SerialNumber { get; init; }
+    public required string EquipmentClassName { get; init; }
+    public string? AssignedFunctionalLocationTag { get; init; }
+    public int ConfiguredIsolationPointCount { get; init; }
+    public int MaintainableItemCount { get; init; }
+    public required bool IsTechnicalCompletenessPassed { get; init; }
+    public required DateTimeOffset RegisteredAtUtc { get; init; }
+    public required uint ConcurrencyToken { get; init; }
+}
+
+/// <summary>
+/// Commissioning approval payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
+public record CommissionEquipmentUnitCommand
+{
+    public required Guid EquipmentUnitId { get; init; }
+    public required decimal InitialOperatingHoursBaseline { get; init; }
+    public required string ApprovalNotes { get; init; }
+    public required Guid ApproverUserId { get; init; }
+    public required uint ConcurrencyToken { get; init; }
+}
+
+/// <summary>
+/// Commissioning rejection payload; <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
+public record RejectEquipmentCommissioningCommand
+{
+    public required Guid EquipmentUnitId { get; init; }
+    public required string RejectionReason { get; init; }
+    public required Guid ReviewerUserId { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record EquipmentUnitRegisteredEvent
@@ -909,11 +930,24 @@ public record EquipmentUnitRegisteredEvent
 | [NFR-122](../../../requirements/user-stories/inv/INV-005.md#non-functional-requirements-nfr) | `CMP-11`, `CMP-12` | Multi-aggregate single-commit ACID transaction atomically persisting Equipment Unit, active Installation record, and SHA-256 Audit Log entry. |
 | [NFR-123](../../../requirements/user-stories/inv/INV-005.md#non-functional-requirements-nfr) | `CMP-03`, `CMP-04`, `CMP-11` | Prohibits hard-deletes of equipment master records; preserves full installation history and reliability traceability across lifecycle transitions. |
 | [NFR-124](../../../requirements/user-stories/inv/INV-005.md#non-functional-requirements-nfr) | `CMP-12` | Atomic registration and master record persistence completes in $< 2\text{ seconds}$ under standard industrial connectivity. |
+| [FR-137](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr) | `CMP-02`, `CMP-04`, `CMP-12` | Pending Commissioning queue (`?mode=commissioning`) lists `COMMISSIONING` assets awaiting technical validation. |
+| [FR-138](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr) | `CMP-05`..`CMP-10` | Pre-commissioning checklist validates mandatory ISO 14224 fields, Level 5 Functional Location linkage, Level 8 `MaintainableItem` structure (`MaintainableItemCount >= 1`), mapped LOTO isolation points (`ConfiguredIsolationPointCount >= 1`), and `IsSce` attestation (`UC-INV-007 AF-002`). |
+| [FR-139](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr) | `CMP-05`..`CMP-09`, `CMP-12` | Allows controlled inline editing of mutable technical attributes during Commissioning Gate validation while keeping immutable registration fields locked (`PUT /api/v1/taxonomy/equipment-units/{id}`). |
+| [FR-140](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr) | `CMP-04`, `CMP-05`, `CMP-12` | Transitions approved asset to `INSTALLED` / `STANDBY`, initializes operating hours baseline, and exposes master data immediately to MTTO and VIS modules. |
+| [FR-141](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr) | `CMP-09`, `CMP-10`, `CMP-12` | Technical rejection workflow (`UC-INV-007 AF-001`) captures mandatory `RejectionReason` ($\ge 15$ characters) and logs SHA-256 audit traceability without activating the asset. |
+| [FR-142](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr) | `CMP-03`..`CMP-12` | Supports post-activation progressive enrichment of operational parameters and battery limits via Audited Edit mode (`UpdateEquipmentMasterRecordCommand`). |
+| [FR-143](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr) | `CMP-02` | Exports periodic commissioning compliance reports (`CSV` / `JSON`) via `GET /api/v1/taxonomy/equipment-units/commissioning-report`. |
+| [FR-144](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr) | `CMP-10`, `CMP-11`, `CMP-12` | Strictly blocks operational activation (`UC-INV-007 AF-002`) until mandatory documentation, Level 8 structure, and LOTO mapping prerequisites pass, sealing approval/rejection in the SHA-256 audit chain. |
+| [NFR-145](../../../requirements/user-stories/inv/INV-007.md#non-functional-requirements-nfr) | `CMP-12` | Commissioning release or rejection executes inside a single-commit atomic transaction (`< 2s`). |
+| [NFR-146](../../../requirements/user-stories/inv/INV-007.md#non-functional-requirements-nfr) | `CMP-02`, `CMP-12` | Strict segregation of duties and RBAC enforcement preventing unauthorized operational activation. |
+| [NFR-147](../../../requirements/user-stories/inv/INV-007.md#non-functional-requirements-nfr) | `CMP-11`, `CMP-12` | Cryptographic audit trail immutability and PostgreSQL `xmin` optimistic concurrency protection (`If-Match`). |
 | [TR-001](../../../requirements/common/TR-001.md) | `CMP-11`, `CMP-12` | Immutable append-only audit trail with SHA-256 cryptographic hash chaining ([ADR-003](../../../architecture/adr/ADR-003.md)). |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-05`, `CMP-06`, `CMP-11`, `CMP-12` | Encryption in Transit: Transport layer security (TLS/HTTPS) for all RESTful DTO transmissions and encrypted local SQLite caching. |
-| [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-03`, `CMP-12` | Enforces RBAC role authorization (`Project Engineer` and `Reliability Engineer` for onboarding/edits; read/handoff access per transition matrix). |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-02`, `CMP-03`, `CMP-12` | Enforces RBAC role authorization (`Project Engineer`, `Reliability Engineer`, and `Maintenance Supervisor` for onboarding/commissioning/edits; read/handoff access per transition matrix). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-04`..`CMP-09` | ISO 14224 Hierarchy Management and Validation: Enforces taxonomic hierarchy (Level 5 Functional Location $\to$ Level 6 Equipment Unit). |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-04`, `CMP-05`, `CMP-12` | Subscribes to `/hubs/operations` (`IOperationsClient`) `AssetSwapCompleted(AssetSwapCompletedEvent)` to synchronize rotable slot re-mounts and lifecycle state in real time. |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-04`, `CMP-08`, `CMP-10` | ANSI/ISA-101 HPHMI 90/10 grayscale compliance and WCAG 2.1 AA redundant coding (Shape + Icon + Color + Text). |
-| [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-11`, `CMP-12` | Tamper-evident cryptographic SHA-256 hash chaining on all asset master mutations and initial onboarding. |
+| [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-11`, `CMP-12` | Tamper-evident cryptographic SHA-256 hash chaining on all asset master mutations, onboarding, and commissioning approvals. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-06`, `CMP-11` | Time-sequential UUIDv7 generation for Equipment Unit and Installation primary keys. |
-| [ADR-008](../../../architecture/adr/ADR-008.md) | `CMP-05`, `CMP-11` | AssetInstallation timeline tracking decoupling physical unit lifecycle from functional location slot history. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-12` | Idempotent mutation processing via `X-Idempotency-Key` header on registration, audited updates, and commissioning endpoints. |
+| [ADR-010](../../../architecture/adr/ADR-010.md) | `CMP-05`, `CMP-11` | AssetInstallation timeline tracking decoupling physical unit lifecycle from functional location slot history. |

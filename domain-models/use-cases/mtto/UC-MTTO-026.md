@@ -15,13 +15,13 @@ secondary_actors:
 Automatically calculates and assigns an objective, quantitative priority score to each work request in the maintenance backlog. The system delegates priority evaluation to the industrial RIME (Ranking Index for Maintenance Expenditure) strategy engine ([ADR-002](../../../architecture/adr/ADR-002.md)), combining static asset criticality ($1..10$) with the operational weight of the selected work class ($1..10$) into a normalized score ($1..100$). The system consolidates resource availability (material inventory reservations and wrench hours), supports algorithmic work-order clustering on identical equipment units, and enforces tamper-evident cryptographic audit trails for all manual work-class adjustments.
 
 ## 2. Preconditions
-* The Maintenance Planner is authenticated in the web portal with the authorized "Maintenance Planner" role ([TR-006](../../../requirements/common/TR-006.md)).
+* The Maintenance Planner is authenticated in the platform with the authorized "Maintenance Planner" role ([TR-006](../../../requirements/common/TR-006.md)).
 * One or more work requests exist in intake `NEW` status awaiting supervisory planning and scheduling.
 * Target assets associated with pending work requests possess a configured numerical criticality index ($1..10$) defined in their ISO 14224 Functional Location and Equipment Unit master records ([FR-058](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)).
-* The Actor enters the supervisory interface ([SCR-MTTO-026](../../../ui-ux/screens/mtto/SCR-MTTO-026.md)) via the Web Portal navigation tree under Level 2 Process Supervision and Planning ([DT-UI-NAV-DOC-001 §3.2](../../../ui-ux/DT-UI-NAV-DOC-001.md#32-level-2-process-supervision-and-planning-l2---unit-process)).
+* The Actor accesses the Backlog Prioritization workflow in an authorized supervisory planning session.
 
 ## 3. Main Flow
-1. The Planner accesses the Backlog Prioritization module in the web portal shell ([SCR-MTTO-026](../../../ui-ux/screens/mtto/SCR-MTTO-026.md)).
+1. The Planner opens the Backlog Prioritization workspace.
 2. The System queries all active work requests in `NEW` status and constructs or updates the corresponding backlog prioritization item projections.
 3. The System automatically evaluates the priority score for each backlog item by delegating calculation to the industrial RIME prioritization engine ([FR-060](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr), [ADR-002](../../../architecture/adr/ADR-002.md)):
    1. Retrieves the static asset criticality index ($C \in [1, 10]$) from the master record of the associated ISO 14224 Equipment Unit or Functional Location ([FR-058](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)).
@@ -41,7 +41,7 @@ Automatically calculates and assigns an objective, quantitative priority score t
 ## 4. Alternate Flows
 ### AF-001: Work Class Modification (Priority Adjustment)
 If operational conditions shift and the Planner determines that a pending request requires an altered urgency classification:
-1. The Planner selects the target backlog item and initiates a work-class adjustment dialog.
+1. The Planner selects the target backlog item and initiates a work-class adjustment.
 2. The Planner selects an updated canonical Work Class from the standardized taxonomy ([DT-DM-DOC-001 §4.24](../../../domain-models/class/DT-DM-DOC-001.md#424-workrequestworkclasscode-work-class-rime)), such as escalating from Code 6 (*Systematic Preventive Maintenance*, weight 6) to Code 8 (*High Priority Process Work*, weight 8) or Code 10 (*Safety and Environmental Emergency*, weight 10), and provides a mandatory technical justification text.
 3. The System calculates the candidate RIME score in real-time ($< 100\text{ms}$ per [NFR-070](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr)) and displays the updated priority band.
 4. The Planner confirms the adjustment.
@@ -56,15 +56,15 @@ If a work request targets an asset whose master technical record lacks a configu
 1. The System enforces the industrial fail-safe principle ([ADR-002](../../../architecture/adr/ADR-002.md)): to prevent an unconfigured asset from being buried at the bottom of the backlog due to missing multiplier data, the RIME calculation engine applies a pessimistic priority floor:
    $$\text{Score}_{\text{fail-safe}} = \max(C_{\text{default}} \times W, 75)$$
    forcing the item into the *Schedule* (High) priority band regardless of a low work-class weight.
-2. The System renders a prominent diagnostic warning banner on the backlog item: *"Asset criticality unconfigured in master catalog. Fail-safe priority floor applied preventively."*
+2. The System presents a prominent diagnostic warning notice on the backlog item: *"Asset criticality unconfigured in master catalog. Fail-safe priority floor applied preventively."*
 3. The System dispatches an automated notification to the Reliability Engineer requesting immediate calibration of the asset's criticality index in the master equipment registry.
 4. The workflow resumes at Main Flow Step 5.
 
 ### AF-003: Multi-Work-Order Batching / Grouping Recommendation
 When multiple independent work requests target the same physical equipment unit:
 1. The System's grouping engine scans pending backlog items and detects that $\ge 2$ requests reference the identical Level 6 Equipment Unit ([FR-068](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)).
-2. The System generates a prominent contextual grouping recommendation banner above the data grid, highlighting the clustered equipment unit tag, the count of pending interventions, and the consolidated wrench-time estimate.
-3. The Planner clicks "Filter Clustered Requests"; the System filters the data grid to isolate all pending requests targeting that specific machine.
+2. The System generates a contextual grouping recommendation summary highlighting the clustered equipment unit tag, the count of pending interventions, and the consolidated wrench-time estimate.
+3. The Planner activates cluster filtering; the System isolates all pending requests targeting that specific Equipment Unit.
 4. The Planner evaluates the batch and bundles the requests into a unified planned maintenance window or shutdown package, optimizing overall plant downtime and technician mobilization.
 5. The workflow resumes at Main Flow Step 7.
 
@@ -79,7 +79,7 @@ When a Reliability Engineer updates the master criticality index of an equipment
 * All pending work requests possess an audited, deterministic RIME priority score ($1..100$) and are mapped to an ANSI/ISA-101 visual priority band.
 * The maintenance backlog is objectively ranked in descending order, displaying consolidated labor wrench hours and material availability status.
 * Any manual adjustment of work class or priority parameters is immutably recorded in the SHA-256 chained audit trail ([TR-001](../../../requirements/common/TR-001.md)).
-* Approved and prioritized backlog items are operationalized and handed off downstream to the Preventive Maintenance Scheduling Form ([SCR-MTTO-001](../../../ui-ux/screens/mtto/SCR-MTTO-001.md)) or Condition-Based Predictive Form ([SCR-MTTO-023](../../../ui-ux/screens/mtto/SCR-MTTO-023.md)) for calendar or telemetry execution.
+* Approved and prioritized backlog items are operationalized and handed off downstream to Preventive Maintenance Scheduling ([UC-MTTO-001](UC-MTTO-001.md)) or Condition-Based Predictive Scheduling ([UC-MTTO-023](UC-MTTO-023.md)) for calendar or telemetry execution.
 
 ## 6. Associated Requirements
 * **Functional Requirements:**
@@ -107,3 +107,4 @@ When a Reliability Engineer updates the master criticality index of an equipment
   * [TR-006](../../../requirements/common/TR-006.md): Role-Based Access Control (RBAC) enforcement.
   * [TR-008](../../../requirements/common/TR-008.md): ISO 14224 Hierarchy Management and Validation.
   * [TR-011](../../../requirements/common/TR-011.md): ANSI/ISA-101 High Performance HMI grayscale discipline with redundant visual encoding.
+* **Related Screens:** [SCR-MTTO-026](../../../ui-ux/screens/mtto/SCR-MTTO-026.md), [SCR-MTTO-001](../../../ui-ux/screens/mtto/SCR-MTTO-001.md), [SCR-MTTO-023](../../../ui-ux/screens/mtto/SCR-MTTO-023.md)

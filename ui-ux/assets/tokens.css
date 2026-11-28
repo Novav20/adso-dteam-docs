@@ -4,21 +4,21 @@
  */
 :root {
   /* Primitive palette */
-  --dt-primitive-gray-980: #111827;
   --dt-primitive-gray-950: #11141A;
+  --dt-primitive-gray-980: #111827;
   --dt-primitive-gray-900: #16191F;
-  --dt-primitive-gray-850: #1F2937;
   --dt-primitive-gray-800: #1E222B;
+  --dt-primitive-gray-850: #1F2937;
   --dt-primitive-gray-700: #2A2F3D;
-  --dt-primitive-gray-650: #3A4154;
-  --dt-primitive-gray-620: #4B5563;
   --dt-primitive-gray-600: #353B4D;
+  --dt-primitive-gray-650: #3A4154;
   --dt-primitive-gray-580: #4A5263;
-  --dt-primitive-gray-550: #6B7280;
+  --dt-primitive-gray-620: #4B5563;
   --dt-primitive-gray-500: #5C667A;
+  --dt-primitive-gray-550: #6B7280;
   --dt-primitive-gray-450: #6E7A92;
-  --dt-primitive-gray-420: #8A98AA;
   --dt-primitive-gray-400: #7E8B9B;
+  --dt-primitive-gray-420: #8A98AA;
   --dt-primitive-gray-380: #9CA3AF;
   --dt-primitive-gray-350: #AAB1BD;
   --dt-primitive-gray-300: #B8C0CC;
@@ -29,7 +29,30 @@
   --dt-primitive-gray-30: #FAFBFC;
   --dt-primitive-gray-20: #FCFDFD;
   --dt-primitive-gray-10: #FDFEFE;
+  --dt-primitive-slate-975: #0A0E15;
+  --dt-primitive-slate-950: #0D1117;
+  --dt-primitive-slate-920: #0F172A;
+  --dt-primitive-slate-925: #131923;
+  --dt-primitive-slate-900: #18202C;
+  --dt-primitive-slate-875: #1E2736;
+  --dt-primitive-slate-800: #222B3A;
+  --dt-primitive-slate-750: #2B3648;
+  --dt-primitive-slate-700: #475569;
+  --dt-primitive-slate-620: #526075;
+  --dt-primitive-slate-600: #607089;
+  --dt-primitive-slate-550: #64748B;
+  --dt-primitive-slate-430: #8B9BB2;
+  --dt-primitive-slate-400: #94A3B8;
+  --dt-primitive-slate-300: #BCC5D1;
+  --dt-primitive-slate-250: #CBD5E1;
+  --dt-primitive-slate-200: #CFD6DF;
+  --dt-primitive-slate-140: #E1E6EC;
+  --dt-primitive-slate-80: #ECEFF3;
+  --dt-primitive-slate-60: #F0F3F7;
+  --dt-primitive-slate-100: #F1F5F9;
+  --dt-primitive-slate-30: #F7F9FB;
   --dt-primitive-red-600: #E63946;
+  --dt-primitive-amber-700: #B45309;
   --dt-primitive-amber-600: #AC5E04;
   --dt-primitive-amber-500: #D97706;
   --dt-primitive-amber-400: #F4A261;
@@ -37,10 +60,13 @@
   --dt-primitive-blue-600: #2563EB;
   --dt-primitive-blue-450: #4881A4;
   --dt-primitive-blue-400: #457B9D;
+  --dt-primitive-blue-380: #60A5FA;
   --dt-primitive-blue-200: #BAE6FD;
   --dt-primitive-teal-700: #0B857A;
   --dt-primitive-teal-600: #0D9488;
   --dt-primitive-teal-400: #2A9D8F;
+  --dt-primitive-magenta-700: #A21CAF;
+  --dt-primitive-magenta-400: #E879F9;
 
   /* Spacing */
   --dt-space-0: 0px;
@@ -96,9 +122,15 @@
   --dt-layout-thumbnail-size: 120px;
 
   /* Spatial navigation and semantic zoom thresholds */
-  --dt-zoom-scale-l1-max: 1.15;
-  --dt-zoom-scale-tactical: 1.35;
-  --dt-zoom-scale-l2-max: 2.30;
+  --dt-zoom-scale-fit: 0.65;
+  --dt-zoom-ramp-l2-start: 0.95;
+  --dt-zoom-scale-l1-max: 1.05;
+  --dt-zoom-ramp-l2-end: 1.25;
+  --dt-zoom-scale-tactical: 1.45;
+  --dt-zoom-scale-l2-max: 1.85;
+  --dt-zoom-ramp-l3-start: 1.85;
+  --dt-zoom-ramp-l3-end: 2.45;
+  --dt-cad-stroke-floor: 0.42;
 
   /* Typography */
   --dt-font-family-base: Segoe UI, Inter, Roboto, -apple-system, sans-serif;
@@ -124,6 +156,7 @@
   --dt-z-canvas: 0;
   --dt-z-layer-ptw: 10;
   --dt-z-layer-loto: 20;
+  --dt-z-layer-markers: 50;
   --dt-z-overlay-card: 100;
   --dt-z-header-sticky: 500;
   --dt-z-drawer-sidebar: 800;
@@ -131,7 +164,7 @@
   --dt-z-modal-fail-safe: 1500;
   --dt-z-toast-alert: 2000;
 
-  --dt-color-bg-canvas: var(--dt-primitive-gray-200);
+  --dt-color-bg-canvas: var(--dt-primitive-slate-80);
   --dt-color-surface-base: var(--dt-primitive-gray-100);
   --dt-color-surface-card: var(--dt-primitive-gray-50);
   --dt-color-surface-drawer: var(--dt-primitive-gray-30);
@@ -142,47 +175,66 @@
   --dt-color-border-subtle: var(--dt-primitive-gray-300);
   --dt-color-border-panel: var(--dt-primitive-gray-350);
   --dt-color-border-focus: var(--dt-primitive-gray-550);
-  --dt-color-text-muted: var(--dt-primitive-gray-620);
+  --dt-color-text-muted: var(--dt-primitive-slate-620);
   --dt-color-text-body: var(--dt-primitive-gray-850);
   --dt-color-text-primary: var(--dt-primitive-gray-980);
-  --dt-color-mai-track: var(--dt-primitive-gray-100);
-  --dt-color-mai-normal-zone: var(--dt-primitive-blue-200);
-  --dt-color-mai-pointer: var(--dt-primitive-gray-980);
-  --dt-color-mai-interlock: var(--dt-primitive-gray-980);
   --dt-color-mai-track: var(--dt-primitive-gray-300);
   --dt-color-mai-track-border: var(--dt-primitive-gray-350);
   --dt-color-mai-normal-zone: var(--dt-primitive-blue-200);
   --dt-color-mai-normal-zone-border: var(--dt-primitive-blue-400);
   --dt-color-mai-pointer: var(--dt-primitive-gray-980);
   --dt-color-mai-pointer-border: var(--dt-primitive-gray-10);
-  --dt-color-alarm-critical: var(--dt-primitive-red-600);
   --dt-color-alarm-text-critical: var(--dt-primitive-gray-10);
-  --dt-color-alarm-warning: var(--dt-primitive-amber-600);
   --dt-color-alarm-text-warning: var(--dt-primitive-gray-10);
   --dt-color-mai-stale-zone: var(--dt-primitive-gray-280);
   --dt-color-mai-stale-zone-border: var(--dt-primitive-gray-420);
   --dt-color-mai-interlock: var(--dt-primitive-gray-980);
-  --dt-color-canvas-asphalt: var(--dt-primitive-gray-280);
-  --dt-color-canvas-concrete: var(--dt-primitive-gray-200);
-  --dt-color-canvas-steel: var(--dt-primitive-gray-500);
-  --dt-color-canvas-bund-floor: var(--dt-primitive-gray-100);
-  --dt-color-canvas-equip-shell: var(--dt-primitive-gray-30);
-  --dt-color-canvas-pipe-proc: var(--dt-primitive-gray-850);
-  --dt-color-canvas-pipe-fire: var(--dt-primitive-gray-500);
+  --dt-color-canvas-bund-floor: var(--dt-primitive-slate-140);
+  --dt-color-canvas-asphalt: var(--dt-primitive-slate-300);
+  --dt-color-canvas-concrete: var(--dt-primitive-slate-200);
+  --dt-color-canvas-equip-shell: var(--dt-primitive-slate-30);
+  --dt-color-canvas-steel: var(--dt-primitive-slate-550);
+  --dt-color-canvas-pipe-sec: var(--dt-primitive-slate-700);
+  --dt-color-canvas-pipe-proc: var(--dt-primitive-slate-920);
+  --dt-color-canvas-pipe-fire: var(--dt-primitive-slate-550);
+  --dt-color-canvas-grid: var(--dt-primitive-slate-250);
+  --dt-color-label-halo: var(--dt-primitive-slate-80);
+  --dt-color-site-veil: var(--dt-primitive-slate-60);
+  --dt-color-loto-isolated-path: var(--dt-primitive-slate-550);
+  --dt-color-marker-surface: var(--dt-primitive-slate-30);
+  --dt-color-marker-border: var(--dt-primitive-slate-550);
+  --dt-color-loto-disc: color-mix(in srgb, var(--dt-primitive-slate-30) 85%, transparent);
+  --dt-color-state-info-fill: color-mix(in srgb, var(--dt-primitive-blue-600) 10%, transparent);
+  --dt-color-state-success-fill: color-mix(in srgb, var(--dt-primitive-teal-700) 12%, transparent);
+  --dt-color-alarm-critical-fill: color-mix(in srgb, var(--dt-primitive-red-600) 11%, transparent);
+  --dt-color-alarm-warning-fill: color-mix(in srgb, var(--dt-primitive-amber-600) 12%, transparent);
+  --dt-color-conflict-fill: color-mix(in srgb, var(--dt-primitive-red-600) 22%, transparent);
+  --dt-color-ruler-bg: color-mix(in srgb, var(--dt-primitive-slate-30) 42%, transparent);
+  --dt-color-ruler-border: color-mix(in srgb, var(--dt-primitive-slate-550) 28%, transparent);
+  --dt-color-scale-bg: color-mix(in srgb, var(--dt-primitive-slate-30) 38%, transparent);
+  --dt-color-float-bg: color-mix(in srgb, var(--dt-primitive-slate-30) 36%, transparent);
+  --dt-color-float-bg-strong: color-mix(in srgb, var(--dt-primitive-slate-30) 46%, transparent);
+  --dt-color-float-border: color-mix(in srgb, var(--dt-primitive-slate-550) 32%, transparent);
+  --dt-color-float-border-strong: color-mix(in srgb, var(--dt-primitive-slate-700) 44%, transparent);
+  --dt-color-float-text: var(--dt-primitive-slate-920);
+  --dt-color-float-muted: var(--dt-primitive-slate-700);
+  --dt-color-float-hover: color-mix(in srgb, var(--dt-primitive-slate-920) 8%, transparent);
+  --dt-color-float-kbd-bg: color-mix(in srgb, var(--dt-primitive-slate-200) 62%, transparent);
   --dt-color-alarm-critical: var(--dt-primitive-red-600);
   --dt-color-alarm-warning: var(--dt-primitive-amber-600);
   --dt-color-state-info: var(--dt-primitive-blue-600);
   --dt-color-state-success: var(--dt-primitive-teal-700);
+  --dt-color-quality-bad: var(--dt-primitive-magenta-700);
   --dt-color-state-disabled: var(--dt-primitive-gray-380);
-
-  /* Elevation Shadows (HUD Overlays & Floating Panels - Google Maps Crisp Tight Shadows) */
-  --dt-shadow-hud: 0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.08);
-  --dt-shadow-panel: -2px 0 8px rgba(0, 0, 0, 0.12), -1px 0 2px rgba(0, 0, 0, 0.06);
+  --dt-shadow-marker: 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-920) 22%, transparent), 0 1px 1px color-mix(in srgb, var(--dt-primitive-slate-920) 10%, transparent);
+  --dt-shadow-hud: 0 1px 4px color-mix(in srgb, var(--dt-primitive-slate-920) 18%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-920) 8%, transparent);
+  --dt-shadow-glass: 0 1px 4px color-mix(in srgb, var(--dt-primitive-slate-920) 18%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-920) 8%, transparent), inset 0 1px 0 color-mix(in srgb, var(--dt-primitive-slate-30) 72%, transparent);
+  --dt-shadow-panel: -2px 0 8px color-mix(in srgb, var(--dt-primitive-slate-920) 12%, transparent), -1px 0 2px color-mix(in srgb, var(--dt-primitive-slate-920) 6%, transparent);
 }
 
 /* Dark theme semantic tokens */
 [data-theme="dark"] {
-  --dt-color-bg-canvas: var(--dt-primitive-gray-900);
+  --dt-color-bg-canvas: var(--dt-primitive-slate-950);
   --dt-color-surface-base: var(--dt-primitive-gray-800);
   --dt-color-surface-card: var(--dt-primitive-gray-700);
   --dt-color-surface-drawer: var(--dt-primitive-gray-650);
@@ -193,42 +245,61 @@
   --dt-color-border-subtle: var(--dt-primitive-gray-650);
   --dt-color-border-panel: var(--dt-primitive-gray-500);
   --dt-color-border-focus: var(--dt-primitive-gray-450);
-  --dt-color-text-muted: var(--dt-primitive-gray-420);
+  --dt-color-text-muted: var(--dt-primitive-slate-430);
   --dt-color-text-body: var(--dt-primitive-gray-280);
   --dt-color-text-primary: var(--dt-primitive-gray-10);
-  --dt-color-mai-track: var(--dt-primitive-gray-700);
-  --dt-color-mai-normal-zone: var(--dt-primitive-blue-700);
-  --dt-color-mai-pointer: var(--dt-primitive-gray-10);
-  --dt-color-mai-interlock: var(--dt-primitive-gray-10);
   --dt-color-mai-track: var(--dt-primitive-gray-700);
   --dt-color-mai-track-border: var(--dt-primitive-gray-650);
   --dt-color-mai-normal-zone: var(--dt-primitive-blue-700);
   --dt-color-mai-normal-zone-border: var(--dt-primitive-blue-450);
   --dt-color-mai-pointer: var(--dt-primitive-gray-10);
   --dt-color-mai-pointer-border: var(--dt-primitive-gray-980);
-  --dt-color-alarm-critical: var(--dt-primitive-red-600);
   --dt-color-alarm-text-critical: var(--dt-primitive-gray-10);
-  --dt-color-alarm-warning: var(--dt-primitive-amber-400);
   --dt-color-alarm-text-warning: var(--dt-primitive-gray-900);
   --dt-color-mai-stale-zone: var(--dt-primitive-gray-600);
   --dt-color-mai-stale-zone-border: var(--dt-primitive-gray-450);
   --dt-color-mai-interlock: var(--dt-primitive-gray-10);
-  --dt-color-canvas-asphalt: var(--dt-primitive-gray-800);
-  --dt-color-canvas-concrete: var(--dt-primitive-gray-700);
-  --dt-color-canvas-steel: var(--dt-primitive-gray-500);
-  --dt-color-canvas-bund-floor: var(--dt-primitive-gray-900);
-  --dt-color-canvas-equip-shell: var(--dt-primitive-gray-800);
-  --dt-color-canvas-pipe-proc: var(--dt-primitive-gray-10);
-  --dt-color-canvas-pipe-fire: var(--dt-primitive-gray-500);
+  --dt-color-canvas-bund-floor: var(--dt-primitive-slate-925);
+  --dt-color-canvas-asphalt: var(--dt-primitive-slate-900);
+  --dt-color-canvas-concrete: var(--dt-primitive-slate-800);
+  --dt-color-canvas-equip-shell: var(--dt-primitive-slate-750);
+  --dt-color-canvas-steel: var(--dt-primitive-slate-600);
+  --dt-color-canvas-pipe-sec: var(--dt-primitive-slate-400);
+  --dt-color-canvas-pipe-proc: var(--dt-primitive-slate-100);
+  --dt-color-canvas-pipe-fire: var(--dt-primitive-slate-600);
+  --dt-color-canvas-grid: var(--dt-primitive-gray-850);
+  --dt-color-label-halo: var(--dt-primitive-slate-950);
+  --dt-color-site-veil: var(--dt-primitive-slate-975);
+  --dt-color-loto-isolated-path: var(--dt-primitive-gray-450);
+  --dt-color-marker-surface: var(--dt-primitive-slate-875);
+  --dt-color-marker-border: var(--dt-primitive-slate-600);
+  --dt-color-loto-disc: color-mix(in srgb, var(--dt-primitive-slate-900) 85%, transparent);
+  --dt-color-state-info-fill: color-mix(in srgb, var(--dt-primitive-blue-450) 16%, transparent);
+  --dt-color-state-success-fill: color-mix(in srgb, var(--dt-primitive-teal-400) 17%, transparent);
+  --dt-color-alarm-critical-fill: color-mix(in srgb, var(--dt-primitive-red-600) 15%, transparent);
+  --dt-color-alarm-warning-fill: color-mix(in srgb, var(--dt-primitive-amber-400) 16%, transparent);
+  --dt-color-conflict-fill: color-mix(in srgb, var(--dt-primitive-red-600) 25%, transparent);
+  --dt-color-ruler-bg: color-mix(in srgb, var(--dt-primitive-slate-950) 46%, transparent);
+  --dt-color-ruler-border: color-mix(in srgb, var(--dt-primitive-slate-600) 34%, transparent);
+  --dt-color-scale-bg: color-mix(in srgb, var(--dt-primitive-gray-980) 42%, transparent);
+  --dt-color-float-bg: color-mix(in srgb, var(--dt-primitive-gray-980) 40%, transparent);
+  --dt-color-float-bg-strong: color-mix(in srgb, var(--dt-primitive-gray-980) 52%, transparent);
+  --dt-color-float-border: color-mix(in srgb, var(--dt-primitive-slate-400) 28%, transparent);
+  --dt-color-float-border-strong: color-mix(in srgb, var(--dt-primitive-slate-400) 42%, transparent);
+  --dt-color-float-text: var(--dt-primitive-slate-100);
+  --dt-color-float-muted: var(--dt-primitive-slate-400);
+  --dt-color-float-hover: color-mix(in srgb, var(--dt-primitive-slate-100) 11%, transparent);
+  --dt-color-float-kbd-bg: color-mix(in srgb, var(--dt-primitive-slate-800) 72%, transparent);
   --dt-color-alarm-critical: var(--dt-primitive-red-600);
   --dt-color-alarm-warning: var(--dt-primitive-amber-400);
   --dt-color-state-info: var(--dt-primitive-blue-450);
   --dt-color-state-success: var(--dt-primitive-teal-400);
+  --dt-color-quality-bad: var(--dt-primitive-magenta-400);
   --dt-color-state-disabled: var(--dt-primitive-gray-580);
-
-  /* Elevation Shadows (HUD Overlays & Floating Panels - Google Maps Crisp Tight Shadows) */
-  --dt-shadow-hud: 0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
-  --dt-shadow-panel: -3px 0 10px rgba(0, 0, 0, 0.50), -1px 0 3px rgba(0, 0, 0, 0.30);
+  --dt-shadow-marker: 0 2px 3px color-mix(in srgb, var(--dt-primitive-slate-975) 50%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-975) 34%, transparent);
+  --dt-shadow-hud: 0 2px 6px color-mix(in srgb, var(--dt-primitive-slate-975) 45%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-975) 35%, transparent);
+  --dt-shadow-glass: 0 2px 6px color-mix(in srgb, var(--dt-primitive-slate-975) 45%, transparent), 0 1px 2px color-mix(in srgb, var(--dt-primitive-slate-975) 35%, transparent), inset 0 1px 0 color-mix(in srgb, var(--dt-primitive-slate-100) 9%, transparent);
+  --dt-shadow-panel: -3px 0 10px color-mix(in srgb, var(--dt-primitive-slate-975) 50%, transparent), -1px 0 3px color-mix(in srgb, var(--dt-primitive-slate-975) 30%, transparent);
 }
 
 /* Responsive layout overrides */

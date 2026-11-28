@@ -1,9 +1,9 @@
 ---
 code: DT-UI-NAV-DOC-001
-version: 1.1
-date: 2026-09-04
-status: DRAFT
-author: Juan David Julio Serrano
+version: 1.2
+date: 2026-11-24
+status: Approved
+author: Juan David Julio
 standard:
   - ANSI/ISA-101.01-2015 (Human Machine Interfaces for Process Automation Systems)
   - ISO 9241-210:2019 (Ergonomics of human-system interaction — Human-centered design)
@@ -36,9 +36,9 @@ graph TD
     UIComponents --> Mobile
     UIComponents --> Web
 
-    classDef shared fill:#E8F1FF,stroke:#2563EB,stroke-width:2px,color:#0F172A;
-    classDef mobile fill:#ECFDF5,stroke:#059669,stroke-width:2px,color:#064E3B;
-    classDef web fill:#FFF7ED,stroke:#EA580C,stroke-width:2px,color:#7C2D12;
+    classDef shared fill:#E5E8EC,stroke:#353B4D,stroke-width:2px,color:#111827;
+    classDef mobile fill:#F4F5F7,stroke:#5C667A,stroke-width:2px,color:#111827;
+    classDef web fill:#F4F5F7,stroke:#5C667A,stroke-width:2px,color:#111827;
 
     class UIComponents shared;
     class Mobile mobile;
@@ -76,7 +76,7 @@ graph TD
 ### 3.1. Level 1: Plant Overview (L1 - Area / Overview)
 Macro screens providing a holistic, uninterrupted view of the industrial plant. They apply the 90% neutral grays HPHMI rule to highlight only alarm conditions.
 
-* **[SCR-VIS-008](screens/vis/SCR-VIS-008.md) — 2D Plant Map:** Scalable vector graphic canvas (SVG) adopting the *Simplified Plot Plan / Process Overview* format in a neutral scale, representing the spatial distribution of the plant, main assets, operating states, and active work permit layers. Traceable with **[UC-VIS-008](../domain-models/use-cases/vis/UC-VIS-008.md)** and **[UC-VIS-033](../domain-models/use-cases/vis/UC-VIS-033.md)**. Transitions from Level 1 to Level 2 and Level 3 within the 2D viewport occur via continuous semantic zoom governed by the canonical scale tokens defined in [DT-UI-DS-DOC-001 §2.5](DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports) (`--dt-zoom-scale-l1-max`, `--dt-zoom-scale-tactical`, `--dt-zoom-scale-l2-max`).
+* **[SCR-VIS-008](screens/vis/SCR-VIS-008.md) — 2D Plant Map:** Scalable vector graphic canvas (SVG) adopting the *Simplified Plot Plan / Process Overview* format in a neutral HPHMI spatial palette, representing the spatial distribution of the plant (`L-CIVL-PROP`), programmatic L1 functional-zone summary pills, operating states, and active work permit layers. Traceable with **[UC-VIS-008](../domain-models/use-cases/vis/UC-VIS-008.md)** and **[UC-VIS-033](../domain-models/use-cases/vis/UC-VIS-033.md)**. Transitions across Level 1 (`--dt-zoom-scale-fit`), Level 2 (`--dt-zoom-scale-l1-max` / `--dt-zoom-scale-tactical`), and Level 3 (`--dt-zoom-scale-l2-max`) within the unified single-canvas viewport occur via continuous focal `viewBox` zoom, interactive ISO 14224 spatial breadcrumb (`Terminal > Zone > Asset`), or intent-based `Space` / `Ctrl + K` fuzzy search framing governed by [DT-UI-DS-DOC-001 §2.5](DT-UI-DS-DOC-001.md#25-spatial-navigation-and-semantic-zoom-tokens-ansiisa-10101-viewports). Contextual asset inspection (`SCR-VIS-033`) and LOTO isolation mode (`SCR-VIS-011`) open as overlaid drawers/modes on this unified canvas as well as via direct deep-linked routes.
 
 ### 3.2. Level 2: Process Supervision and Planning (L2 - Unit / Process)
 Intermediate control screens for supervisors, planners, and auditors. They consolidate aggregated information, hierarchy trees, and performance metrics.
@@ -91,10 +91,10 @@ Intermediate control screens for supervisors, planners, and auditors. They conso
 Screens dedicated to detailed inspection of a specific equipment unit (ISO 14224 Level 6) or the formal preparation of maintenance interventions.
 
 * **[SCR-VIS-033](screens/vis/SCR-VIS-033.md) — Asset Inspection Card:** Detailed contextual view of the selected equipment with telemetry data, structural breakdown, and recent history. Traceable with **[UC-VIS-033](../domain-models/use-cases/vis/UC-VIS-033.md)**.
-* **[SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md) — Preventive Scheduling Form:** Configuration interface for cyclic maintenance plans by calendar, operating hours, or starts. Traceable with **[UC-MTTO-001](../domain-models/use-cases/mtto/UC-MTTO-001.md)**.
+* **[SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md) — Preventive Scheduling Form:** Configuration interface for cyclic maintenance plans based strictly on calendar time intervals (`CALENDAR_TIME`). Traceable with **[UC-MTTO-001](../domain-models/use-cases/mtto/UC-MTTO-001.md)**.
 * **[SCR-MTTO-023](screens/mtto/SCR-MTTO-023.md) — Telemetry Scheduling Form:** Configuration of condition-based maintenance (CBM) rules driven by IoT sensors. Traceable with **[UC-MTTO-023](../domain-models/use-cases/mtto/UC-MTTO-023.md)**.
 * **[SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md) — Asset Boundary Limits Card:** Technical definition of the physical limits of the equipment (battery limits) for cost control. Traceable with **[UC-MTTO-029](../domain-models/use-cases/mtto/UC-MTTO-029.md)**.
-* **[SCR-INV-005](screens/inv/SCR-INV-005.md) — Equipment Master Data Card:** Master record of the physical asset with manufacturer specifications, purchase date, and operational status. Traceable with **[UC-INV-005](../domain-models/use-cases/inv/UC-INV-005.md)**.
+* **[SCR-INV-005](screens/inv/SCR-INV-005.md) — Equipment Master Data Card & Commissioning Gate:** Master record of the physical asset with manufacturer specifications, purchase date, operational status, and embedded Commissioning Gate validation queue (`?mode=commissioning`). Traceable with **[UC-INV-005](../domain-models/use-cases/inv/UC-INV-005.md)** and **[UC-INV-007](../domain-models/use-cases/inv/UC-INV-007.md)**.
 * **[SCR-INV-006](screens/inv/SCR-INV-006.md) — Movements and Kardex History:** Transactional record of receipts, issues, and returns of materials and spare parts associated with the asset. Traceable with **[UC-INV-006](../domain-models/use-cases/inv/UC-INV-006.md)**.
 * **[SCR-INV-031](screens/inv/SCR-INV-031.md) — Spare Parts Master Catalog:** Centralized management of spare parts and supplies with definition of inventory policies. Traceable with **[UC-INV-031](../domain-models/use-cases/inv/UC-INV-031.md)**.
 
@@ -111,63 +111,45 @@ Specialized interfaces for atomic execution, safety verification at the point of
 
 ### 4.1. Navigation Structure — Mobile Client
 
-```plantuml
-@startmindmap
-skinparam defaultFontName "Segoe UI"
-skinparam defaultFontSize 12
-skinparam nodesep 20
-skinparam ranksep 30
-
-* **Mobile Client (MAUI)**
-** 1.0 Plant (L1)\n[[screens/vis/SCR-VIS-008.md SCR-VIS-008]]
-*** Asset Contextual Card (L3)\n[[screens/vis/SCR-VIS-033.md SCR-VIS-033]]
-*** LOTO Isolation Routes (L4)\n[[screens/vis/SCR-VIS-011.md SCR-VIS-011]]
-** 2.0 My Orders (L2)
-*** Mobile WO Closing (L4)\n[[screens/mtto/SCR-MTTO-002.md SCR-MTTO-002]]
-*** LOTO Isolation Routes (L4)\n[[screens/vis/SCR-VIS-011.md SCR-VIS-011]]
-** 3.0 Assets (L2)
-*** Equipment Master Data (L3)\n[[screens/inv/SCR-INV-005.md SCR-INV-005]]
-*** Modal Asset Swap (L4)\n[[screens/inv/SCR-INV-025.md SCR-INV-025]]
-** 4.0 Synchronization (L2)
-*** Offline Transactional Queue
-** 5.0 Side Drawer
-*** Boundary Limits Card (L3)\n[[screens/mtto/SCR-MTTO-029.md SCR-MTTO-029]]
-*** Kardex History (L3)\n[[screens/inv/SCR-INV-006.md SCR-INV-006]]
-*** Profile and License
-@endmindmap
+```mermaid
+flowchart LR
+    MOB["Mobile Field Client"] --> M1["1.0 Plant Canvas (L1) - SCR-VIS-008"]
+    M1 --> M1A["Asset Inspection Drawer (L3) - SCR-VIS-033"]
+    M1 --> M1B["LOTO Isolation Mode (L4) - SCR-VIS-011"]
+    MOB --> M2["2.0 Field Execution"]
+    M2 --> M2A["Mobile WO Closing (L4) - SCR-MTTO-002"]
+    M2 --> M2B["LOTO Isolation Mode (L4) - SCR-VIS-011"]
+    MOB --> M3["3.0 Asset & Materials"]
+    M3 --> M3A["Equipment Master Data (L3) - SCR-INV-005"]
+    M3 --> M3B["Asset Swap Modal (L4) - SCR-INV-025"]
+    M3 --> M3C["Boundary Limits Card (L3) - SCR-MTTO-029"]
+    M3 --> M3D["Kardex History (L3) - SCR-INV-006"]
 ```
 
 ### 4.2. Navigation Structure — Web Portal Client
 
-```plantuml
-@startmindmap
-skinparam defaultFontName "Segoe UI"
-skinparam defaultFontSize 12
-skinparam nodesep 20
-skinparam ranksep 30
-
-* **Web Portal (Blazor)**
-** 1.0 Digital Twin
-*** 2D Plant Map (L1)\n[[screens/vis/SCR-VIS-008.md SCR-VIS-008]]
-*** Asset Contextual Card (L3)\n[[screens/vis/SCR-VIS-033.md SCR-VIS-033]]
-*** LOTO Isolation Routes (L4)\n[[screens/vis/SCR-VIS-011.md SCR-VIS-011]]
-** 2.0 Maintenance
-*** RIME Backlog Dashboard (L2)\n[[screens/mtto/SCR-MTTO-026.md SCR-MTTO-026]]
-*** Preventive Scheduling (L3)\n[[screens/mtto/SCR-MTTO-001.md SCR-MTTO-001]]
-*** Telemetry Scheduling (L3)\n[[screens/mtto/SCR-MTTO-023.md SCR-MTTO-023]]
-*** Boundary Limits Card (L3)\n[[screens/mtto/SCR-MTTO-029.md SCR-MTTO-029]]
-*** WO Historical Record (L4)\n[[screens/mtto/SCR-MTTO-002.md SCR-MTTO-002]]
-** 3.0 Inventory
-*** Functional Locations Tree (L2)\n[[screens/inv/SCR-INV-027.md SCR-INV-027]]
-*** Equipment Master Data (L3)\n[[screens/inv/SCR-INV-005.md SCR-INV-005]]
-*** Spare Parts Catalog (L3)\n[[screens/inv/SCR-INV-031.md SCR-INV-031]]
-*** Kardex History (L3)\n[[screens/inv/SCR-INV-006.md SCR-INV-006]]
-*** Asset Swap Modal (L4)\n[[screens/inv/SCR-INV-025.md SCR-INV-025]]
-** 4.0 Governance
-*** RBAC Matrix (L2)\n[[screens/adm/SCR-ADM-013.md SCR-ADM-013]]
-*** User Management (L2)\n[[screens/adm/SCR-ADM-014.md SCR-ADM-014]]
-*** Immutable SHA-256 Audit (L2)\n[[screens/adm/SCR-ADM-032.md SCR-ADM-032]]
-@endmindmap
+```mermaid
+flowchart LR
+    WEB["Supervisory Web Portal"] --> W1["1.0 Digital Twin"]
+    W1 --> W1A["2D Plant Map (L1) - SCR-VIS-008"]
+    W1 --> W1B["Asset Contextual Card (L3) - SCR-VIS-033"]
+    W1 --> W1C["LOTO Isolation Routes (L4) - SCR-VIS-011"]
+    WEB --> W2["2.0 Maintenance"]
+    W2 --> W2A["RIME Backlog Dashboard (L2) - SCR-MTTO-026"]
+    W2 --> W2B["Preventive Scheduling (L3) - SCR-MTTO-001"]
+    W2 --> W2C["Telemetry Scheduling (L3) - SCR-MTTO-023"]
+    W2 --> W2D["Boundary Limits Card (L3) - SCR-MTTO-029"]
+    W2 --> W2E["WO Historical Record (L4) - SCR-MTTO-002"]
+    WEB --> W3["3.0 Inventory"]
+    W3 --> W3A["Functional Locations Tree (L2) - SCR-INV-027"]
+    W3 --> W3B["Equipment Master Data (L3) - SCR-INV-005"]
+    W3 --> W3C["Spare Parts Catalog (L3) - SCR-INV-031"]
+    W3 --> W3D["Kardex History (L3) - SCR-INV-006"]
+    W3 --> W3E["Asset Swap Modal (L4) - SCR-INV-025"]
+    WEB --> W4["4.0 Governance"]
+    W4 --> W4A["RBAC Matrix (L2) - SCR-ADM-013"]
+    W4 --> W4B["User Management (L2) - SCR-ADM-014"]
+    W4 --> W4C["Immutable SHA-256 Audit (L2) - SCR-ADM-032"]
 ```
 
 
@@ -175,27 +157,38 @@ skinparam ranksep 30
 
 ## 5. Transition Matrix and Access Control (RBAC)
 
-The following table defines the transition rules between screens, triggering events, and authorized user roles to execute each route in the application:
+The following table defines the transition rules between screens, triggering events, canonical query parameters, and authorized user roles synchronized 1:1 with each destination screen's frontmatter and `SCR-ADM-013` RBAC matrix:
 
-| Origin Screen | Triggering Event / UI Action | Destination Screen | ISA-101 Level | Authorized Roles |
+| Origin Screen | Triggering Event / UI Action & Query Parameters | Destination Screen | ISA-101 Level | Authorized Roles |
 | :-------------------- | :------------------------------------------------------- | :------------------------- | :-----------: | :-------------------------------------------- |
-| [SCR-VIS-008](screens/vis/SCR-VIS-008.md)       | Asset Selection on 2D Canvas                         | [SCR-VIS-033](screens/vis/SCR-VIS-033.md)            |  L1 $\to$ L3  | All Roles                               |
-| [SCR-VIS-008](screens/vis/SCR-VIS-008.md)       | LOTO Layer Selection on 2D Canvas                      | [SCR-VIS-011](screens/vis/SCR-VIS-011.md)            |  L1 $\to$ L4  | Technician, Supervisor, HSEQ, Reliability Eng. |
+| [SCR-VIS-008](screens/vis/SCR-VIS-008.md)       | Asset Selection on 2D Canvas (`?tag={TagNumber}&level=L3`) | [SCR-VIS-033](screens/vis/SCR-VIS-033.md)            |  L1 $\to$ L3  | Maintenance Technician, Maintenance Supervisor, HSEQ Inspector, Reliability Engineer |
+| [SCR-VIS-008](screens/vis/SCR-VIS-008.md)       | LOTO Layer Selection / `[Inspect Isolation]` on 2D Canvas (`?workOrderId={WorkOrderId}&equipId={EquipmentUnitId}`) | [SCR-VIS-011](screens/vis/SCR-VIS-011.md)            |  L1 $\to$ L4  | Maintenance Technician, Maintenance Supervisor, HSEQ Inspector |
 | `Any (Global)` | Press `Ctrl + K`, `/` or Tap on tactile search button | `Fuzzy Search Modal` |      L2       | All Roles                               |
-| [SCR-VIS-033](screens/vis/SCR-VIS-033.md)       | Click on "Verify LOTO Isolation"                     | [SCR-VIS-011](screens/vis/SCR-VIS-011.md)            |  L3 $\to$ L4  | Technician, Supervisor, HSEQ                     |
-| [SCR-VIS-033](screens/vis/SCR-VIS-033.md)       | Click on "View Data Sheet"                              | [SCR-INV-005](screens/inv/SCR-INV-005.md)            |  L3 $\to$ L3  | All Roles                               |
-| [SCR-VIS-033](screens/vis/SCR-VIS-033.md)       | Click on "Start WO Execution"                           | [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)           |  L3 $\to$ L4  | Technician, Supervisor                           |
-| [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md)      | Row Selection in RIME Backlog                        | [SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md)           |  L2 $\to$ L3  | Planner, Supervisor, Reliability Eng.  |
-| [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md)      | Click on "Schedule by Sensor"                           | [SCR-MTTO-023](screens/mtto/SCR-MTTO-023.md)           |  L2 $\to$ L3  | Planner, Reliability Eng.              |
-| [SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md)      | Click on "Verify Spare Parts"                            | [SCR-INV-031](screens/inv/SCR-INV-031.md)            |  L3 $\to$ L3  | Planner, Warehouse Manager                    |
-| [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)      | Click on "Rotate Dismounted Equipment"                        | [SCR-INV-025](screens/inv/SCR-INV-025.md)            |  L4 $\to$ L4  | Technician, Supervisor, Warehouse Manager             |
-| [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)      | Technical Closing Confirmation                              | [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md)           |  L4 $\to$ L2  | Technician, Supervisor                           |
-| [SCR-INV-027](screens/inv/SCR-INV-027.md)       | Location Node Selection                           | [SCR-INV-005](screens/inv/SCR-INV-005.md)            |  L2 $\to$ L3  | All Roles                               |
-| [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Check Kardex"                               | [SCR-INV-006](screens/inv/SCR-INV-006.md)            |  L3 $\to$ L3  | Warehouse Manager, Planner, Auditor           |
-| [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Define Boundaries"                              | [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md)           |  L3 $\to$ L3  | Reliability Eng., Planner                     |
-| [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Physical Replacement"                               | [SCR-INV-025](screens/inv/SCR-INV-025.md)            |  L3 $\to$ L4  | Technician, Supervisor, Warehouse Manager             |
-| [SCR-ADM-014](screens/adm/SCR-ADM-014.md)       | Click on "Edit Privileges"                             | [SCR-ADM-013](screens/adm/SCR-ADM-013.md)            |  L2 $\to$ L2  | Administrator                                 |
-| [SCR-ADM-013](screens/adm/SCR-ADM-013.md)       | Click on "Audit Modification"                           | [SCR-ADM-032](screens/adm/SCR-ADM-032.md)            |  L2 $\to$ L2  | Administrator, Auditor, Manager               |
+| [SCR-VIS-033](screens/vis/SCR-VIS-033.md)       | Click on "Verify LOTO Isolation" (`?workOrderId={WorkOrderId}&equipId={EquipmentUnitId}`) | [SCR-VIS-011](screens/vis/SCR-VIS-011.md)            |  L3 $\to$ L4  | Maintenance Technician, Maintenance Supervisor, HSEQ Inspector |
+| [SCR-VIS-033](screens/vis/SCR-VIS-033.md)       | Click on "View Data Sheet" (`?equipId={EquipmentUnitId}&returnUrl={CurrentRoute}`) | [SCR-INV-005](screens/inv/SCR-INV-005.md)            |  L3 $\to$ L3  | Project Engineer, Reliability Engineer, Maintenance Planner, Maintenance Supervisor, Maintenance Technician, Warehouse Manager, Auditor |
+| [SCR-VIS-033](screens/vis/SCR-VIS-033.md)       | Click on "Start WO Execution" (`?workOrderId={WorkOrderId}`) | [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)           |  L3 $\to$ L4  | Maintenance Technician, Maintenance Supervisor, Reliability Engineer |
+| [SCR-VIS-011](screens/vis/SCR-VIS-011.md)       | Click on "[Start Work]" (`?workOrderId={WorkOrderId}`) | [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)           |  L4 $\to$ L4  | Maintenance Technician |
+| [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md)      | Row Selection in RIME Backlog (`?equipId={EquipmentUnitId}&band={RimeBand}`) | [SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md)           |  L2 $\to$ L3  | Maintenance Planner, Maintenance Supervisor, Reliability Engineer |
+| [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md)      | Click on "Schedule by Sensor" (`?equipId={EquipmentUnitId}`) | [SCR-MTTO-023](screens/mtto/SCR-MTTO-023.md)           |  L2 $\to$ L3  | Maintenance Planner, Reliability Engineer |
+| [SCR-MTTO-001](screens/mtto/SCR-MTTO-001.md)      | Click on "Verify Spare Parts" (`?classId={EquipmentClassId}&sku={Sku}`) | [SCR-INV-031](screens/inv/SCR-INV-031.md)            |  L3 $\to$ L3  | Warehouse Manager, Maintenance Planner, Reliability Engineer, Auditor |
+| [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)      | Click on "Rotate Dismounted Equipment" (`?locId={FunctionalLocationId}&equipId={EquipmentUnitId}`) | [SCR-INV-025](screens/inv/SCR-INV-025.md)            |  L4 $\to$ L4  | Reliability Engineer, Maintenance Technician, Maintenance Supervisor, Warehouse Manager, Project Engineer |
+| [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)      | Technical Closing Confirmation (`?returnUrl={BacklogRoute}`) | [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md)           |  L4 $\to$ L2  | Maintenance Planner, Maintenance Supervisor, Reliability Engineer |
+| [SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md)      | Technical Closing Confirmation (`?returnUrl={FieldRoute}` / Default Field Return) | [SCR-VIS-033](screens/vis/SCR-VIS-033.md)           |  L4 $\to$ L3  | Maintenance Technician |
+| [SCR-INV-027](screens/inv/SCR-INV-027.md)       | Location Node Selection (`?locId={FunctionalLocationId}&equipId={EquipmentUnitId}`) | [SCR-INV-005](screens/inv/SCR-INV-005.md)            |  L2 $\to$ L3  | Project Engineer, Reliability Engineer, Maintenance Planner, Maintenance Supervisor, Maintenance Technician, Warehouse Manager, Auditor |
+| [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Switch to Embedded Commissioning Gate Queue (`?mode=commissioning&status=COMMISSIONING`) | [SCR-INV-005](screens/inv/SCR-INV-005.md)            |  L3 $\to$ L3  | Reliability Engineer, Maintenance Supervisor |
+| [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Check Kardex" (`?equipId={EquipmentUnitId}&sn={SerialNumber}&partId={SparePartId}`) | [SCR-INV-006](screens/inv/SCR-INV-006.md)            |  L3 $\to$ L3  | Warehouse Manager, Maintenance Planner, Auditor, Maintenance Supervisor, Reliability Engineer, Maintenance Technician (Read-Only) |
+| [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Define Boundaries" (`?equipId={EquipmentUnitId}&loc={FunctionalLocationTag}`) | [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md)           |  L3 $\to$ L3  | Reliability Engineer, Maintenance Planner, Maintenance Technician, Maintenance Supervisor, Auditor |
+| [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Physical Replacement" (`?locId={FunctionalLocationId}&equipId={EquipmentUnitId}`) | [SCR-INV-025](screens/inv/SCR-INV-025.md)            |  L3 $\to$ L4  | Reliability Engineer, Maintenance Technician, Maintenance Supervisor, Warehouse Manager, Project Engineer |
+| [SCR-ADM-014](screens/adm/SCR-ADM-014.md)       | Click on "Edit Privileges" (`?roleId={RoleId}`) | [SCR-ADM-013](screens/adm/SCR-ADM-013.md)            |  L2 $\to$ L2  | System Administrator, Auditor (Read-Only) |
+| [SCR-ADM-013](screens/adm/SCR-ADM-013.md)       | Click on "Manage Users" (`?roleId={RoleId}&status={AccountStatus}`) | [SCR-ADM-014](screens/adm/SCR-ADM-014.md)            |  L2 $\to$ L2  | System Administrator, Auditor (Read-Only) |
+| [SCR-ADM-013](screens/adm/SCR-ADM-013.md)       | Click on "Audit Modification" (`?entityType=Role&entityId={RoleId}`) | [SCR-ADM-032](screens/adm/SCR-ADM-032.md)            |  L2 $\to$ L2  | Auditor, Plant Manager |
+| [SCR-ADM-014](screens/adm/SCR-ADM-014.md)       | Click on "Forensic Audit" (`?entityType=User&entityId={UserId}`) | [SCR-ADM-032](screens/adm/SCR-ADM-032.md)            |  L2 $\to$ L2  | Auditor, Plant Manager |
+| [SCR-ADM-032](screens/adm/SCR-ADM-032.md)       | Click on "Roles Matrix" (`CMP-13`) | [SCR-ADM-013](screens/adm/SCR-ADM-013.md)            |  L2 $\to$ L2  | Auditor (Read-Only) |
+| [SCR-ADM-032](screens/adm/SCR-ADM-032.md)       | Click on "Users" (`CMP-13`) | [SCR-ADM-014](screens/adm/SCR-ADM-014.md)            |  L2 $\to$ L2  | Auditor (Read-Only) |
+| [SCR-INV-005](screens/inv/SCR-INV-005.md)       | Click on "Inspect Audit Trail" (`?entityType=EquipmentUnit&entityId={EquipmentUnitId}`) | [SCR-ADM-032](screens/adm/SCR-ADM-032.md)         |  L3 $\to$ L2  | Auditor, Plant Manager |
+| [SCR-MTTO-026](screens/mtto/SCR-MTTO-026.md)    | Click on "View RIME Calibration Audit" (`?actionType=ADJUST&entityType=BacklogItem`) | [SCR-ADM-032](screens/adm/SCR-ADM-032.md)            |  L2 $\to$ L2  | Auditor, Plant Manager |
+
+> **Screen Entry Role Scope Note:** Entry to `SCR-VIS-008` permits read and spatial navigation access for `HSEQ Inspector`, `Maintenance Supervisor`, `Maintenance Technician`, and `Reliability Engineer` (matching its frontmatter RBAC guard in `SCR-VIS-008.md`), while SIMOPS permit/conflict resolution and orphan `MeshMapping` mutation controls (`CMP-07`) remain strictly restricted to `HSEQ Inspector` and `Maintenance Supervisor`. `SCR-VIS-033` is reachable from the 2D canvas, direct tag search, or Work Order inspection links.
 
 ---
 
@@ -213,21 +206,21 @@ flowchart TD
     CheckConn -- "Yes" --> StdRoute["Standard API Routing"]
     CheckConn -- "No" --> OfflineGuard["Activate Offline Guard"]
     OfflineGuard --> Action1["1. Deploy Persistent Amber Banner"]
-    OfflineGuard --> Action2["2. Query Local SQLCipher Database"]
+    OfflineGuard --> Action2["2. Query Encrypted Local Store (TR-002)"]
     OfflineGuard --> Action3["3. Enqueue Transactional Mutation"]
 ```
 
 * **Visual Behavior:** A persistent upper amber banner (`--dt-color-alarm-warning`) is immediately activated, accompanied by the WCAG disconnection icon.
 * **Routing Restriction:** Access to centralized master data administration screens is blocked ([SCR-ADM-013](screens/adm/SCR-ADM-013.md), [SCR-ADM-014](screens/adm/SCR-ADM-014.md), [SCR-ADM-032](screens/adm/SCR-ADM-032.md)). 
-* **Operational Permissiveness:** Full navigation and editing are allowed on field execution screens ([SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-INV-025](screens/inv/SCR-INV-025.md)), performing reads and writes on the encrypted local database ([TR-002](../requirements/common/TR-002.md)). Generated mutations are logged in a transactional synchronization queue for subsequent dispatch upon network restoration.
+* **Operational Permissiveness:** Full navigation and editing are allowed on field execution screens ([SCR-MTTO-002](screens/mtto/SCR-MTTO-002.md), [SCR-VIS-011](screens/vis/SCR-VIS-011.md), [SCR-INV-025](screens/inv/SCR-INV-025.md), [SCR-INV-006](screens/inv/SCR-INV-006.md)), performing reads and writes on the encrypted local database ([TR-002](../requirements/common/TR-002.md)). Generated mutations are logged in a transactional synchronization queue for subsequent dispatch upon network restoration. Read-only offline cache consultation is additionally supported on [SCR-INV-005](screens/inv/SCR-INV-005.md), [SCR-MTTO-029](screens/mtto/SCR-MTTO-029.md), and [SCR-VIS-033](screens/vis/SCR-VIS-033.md).
 
 ### 6.2. LOTO Lockout and Fail-Safe Guard 
 
-In compliance with the **ISO 45001 (Clause 8.1)** standard and the **ASR-002** requirement, the system programmatically prevents a technician from starting the execution of a work order if residual energy risks exist in the equipment.
+In compliance with the **ISO 45001 (Clause 8.1)** standard and the **[ASR-002](../architecture/asr/DT-ARQ-ASR-001.md#2-real-time-loto-security-and-fail-safe)** requirement, the system programmatically prevents a technician from starting the execution of a work order if residual energy risks exist in the equipment.
 
 ```mermaid
 flowchart TD
-    StartLOTO["Transition Towards Order Execution<br/>(SCR-MTTO-002)"] --> CheckLOTO["Verify LOTO Safety Preconditions:<br/>1. WorkPermit == APPROVED<br/>2. Isolation Points == TRUE<br/>3. Energy Telemetry == 0.0"]
+    StartLOTO["Transition Towards Order Execution<br/>(SCR-MTTO-002)"] --> CheckLOTO["Verify LOTO Safety Preconditions:<br/>1. WorkPermit == APPROVED<br/>2. IsolationStatus == VERIFIED_ZERO_ENERGY<br/>3. Energy Telemetry: V == 0.0 V, P <= 0.5 psig"]
     CheckLOTO --> LOTOValid{"Are All Conditions Met?"}
     LOTOValid -- "Yes" --> AllowRoute["Allow Routing to SCR-MTTO-002"]
     LOTOValid -- "No" --> FailSafeModal["Activate Critical Lockout Modal<br/>(--dt-z-modal-fail-safe: 1500)<br/>[Intervention Blocked by LOTO]"]
@@ -237,5 +230,5 @@ flowchart TD
 * **Lockout Conditions:**
   1. Associated Work Permit status other than `APPROVED`.
   2. Presence of unverified isolation cutoff points in the active LOTO Isolation Plan.
-  3. Real-time telemetry reading above zero or network heartbeat loss (greater than 2 seconds) without a validated Cryptographic Manual Override.
+  3. Real-time telemetry reading above safe zero-energy thresholds ($V > 0.0\text{ V}$ or $P > 0.5\text{ psig}$; safe window requires $V == 0.0\text{ V}$ and $P \le 0.5\text{ psig}$) or expiration of the **30-second Grace Window** without receiving a 2-second heartbeat acknowledgment (`LotoHeartbeatAck` over `/hubs/telemetry`, per [DT-ARQ-DEP-DOC-001 §4](../architecture/views/DT-ARQ-DEP-DOC-001.md#4-perimeter-security-mechanism-loto-watchdog-fail-safe)) in the absence of a validated Cryptographic Offline LOTO Lease ([ADR-006](../architecture/adr/ADR-006.md)).
 * **Screen Behavior:** Interrupts navigation and deploys a red blocking modal overlay (`--dt-color-alarm-critical`) at the maximum stacking level (`--dt-z-modal-fail-safe` = `1500`). This window is **non-dismissible**; it cannot be closed or bypassed via gestures or keyboard until the field safety conditions are physically rectified and verified by the system.

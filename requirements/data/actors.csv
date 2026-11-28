@@ -1,14 +1,15 @@
-﻿Rol,Category,Description,Device,Notes
+Role,Category,Description,Device,Notes
 Maintenance Technician,Operational,"Main user in the field. Performs inspections, executes repairs, consults technical documentation, and reports task status.",Tablet / Mobile,
 Maintenance Supervisor,Strategic,"Leads the operational team, approves work requests, manages budgets, and ensures compliance with safety regulations.",Desktop / Web,
 Plant Manager,Strategic,"High-level user who consumes information. Views dashboards with KPIs on asset health, costs, and downtime for strategic decision-making.",Desktop / Web,
 Maintenance Planner,Strategic,"Defines the technical scope (HOW). Creates work plans, selects spare parts (BOM), and ensures resources are ready before scheduling.",Desktop / Web,"Scheduling task was removed. Output is a WO in ""Ready to Schedule"" state."
 HSEQ Inspector,Operational,"Specialist who uses the platform to perform inspections of Safety Critical Assets (SCA), report anomalies, and verify their correct resolution.","Desktop / Web, Tablet / Mobile",
 Warehouse Manager,Operational,"In charge of managing the inventory of spare parts and maintenance materials. Processes system requests, updates stock, and records material delivery.",Desktop / Web,
-Contractor,Operational,"User with limited access who receives specialized work orders, executes tasks, and uploads reports.","Desktop / Web, Tablet / Mobile",Two devices because they might upload field evidence accompanied by the Maintenance Technician (https://app.notion.com/p/Maintenance-Technician-2ce87c56a828804db57fd6c417865e7d?pvs=21) .
+Contractor,Operational,"User with limited access who receives specialized work orders, executes tasks, and uploads reports.","Desktop / Web, Tablet / Mobile",Two devices because they might upload field evidence accompanied by the Maintenance Technician.
 Project Engineer,Support / IT,"Multifunctional role responsible for the Digital Twin. Creates and maintains the 3D model (CAD), manages software infrastructure (IT), and ensures integration with sensors and physical machinery (OT).",Desktop / Web,
 Reliability Engineer,Support / IT,"Uses historical and sensor data to develop predictive models, analyzes failure trends, calculates metrics like MTBF, and proposes improvements to the maintenance strategy.",Desktop / Web,In charge of the PMO discussed in the Draft.
 System Administrator,Support / IT,"Technical role that manages users, permissions, integrations with other systems (e.g., ERP), and performs general platform maintenance.",Desktop / Web,
 System (Digital Twin Engine),Support / IT,"The software agent that executes automatic tasks, monitors sensors, and generates alerts without human intervention.","Desktop / Web, Tablet / Mobile",
 Plant Operator,Operational,Detects anomalies in machinery during production and generates Work Requests (SR). It is the first link in failure detection.,Tablet / Mobile,New actor to enable reporting from source (Trigger).
 Scheduler,Strategic,Owner of the calendar (WHEN). Aligns planned orders with plant availability (production) and available technicians.,Desktop / Web,"Key new role to separate ""Planning"" (What) from ""Scheduling"" (When)."
+Auditor,Governance,"Independent internal or external compliance auditor with read-only forensic access to immutable audit trails (ADM-032), cryptographic hash-chain verification, and regulatory ISO 55001/27001/14224 exports.",Desktop / Web,"Strict Segregation of Duties (SoD): read-only governance actor without operational mutation privileges."

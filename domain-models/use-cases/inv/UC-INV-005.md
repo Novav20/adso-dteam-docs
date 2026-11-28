@@ -15,12 +15,12 @@ Allows the formal onboarding and digital registration of a new physical machiner
 
 ## 2. Preconditions
 * The Project Engineer (or authorized Reliability Engineer) is authenticated in the system with asset onboarding permissions ([TR-006](../../../requirements/common/TR-006.md)).
-* The master plant taxonomy of Functional Locations (ISO 14224 Level 1 to Level 5) is configured in the system ([SCR-INV-027](../../../ui-ux/screens/inv/SCR-INV-027.md)).
+* The master plant taxonomy of Functional Locations (ISO 14224 Level 1 to Level 5) is configured in the system ([UC-INV-027](UC-INV-027.md)).
 * Standard Equipment Classes are defined in the reference taxonomy dictionary.
-* The Engineer accesses the creation workflow from the Equipment Master Catalog ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)) or via node context action in the Functional Locations Tree ([SCR-INV-027](../../../ui-ux/screens/inv/SCR-INV-027.md)).
+* The Engineer initiates Equipment Unit onboarding from the Equipment Master Catalog or via node context in the Functional Locations Hierarchy ([UC-INV-027](UC-INV-027.md)).
 
 ## 3. Main Flow
-1. The Engineer accesses the Equipment Master Catalog interface ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)) and triggers the "Register New Equipment Unit" action.
+1. The Engineer accesses the Equipment Master Catalog and triggers the "Register New Equipment Unit" action.
 2. The System renders the onboarding form requesting physical identification, physical boundary limits, technical classification, safety flags, and chronological milestones.
 3. The Engineer enters physical machinery identification attributes (Serial Number, Manufacturer, Model), physical battery limits (Boundary Start and Boundary End describing upstream and downstream connection interfaces), technical classification (Equipment Class), Safety Critical Element (SCE) boolean flag, and lifecycle chronological milestones (Purchase Date, Acquisition Date, Installation Date, and Planned Start of Operation Date).
 4. The Engineer selects the target Functional Location from the hierarchical plant taxonomy tree to which the equipment unit will be mounted. The System presents the inherited process Tag Number and operational criticality assigned to that position.
@@ -33,7 +33,7 @@ Allows the formal onboarding and digital registration of a new physical machiner
     - Formalizes the new Equipment Unit record in initial operational states (commissioning lifecycle status, standby operational readiness, operational maintenance condition, and undetermined baseline health), linking it to the designated Functional Location.
     - Initiates the active installation timeline record marking the equipment unit as mounted at the selected Functional Location with the current timestamp.
     - Records an append-only entry in the immutable audit trail ([TR-001](../../../requirements/common/TR-001.md)) with a chained cryptographic integrity hash (SHA-256), capturing user identity, timestamp, Serial Number, inherited Tag Number, Equipment Class, SCE flag, and associated Functional Location.
-11. The System presents a confirmation notification and transitions the view to the detailed Equipment Master Data Card ([SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md)) in view mode, exposing operational actions for boundary definition ([SCR-MTTO-029](../../../ui-ux/screens/mtto/SCR-MTTO-029.md)), spare parts Kardex history ([SCR-INV-006](../../../ui-ux/screens/inv/SCR-INV-006.md)), and rotable equipment swap ([SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md)).
+11. The System presents a confirmation notification and transitions to the detailed Equipment Master Data view, exposing operational actions for boundary definition ([UC-MTTO-029](../mtto/UC-MTTO-029.md)), spare parts Kardex history ([UC-INV-006](UC-INV-006.md)), and rotable equipment swap ([UC-INV-025](UC-INV-025.md)).
 
 ## 4. Alternate Flows
 ### AF-001: Incomplete Mandatory Technical Data (Redundant Coding)
@@ -63,7 +63,7 @@ In step 8, if the selected Functional Location currently hosts an active mounted
 ### AF-005: Safety Critical Element (SCE) Attestation Guard
 In step 3, if the Engineer designates the equipment unit as a Safety Critical Element (SCE):
 1. The System displays a safety confirmation prompt requiring the Engineer to acknowledge that this equipment unit governs critical barrier protection under ISO 45001.
-2. The System marks the technical record with high-priority safety inspection flags and prompts for verification of isolation points and LOTO route readiness ([SCR-VIS-011](../../../ui-ux/screens/vis/SCR-VIS-011.md)).
+2. The System marks the technical record with high-priority safety inspection flags and prompts for verification of isolation points and LOTO route readiness ([UC-VIS-011](../vis/UC-VIS-011.md)).
 3. The flow resumes at step 4.
 
 ## 5. Postconditions
@@ -93,4 +93,5 @@ In step 3, if the Engineer designates the equipment unit as a Safety Critical El
 * **Architectural Decision Records:**
   - [ADR-003](../../../architecture/adr/ADR-003.md): Tamper-evident cryptographic SHA-256 hash chaining.
   - [ADR-005](../../../architecture/adr/ADR-005.md): Time-sequential UUIDv7 generation.
-  - [ADR-008](../../../architecture/adr/ADR-008.md): AssetInstallation timeline tracking decoupling physical unit from functional location slot.
+  - [ADR-010](../../../architecture/adr/ADR-010.md): AssetInstallation timeline tracking decoupling physical unit from functional location slot.
+* **Related Screens:** [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md), [SCR-INV-027](../../../ui-ux/screens/inv/SCR-INV-027.md), [SCR-MTTO-029](../../../ui-ux/screens/mtto/SCR-MTTO-029.md), [SCR-INV-006](../../../ui-ux/screens/inv/SCR-INV-006.md), [SCR-INV-025](../../../ui-ux/screens/inv/SCR-INV-025.md), [SCR-VIS-011](../../../ui-ux/screens/vis/SCR-VIS-011.md)

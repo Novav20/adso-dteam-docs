@@ -2,8 +2,8 @@
 code: DT-ARQ-DEP-DOC-001
 version: 1.3
 date: 2026-09-25
-status: Active
-author: Juan David Julio Serrano
+status: Approved
+author: Juan David Julio
 standard:
   - ISO/IEC 42010:2011 (Architecture — C4 Level 4 Views)
   - ISO 27001:2013 (Information Security)
@@ -31,6 +31,7 @@ This matrix breaks down the physical infrastructure and software artifacts deplo
 | scada_node | Local Control Station | Edge Gateway (Industrial PC / SCADA) | scada_engine | Sensor Emulator | Component | SCADA Engine (C# / Python) | Instrumentation gateway; emulates and transmits sensor readings via MQTT. |
 | workstation_node| Workstation | Client Node (Desktop PC / Web Browser) | admin_portal | Web Admin Portal | Container | Blazor Web App | Web administrative interface for HSEQ supervision, WOs, and KPI dashboards. |
 | azure_cloud | Azure Cloud Platform | Managed Cloud Service (Azure Tenant) | iot_hub | Azure IoT Hub | Container | Azure IoT Hub Service | Managed broker for asynchronous high-frequency telemetry ingestion. |
+| azure_cloud | Azure Cloud Platform | Managed Cloud Service (Azure Tenant) | object_storage | Azure Blob Storage | ContainerDb | Azure Storage Account | Valet Key object storage for ISO 14224 multimedia evidence and WORM cold-archived audit partitions (ADR-008, TR-002). |
 | cloud_host | Cloud Host Server | Execution Environment (Linux VPS) | docker_engine | Docker Engine | Node | Docker Runtime | Hosts the backend containers and reverse proxy with isolation. |
 | docker_engine | Docker Engine | Container Runtime (Linux VPS) | nginx_proxy | Nginx Reverse Proxy | Container | Nginx (Alpine Linux) | TLS 1.3 termination, reverse routing, and static web delivery. |
 | docker_engine | Docker Engine | Container Runtime (Linux VPS) | backend_api | Backend API Monolith | Container | .NET 10 Web API Monolith | Modular monolith with DDD business logic and domain services. |
@@ -56,6 +57,8 @@ This matrix specifies the point-to-point communication channels between software
 | nginx_proxy | Cloud Host Server | backend_api | Cloud Host Server | HTTP | Docker Net | Isolated Internal Net | Internal routing of API requests and terminated WebSocket traffic. |
 | backend_api | Cloud Host Server | postgres_db | Database Server | TCP/IP | Port 5432 | SSL / Private Net | Persistence operations via EF Core under Unit of Work pattern. |
 | backend_api | Cloud Host Server | redis_cache | Cache Server | TCP (RESP) | Port 6379 | TLS / Private Net | Millisecond-latency idempotency key validation (SETNX) to prevent duplicate transactions. |
+| backend_api | Cloud Host Server | object_storage | Azure Cloud Platform | HTTPS | Port 443 | TLS 1.3 / Managed Identity | Issuance of short-lived Valet Key SAS tokens and sealed cold-archive partition uploads (ADR-008). |
+| mobile_app | Mobile Device | object_storage | Azure Cloud Platform | HTTPS | Port 443 | TLS 1.3 / Pre-Signed SAS | Direct binary upload of SHA-256 sealed ISO 14224 multimedia evidence bypassing the API monolith (ADR-008). |
 
 ---
 

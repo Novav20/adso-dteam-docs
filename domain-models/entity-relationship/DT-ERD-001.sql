@@ -29,19 +29,19 @@ CREATE TABLE IF NOT EXISTS tax.equipment_units (
     model                          VARCHAR(120) NOT NULL,
     purchase_date                  DATE NOT NULL,
     rejection_reason               VARCHAR(255),
-    boundary_start                 VARCHAR(150) NOT NULL,
-    boundary_end                   VARCHAR(150) NOT NULL,
+    boundary_start                 VARCHAR(150),
+    boundary_end                   VARCHAR(150),
     acquisition_date               DATE NOT NULL,
     installation_date              DATE,
     operation_start_date           DATE,
-    operating_hours                BIGINT NOT NULL DEFAULT 0,
-    surveillance_hours             BIGINT NOT NULL DEFAULT 0,
+    operating_hours                DECIMAL(12,2) NOT NULL DEFAULT 0,
+    surveillance_hours             DECIMAL(12,2) NOT NULL DEFAULT 0,
     disposal_date                  DATE,
     disposal_reason                VARCHAR(255),
     operational_status             VARCHAR(20) NOT NULL,
     lifecycle_status               VARCHAR(20) NOT NULL,
     maintenance_status             VARCHAR(30) NOT NULL,
-    health_status                  VARCHAR(30),
+    health_status                  VARCHAR(30) NOT NULL DEFAULT 'UNDETERMINED',
     is_sce                         BOOLEAN NOT NULL DEFAULT FALSE,
     functional_location_id         UUID,
     equipment_class_id             UUID NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS mtto.backlog_items (
 CREATE TABLE IF NOT EXISTS mtto.failure_records (
     id                             UUID NOT NULL DEFAULT uuidv7(),
     work_order_id                  UUID NOT NULL,
-    maintainable_item_id           UUID,
+    maintainable_item_id           UUID NOT NULL,
     failure_mode                   VARCHAR(120) NOT NULL,
     failure_mechanism              VARCHAR(120) NOT NULL,
     failure_cause                  VARCHAR(120) NOT NULL,
@@ -155,16 +155,14 @@ CREATE TABLE IF NOT EXISTS mtto.maintenance_plans (
     next_work_order_date           DATE,
     next_trigger_limit             DECIMAL(12,2),
     estimated_labor_hours          DECIMAL(10,2) NOT NULL,
-    required_specialty             VARCHAR(80) NOT NULL,
     technical_description          VARCHAR(255) NOT NULL,
     cadence_override_justification VARCHAR(255),
     status                         VARCHAR(20) NOT NULL,
 
     CONSTRAINT ck_maintenance_plans_maintenance_method CHECK (maintenance_method IN ('PREVENTIVE', 'PREDICTIVE', 'CONDITION_BASED')),
-    CONSTRAINT ck_maintenance_plans_frequency_type CHECK (frequency_type IN ('CALENDAR_TIME', 'OPERATING_HOURS', 'CYCLES')),
+    CONSTRAINT ck_maintenance_plans_frequency_type CHECK (frequency_type IN ('CALENDAR_TIME', 'OPERATING_HOURS', 'CYCLES', 'SENSOR_THRESHOLD')),
     CONSTRAINT ck_maintenance_plans_interval_unit CHECK (interval_unit IN ('DAYS', 'WEEKS', 'MONTHS', 'YEARS', 'OPERATING_HOURS', 'CYCLES', 'KILOMETERS', 'WEAR_DEPTH_MM')),
     CONSTRAINT ck_maintenance_plans_monitored_signal_type CHECK (monitored_signal_type IN ('TEMPERATURE', 'PRESSURE', 'VIBRATION', 'FLOW_RATE', 'VOLTAGE', 'CURRENT', 'RPM', 'OPERATING_HOURS', 'CYCLES')),
-    CONSTRAINT ck_maintenance_plans_required_specialty CHECK (required_specialty IN ('MECHANICAL', 'ELECTRICAL', 'INSTRUMENTATION_AND_CONTROL', 'LUBRICATION', 'CONDITION_MONITORING', 'ELECTRONICS', 'WELDING_FABRICATION', 'FACILITIES')),
     CONSTRAINT ck_maintenance_plans_status CHECK (status IN ('DRAFT', 'ACTIVE', 'INACTIVE', 'ARCHIVED')),
     CONSTRAINT pk_maintenance_plans PRIMARY KEY (id)
 );
@@ -224,11 +222,19 @@ CREATE TABLE IF NOT EXISTS mtto.work_requests (
     request_date                   TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
     request_source                 VARCHAR(80) NOT NULL,
     status                         VARCHAR(20) NOT NULL,
-    work_class                     SMALLINT NOT NULL,
+    work_class_code                SMALLINT NOT NULL,
 
     CONSTRAINT ck_work_requests_status CHECK (status IN ('NEW', 'APPROVED', 'REJECTED')),
-    CONSTRAINT ck_work_requests_work_class CHECK (work_class BETWEEN 1 AND 10),
+    CONSTRAINT ck_work_requests_work_class_code CHECK (work_class_code BETWEEN 1 AND 10),
     CONSTRAINT pk_work_requests PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS mtto.maintenance_plan_crafts (
+    maintenance_plan_id            UUID NOT NULL,
+    craft                          VARCHAR(80) NOT NULL,
+
+    CONSTRAINT ck_maintenance_plan_crafts_craft CHECK (craft IN ('MECHANICAL', 'ELECTRICAL', 'INSTRUMENTATION_AND_CONTROL', 'LUBRICATION', 'CONDITION_MONITORING', 'ELECTRONICS', 'WELDING_FABRICATION', 'FACILITIES')),
+    CONSTRAINT pk_maintenance_plan_crafts PRIMARY KEY (maintenance_plan_id, craft)
 );
 
 -- ==========================================
@@ -425,6 +431,22 @@ CREATE TABLE IF NOT EXISTS vis.work_permits (
     CONSTRAINT pk_work_permits PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS vis.plant_layout_revisions (
+    id                             UUID NOT NULL DEFAULT uuidv7(),
+    functional_location_id         UUID NOT NULL,
+    revision_code                  VARCHAR(40) NOT NULL,
+    blob_storage_uri               VARCHAR(512) NOT NULL,
+    checksum_sha256                VARCHAR(64) NOT NULL,
+    status                         VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+    approved_by_user_id            UUID,
+    approved_at                    TIMESTAMPTZ,
+    created_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+
+    CONSTRAINT uq_plant_layout_revisions_revision_code UNIQUE (revision_code),
+    CONSTRAINT ck_plant_layout_revisions_status CHECK (status IN ('DRAFT', 'ACTIVE', 'SUPERSEDED')),
+    CONSTRAINT pk_plant_layout_revisions PRIMARY KEY (id)
+);
+
 -- ==========================================
 -- SCHEMA: ADM
 -- ==========================================
@@ -432,7 +454,7 @@ CREATE TABLE IF NOT EXISTS vis.work_permits (
 CREATE TABLE IF NOT EXISTS adm.audit_logs (
     id                             UUID NOT NULL DEFAULT uuidv7(),
     user_id                        UUID,
-    event_type                     VARCHAR(80) NOT NULL,
+    action_type                    VARCHAR(80) NOT NULL,
     entity_type                    VARCHAR(80) NOT NULL,
     entity_id                      UUID NOT NULL,
     timestamp                      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
@@ -443,10 +465,10 @@ CREATE TABLE IF NOT EXISTS adm.audit_logs (
     previous_hash                  VARCHAR(64) NOT NULL,
     integrity_hash                 VARCHAR(64) NOT NULL,
 
-    CONSTRAINT ck_audit_logs_event_type CHECK (event_type IN ('CREATE', 'UPDATE', 'DELETE', 'QUERY', 'ADJUST', 'SECURITY_ALERT')),
-    CONSTRAINT uq_audit_logs_integrity_hash UNIQUE (integrity_hash),
-    CONSTRAINT pk_audit_logs PRIMARY KEY (id)
-);
+    CONSTRAINT ck_audit_logs_action_type CHECK (action_type IN ('CREATE', 'UPDATE', 'DELETE', 'QUERY', 'ADJUST', 'SECURITY_ALERT')),
+    CONSTRAINT uq_audit_logs_integrity_hash UNIQUE (integrity_hash, timestamp),
+    CONSTRAINT pk_audit_logs PRIMARY KEY (id, timestamp)
+) PARTITION BY RANGE (timestamp);
 
 CREATE TABLE IF NOT EXISTS adm.auth_tokens (
     id                             UUID NOT NULL DEFAULT uuidv7(),
@@ -454,6 +476,8 @@ CREATE TABLE IF NOT EXISTS adm.auth_tokens (
     token_hash                     VARCHAR(255) NOT NULL,
     expires_at                     TIMESTAMPTZ NOT NULL,
     is_revoked                     BOOLEAN NOT NULL DEFAULT FALSE,
+    is_used                        BOOLEAN NOT NULL DEFAULT FALSE,
+    used_at                        TIMESTAMPTZ,
     purpose                        VARCHAR(30) NOT NULL,
 
     CONSTRAINT uq_auth_tokens_token_hash UNIQUE (token_hash),
@@ -466,6 +490,8 @@ CREATE TABLE IF NOT EXISTS adm.role_permissions (
     module                         VARCHAR(80) NOT NULL,
     action                         VARCHAR(80) NOT NULL,
 
+    CONSTRAINT ck_role_permissions_module CHECK (module IN ('ASSETS', 'MAINTENANCE', 'INVENTORY', 'SAFETY', 'SYSTEM')),
+    CONSTRAINT ck_role_permissions_action CHECK (action IN ('CREATE', 'READ', 'EDIT', 'DELETE', 'APPROVE', 'AUDIT', 'EXECUTE')),
     CONSTRAINT pk_role_permissions PRIMARY KEY (role_id, module, action)
 );
 
@@ -473,6 +499,8 @@ CREATE TABLE IF NOT EXISTS adm.roles (
     id                             UUID NOT NULL DEFAULT uuidv7(),
     name                           VARCHAR(80) NOT NULL,
     description                    VARCHAR(255),
+    is_active                      BOOLEAN NOT NULL DEFAULT TRUE,
+    is_system_root                 BOOLEAN NOT NULL DEFAULT FALSE,
 
     CONSTRAINT uq_roles_name UNIQUE (name),
     CONSTRAINT pk_roles PRIMARY KEY (id)
@@ -504,24 +532,65 @@ CREATE TABLE IF NOT EXISTS adm.users (
 CREATE TABLE IF NOT EXISTS adm.work_order_assignments (
     work_order_id                  UUID NOT NULL,
     user_id                        UUID NOT NULL,
-    assigned_role                  VARCHAR(80) NOT NULL,
+    role_in_work                   VARCHAR(80) NOT NULL,
     assigned_at                    TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
 
-    CONSTRAINT ck_work_order_assignments_assigned_role CHECK (assigned_role IN ('TECHNICIAN', 'SUPERVISOR', 'PLANNER', 'SAFETY_AUTHORITY')),
+    CONSTRAINT ck_work_order_assignments_role_in_work CHECK (role_in_work IN ('TECHNICIAN', 'SUPERVISOR', 'PLANNER', 'SAFETY_AUTHORITY')),
     CONSTRAINT pk_work_order_assignments PRIMARY KEY (work_order_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS adm.idempotency_logs (
     id                             UUID NOT NULL DEFAULT uuidv7(),
     idempotency_key                VARCHAR(128) NOT NULL,
-    tenant_id                      UUID NOT NULL,
     request_hash                   VARCHAR(64) NOT NULL,
     status                         VARCHAR(20) NOT NULL,
+    response_status_code           INT,
+    response_payload               JSONB,
     created_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
 
     CONSTRAINT uq_idempotency_logs_idempotency_key UNIQUE (idempotency_key),
     CONSTRAINT ck_idempotency_logs_status CHECK (status IN ('PROCESSING', 'COMPLETED', 'FAILED')),
     CONSTRAINT pk_idempotency_logs PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS adm.audit_retention_partitions (
+    id                             UUID NOT NULL DEFAULT uuidv7(),
+    partition_name                 VARCHAR(80) NOT NULL,
+    period_start                   DATE NOT NULL,
+    period_end                     DATE NOT NULL,
+    record_count                   BIGINT NOT NULL DEFAULT 0,
+    partition_anchor_hash          VARCHAR(64),
+    is_cold_archived               BOOLEAN NOT NULL DEFAULT FALSE,
+    integrity_status               VARCHAR(30) NOT NULL DEFAULT 'VERIFIED_INTACT',
+    sealed_at                      TIMESTAMPTZ,
+
+    CONSTRAINT uq_audit_retention_partitions_partition_name UNIQUE (partition_name),
+    CONSTRAINT ck_audit_retention_partitions_integrity_status CHECK (integrity_status IN ('VERIFIED_INTACT', 'VERIFYING_IN_PROGRESS', 'TAMPER_BREACH_DETECTED')),
+    CONSTRAINT pk_audit_retention_partitions PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS adm.password_policies (
+    id                             UUID NOT NULL DEFAULT uuidv7(),
+    min_length                     INT NOT NULL DEFAULT 12,
+    require_uppercase              BOOLEAN NOT NULL DEFAULT TRUE,
+    require_digit                  BOOLEAN NOT NULL DEFAULT TRUE,
+    require_special_char           BOOLEAN NOT NULL DEFAULT TRUE,
+    max_age_days                   INT NOT NULL DEFAULT 90,
+    history_non_reuse_count        INT NOT NULL DEFAULT 5,
+    lockout_threshold              INT NOT NULL DEFAULT 5,
+    lockout_duration_minutes       INT NOT NULL DEFAULT 15,
+    updated_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+
+    CONSTRAINT pk_password_policies PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS adm.user_password_histories (
+    id                             UUID NOT NULL DEFAULT uuidv7(),
+    user_id                        UUID NOT NULL,
+    password_hash                  VARCHAR(255) NOT NULL,
+    created_at                     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+
+    CONSTRAINT pk_user_password_histories PRIMARY KEY (id)
 );
 
 -- ==========================================
@@ -553,6 +622,7 @@ CREATE INDEX IF NOT EXISTS idx_work_orders_work_request_id ON mtto.work_orders (
 CREATE INDEX IF NOT EXISTS idx_work_orders_work_permit_id ON mtto.work_orders (work_permit_id);
 CREATE INDEX IF NOT EXISTS idx_work_orders_scope_checklist ON mtto.work_orders USING GIN (scope_checklist jsonb_path_ops);
 CREATE INDEX IF NOT EXISTS idx_work_requests_equipment_unit_id ON mtto.work_requests (equipment_unit_id);
+CREATE INDEX IF NOT EXISTS idx_maintenance_plan_crafts_maintenance_plan_id ON mtto.maintenance_plan_crafts (maintenance_plan_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_transactions_spare_part_id ON inv.inventory_transactions (spare_part_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_transactions_warehouse_id ON inv.inventory_transactions (warehouse_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_transactions_work_order_id ON inv.inventory_transactions (work_order_id);
@@ -578,6 +648,8 @@ CREATE INDEX IF NOT EXISTS idx_work_order_isolations_telemetry_snapshot ON vis.w
 CREATE INDEX IF NOT EXISTS idx_work_order_isolations_lease_holder_user_id ON vis.work_order_isolations (lease_holder_user_id);
 CREATE INDEX IF NOT EXISTS idx_work_permits_equipment_unit_id ON vis.work_permits (equipment_unit_id);
 CREATE INDEX IF NOT EXISTS idx_work_permits_issuer_user_id ON vis.work_permits (issuer_user_id);
+CREATE INDEX IF NOT EXISTS idx_plant_layout_revisions_functional_location_id ON vis.plant_layout_revisions (functional_location_id);
+CREATE INDEX IF NOT EXISTS idx_plant_layout_revisions_approved_by_user_id ON vis.plant_layout_revisions (approved_by_user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON adm.audit_logs (user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_previous_state ON adm.audit_logs USING GIN (previous_state jsonb_path_ops);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_new_state ON adm.audit_logs USING GIN (new_state jsonb_path_ops);
@@ -587,6 +659,8 @@ CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON adm.user_roles (user_id);
 CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON adm.user_roles (role_id);
 CREATE INDEX IF NOT EXISTS idx_work_order_assignments_work_order_id ON adm.work_order_assignments (work_order_id);
 CREATE INDEX IF NOT EXISTS idx_work_order_assignments_user_id ON adm.work_order_assignments (user_id);
+CREATE INDEX IF NOT EXISTS idx_idempotency_logs_response_payload ON adm.idempotency_logs USING GIN (response_payload jsonb_path_ops);
+CREATE INDEX IF NOT EXISTS idx_user_password_histories_user_id ON adm.user_password_histories (user_id);
 
 -- ==========================================
 -- FOREIGN KEY CONSTRAINTS (CROSS-SCHEMA)
@@ -602,7 +676,7 @@ ALTER TABLE tax.equipment_units
 
 ALTER TABLE tax.equipment_units
     ADD CONSTRAINT fk_equipment_units_warehouse FOREIGN KEY (warehouse_id) REFERENCES inv.warehouses (id)
-    ON DELETE RESTRICT ON UPDATE CASCADE;
+    ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE tax.functional_locations
     ADD CONSTRAINT fk_functional_locations_parent FOREIGN KEY (parent_id) REFERENCES tax.functional_locations (id)
@@ -682,6 +756,10 @@ ALTER TABLE mtto.work_orders
 
 ALTER TABLE mtto.work_requests
     ADD CONSTRAINT fk_work_requests_equipment_unit FOREIGN KEY (equipment_unit_id) REFERENCES tax.equipment_units (id)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE mtto.maintenance_plan_crafts
+    ADD CONSTRAINT fk_maintenance_plan_crafts_maintenance_plan FOREIGN KEY (maintenance_plan_id) REFERENCES mtto.maintenance_plans (id)
     ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE inv.inventory_transactions
@@ -768,9 +846,17 @@ ALTER TABLE vis.work_permits
     ADD CONSTRAINT fk_work_permits_issuer_user FOREIGN KEY (issuer_user_id) REFERENCES adm.users (id)
     ON DELETE RESTRICT ON UPDATE CASCADE;
 
+ALTER TABLE vis.plant_layout_revisions
+    ADD CONSTRAINT fk_plant_layout_revisions_functional_location FOREIGN KEY (functional_location_id) REFERENCES tax.functional_locations (id)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE vis.plant_layout_revisions
+    ADD CONSTRAINT fk_plant_layout_revisions_approved_by_user FOREIGN KEY (approved_by_user_id) REFERENCES adm.users (id)
+    ON DELETE SET NULL ON UPDATE CASCADE;
+
 ALTER TABLE adm.audit_logs
     ADD CONSTRAINT fk_audit_logs_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
-    ON DELETE SET NULL ON UPDATE CASCADE;
+    ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ALTER TABLE adm.auth_tokens
     ADD CONSTRAINT fk_auth_tokens_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
@@ -796,15 +882,19 @@ ALTER TABLE adm.work_order_assignments
     ADD CONSTRAINT fk_work_order_assignments_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
     ON DELETE CASCADE ON UPDATE CASCADE;
 
+ALTER TABLE adm.user_password_histories
+    ADD CONSTRAINT fk_user_password_histories_user FOREIGN KEY (user_id) REFERENCES adm.users (id)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+
 -- =============================================================================
 -- DTEAM CORE DATABASE: BESPOKE MANUAL HEURISTICS & POLICIES
--- Engine: PostgreSQL 18.x + TimescaleDB | Standard: ISO 14224 / ISO 27001 / ADR-003 / ADR-008
+-- Engine: PostgreSQL 18.x + TimescaleDB | Standard: ISO 14224 / ISO 27001 / ADR-003 / ADR-010
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
 -- 1. BESPOKE PARTIAL & UNIQUE INDEXES
 -- -----------------------------------------------------------------------------
--- ISO 14224 1:1 Active Slot Occupancy Invariant (ADR-008 / INV-025)
+-- ISO 14224 1:1 Active Slot Occupancy Invariant (ADR-010 / INV-025)
 CREATE UNIQUE INDEX IF NOT EXISTS uq_asset_installations_active_slot
     ON tax.asset_installations (functional_location_id)
     WHERE removed_at IS NULL;
@@ -848,6 +938,10 @@ CREATE INDEX IF NOT EXISTS idx_backlog_items_priority_score
 CREATE INDEX IF NOT EXISTS idx_auth_tokens_expires_at
     ON adm.auth_tokens (expires_at);
 
+-- Idempotency Log 24h TTL Batched Purge (ADR-007)
+CREATE INDEX IF NOT EXISTS idx_idempotency_logs_created_at
+    ON adm.idempotency_logs (created_at);
+
 -- Audit Log Chronological Search
 CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp
     ON adm.audit_logs (timestamp DESC);
@@ -856,13 +950,19 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entity
     ON adm.audit_logs (entity_type, entity_id);
 
+-- 7-Year Audit Retention Partition Window Lookup (ADM-032 / FR-350 / FR-358)
+CREATE INDEX IF NOT EXISTS idx_audit_retention_partitions_period
+    ON adm.audit_retention_partitions (period_start DESC, period_end DESC);
+
 -- -----------------------------------------------------------------------------
 -- 4. ROW-LEVEL SECURITY (RLS) FOR IMMUTABLE AUDIT (ADR-003)
 -- -----------------------------------------------------------------------------
--- Strict Row-Level Security enablement
+-- Strict Row-Level Security enforcement (applies to table owner too; requires non-SUPERUSER/NOBYPASSRLS app roles)
 ALTER TABLE adm.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE adm.audit_logs FORCE ROW LEVEL SECURITY;
+REVOKE UPDATE, DELETE, TRUNCATE ON adm.audit_logs FROM PUBLIC;
 
--- Append-only policy: Allow inserts, but RLS explicitly denies UPDATE and DELETE
+-- Append-only policy: Allow inserts, while RLS + REVOKE deny UPDATE and DELETE
 DROP POLICY IF EXISTS rls_audit_logs_insert_policy ON adm.audit_logs;
 CREATE POLICY rls_audit_logs_insert_policy
     ON adm.audit_logs
@@ -878,3 +978,45 @@ CREATE POLICY rls_audit_logs_select_policy
 
 COMMENT ON POLICY rls_audit_logs_insert_policy ON adm.audit_logs IS
     'Enforces physical append-only behavior: database engine denies UPDATE and DELETE operations.';
+
+-- -----------------------------------------------------------------------------
+-- 5. DECLARATIVE RANGE PARTITIONING FOR 7-YEAR AUDIT RETENTION (FR-350 / FR-358)
+-- -----------------------------------------------------------------------------
+-- Idempotent dynamic bootstrap: provisions Q1-Q4 of the current UTC year plus
+-- next-year Q1 lookahead (5 quarters total) and revokes mutating privileges on
+-- each child partition. Ongoing future quarters are pre-created by the scheduled
+-- AuditPartitionProvisioningJob / pg_cron worker before quarter rollover.
+DO $$
+DECLARE
+    base_year_utc timestamp := date_trunc('year', timezone('UTC', now()));
+    q_idx         integer;
+    q_start_utc   timestamp;
+    q_end_utc     timestamp;
+    part_name     text;
+BEGIN
+    FOR q_idx IN 0..4 LOOP
+        q_start_utc := base_year_utc + make_interval(months => q_idx * 3);
+        q_end_utc   := q_start_utc + interval '3 months';
+        part_name   := format(
+            'part_audit_%s_q%s',
+            to_char(q_start_utc, 'YYYY'),
+            EXTRACT(QUARTER FROM q_start_utc)::integer
+        );
+
+        EXECUTE format(
+            'CREATE TABLE IF NOT EXISTS adm.%I PARTITION OF adm.audit_logs FOR VALUES FROM (%L) TO (%L)',
+            part_name,
+            q_start_utc AT TIME ZONE 'UTC',
+            q_end_utc AT TIME ZONE 'UTC'
+        );
+
+        EXECUTE format(
+            'REVOKE UPDATE, DELETE, TRUNCATE ON adm.%I FROM PUBLIC',
+            part_name
+        );
+    END LOOP;
+END $$;
+
+CREATE TABLE IF NOT EXISTS adm.part_audit_default
+    PARTITION OF adm.audit_logs DEFAULT;
+REVOKE UPDATE, DELETE, TRUNCATE ON adm.part_audit_default FROM PUBLIC;

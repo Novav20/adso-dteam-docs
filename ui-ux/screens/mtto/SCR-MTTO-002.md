@@ -25,38 +25,34 @@ status: Stable
 * **View Objective:** Mobile field technical execution, taxonomy failure diagnosis, and formal technical closure of active Work Orders (ANSI/ISA-101 Level 4). Enforces strict ISO 14224 reliability coding (Maintainable Item, Failure Mode, Mechanism, Cause, Detection Method, Operational Condition, and Operational Impact), actual Wrench Time capture, immutable photographic evidence acquisition with SHA-256 cryptographic hashing ([TR-003](../../../requirements/common/TR-003.md)), and atomic status transition to `COMPLETE` ([DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders)), with full offline-first resilience via encrypted local database ([TR-002](../../../requirements/common/TR-002.md)) and transactional outbox synchronization ([TR-007](../../../requirements/common/TR-007.md)).
 * **Primary Target Persona:** Maintenance Technician operating on rugged industrial tablets in Class I Div 2 hazardous process areas under adverse conditions (glare, noise, chemical-resistant gloves). Detailed responsive profiles and breakpoints are specified in Section 8.
 * **Secondary Personas:**
-  * **Maintenance Supervisor:** Reviews field execution metrics, verifies Wrench Time variance, and performs administrative closure (`CLOSED`).
+  * **Maintenance Supervisor:** Reviews field execution metrics in read-only supervisory mode (`IsReadOnly == true` per `SOD-MTTO-01` unless granted `MAINTENANCE:EXECUTE`), verifies Wrench Time variance, and performs administrative closure (`CLOSED`).
   * **Reliability Engineer:** Consumes structured ISO 14224 failure distributions for Weibull analysis, Bad Actor tracking, and MTBF/MTTR calculations.
   * **HSEQ Inspector:** Audits the cryptographic hash chain of field evidence and verifies de-isolation safety handover protocols.
 * **Operational Context:** Deployed on portable industrial tablets and intrinsically safe handheld devices. Requires tactile targets, high-contrast typography, zero nested modal traps, and resilient persistence against unexpected power loss or radio-frequency shadowing inside tank dikes and pump battery limits. Tactile dimensions are specified in §5.2 and §8.
 * **Mode of Operation:** Transactional Execution & Field Technical Certification mode. Direct DCS/SCADA process control manipulation is strictly excluded; field mechanics log physical intervention data, parts consumption, and diagnostic classifications.
 * **Upstream & Downstream Navigation Invariants:**
   * **Upstream Continuity:** Directly launched upon successful Zero Energy verification and work initiation in [SCR-VIS-011](../vis/SCR-VIS-011.md), automatically transitioning the Work Order lifecycle state to `IN_PROGRESS`.
-  * **Downstream Transitions:** Hosts the trigger for the Rotable Asset Swap modal ([SCR-INV-025](../inv/SCR-INV-025.md)) when physical equipment replacement is required, and routes to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)) upon confirmed technical closure.
+  * **Downstream Transitions:** Hosts the trigger for the Rotable Asset Swap modal ([SCR-INV-025](../inv/SCR-INV-025.md)) when physical equipment replacement is required, and upon confirmed technical closure returns `Maintenance Technician` users to `returnUrl` / Level 3 Equipment Task Faceplate ([SCR-VIS-033](../vis/SCR-VIS-033.md)), while routing `Maintenance Planner`, `Maintenance Supervisor`, and `Reliability Engineer` roles to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
 
 ---
 
 ## 2. Visual Artifact
 
-### 2.1. Tab 1: Scope & Timing (Light Theme)
 ![SCR-MTTO-002 Scope & Timing](assets/SCR-MTTO-002-tab1-light.png)
 
-> *Note: Production UI prototype capture illustrating the mobile execution header, frameless task checklist with monochromatic completion checks, decoupled timing master card with dual telemetry gauges, and sticky action bar.*
+> *Figure 2.1 — Tab 1: Scope & Timing (Light Theme): Illustrates the mobile execution header (`CMP-01`), operational tabs bar (`CMP-02`), frameless task checklist and timing card (`CMP-03`) with dual telemetry indicators (`CMP-08`), and sticky action bar (`CMP-09`).*
 
-### 2.2. Tab 2: Materials & Spares Allocation (Light Theme)
 ![SCR-MTTO-002 Materials & Spares](assets/SCR-MTTO-002-tab2-light.png)
 
-> *Note: Production UI prototype capture illustrating allocated warehouse spares with tactile quantity steppers and contextual rotable asset swap launch pane.*
+> *Figure 2.2 — Tab 2: Materials & Spares Allocation (Light Theme): Illustrates allocated warehouse spares with tactile quantity steppers and contextual rotable asset swap launch pane (`CMP-04`).*
 
-### 2.3. Tab 3: ISO 14224 Diagnosis (Dark Theme)
 ![SCR-MTTO-002 ISO 14224 Diagnosis](assets/SCR-MTTO-002-tab3-dark.png)
 
-> *Note: Production UI prototype capture illustrating the 7-node sequential quality gate stepper and cascading taxonomy classification matrix in Dark Theme.*
+> *Figure 2.3 — Tab 3: ISO 14224 Diagnosis (Dark Theme): Illustrates the 7-node sequential quality gate stepper (`CMP-06`) and cascading taxonomy classification matrix (`CMP-05`) rendered in field Dark Theme.*
 
-### 2.4. Tab 4: Photographic Evidence (Dark Theme)
 ![SCR-MTTO-002 Photographic Evidence](assets/SCR-MTTO-002-tab4-dark.png)
 
-> *Note: Production UI prototype capture illustrating cryptographic evidence acquisition, verified photo attachment cards with SHA-256 seal, and unlocked technical closure button.*
+> *Figure 2.4 — Tab 4: Photographic Evidence (Dark Theme): Illustrates cryptographic evidence acquisition, verified photo attachment cards with SHA-256 seal (`CMP-07`), and unlocked technical closure button (`CMP-09`).*
 
 ---
 
@@ -156,11 +152,11 @@ status: Stable
    - **Visual Modification:** Header displays `IN_PROGRESS` in neutral high-contrast capsule badge (`--dt-color-surface-base`, `--dt-color-border-subtle`, `--dt-color-text-primary`). Checklist editable. Stopwatch counter increments. Tab 3 shows incomplete taxonomy. `CMP-09` `[Finalize Work Order]` is hard-disabled via the ISO Lock.
 
 2. **Loading / Synchronizing**
-   - **Activation Condition:** Initial data hydration from local SQLCipher cache or background delta synchronization in progress.
-   - **Visual Modification:** Skeleton shimmer on form fields and spares table (`--dt-color-surface-raised`). Taxonomy dropdowns show animated loading indicator while hydrating local SQLite cache. Controls locked.
+   - **Activation Condition:** Initial data hydration from local encrypted offline storage (`IOfflineStorage`) or background delta synchronization in progress.
+   - **Visual Modification:** Skeleton shimmer on form fields and spares table (`--dt-color-surface-raised`). Taxonomy dropdowns show animated loading indicator while hydrating the local offline cache. Controls locked.
 
 3. **Taxonomy Incomplete / Missing Fields (AF-001)**
-   - **Activation Condition:** Technician attempts to finalize or navigates away while any of the 7 mandatory ISO fields or downtime is empty.
+   - **Activation Condition:** When `WorkOrder.maintenanceMethod == CORRECTIVE` (or failure reporting is explicitly enabled) and the technician attempts to finalize or navigates away while any of the 7 mandatory ISO fields or downtime is empty.
    - **Visual Modification:** Missing mandatory taxonomy selectors highlighted with dynamic asterisk (`*`). Sequential stepper `CMP-06` highlights the active next step with a neutral pulse indicator while keeping downstream dropdowns locked (`disabled`) per ISO 14224 causal hierarchy. Action button `CMP-09` remains disabled.
 
 4. **Evidence Capturing & Hashing**
@@ -173,15 +169,15 @@ status: Stable
 
 6. **Offline Mode (AF-002)**
    - **Activation Condition:** Device loses Wi-Fi/cellular connectivity in field process areas (`ASR-001`).
-   - **Visual Modification:** Zero layout shift (CLS = 0). Header telemetry chip updates to `OFFLINE · [HH:MM]`, `[1 PENDING SYNC]` amber badge illuminates, and `[DE-ENERGIZED EQUIPMENT]` capsule is automatically hidden to avoid false certainty of unverified live telemetry. Local SQLCipher cache active.
+   - **Visual Modification:** Zero layout shift (CLS = 0). Header telemetry chip updates to `OFFLINE · [HH:MM]`, `[1 PENDING SYNC]` amber badge illuminates, and `[DE-ENERGIZED EQUIPMENT]` capsule is automatically hidden to avoid false certainty of unverified live telemetry. Local encrypted offline cache (`IOfflineStorage`) active.
 
 7. **Ready to Finalize (Unlocked)**
-   - **Activation Condition:** All 7 ISO 14224 fields selected + Downtime specified + Photo evidence captured with valid hash + Checklist attested + Positive Actual Labor Hours logged.
-   - **Visual Modification:** `CMP-06` sequential 7-node stepper marks all 7 circular nodes as completed (`#icon-check`) with completed connecting links, updating the Tab 3 header badge to `[7/7]` (and Tab 1 to full completion ratio). All media attachments display validated cryptographic seal. Action button `CMP-09` `[Finalize Work Order]` unlocks in primary action styling (`--dt-color-state-info`, `--dt-primitive-gray-10` text per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons) and [§6.6.2](../../DT-UI-DS-DOC-001.md#662-tactile-pill-actions-presets)).
+   - **Activation Condition:** Quality gates satisfied: (when `WorkOrder.maintenanceMethod == CORRECTIVE` or a failure is explicitly reported, all 7 ISO 14224 fields selected + Downtime specified; for routine `PREVENTIVE` work orders with no failure reported, ISO 14224 failure coding is optional) + Photo evidence captured with valid hash + Checklist attested + Positive Actual Labor Hours logged.
+   - **Visual Modification:** When taxonomy is required or entered, `CMP-06` sequential 7-node stepper marks all 7 circular nodes as completed (`#icon-check`) with completed connecting links, updating the Tab 3 header badge to `[7/7]` (or displays optional/not-applicable completion for routine `PREVENTIVE` orders without a reported failure). All media attachments display validated cryptographic seal. Action button `CMP-09` `[Finalize Work Order]` unlocks in primary action styling (`--dt-color-state-info`, `--dt-primitive-gray-10` text per [DT-UI-DS-DOC-001 §6.5.1](../../DT-UI-DS-DOC-001.md#651-morphological-differentiation-status-badges-vs-interactive-buttons) and [§6.6.2](../../DT-UI-DS-DOC-001.md#662-tactile-pill-actions-presets)).
 
 8. **Technical Closure Complete**
    - **Activation Condition:** Technician confirms `[Finalize Work Order]`. System commits atomic transaction.
-   - **Visual Modification:** Form transitions to read-only state. Header badge updates to `COMPLETE`. Standardized completion certificate modal (header with close `X`, body with structured key-value certificate rows and SHA-256 seal, footer with primary action `[Return to Work Orders]`) confirms closure and redirects to [SCR-MTTO-026](./SCR-MTTO-026.md).
+   - **Visual Modification:** Form transitions to read-only state. Header badge updates to `COMPLETE`. Standardized completion certificate modal (header with close `X`, body with structured key-value certificate rows and SHA-256 seal, footer with primary return action `[Return to Work Orders]` / `[Back to Plot Plan]`) confirms closure and returns `Maintenance Technician` users to `returnUrl` / [SCR-VIS-033](../vis/SCR-VIS-033.md), while routing `Maintenance Planner`, `Maintenance Supervisor`, and `Reliability Engineer` roles to [SCR-MTTO-026](./SCR-MTTO-026.md).
 
 9. **Execution Suspended — Safety Interlock Breach (`AF-005`)**
    - **Activation Condition:** Continuous boundary telemetry or safety monitoring detects unexpected residual energy or barrier breach during `IN_PROGRESS` execution ([UC-MTTO-002 §4](../../../domain-models/use-cases/mtto/UC-MTTO-002.md#af-005-safety-interlock-breach-active-hazardous-energy-detected), [DT-DM-DOC-001 §4.21](../../../domain-models/class/DT-DM-DOC-001.md#421-workordercurrentstatus)).
@@ -199,12 +195,14 @@ sequenceDiagram
     actor Tech as Maintenance Technician
     participant VIS as SCR-VIS-011 LOTO
     participant UI as SCR-MTTO-002 Execution View
-    participant Store as IOfflineStorage / SQLCipher
+    participant Store as IOfflineStorage (Encrypted Cache)
     participant Crypto as ICryptoInterop (Web Worker)
     participant API as Work Order Application Service
 
-    Tech->>VIS: Confirms Zero Energy & Try-Out
+    Tech->>VIS: Confirms Zero Energy & Try-Out (POST /api/v1/maintenance/work-orders/{id}/start-execution)
     VIS->>UI: Navigates with Execution Context (WorkOrderId, TechnicianId)
+    UI->>API: GET /api/v1/maintenance/work-orders/{id}/closing-context (or local fallback)
+    API-->>UI: Returns WorkOrderClosingContextDto
     UI->>Store: Pre-hydrate ISO 14224 taxonomy & cached WO details
     Store-->>UI: Return taxonomies & checklist items
     Tech->>UI: Attests checklist tasks & captures wrench time (CMP-03)
@@ -214,31 +212,37 @@ sequenceDiagram
     Tech->>UI: Captures photographic evidence (CMP-07)
     UI->>Crypto: Compute client-side SHA-256 hash asynchronously
     Crypto-->>UI: Return validated SHA-256 hash stamp
+    opt Network Connected (Valet Key Upload per ADR-008)
+        UI->>API: POST /api/v1/maintenance/work-orders/{id}/media-upload-sas (RequestMediaUploadSasCommand)
+        API-->>UI: Returns MediaUploadSasResponseDto (Azure Blob SAS URL + FileUrl)
+    end
     Tech->>UI: Clicks [Finalize Work Order] (CMP-09)
     alt Network Connected
-        UI->>API: POST /api/v1/work-orders/{id}/technical-closure (SubmitTechnicalClosureCommand + X-Idempotency-Key)
+        UI->>API: POST /api/v1/maintenance/work-orders/{id}/technical-closure (SubmitTechnicalClosureCommand + X-Idempotency-Key + If-Match)
         API-->>UI: HTTP 200 OK (WorkOrderTechnicallyCompletedEvent)
-        UI-->>Tech: Display completion certificate modal & navigate to SCR-MTTO-026
+        UI-->>Tech: Display completion certificate modal & navigate to returnUrl / SCR-VIS-033 (or SCR-MTTO-026 for Planner/Supervisor/Reliability)
     else Disconnected / Offline Outbox (AF-002)
-        UI->>Store: Enqueue SubmitTechnicalClosureCommand into encrypted outbox
-        Store-->>UI: Offline lease queued confirmation
-        UI-->>Tech: Display offline sync badge & return to backlog
+        UI->>Store: Enqueue SubmitTechnicalClosureCommand & encrypted media binary into local outbox
+        Store-->>UI: Offline outbox queued (X-Idempotency-Key)
+        UI-->>Tech: Display offline sync badge & return to returnUrl / SCR-VIS-033 (or SCR-MTTO-026)
     end
 ```
 
 1. **Context Ingestion Contract:**
-   * When navigated from [SCR-VIS-011](../vis/SCR-VIS-011.md), the route receives the initial execution context payload:
+   * Upon Zero Energy and Try-Out confirmation in [SCR-VIS-011](../vis/SCR-VIS-011.md), `SCR-VIS-011` dispatches `POST /api/v1/maintenance/work-orders/{id}/start-execution` (`StartWorkOrderExecutionCommand`, `X-Idempotency-Key: {uuidv7}`), transitioning the Work Order to `IN_PROGRESS` with server-side audit timestamp logging and routing to `SCR-MTTO-002` with:
      $$\mathcal{P}_{\text{init}} = \langle \text{WorkOrderId}: \text{Guid}, \text{EquipmentTag}: \text{string}, \text{FunctionalLocation}: \text{string}, \text{TechnicianId}: \text{Guid}, \text{LotoIsolationStatus}: \text{IsolationStatus} \rangle$$
-   * If the initial Work Order status is `SCHEDULED`, the client dispatches an execution start command, transitioning the Work Order status to `IN_PROGRESS` with server-side audit timestamp logging.
+   * On load, `SCR-MTTO-002` calls `GET /api/v1/maintenance/work-orders/{id}/closing-context` to hydrate `WorkOrderClosingContextDto` (§7.2.3), falling back seamlessly to the local encrypted database (`IOfflineStorage`, [TR-002](../../../requirements/common/TR-002.md)) during disconnected operation. If the hydrated Work Order status is still `SCHEDULED` (e.g., direct entry after supervisory clearance), the client dispatches `POST /api/v1/maintenance/work-orders/{id}/start-execution` (`SCR-VIS-011` §7.2.3, `X-Idempotency-Key: {uuidv7}`) to transition the Work Order to `IN_PROGRESS` before closure.
 2. **Local Cache Pre-Hydration (Offline Readiness):**
    * Pre-hydrates the ISO 14224 taxonomic datasets (maintainable items catalog, equipment class failure modes) from the local encrypted database ([TR-002](../../../requirements/common/TR-002.md)), guaranteeing zero network latency when populating dropdowns in field dead-zones.
+3. **Real-Time Safety & Status Channels ([TR-010](../../../requirements/common/TR-010.md), [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)):**
+   * Subscribes to `/hubs/telemetry` (`ITelemetryClient`) for `EmergencyEvacuationBroadcast(EvacuationAlertDto)` (triggering `AF-005` execution suspension) and `LotoHeartbeatAck(DateTimeOffset)` for `CMP-08` connectivity monitoring, while technical closure broadcasts `WorkOrderStatusChanged(WorkOrderTransitionEvent)` over `/hubs/operations` (`IOperationsClient`).
 
 ### 5.2. Mobile Ergonomics & Tactile Mechanics
 
 1. **Gloved Touch Target Invariant (ISO 9241-110 Clause 5.3 / `--dt-touch-target-mobile`):**
    * All interactive controls (checkboxes, dropdown triggers, camera buttons, tab headers, spare parts quantity steppers) enforce a minimal bounding box governed by `--dt-touch-target-mobile` with `--dt-space-2` separation, ensuring error-free operation with nitrile and leather field gloves.
    * Step navigation directional arrow buttons enforce an enlarged footprint governed by `--dt-control-width-nav-step` $\times$ `--dt-control-height-nav-step` (and `--dt-control-width-nav-step-mobile` $\times$ `--dt-control-height-nav-step-mobile` on mobile) with subtle neutral secondary surface fill (`--dt-color-surface-btn-secondary`), subtle perimeter ring (`--dt-color-border-subtle`), standard curvature (`--dt-radius-md`), and explicit SVG chevrons (`#icon-chevron-left`, `#icon-chevron-right`).
-   * Custom scope checklist implements a frameless list layout with tactile circular check indicators (`--dt-control-size-checkbox`, `--dt-radius-full`): unselected items render a neutral hairline perimeter ring, while verified items fill with high-contrast monochromatic fill (`--dt-color-text-primary`) and an embedded checkmark in surface color. Individual item bounding boxes are purged in favor of subtle baseline dividers (`--dt-color-border-subtle`) and full-width touch hit rows.
+   * Custom scope checklist implements a frameless list layout bound to the structured checklist payload contract in [DT-ERD-DOC-001 §6.2](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#62-mttowork_ordersscope_checklist) with tactile circular check indicators (`--dt-control-size-checkbox`, `--dt-radius-full`): unselected items render a neutral hairline perimeter ring, while verified items fill with high-contrast monochromatic fill (`--dt-color-text-primary`) and an embedded checkmark in surface color. Individual item bounding boxes are purged in favor of subtle baseline dividers (`--dt-color-border-subtle`) and full-width touch hit rows.
 2. **Asymmetric Layout Grids & Continuous Workspace Dividers (`CMP-03` & `CMP-04`):**
    * **Continuous Data Architecture (Zero Card Plague):** Adheres to the frameless HPHMI surface discipline ([DT-UI-DS-DOC-001 §3.2](../../DT-UI-DS-DOC-001.md#32-semantic-tokens-for-light-and-dark-themes) and [§6.6](../../DT-UI-DS-DOC-001.md#66-tactile-field-controls-high-velocity-touch-primitives)). Primary content sections render directly on the workspace surface (`--dt-color-surface-card`) without redundant outer card wrappers. Initial sections within a tab have no top border, while subsequent stacked sections are separated by a subtle top divider (`--dt-color-border-subtle`).
    * **Scope & Timing Grid (`CMP-03`):** Enforces an asymmetric two-column desktop/landscape grid expanding across the full vertical workspace height: The primary left column provides expansive breadth for frameless procedural task checklist items, while the secondary right column (`--dt-color-border-subtle`) hosts the enclosed timing cockpit master card. In portrait mode, the vertical divider transitions into an edge-to-edge full-width horizontal divider (`--dt-color-border-subtle` with zero side gaps).
@@ -274,10 +278,11 @@ sequenceDiagram
 * The primary action button `CMP-09` `[Finalize Work Order]` is governed by the asymmetric Boolean lock:
   $$\text{CanFinalize} = \mathcal{T}_{\text{complete}} \land \mathcal{E}_{\text{valid}} \land \mathcal{W}_{\text{valid}}$$
   where:
-  $$\mathcal{T}_{\text{complete}} = (\text{Item} \ne \varnothing) \land (\text{Mode} \ne \varnothing) \land (\text{Mech} \ne \varnothing) \land (\text{Cause} \ne \varnothing) \land (\text{Method} \ne \varnothing) \land (\text{Condition} \ne \varnothing) \land (\text{Impact} \ne \varnothing) \land (\text{Downtime} \ge 0.0)$$
+  $$\text{RequiresFailureTaxonomy} = (\text{WorkOrder.maintenanceMethod} == \text{CORRECTIVE}) \lor \text{FailureReported}$$
+  $$\mathcal{T}_{\text{complete}} = \neg \text{RequiresFailureTaxonomy} \lor \big((\text{Item} \ne \varnothing) \land (\text{Mode} \ne \varnothing) \land (\text{Mech} \ne \varnothing) \land (\text{Cause} \ne \varnothing) \land (\text{Method} \ne \varnothing) \land (\text{Condition} \ne \varnothing) \land (\text{Impact} \ne \varnothing) \land (\text{Downtime} \ge 0.0)\big)$$
   $$\mathcal{E}_{\text{valid}} = (\text{MediaAttachmentCount} \ge 1) \land (\forall e \in \text{Attachments}, e.\text{SHA256HashVerified} == \text{true})$$
   $$\mathcal{W}_{\text{valid}} = (\text{ActualLaborHours} > 0.0) \land (\text{AllChecklistItemsChecked} == \text{true})$$
-* Any false term renders the button `disabled` with dynamic visual indicator (`*`) on omitted fields (`AF-001`).
+* Routine `PREVENTIVE` work orders (as well as `PREDICTIVE` or `IMPROVEMENT` orders) where no failure is explicitly reported (`RequiresFailureTaxonomy == false`) satisfy $\mathcal{T}_{\text{complete}} = \text{true}$ automatically and can finalize without fabricating ISO 14224 failure codes. When `RequiresFailureTaxonomy == true`, any missing taxonomy tier or invalid downtime renders the button `disabled` with dynamic visual indicator (`*`) on omitted fields (`AF-001`).
 
 #### 5.3.3. Multi-Evidence Photographic Capture & Cryptographic Hashing Pipeline (`CMP-07`, `TR-003`)
 * Supports an array of $0..N$ attachments (`List<MediaAttachmentDto>` per [DT-ERD-DOC-001 §3.2.4](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#324-media_attachments)):
@@ -285,28 +290,27 @@ sequenceDiagram
   2. Capturing photo via hardware camera or file picker downsamples image to maximum $1920\times 1080$ JPEG format (quality 0.85) to optimize offline storage footprint.
   3. Computes cryptographic checksum asynchronously in a Web Worker via ICryptoInterop (SHA-256).
   4. Renders individual gallery cards displaying image thumbnail (`--dt-layout-thumbnail-size`), metadata, delete trigger, and verified monospace hash stamp (`SHA-256: [hash]`).
-  5. Packages validated media items into `MediaAttachmentDto` records linking image URI, file format, timestamp, and hash string to the failure record context.
+  5. Packages validated media items into `MediaAttachmentDto` records linking image URI, file format, timestamp, and hash string to the failure record context (when online, requesting an Azure Blob SAS Valet Key via `POST /api/v1/maintenance/work-orders/{id}/media-upload-sas` per [ADR-008](../../../architecture/adr/ADR-008.md) and executing a direct `HTTPS PUT` to Blob Storage; when offline, persisting the encrypted binary locally for two-phase outbox sync on reconnect per §5.3.5).
   6. If file reading throws an I/O error or hash evaluation fails, the UI enters state `Evidence Corrupt` (`AF-003`), halts finalization, and forces recapture.
 
 #### 5.3.4. Atomic Technical Closure Command Dispatch (`CMP-09`, `TR-001`)
-* Upon pressing `[Finalize Work Order]`, the application dispatches an atomic technical closure command (`SubmitTechnicalClosureCommand`) against the backend API endpoint `POST /api/v1/work-orders/{id}/technical-closure`.
+* Upon pressing `[Finalize Work Order]`, the application dispatches an atomic technical closure command (`SubmitTechnicalClosureCommand`) against the backend API endpoint `POST /api/v1/maintenance/work-orders/{id}/technical-closure` (`X-Idempotency-Key: {uuidv7}`, [ADR-007](../../../architecture/adr/ADR-007.md)).
 * **Client Command Contract:**
-  * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries.
-  * **Command Payload:** Serializes `FailureRecordInputDto` (7-tier ISO 14224 classifications, downtime, technician notes), `ActualLaborHours`, and `List<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
-  * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (failure record insertion, Work Order status update to `COMPLETE`, history logging, and cryptographic audit chaining) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
-  * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates downstream to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
+  * **Request Headers:** Includes `X-Idempotency-Key: {uuidv7}` ([ADR-007](../../../architecture/adr/ADR-007.md)) to guarantee exactly-once processing during network reconnection retries, plus `If-Match: "{ConcurrencyToken}"` on live online commits enforcing optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column) (offline-queued replays omit stale `If-Match` per §5.3.5).
+  * **Command Payload:** Serializes optional/conditional `FailureRecordInputDto?` (mandatory 7-tier ISO 14224 classifications, downtime, and technician notes when `WorkOrder.maintenanceMethod == CORRECTIVE` or a failure is explicitly reported; `null` for routine `PREVENTIVE` closure with no failure), `ActualLaborHours`, `ConcurrencyToken`, and `IReadOnlyList<MediaAttachmentDto>` (evidence attachments with computed SHA-256 signatures).
+  * **Backend Persistence Invariant:** Backend orchestrates the atomic transaction (concurrency verification, conditional failure record insertion when `FailureRecord` is supplied/required, Work Order status update to `COMPLETE`, history logging, cryptographic audit chaining, and `/hubs/operations` `WorkOrderStatusChanged` broadcast) governed by [DT-ARQ-DB-DOC-001 §2](../../../architecture/DT-ARQ-DB-DOC-001.md#2-physical-integrity-invariants-and-constraints) and [DT-ERD-DOC-001 §3.2.6](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#326-work_orders).
+  * **Success Handling (HTTP 200 OK):** Transitions UI state to `COMPLETE`, displays non-disruptive completion modal, and navigates back to `returnUrl` / Level 3 Equipment Task Faceplate ([SCR-VIS-033](../vis/SCR-VIS-033.md)) for `Maintenance Technician`, while routing `Maintenance Planner`, `Maintenance Supervisor`, and `Reliability Engineer` roles to the RIME Backlog Dashboard ([SCR-MTTO-026](./SCR-MTTO-026.md)).
   * **Failure / Disconnected Handling:** On network timeout or HTTP 5xx error, transitions to the Zero-Shift Offline Outbox Protocol (§5.3.5, [TR-007](../../../requirements/common/TR-007.md)).
 
-#### 5.3.5. Zero-Shift Offline Telemetry and Outbox Protocol (`AF-002`, `TR-002`, `TR-007`, `ADR-007`)
-* If network connection is lost or heartbeat timeout occurs:
-  1. Telemetry indicator in header transitions from `ONLINE · [HH:MM]` to `OFFLINE · [HH:MM]` with disconnected network glyph.
-  2. Amber badge `[1 PENDING SYNC]` illuminates directly in the header context.
-  3. **Fail-Safe Zero-Energy Masking:** The safety capsule `[DE-ENERGIZED EQUIPMENT]` is automatically suppressed from the header UI during offline operation. While mechanical padlocks remain locked, real-time electrical zero-voltage and zero-current attestation cannot be confirmed via disconnected DCS telemetry; displaying a stale positive safety confirmation during telemetry blackout violates process safety integrity principles.
-  4. Zero layout shift is incurred (CLS = 0), preventing disorienting viewport jumps or content displacement on tablet screens.
-  5. The full atomic command payload is serialized into JSON and written to the encrypted local outbox protected by database encryption at rest ([TR-002](../../../requirements/common/TR-002.md)).
-  6. Assigns a unique `IdempotencyKey` (UUIDv7) per `ADR-007`.
-  7. Marks the local UI view as `COMPLETE (Pending Sync)`.
-  8. Background synchronization worker monitors connectivity; upon restoration, drains the outbox queue via idempotent `POST /api/v1/work-orders/{id}/technical-closure` with `X-Idempotency-Key` header.
+#### 5.3.5. Zero-Shift Offline Telemetry & Offline Delta Card (`AF-002`, `TR-002`, `TR-007`, `ADR-006`, `ADR-007`, `ADR-008`)
+* **Fail-Safe Zero-Energy Masking & UI Continuity (`CLS = 0`):** On wireless connectivity loss or heartbeat timeout, `CMP-08` transitions from `ONLINE · [HH:MM]` to `OFFLINE · [HH:MM]` with `[1 PENDING SYNC]` without shifting layout geometry, and **automatically suppresses `[DE-ENERGIZED EQUIPMENT]`** from the header UI (preventing false certainty from stale SCADA telemetry while disconnected) before marking the local view `COMPLETE (Pending Sync)`.
+* **Offline Delta Card (`TR-007`, `ADR-006`, `ADR-008`):** Encrypted outbox persistence (`IOfflineStorage`, `TR-002`), UUIDv7 idempotency (`ADR-007`), and FIFO two-phase reconnection sync follow [ADR-006 (Canonical 5-Step Offline Outbox Lifecycle)](../../../architecture/adr/ADR-006.md#canonical-5-step-offline-outbox-two-phase-media-sync-lifecycle) and [DT-ARQ-DB-DOC-001 §3.6](../../../architecture/DT-ARQ-DB-DOC-001.md#36-idempotent-ingestion-for-offline-queues). Screen-specific deltas:
+
+| Delta Dimension | `SCR-MTTO-002` Specification |
+| :--- | :--- |
+| **Queued Command DTO** | `SubmitTechnicalClosureCommand` (`POST /api/v1/maintenance/work-orders/{id}/technical-closure` (`X-Idempotency-Key: {uuidv7}`, [ADR-007](../../../architecture/adr/ADR-007.md)), `X-Idempotency-Key: {uuidv7}`, omitting stale `If-Match`) alongside locally encrypted media binaries + SHA-256 digests (`TR-003`) |
+| **Local Pre-Validation Rule** | ISO 14224 Hard Lock (`AF-001`, 7-tier failure taxonomy + downtime required when `CORRECTIVE` or failure reported), positive `ActualLaborHours`, checked scope tasks, verified media SHA-256 checksums (`TR-003`), and automatic suppression of `[DE-ENERGIZED EQUIPMENT]` capsule while offline (`AF-002`) |
+| **Screen-Specific Conflict Policy** | Two-phase reconnect sync per [ADR-008](../../../architecture/adr/ADR-008.md): Phase 1 uploads locally encrypted media via `POST /api/v1/maintenance/work-orders/{id}/media-upload-sas` (`RequestMediaUploadSasCommand` $\to$ `MediaUploadSasResponseDto` direct `HTTPS PUT` to Azure Blob Storage); Phase 2 replays `SubmitTechnicalClosureCommand` with populated `FileUrl`s omitting stale `If-Match` for server-side command-sourced reconciliation (raising an administrative alert on state divergence rather than silent rejection) |
 
 #### 5.3.6. Rotable Asset Swap Branching (`CMP-04`)
 * If the physical repair requires unmounting the pump unit, tapping `[Rotate Dismounted Equipment]` preserves the in-flight form draft in local memory and deploys the in-situ overlay modal [SCR-INV-025](../inv/SCR-INV-025.md). Upon completing the asset swap, `SCR-INV-025` returns the new mounted equipment serial number (`P-0101B`) and stamps the replacement reference into technical observations.
@@ -352,11 +356,18 @@ Pages/
 #### 7.2.1. `MobileWorkOrderClosingPage.razor` (Root View)
 
 ```csharp
-[Parameter]
-public required Guid WorkOrderId { get; set; }
+[Parameter, SupplyParameterFromQuery(Name = "workOrderId")]
+public Guid? WorkOrderId { get; set; }
 
-[Parameter, SupplyParameterFromQuery]
+[Parameter, SupplyParameterFromQuery(Name = "returnUrl")]
 public string? ReturnUrl { get; set; }
+
+/// <summary>
+/// Enforces SOD-MTTO-01 (SCR-ADM-013): true when an approver/inspector role (e.g., Maintenance Supervisor)
+/// inspects the work order without MAINTENANCE:EXECUTE permission, locking all execution inputs and finalization.
+/// </summary>
+[Parameter]
+public bool IsReadOnly { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` to `CMP-10`)
@@ -430,6 +441,9 @@ public EventCallback<decimal> ActualLaborHoursChanged { get; set; }
 [Parameter]
 public decimal PlannedLaborHours { get; set; }
 
+[Parameter]
+public bool IsReadOnly { get; set; }
+
 // TaskChecklistCard.razor
 [Parameter]
 public required IReadOnlyList<ScopeTaskItemDto> Tasks { get; set; }
@@ -479,6 +493,9 @@ public EventCallback<SparePartAllocationDto> OnQuantityChanged { get; set; }
 [Parameter]
 public EventCallback OnRotateEquipmentRequested { get; set; }
 
+[Parameter]
+public bool IsReadOnly { get; set; }
+
 // CMP-05: IsoTaxonomyDiagnosisTab.razor
 [Parameter]
 public required FailureRecordInputDto Model { get; set; }
@@ -518,6 +535,9 @@ public bool IsCapturing { get; set; }
 [Parameter]
 public bool HasIntegrityError { get; set; }
 
+[Parameter]
+public bool IsReadOnly { get; set; }
+
 // EvidenceDropzone.razor
 [Parameter]
 public bool IsCapturing { get; set; }
@@ -548,6 +568,12 @@ public bool CanFinalize { get; set; }
 [Parameter]
 public bool IsSubmitting { get; set; }
 
+/// <summary>
+/// When true (SOD-MTTO-01 read-only mode for roles lacking MAINTENANCE:EXECUTE), forces CanFinalize == false and hides/disables [Finalize Work Order].
+/// </summary>
+[Parameter]
+public bool IsReadOnly { get; set; }
+
 [Parameter]
 public EventCallback OnPreviousStep { get; set; }
 
@@ -573,92 +599,21 @@ public bool IsQueuedOffline { get; set; }
 [Parameter]
 public EventCallback OnCloseRequested { get; set; }
 
+/// <summary>
+/// Navigates back to ReturnUrl / SCR-VIS-033 for Maintenance Technician, or SCR-MTTO-026 for Maintenance Planner, Maintenance Supervisor, and Reliability Engineer.
+/// </summary>
 [Parameter]
 public EventCallback OnReturnToBacklog { get; set; }
 ```
 
 #### 7.2.3. Data Transfer Objects (DTOs) and Enums
 
+Shared Domain Enums (`DetectionMethod`, `OperationalCondition`, `OperationalImpact`, `MediaAttachmentFileType`, `WorkOrderStatus`, `WorkOrderMaintenanceMethod`, `IsolationStatus`): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
 /// <summary>
-/// Controlled failure detection method vocabulary per DT-DM-DOC-001 §4.9.
+/// Hydrated via GET /api/v1/maintenance/work-orders/{id}/closing-context (or local IOfflineStorage cache fallback).
 /// </summary>
-public enum DetectionMethod
-{
-    PERIODIC_MAINTENANCE,
-    FUNCTIONAL_TESTING,
-    INSPECTION,
-    PERIODIC_CBM,
-    PRESSURE_TESTING,
-    CONTINUOUS_CBM,
-    PRODUCTION_INTERFERENCE,
-    CASUAL_OBSERVATION,
-    CORRECTIVE_MAINTENANCE,
-    ON_DEMAND,
-    OTHER
-}
-
-/// <summary>
-/// Controlled equipment operational condition at failure vocabulary per DT-DM-DOC-001 §4.10.
-/// </summary>
-public enum OperationalCondition
-{
-    RUNNING,
-    START_UP,
-    RUN_DOWN,
-    HOT_STANDBY,
-    COLD_STANDBY,
-    IDLE,
-    TESTING
-}
-
-/// <summary>
-/// Controlled failure operational impact vocabulary per DT-DM-DOC-001 §4.11.
-/// </summary>
-public enum OperationalImpact
-{
-    EXTENSIVE_STOP,
-    STOP_ABOVE_ACCEPTABLE,
-    STOP_BELOW_ACCEPTABLE,
-    STOP_MINOR
-}
-
-/// <summary>
-/// Controlled media attachment format vocabulary per DT-DM-DOC-001 §4.19.
-/// </summary>
-public enum MediaAttachmentFileType
-{
-    PDF,
-    JPG,
-    PNG
-}
-
-/// <summary>
-/// Controlled work order execution status vocabulary per DT-DM-DOC-001 §4.21.
-/// </summary>
-public enum WorkOrderStatus
-{
-    PLANNING,
-    WAITING_PARTS,
-    SCHEDULED,
-    IN_PROGRESS,
-    SUSPENDED,
-    COMPLETE,
-    CLOSED
-}
-
-/// <summary>
-/// Controlled work order isolation lifecycle vocabulary per DT-DM-DOC-001 §4.32.
-/// </summary>
-public enum IsolationStatus
-{
-    PENDING_ISOLATION,
-    ISOLATED,
-    VERIFIED_ZERO_ENERGY,
-    LEASED_OFFLINE,
-    RELEASED
-}
-
 public record WorkOrderClosingContextDto
 {
     public required Guid WorkOrderId { get; init; }
@@ -669,11 +624,15 @@ public record WorkOrderClosingContextDto
     public required Guid EquipmentClassId { get; init; }
     public required string EquipmentTag { get; init; }
     public required string EquipmentName { get; init; }
-    public required string FunctionalLocation { get; init; }
+    public Guid? FunctionalLocationId { get; init; }
+    public string? FunctionalLocationTag { get; init; }
     public required WorkOrderStatus CurrentStatus { get; init; }
+    public required WorkOrderMaintenanceMethod MaintenanceMethod { get; init; }
     public required IsolationStatus LotoIsolationStatus { get; init; }
-    public required decimal EstimatedHours { get; init; }
+    /// <summary>Derived from <c>MaintenancePlan</c> (<c>estimated_labor_hours</c>) when <c>maintenance_plan_id</c> is present; <c>null</c> for corrective work orders.</summary>
+    public decimal? EstimatedHours { get; init; }
     public decimal? ActualLaborHours { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record FailureRecordInputDto
@@ -689,6 +648,9 @@ public record FailureRecordInputDto
     public string? TechnicianNotes { get; set; }
 }
 
+/// <summary>
+/// Task checklist item DTO mapped to the WorkOrder scope checklist JSONB contract per DT-ERD-DOC-001 §6.2.
+/// </summary>
 public record ScopeTaskItemDto
 {
     public required Guid TaskId { get; init; }
@@ -704,7 +666,31 @@ public record SparePartAllocationDto
     public required string UnitOfMeasure { get; init; }
     public required decimal PlannedQuantity { get; init; }
     public decimal ActualQuantity { get; set; }
-    public required string WarehouseLocation { get; init; }
+    /// <summary>Derived from dispatched <c>InventoryTransaction</c> / <c>Locator</c> records when issued; <c>null</c> while only reserved.</summary>
+    public string? WarehouseLocation { get; init; }
+}
+
+/// <summary>
+/// Valet Key SAS request payload dispatched to POST /api/v1/maintenance/work-orders/{id}/media-upload-sas (ADR-008).
+/// </summary>
+public record RequestMediaUploadSasCommand
+{
+    public required Guid AttachmentId { get; init; }
+    public required MediaAttachmentFileType FileType { get; init; }
+    public required string IntegrityHashSha256 { get; init; }
+    public required long ContentLengthBytes { get; init; }
+}
+
+/// <summary>
+/// Time-limited Azure Blob SAS Valet Key response returned by POST /api/v1/maintenance/work-orders/{id}/media-upload-sas (ADR-008).
+/// Client performs a direct HTTPS PUT to UploadSasUrl, then persists BlobFileUrl in MediaAttachmentDto.FileUrl.
+/// </summary>
+public record MediaUploadSasResponseDto
+{
+    public required Guid AttachmentId { get; init; }
+    public required string UploadSasUrl { get; init; }
+    public required string BlobFileUrl { get; init; }
+    public required DateTimeOffset ExpiresAtUtc { get; init; }
 }
 
 public record MediaAttachmentDto
@@ -717,16 +703,22 @@ public record MediaAttachmentDto
     public required DateTimeOffset UploadedAt { get; init; }
 }
 
+/// <summary>
+/// Technical closure command payload; AuditLog.previous_hash (audit_logs.previous_hash) is computed server-side pre-commit by AuditSaveChangesInterceptor (never client-supplied).
+/// </summary>
 public record SubmitTechnicalClosureCommand
 {
     public required Guid WorkOrderId { get; init; }
     public required Guid TechnicianId { get; init; }
     public required decimal ActualLaborHours { get; init; }
     public required IReadOnlyList<ScopeTaskItemDto> ScopeChecklist { get; init; }
-    public required FailureRecordInputDto FailureRecord { get; init; }
+    public FailureRecordInputDto? FailureRecord { get; init; }
     public required IReadOnlyList<SparePartAllocationDto> ConsumedSpares { get; init; }
     public required IReadOnlyList<MediaAttachmentDto> EvidenceAttachments { get; init; }
-    public required string PreviousHash { get; init; }
+    /// <summary>
+    /// PostgreSQL <c>xmin</c> optimistic concurrency token supplied on live online mutations (with <c>If-Match</c>); <c>null</c> on offline outbox replay for server-side command-sourced reconciliation (TR-007, ADR-006).
+    /// </summary>
+    public uint? ConcurrencyToken { get; init; }
 }
 ```
 
@@ -738,7 +730,7 @@ public record SubmitTechnicalClosureCommand
 2. **Web Crypto SHA-256 Hashing Bridge (`ICryptoInterop`):**
    * Dispatches cryptographic SHA-256 checksum computation asynchronously to a dedicated Web Worker to prevent UI thread stuttering or frame drops on industrial tablets during binary processing.
 3. **Encrypted Offline Storage Interop (`IOfflineStorage`):**
-   * Interfaces with client-side encrypted relational storage (AES-256 via SQLCipher) for immediate transactional outbox queuing during disconnected field operations ([TR-002](../../../requirements/common/TR-002.md), [TR-007](../../../requirements/common/TR-007.md)).
+   * Interfaces with client-side AES-256 encrypted local storage (`TR-002`, `TR-007`) for immediate transactional outbox queuing and encrypted local media binary persistence during disconnected field operations ([TR-002](../../../requirements/common/TR-002.md), [TR-007](../../../requirements/common/TR-007.md), [ADR-008](../../../architecture/adr/ADR-008.md)).
 
 ---
 
@@ -763,23 +755,24 @@ public record SubmitTechnicalClosureCommand
 | Requirement | Addressed in Component | Verification & Implementation Mechanism |
 | :--- | :--- | :--- |
 | [FR-010](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-03`, `CMP-09` | Registration of actual labor duration and Wrench Time tracking from mobile interface. |
-| [FR-011](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-05` | Mandatory 7-tier classification strictly using ISO 14224 maintainable item catalog and failure record entities. |
-| [FR-012](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-06`, `CMP-09` | **ISO 14224 Hard Lock:** Hard-disables finalization button until all mandatory taxonomy fields and downtime are complete. |
+| [FR-011](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-05` | Conditional 7-tier classification (mandatory when `WorkOrder.maintenanceMethod == CORRECTIVE` or a failure is explicitly reported) strictly using ISO 14224 maintainable item catalog and failure record entities. |
+| [FR-012](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-06`, `CMP-09` | **ISO 14224 Hard Lock:** Hard-disables finalization button until all mandatory taxonomy fields and downtime are complete whenever failure classification is required (`CORRECTIVE` or reported failure). |
 | [FR-013](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-07` | Multimedia photographic attachment capture, preview thumbnail generation, and persistent linkage to media attachment records. |
 | [FR-014](../../../requirements/user-stories/mtto/MTTO-002.md#functional-requirements-fr) | `CMP-09` | Atomic transition of Work Order state to `COMPLETE` and dispatch of domain event notification to Reliability Engineer. |
-| [NFR-015](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-09` | Offline-First persistence using encrypted SQLCipher local storage with crash-resilient transactional journaling. |
+| [NFR-015](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-08`, `CMP-09` | Offline-First persistence using AES-256 encrypted local storage (`IOfflineStorage`) with crash-resilient transactional journaling. |
 | [NFR-016](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-02`, `CMP-05` | Mobile response latency $< 2\text{s}$ achieved via pre-hydrated local taxonomy caches and Web Worker SHA-256 hashing. |
 | [NFR-017](../../../requirements/user-stories/mtto/MTTO-002.md#non-functional-requirements-nfr) | `CMP-01` to `CMP-10` | Cross-platform mobile suitability on Android industrial tablets and iOS/Windows devices via responsive CSS tokens. |
 | [TR-001](../../../requirements/common/TR-001.md) | `CMP-09` | Append-only immutable audit trail logging with SHA-256 hash chaining upon Work Order technical closure. |
-| [TR-002](../../../requirements/common/TR-002.md) | `CMP-08` | Local database encryption at rest using AES-256 (SQLCipher) for all cached work orders, failure records, and media payloads. |
+| [TR-002](../../../requirements/common/TR-002.md) | `CMP-08` | Local database encryption at rest using AES-256 (`IOfflineStorage`) for all cached work orders, failure records, and media payloads. |
 | [TR-003](../../../requirements/common/TR-003.md) | `CMP-07` | Client-side asynchronous SHA-256 hash evaluation of all captured media files stored in metadata for tamper detection. |
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-08`, `CMP-09` | Enforces TLS/HTTPS and WSS encryption across all technical closure command dispatches and background outbox synchronization. |
-| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-09` | Enforces RBAC role authorization and authenticated technician session validation prior to technical closure submission. |
-| [TR-007](../../../requirements/common/TR-007.md) | `CMP-08`, `CMP-09` | Transactional Offline Sync Outbox queues completed technical closures during disconnected field operation with idempotent retry. |
+| [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-03`, `CMP-04`, `CMP-05`, `CMP-07`, `CMP-09` | Enforces RBAC role authorization, `SOD-MTTO-01` read-only inspection (`IsReadOnly`) for approver roles lacking `MAINTENANCE:EXECUTE`, and role-scoped post-closure return routing (`returnUrl` / `SCR-VIS-033` for `Maintenance Technician`; `SCR-MTTO-026` for `Maintenance Planner`, `Maintenance Supervisor`, `Reliability Engineer`). |
+| [TR-007](../../../requirements/common/TR-007.md) | `CMP-08`, `CMP-09` | Transactional Offline Sync Outbox queues completed technical closures and encrypted local media binaries during disconnected field operation with FIFO `X-Idempotency-Key` replay omitting stale `If-Match` ([TR-007-NFR-407](../../../requirements/common/TR-007.md#non-functional-requirements-nfr)). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-05`, `CMP-06` | Validates ISO 14224 hierarchical integrity linking Level 6 `EquipmentUnit` class taxonomy to Level 8 `MaintainableItem` failure records. |
-| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-08` | Real-time synchronization via WebSockets/SignalR for telemetry connection health and outbox reconciliation. |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-01`, `CMP-08`, `CMP-09` | Real-time synchronization via `/hubs/telemetry` (`EmergencyEvacuationBroadcast`, `LotoHeartbeatAck`) and `/hubs/operations` (`WorkOrderStatusChanged`). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01` to `CMP-10` | ANSI/ISA-101 HPHMI & ISO 9241-110 ergonomics: 90/10 neutral grayscale palette, Priority 4 diagnostic segregation, and `--dt-touch-target-mobile` gloved controls with `--dt-space-2` separation. |
 | [ADR-005](../../../architecture/adr/ADR-005.md) | `CMP-07`, `CMP-08`, `CMP-09` | Client-side sequential UUIDv7 identifier generation for offline-captured failure records and media attachments. |
-| [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-01`, `CMP-08` | Integration with Cryptographic Offline Lease protocol for disconnected field operations. |
+| [ADR-006](../../../architecture/adr/ADR-006.md) | `CMP-01`, `CMP-08`, `CMP-09` | Command-sourced FIFO outbox reconciliation (omitting stale `If-Match` on offline replay) and Cryptographic Offline Lease integration for disconnected field operations. |
 | [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-08`, `CMP-09` | Idempotency key (`X-Idempotency-Key`) generation attached to technical closure payloads to prevent duplicate commits. |
+| [ADR-008](../../../architecture/adr/ADR-008.md) | `CMP-07`, `CMP-08`, `CMP-09` | Two-phase offline media sync via Azure Blob SAS Valet Key (`POST /api/v1/maintenance/work-orders/{id}/media-upload-sas`): persist encrypted binary locally offline, upload via direct `PUT` on reconnect, and attach remote `FileUrl` to `SubmitTechnicalClosureCommand`. |
 

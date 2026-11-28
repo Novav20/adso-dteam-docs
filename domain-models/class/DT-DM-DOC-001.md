@@ -1,9 +1,9 @@
 ---
 code: DT-DM-DOC-001
-version: 1.7
-date: 2026-11-06
-status: Approved — Domain Conceptual Specification
-author: Juan David Julio Serrano
+version: 1.8
+date: 2026-11-13
+status: Approved
+author: Juan David Julio
 standard:
   - ISO 9001:2015
   - ISO 14224:2016
@@ -56,10 +56,10 @@ The approved capsules set provides strong guidance for LOTO, competencies, and s
 To reflect the Modular Monolith architecture in the persistence layer and avoid saturating the default schema (`public`), the system tables are distributed into dedicated schemas corresponding to the DDD Bounded Contexts:
 
 - `tax`: Taxonomy and assets according to ISO 14224 (`functional_locations`, `equipment_units`, `asset_installations`, `subunits`, `maintainable_items`, `equipment_classes`).
-- `mtto`: Maintenance and reliability management (`work_requests`, `work_orders`, `work_order_histories`, `maintenance_plans`, `failure_records`, `media_attachments`, `backlog_items`).
+- `mtto`: Maintenance and reliability management (`work_requests`, `work_orders`, `work_order_histories`, `maintenance_plans`, `maintenance_plan_crafts`, `failure_records`, `media_attachments`, `backlog_items`).
 - `inv`: Resource and supply control (`spare_parts`, `inventory_transactions`, `material_requirements`, `warehouses`, `locators`, `suppliers`).
 - `vis`: Digital twin and operational safety layers (`mesh_mappings`, `spatial_metadata`, `visual_layers`, `telemetry_signals`, `work_permits`, `isolation_points`, `work_order_isolations`).
-- `adm`: Perimeter security, IAM, and immutable audit (`users`, `roles`, `user_roles`, `role_permissions`, `auth_tokens`, `work_order_assignments`, `audit_logs`, `idempotency_logs`).
+- `adm`: Perimeter security, IAM, and immutable audit (`users`, `roles`, `user_roles`, `role_permissions`, `auth_tokens`, `work_order_assignments`, `audit_logs`, `audit_retention_partitions`, `idempotency_logs`, `password_policies`, `user_password_histories`).
 
 This segregation allows for:
 1. **Defense in Depth:** Granular assignment of SQL privileges (GRANT/REVOKE) per module to prevent unauthorized cross-access.
@@ -73,11 +73,12 @@ This segregation allows for:
 | FunctionalLocation | Aggregate Root | Owns the asset's location hierarchy and boundary definition. | ISO 14224 Chapters 8.1 and 8.2 |
 | EquipmentClass | Aggregate Root | Owns the asset class taxonomy and class-specific boundary semantics. | ISO 14224 Annex A |
 | EquipmentUnit | Aggregate Root | Owns the inventory record and the four-dimensional orthogonal status split (`operationalStatus`, `lifecycleStatus`, `maintenanceStatus`, `healthStatus`) for a physical asset. | ISO 14224 Chapter 9.1 and Table 5 |
-| AssetInstallation | Entity | Chronological mounting/dismounting record linking an `EquipmentUnit` to a `FunctionalLocation` slot (`ADR-008`). | ISO 14224 Installation History |
+| AssetInstallation | Entity | Chronological mounting/dismounting record linking an `EquipmentUnit` to a `FunctionalLocation` slot (`ADR-010`). | ISO 14224 Installation History |
 | Subunit | Entity | Depends on the parent asset's lifecycle and taxonomy context. | ISO 14224 Taxonomy Levels 6–9 |
 | MaintainableItem | Entity | Represents the lowest repairable level used for maintenance and failure analysis. | ISO 14224 Taxonomy Levels 8–9 |
 | WorkRequest | Aggregate Root | Initiates the maintenance intake flow and owns the RIME prioritization factors. | ISO 55000 risk and decision guidance; ADR 002 |
 | MaintenancePlan | Aggregate Root | Owns a planned maintenance schedule and its cadence. | ISO 14224 maintenance data guidance |
+| MaintenancePlanCraft | Entity | Associative 1..N technical craft requirement owned by a `MaintenancePlan` (`RequiredCrafts`). | ISO 55000 competency & resource planning |
 | WorkOrder | Aggregate Root | Owns execution, history, attachments, and downstream work records. | ISO 14224 event data; ISO 9000 record control |
 | MediaAttachment | Value Object | Pure evidence payload with no independent business identity. | ISO 9000 documented information and records |
 | WorkOrderHistory | Entity | Append-only lifecycle transition record for a work order. | ISO 9000 record immutability |
@@ -88,12 +89,13 @@ This segregation allows for:
 | Warehouse | Aggregate Root | Represents a stock location boundary with capacity rules. | ISO 55000 resource planning guidance |
 | Locator | Entity | Physical storage subdivision (Aisle/Rack/Bin) belonging to a Warehouse. | Warehouse Management best practice |
 | Supplier | Aggregate Root | Owns procurement identity, commercial context, and warranty logic. | ISO 9000 documented information |
-| MeshMapping | Entity | Graphical projection of the Sidecar pattern that uniquely links geometry (SVG or 3D mesh) with Level 6 (EquipmentUnit). Levels 7 and 8 do not possess individual geometric coordinates on the general blueprint. | ISO 9000 data vs. information separation |
+| MeshMapping | Entity | Canonical spatial mapping of the Sidecar pattern that uniquely links an asset's active spatial representation with Level 6 (EquipmentUnit). Levels 7 and 8 do not possess individual spatial coordinates on the general facility layout. | ISO 9000 data vs. information separation |
 | TelemetrySignal | Entity | Raw measurement record with a timestamp used for traceability and safety analytics. | ISO 9000 monitoring and measurement |
 | WorkPermit | Aggregate Root | Safety authorization boundary that validates the execution of specific work orders in the field. | ISO 55000 competence and LOTO guidance |
 | IsolationPoint | Entity | Permanent lockout point belonging to an EquipmentUnit, required to be isolated during work orders. | ISO 55000 LOTO guidance; ISO 14224 governance |
 | VisualLayer | Entity | Presentation record associated with a work order and visual state. | ISO 9000 record behavior |
-| SpatialMetadata | Value Object | Immutable descriptor of location and geometry for a visual artifact. | ISO 9000 data vs. information separation |
+| PlantLayoutRevision | Aggregate Root | Versioned spatial layout revision (MOC) bound to a Level 4 Functional Location, Blob Storage URI, and SHA-256 checksum. | ISO 55001 Management of Change |
+| SpatialMetadata | Value Object | Immutable descriptor of location and geometry for a visual artifact ([DT-ERD-DOC-001 §6.3–§6.5](../entity-relationship/DT-ERD-DOC-001.md#63-visspatial_metadataposition)). | ISO 9000 data vs. information separation |
 | User | Aggregate Root | Root of the account, password, lockout, and token lifecycle. | ISO 55000 audit governance; ISO 9000 audit control |
 | WorkOrderIsolation | Entity | Represents the state and temporal record of a safety lockout on an isolation point for a Work Order. | ISO 55000 LOTO guidance; ISO 14224 |
 | Role | Aggregate Root | Root of authorization semantics and permission grouping. | ISO 55000 competence and role guidance |
@@ -101,7 +103,10 @@ This segregation allows for:
 | AuthToken | Entity | Has a lifecycle of issuance, usage, and expiration, and must remain traceable back to its owner. | ISO 9000 traceability |
 | WorkOrderAssignment | Entity | Auditable relationship between a user/role and a work order. | ISO 55000 competence control |
 | AuditLog | Entity | Append-only audit record containing the before/after state and chained SHA-256 hashes. | ISO 9000 audit evidence and record immutability |
+| AuditRetentionPartition | Entity | Governs the 7-year quarterly audit partition lifecycle, cold-archive sealing, and cryptographic anchor hash continuity (`FR-350`, `FR-358`). | ISO 55001 Clause 7.5; ISO 27001 A.8.10 |
 | IdempotencyLog | Entity | Deduplication ledger preventing duplicate execution of retransmitted offline or API commands (`ADR-007`). | Distributed Systems Idempotency |
+| PasswordPolicy | Aggregate Root | Singleton security configuration governing NIST SP 800-63B password complexity, rotation age, non-reuse history window, and brute-force lockout thresholds (`adm.password_policies`). | NIST SP 800-63B; ISO/IEC 27001 A.5.17 |
+| UserPasswordHistory | Entity | Append-only credential hash history record owned by a `User` to enforce password non-reuse (`FR-266`, `adm.user_password_histories`). | NIST SP 800-63B; OWASP Password Storage |
 | MaterialRequirement | Entity | Represents future planning and consumption reservation of a spare part for a specific work order. | ISO 55000 resource planning |
 
 ## 4. Controlled Vocabulary
@@ -242,6 +247,7 @@ This segregation allows for:
 | CALENDAR_TIME | The plan is driven by elapsed calendar time. | |
 | OPERATING_HOURS | The plan is driven by accumulated operating hours. | |
 | CYCLES | The plan is driven by cycles or starts. | |
+| SENSOR_THRESHOLD | The plan is driven by process signal thresholds, distance (`KILOMETERS`), or physical wear (`WEAR_DEPTH_MM`) telemetry (`MTTO-023`). | Condition-Based (ISO 13374) |
 
 #### 4.14 MaintenancePlan.intervalUnit
 
@@ -290,6 +296,8 @@ This segregation allows for:
 | ELECTRONICS | Electronic boards, variable frequency drives, and digital components. | Internal Vocabulary (SMRP Practices) |
 | WELDING_FABRICATION | Welding, boilermaking, pipefitting, and structural repairs. | Internal Vocabulary (SMRP Practices) |
 | FACILITIES | Civil infrastructure, structures, lighting, and general services. | Internal Vocabulary (EAM Practices) |
+
+> **Persistence Mapping Note:** In the physical relational schema, multi-craft plans persist 1..N selections of this controlled vocabulary (`RequiredCrafts`) via the associative entity `MaintenancePlanCraft` (`mtto.maintenance_plan_crafts`).
 
 #### 4.18 MaintenancePlan.status
 
@@ -412,8 +420,8 @@ This segregation allows for:
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
-| MAPPED | The asset is correctly linked to its 3D representation in the twin. | Digital Linking |
-| UNMAPPED | The asset's 3D mesh is missing or unpositioned. | Incomplete Twin |
+| MAPPED | The asset is correctly linked to its active spatial representation in the twin. | Digital Linking |
+| UNMAPPED | The asset's spatial representation is missing or unpositioned. | Incomplete Twin |
 | SYNC_ERROR | Consistency or loading error between the graphics engine and the DB. | Synchronization Error |
 
 #### 4.30 TelemetrySignal.signalType
@@ -434,7 +442,7 @@ This segregation allows for:
 
 | Value | Meaning | Reference Norm / Concept |
 | --- | --- | --- |
-| VISIBLE | Layer actively displayed in the 3D viewer. | Rendered State |
+| VISIBLE | Layer actively displayed in the spatial viewer. | Rendered State |
 | HIDDEN | Layer temporarily hidden. | Rendered State |
 | GHOSTED | Layer visible with transparency to reveal interiors. | Rendered State |
 
@@ -537,11 +545,64 @@ This segregation allows for:
 | PLANNER | Planner who designs the order, assigns spare parts, and times. | Maintenance Engineering |
 | SAFETY_AUTHORITY | Authorized HSE / Isolation officer verifying high-risk permits and LOTO. | ISO 45001 Safety Governance |
 
-## 5. Physical Mapping and Data Dictionary
+#### 4.42 RolePermission.action
 
-For details on the physical mapping and the relational schema, see [DT-ERD-DOC-001](../entity-relationship/DT-ERD-DOC-001.md).
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| CREATE | Grants permission to create new domain records or drafts within the module. | RBAC Granular Authorization (`FR-248`) |
+| READ | Grants read-only view and query access to module records. | RBAC Granular Authorization (`FR-248`) |
+| EDIT | Grants permission to modify existing mutable records within the module. | RBAC Granular Authorization (`FR-248`) |
+| DELETE | Grants permission to soft-delete or logically deactivate eligible records. | RBAC Granular Authorization (`FR-248`) |
+| APPROVE | Grants supervisory authority to authorize permits, closures, or high-risk actions. | RBAC Granular Authorization (`FR-248`) |
+| AUDIT | Grants compliance and forensic inspection rights over module trails. | RBAC Granular Authorization (`FR-248`) |
+| EXECUTE | Grants field execution authority (e.g., LOTO isolations, work order completion). | RBAC Granular Authorization (`FR-248`) |
 
-## 6. Final Notes
+#### 4.43 AuditRetentionPartition.integrityStatus
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| VERIFIED_INTACT | Partition anchor hash matches the final sealed audit record within the retention window. | ISO 27001 A.8.16 / ADR-003 (`FR-350`) |
+| VERIFYING_IN_PROGRESS | Asynchronous cryptographic anchor verification is executing on the partition segment. | Forensic Integrity Check (`FR-351`) |
+| TAMPER_BREACH_DETECTED | Cryptographic anchor mismatch or missing chained link detected within the partition window. | Tamper Quarantine (`TR-003-NFR-377`) |
+
+#### 4.44 PlantLayoutRevision.status
+
+| Value | Meaning | Reference Norm / Concept |
+| --- | --- | --- |
+| DRAFT | Uploaded spatial layout revision awaiting MOC engineering validation and approval. | ISO 55001 Management of Change |
+| ACTIVE | Approved spatial layout revision currently serving as the authoritative plant representation for the Level 4 Functional Location. | ISO 55001 Clause 7.5 |
+| SUPERSEDED | Historical spatial layout revision replaced by a newer approved revision, retained for audit traceability. | ISO 9000 Record Retention |
+
+## 5. Domain Safety & Segregation of Duties (SoD) Constants
+
+This section serves as the canonical Single Source of Truth (SSoT) for domain-level Segregation of Duties rules and deterministic safety thresholds referenced across screen contracts, RBAC validation engines, and safety interlocks.
+
+### 5.1. Segregation of Duties (SoD) Matrix Rules (`TR-006`)
+
+Let $P_r \subseteq \text{RbacModule} \times \text{RbacAction}$ denote the permissions assigned to a role $r$, and let $P_{\text{effective}}(u) = \bigcup_{r \in R_u} P_r$ denote the multi-role permission union for user $u$ ([TR-006](../../requirements/common/TR-006.md#functional-requirements-fr)). Both single-role configuration (`Role.ValidateSoD()`) and user role assignment (`ISodValidationEngine`) unconditionally block any assignment matching a prohibited pair in $\mathcal{C}_{\text{SoD}}$ and record `AuditActionType.SECURITY_ALERT` on bypass attempts:
+
+| Rule Code | Prohibited Permission Pair | Domain Governance Rationale |
+| :--- | :--- | :--- |
+| **`SOD-SAF-01`** | `(SAFETY, CREATE/EXECUTE)` $\land$ `(SAFETY, APPROVE)` | **LOTO & Permit Self-Approval:** Prevents field executors or project engineers from autonomously approving their own high-risk Work Permits, Commissioning Gate releases, or LOTO overrides (`ISO 45001 §8.1`). |
+| **`SOD-INV-01`** | `(INVENTORY, CREATE/EXECUTE)` $\land$ `(INVENTORY, APPROVE/AUDIT)` | **Inventory Fraud Prevention:** Separates warehouse movement execution from supervisory stock write-off approval and independent financial reconciliation (`ISO 55001`). |
+| **`SOD-MTTO-01`** | `(MAINTENANCE, EXECUTE)` $\land$ `(MAINTENANCE, APPROVE)` | **Work Order Closure Governance:** Enforces strict separation between field technical completion (`COMPLETE`) and supervisory administrative closure (`CLOSED`). |
+| **`SOD-SYS-01`** | `(SYSTEM, CREATE/EDIT/DELETE)` $\land$ `(SYSTEM, AUDIT)` | **Audit Trail Independence (Non-Root Roles):** Separates IAM user/role administration from forensic WORM audit inspection and tamper verification (`ISO 27001 A.5.3`). |
+
+### 5.2. Operational Safety & Spatial Clearance Thresholds
+
+| Domain Mechanism | Parameter / Hazard Class | Canonical Threshold | Safety Invariant & Normative Basis |
+| :--- | :--- | :--- | :--- |
+| **Zero-Energy Verification** | Electrical Voltage (`V`) | `0.0 V` | `MeasuredValue > 0.0 V` triggers fail-safe negative interlock lock and evacuation broadcast (`OSHA 1910.147 §(d)(6)`). |
+| **Zero-Energy Verification** | Process Pressure (`P`) | `0.5 psig` | `MeasuredValue > 0.5 psig` blocks LOTO Zero-Energy confirmation and mechanical decoupling (`ISO 45001 §8.1`). |
+| **SIMOPS Clearance Radius** | `HOT_WORK` | `15 m` | Dynamic circular/corridor clearance radius around point or linear ignition sources (`IOGP 459 / API 2015`). |
+| **SIMOPS Clearance Radius** | `CONFINED_SPACE` | `13 m` | Dynamic containment clearance radius around confined-space permit zones (`IOGP 459 / API 2015`). |
+| **SIMOPS Clearance Radius** | Default (`ELECTRICAL`, `WORK_AT_HEIGHT`, `EXCAVATION`, `CHEMICAL`, `COLD_WORK`) | `5 m` | Default asset-envelope operational perimeter when specialized high-radius zones do not apply. |
+
+## 6. Physical Mapping and Data Dictionary
+
+For details on the physical mapping, relational schema, and `JSONB` payload contracts, see [DT-ERD-DOC-001](../entity-relationship/DT-ERD-DOC-001.md) and its Single Source of Truth in [DT-ERD-DOC-001 §6](../entity-relationship/DT-ERD-DOC-001.md#6-jsonb-payload-contracts).
+
+## 7. Final Notes
 
 - The domain model must remain the business source of truth until the physical ERD is generated.
 - Controlled vocabularies that are stable and of low cardinality can be enforced via CHECK constraints.

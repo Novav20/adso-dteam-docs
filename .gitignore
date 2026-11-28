@@ -26,6 +26,12 @@ reports/
 # Local prototype mirror (iterated in external workspace)
 ui-ux/prototype/
 
+# Local-only design reference images
+ui-ux/assets/design-sources/icons-ref/
+ui-ux/assets/tokens_penpot.json
+
 # OS specific files
 .DS_Store
 Thumbs.db
+
+*.dbdiagram

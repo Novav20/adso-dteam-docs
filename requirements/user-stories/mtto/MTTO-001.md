@@ -29,6 +29,8 @@ applicable_trs:
 | Mandatory fields validation | Given the Planner is authenticated. | When they attempt to save a plan without selecting an equipment unit or without defining the frequency. | Then the system reports the missing mandatory fields and does not generate the schedule. |
 | Traceability record | Given a recurring preventive plan has been successfully created. | When the user accesses the system's audit history. | Then they view the complete record with author, date and time, affected equipment unit, frequency, and configured method. |
 | Active plans list | Given there are active preventive plans. | When the Planner queries the list of plans. | Then the system presents the equipment unit, the maintainable item, the time frequency, the date of the next work order, and the status. |
+| Block plan creation for uncommissioned or unbounded equipment | Given an EquipmentUnit is in 'COMMISSIONING' or 'DECOMMISSIONED' status or lacks BoundaryStart/BoundaryEnd. | When the Planner attempts to create a MaintenancePlan for that EquipmentUnit. | Then the system blocks MaintenancePlan creation until the asset is commissioned with valid physical boundaries. |
+| Plan lifecycle Suspend and Archive with frequency warning | Given an active MaintenancePlan exists. | When the Planner invokes Suspend(), Archive(), or modifies the plan frequency. | Then Suspend() transitions the plan to 'INACTIVE', Archive() transitions it to 'ARCHIVED', and frequency changes emit an advisory warning. |
 
 ## Functional Requirements (FR)
 | ID | Description | ISO 25010 Category | Priority | Source |

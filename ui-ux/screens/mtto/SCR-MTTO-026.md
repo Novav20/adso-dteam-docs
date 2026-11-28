@@ -37,7 +37,7 @@ status: Stable
 
 ![SCR-MTTO-026 RIME Backlog Prioritization Screenshot](assets/SCR-MTTO-026-screenshot.png)
 
-> *Note: Production UI prototype capture illustrating the Archetype C desktop workstation layout, collapsible navigation sidebar, interactive KPI summary cards, flat multi-criteria filter toolbar with inline grouping trigger, dense prioritized data grid with locked column dimensions, persistent right dock with Blender N-panel-inspired vertical tabs, and sticky workload confirmation footer.*
+> *Figure 2.1 — Desktop Workstation (RIME Backlog Prioritization Dashboard): Illustrates the supervisory portal layout featuring the collapsible navigation sidebar (`CMP-01`), interactive KPI summary cards (`CMP-03`), flat multi-criteria filter toolbar with inline grouping trigger (`CMP-04`, `CMP-05`), dense prioritized data grid with locked column dimensions (`CMP-07`), persistent right dock with vertical tabs (`CMP-13` hosting `CMP-09` and `CMP-11`), and sticky workload confirmation footer (`CMP-12`).*
 
 ---
 
@@ -137,12 +137,12 @@ status: Stable
     - **Architectural Scope:** Mathematical and normative audit breakdown card ([FR-066](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)). Detailed in §5.1 and §5.3.1.
 
 11. **`CMP-11`: Chained Cryptographic Audit Pane**
-    - **Visual Role:** Integrated immutable audit log tab pane displaying chronological priority calibrations, timestamps, operator IDs, justifications, and SHA-256 integrity seals.
+    - **Visual Role:** Integrated immutable audit log tab pane displaying chronological priority calibrations, timestamps, operator IDs, justifications, SHA-256 integrity seals, and a `[View RIME Calibration Audit]` deep-link trigger to [SCR-ADM-032](../adm/SCR-ADM-032.md).
     - **Design Tokens:**
       - Surface: `--dt-color-surface-card`
       - Border: `--dt-color-border-subtle`
       - Hash Typography: `--dt-font-mono-data`
-    - **Architectural Scope:** Append-only cryptographic ledger tab hosted in `CMP-13` ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md)). Detailed in §5.2 and §5.3.1.
+    - **Architectural Scope:** Append-only cryptographic ledger tab hosted in `CMP-13` ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md)), supporting direct L2 $\to$ L2 drill-down into [SCR-ADM-032](../adm/SCR-ADM-032.md) (`?actionType=ADJUST&entityType=BacklogItem`) for enterprise-wide RIME override auditing. Detailed in §5.2 and §5.3.1.
 
 12. **`CMP-12`: Workload Confirmation & Export Bar**
     - **Visual Role:** Sticky bottom action bar tracking cumulative selected man-hours vs. weekly team capacity, hosting export triggers and the primary confirmation button.
@@ -242,6 +242,7 @@ sequenceDiagram
    * **Plan** ($20 \le \text{Score} \le 49$): Normal Category. Redundant indicator: Neutral steel square ($\blacksquare$, `--dt-color-text-body`, border `--dt-color-border-panel`).
    * **Wish** ($1 \le \text{Score} \le 19$): Low Category. Redundant indicator: Subdued slate circle ($\bullet$, `--dt-color-text-muted`, border `--dt-color-border-subtle`).
 4. **Initial Ordering:** The data grid is deterministically sorted descending by `PriorityScore`. If two items share identical scores, tie-breaking sorts ascending by `RequestDate` (FIFO order).
+5. **Real-Time Backlog & Work Order Synchronization ([TR-010](../../../requirements/common/TR-010.md), [DT-ARQ-CMP-DOC-001 §5](../../../architecture/views/DT-ARQ-CMP-DOC-001.md#5-signalr-hub-and-real-time-event-contract-registry-tr-010)):** The dashboard subscribes to SignalR hub `/hubs/operations` (`IOperationsClient`) handling `WorkOrderStatusChanged(WorkOrderTransitionEvent)` to update promoted backlog rows and recalculate capacity metrics in real time ($< 1\text{s}$).
 
 ---
 
@@ -284,9 +285,9 @@ sequenceDiagram
     Rail->>Rail: Updates preview score and priority band indicator
     Planner->>Rail: Enters mandatory technical justification (min 15 chars)
     Planner->>Rail: Clicks "Sign Cryptographic Calibration"
-    Rail->>Interop: ComputeSha256Digest(PreviousHash, AuditPayload)
+    Rail->>Interop: ComputePayloadSha256Digest(AuditPayload)
     Interop-->>Rail: Returns candidate PayloadHash
-    Rail->>API: POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class
+    Rail->>API: POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class (X-Idempotency-Key + If-Match)
     API-->>Rail: 200 OK (AdjustWorkClassResultDto with chained hash)
     Rail-->>Planner: Re-sorts backlog grid and updates KPI summary cards
 ```
@@ -294,9 +295,8 @@ sequenceDiagram
 1. **Trigger:** The Planner clicks a backlog row; the right dock opens with `CMP-09` displaying the selected request.
 2. **Latency Requirement:** The UI recalculates the new RIME score in $< 100\text{ms}$ ([NFR-070](../../../requirements/user-stories/mtto/MTTO-026.md#non-functional-requirements-nfr)), dynamically updating the preview badge.
 3. **Mandatory Justification:** The confirmation button remains disabled until the Planner enters a technical justification containing at least $15$ non-whitespace characters.
-4. **Cryptographic Integrity Hash ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md)):** Upon confirmation, the client dispatches an `AdjustWorkClassCommand`. The backend system atomically commits the work class change, rescores the backlog item, and appends an immutable record into the audit trail:
-   $$\text{PayloadHash} = \text{SHA-256}(\text{PreviousHash} \parallel \text{PlannerUserId} \parallel \text{WorkRequestId} \parallel \text{PreviousScore} \parallel \text{CalculatedScore} \parallel \text{TechnicalJustification} \parallel \text{TimestampUtc})$$
-5. **Re-sorting:** The backlog grid automatically re-sorts descending, moving the modified request to its new objective position without page reload.
+4. **Cryptographic Integrity Hash, Idempotency & Optimistic Concurrency ([TR-001](../../../requirements/common/TR-001.md), [ADR-003](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants), [ADR-007](../../../architecture/adr/ADR-007.md), [DT-ERD-DOC-001 §6.7](../../../domain-models/entity-relationship/DT-ERD-DOC-001.md#67-admaudit_logsprevious_state-and-new_state)):** Upon confirmation, the client dispatches `POST /api/v1/maintenance/backlog-items/{id}/adjust-work-class` with headers `X-Idempotency-Key: {uuidv7}` and `If-Match: "{ConcurrencyToken}"` (optimistic concurrency control per [DT-ARQ-DB-DOC-001 §3.12](../../../architecture/DT-ARQ-DB-DOC-001.md#312-optimistic-concurrency-control-via-postgresql-xmin-system-column)) carrying `AdjustWorkClassCommand` without a client-supplied `PreviousHash`. Inside the single-commit atomic transaction, the backend validates concurrency (returning HTTP 409 Conflict if concurrently modified), rescores the backlog item, resolves the predecessor chain hash and seals `TechnicalJustification` inside the immutable audit chain per [ADR-003 (Canonical Hash Formula)](../../../architecture/adr/ADR-003.md#canonical-hash-formula-audit-constants) and [DT-ARQ-DB-DOC-001 §3.9](../../../architecture/DT-ARQ-DB-DOC-001.md#39-cross-dbcontext-atomic-transactions-idbcontexttransaction-sharing).
+5. **Re-sorting & Enterprise Audit Handoff:** The backlog grid automatically re-sorts descending, moving the modified request to its new objective position without page reload. Inside `CMP-11`, clicking `[View RIME Calibration Audit]` navigates to [SCR-ADM-032](../adm/SCR-ADM-032.md) with query `?actionType=ADJUST&entityType=BacklogItem` ([DT-UI-NAV-DOC-001 §5](../../DT-UI-NAV-DOC-001.md#5-transition-matrix-and-access-control-rbac)).
 
 ---
 
@@ -307,7 +307,7 @@ To prevent unconfigured equipment criticality from artificially burying a critic
 1. **Fail-Safe Trigger:** When a work request references an equipment unit whose `AssetCriticality` is unconfigured in the master catalog.
 2. **Pessimistic Floor Assignment:** The system overrides the multiplicative calculation and assigns a **minimum floor score of 75** (placing the item in the *Schedule / High Category* band), regardless of how low the selected Work Class weight is.
 3. **Visual Highlighting:** The request row renders with an amber warning indicator in the criticality column (`Unconfigured / Floor: 75`), and the top header notification button (`CMP-02`) displays an active warning badge without shifting the vertical layout of the data grid.
-4. **Reliability Notification (`CMP-06`):** Clicking the header notification badge opens the Criticality Governance Dialog (`CMP-06`). From this dialog, the Planner can either click *"Filter Affected Request"* to isolate the unconfigured equipment row in the grid or click *"Dispatch Reliability Notification"* to send an automated governance task to the Reliability Engineer responsible for populating the asset's technical sheet.
+4. **Reliability Notification (`CMP-06`):** Clicking the header notification badge opens the Criticality Governance Dialog (`CMP-06`). From this dialog, the Planner can either click *"Filter Affected Request"* to isolate the unconfigured equipment row in the grid or click *"Dispatch Reliability Notification"* to call `POST /api/v1/maintenance/backlog-items/{id}/notify-reliability` (`DispatchReliabilityNotificationCommand` carrying `X-Idempotency-Key: {uuidv7}`), dispatching an automated governance task to the Reliability Engineer responsible for populating the asset's technical sheet.
 
 ---
 
@@ -323,8 +323,8 @@ To prevent unconfigured equipment criticality from artificially burying a critic
 
 #### 5.3.4. Workload Distribution Confirmation & Export (FR-069)
 
-1. **Workload Confirmation ([UC-MTTO-026 §3](../../../domain-models/use-cases/mtto/UC-MTTO-026.md#3-main-flow)):** The bottom bar `CMP-12` tracks the cumulative estimated wrench hours of selected backlog items against the weekly team capacity. Clicking "Confirm Weekly Distribution" approves the selected items for scheduling, updating their status to `APPROVED` and transitioning authorized requests to Preventive Scheduling ([SCR-MTTO-001](SCR-MTTO-001.md)) or Predictive Scheduling ([SCR-MTTO-023](SCR-MTTO-023.md)).
-2. **Data Portability ([FR-069](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)):** Clicking the unified "Export Data" dropdown menu in `CMP-12` generates structured export packages (`CSV` or `JSON` for the full view or current selection) containing all prioritized metadata, factor breakdowns, asset serial numbers, and material availability flags for external reporting.
+1. **Workload Confirmation ([UC-MTTO-026 §3](../../../domain-models/use-cases/mtto/UC-MTTO-026.md#3-main-flow)):** The bottom bar `CMP-12` tracks the cumulative estimated wrench hours of selected backlog items against the weekly team capacity. Clicking "Confirm Weekly Distribution" dispatches `POST /api/v1/maintenance/backlog-items/weekly-distribution` (`ConfirmWeeklyDistributionCommand` carrying `X-Idempotency-Key: {uuidv7}`), approving the selected items for scheduling, updating their status to `BacklogItemStatus.READY`, and transitioning authorized requests to Preventive Scheduling ([SCR-MTTO-001](SCR-MTTO-001.md)) or Predictive Scheduling ([SCR-MTTO-023](SCR-MTTO-023.md)).
+2. **Data Portability ([FR-069](../../../requirements/user-stories/mtto/MTTO-026.md#functional-requirements-fr)):** Clicking the unified "Export Data" dropdown menu in `CMP-12` calls `GET /api/v1/maintenance/backlog-items/export` (`BacklogExportFormat`: `CSV` or `JSON` for the full view or current selection), generating structured export packages containing all prioritized metadata, factor breakdowns, asset serial numbers, and material availability flags for external reporting.
 
 ---
 
@@ -372,21 +372,19 @@ public string? SelectedFunctionalLocationTag { get; set; }
 
 [Parameter, SupplyParameterFromQuery(Name = "band")]
 public string? InitialBandFilter { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "equipId")]
+public Guid? EquipmentUnitId { get; set; }
+
+[Parameter, SupplyParameterFromQuery(Name = "returnUrl")]
+public string? ReturnUrl { get; set; }
 ```
 
 #### 7.2.2. Subcomponent Parameter Contracts (`CMP-01` – `CMP-13`)
 
+Shared Shell Component (`CMP-01` `PortalSidebarNav.razor`, `ActiveRouteCode = "SCR-MTTO-026"`): see [DT-UI-CTR-001 §3.1](../../contracts/DT-UI-CTR-001.md#31-application-shell-navigation).
+
 ```csharp
-// CMP-01: PortalSidebarNav.razor
-[Parameter]
-public bool IsCollapsed { get; set; }
-
-[Parameter]
-public string ActiveRouteCode { get; set; } = "SCR-MTTO-026";
-
-[Parameter]
-public EventCallback<bool> OnCollapseToggled { get; set; }
-
 // CMP-02: BacklogHeaderBar.razor
 [Parameter]
 public required string OperatorBadgeCode { get; set; }
@@ -492,10 +490,10 @@ public required RimePriorityBand Band { get; set; }
 
 // MaterialAvailabilityIndicator.razor
 [Parameter]
-public required decimal EstimatedWrenchHours { get; set; }
+public decimal? EstimatedWrenchHours { get; set; }
 
 [Parameter]
-public required MaterialAvailabilityStatus MaterialStatus { get; set; }
+public string? MaterialStatus { get; set; }
 
 // CMP-13: BacklogWorkspaceDock.razor
 [Parameter]
@@ -534,6 +532,9 @@ public required RimeCalculationBreakdownDto Breakdown { get; set; }
 [Parameter]
 public required IReadOnlyList<ChainedAuditEntryDto> AuditEntries { get; set; }
 
+[Parameter]
+public EventCallback OnNavigateRimeAuditTrail { get; set; }
+
 // CMP-12: WorkloadConfirmationFooter.razor
 [Parameter]
 public int SelectedCount { get; set; }
@@ -553,31 +554,40 @@ public EventCallback<BacklogExportFormat> OnExportRequested { get; set; }
 
 #### 7.2.3. Data Transfer Objects (DTOs) & Commands
 
+Shared Domain Enums (`BacklogItemStatus`, `WorkClassCode` [weights `1..10`]): see [DT-DM-DOC-001 §4](../../../domain-models/class/DT-DM-DOC-001.md#4-controlled-vocabulary).
+
 ```csharp
+/// <summary>
+/// RIME backlog row projection. <see cref="MaintainableItemName"/>, <see cref="EstimatedWrenchHours"/>,
+/// <see cref="EstimatedCost"/>, and <see cref="MaterialStatus"/> are derived via LEFT JOIN from the linked
+/// <c>WorkOrder</c>, <c>MaintenancePlan</c>, and <c>MaterialRequirement</c> records when present, and are
+/// <c>null</c> for unpromoted <c>NEW</c> <c>WorkRequest</c> entries.
+/// </summary>
 public record BacklogItemDto
 {
     public required Guid Id { get; init; }
     public required Guid WorkRequestId { get; init; }
     public required Guid EquipmentUnitId { get; init; }
-    public required Guid FunctionalLocationId { get; init; }
+    public Guid? FunctionalLocationId { get; init; }
     public required string WorkRequestNumber { get; init; }
     public required string Description { get; init; }
-    public required string FunctionalLocationTag { get; init; }
+    public string? FunctionalLocationTag { get; init; }
     public required string FunctionalLocationName { get; init; }
     public required string EquipmentTag { get; init; }
     public required string EquipmentSerialNumber { get; init; }
     public required string EquipmentClass { get; init; }
-    public required string MaintainableItemName { get; init; }
+    public string? MaintainableItemName { get; init; }
     public required WorkClassCode WorkClass { get; init; }
     public int? AssetCriticality { get; init; }
     public required int PriorityScore { get; init; }
     public required RimePriorityBand PriorityBand { get; init; }
     public bool IsFailSafeApplied { get; init; }
-    public required decimal EstimatedWrenchHours { get; init; }
-    public required decimal EstimatedCost { get; init; }
-    public required MaterialAvailabilityStatus MaterialStatus { get; init; }
+    public decimal? EstimatedWrenchHours { get; init; }
+    public decimal? EstimatedCost { get; init; }
+    public string? MaterialStatus { get; init; }
     public required DateTimeOffset RequestDate { get; init; }
     public required BacklogItemStatus Status { get; init; }
+    public required uint ConcurrencyToken { get; init; }
 }
 
 public record BacklogSummaryMetricsDto
@@ -615,6 +625,9 @@ public record ChainedAuditEntryDto
     public required string PayloadHash { get; init; }
 }
 
+/// <summary>
+/// Work class recalibration payload; TechnicalJustification persists inside the AuditLog NewState JSONB envelope per DT-ERD-DOC-001 §6.7, and <c>audit_logs.previous_hash</c> is resolved and chained server-side pre-commit by <c>AuditSaveChangesInterceptor</c> (DT-ARQ-DB-DOC-001 §3.9, never client-supplied).
+/// </summary>
 public record AdjustWorkClassCommand
 {
     public required Guid WorkRequestId { get; init; }
@@ -622,29 +635,39 @@ public record AdjustWorkClassCommand
     public required int CalculatedScore { get; init; }
     public required string TechnicalJustification { get; init; }
     public required Guid PlannerUserId { get; init; }
-    public required string PreviousHash { get; init; }
+    /// <summary>
+    /// Binds to the <c>WorkRequest</c> (<c>work_requests</c>) <c>xmin</c> optimistic concurrency token while <c>BacklogItem</c> (<c>backlog_items</c>) is updated atomically as a derived projection.
+    /// </summary>
+    public required uint ConcurrencyToken { get; init; }
+}
+
+public record ConfirmWeeklyDistributionCommand
+{
+    public required IReadOnlyList<Guid> BacklogItemIds { get; init; }
+    public required decimal PlannedWrenchHours { get; init; }
+    public required decimal WeeklyCapacityHours { get; init; }
+    public required Guid PlannerUserId { get; init; }
+}
+
+public record DispatchReliabilityNotificationCommand
+{
+    public required Guid BacklogItemId { get; init; }
+    public required Guid EquipmentUnitId { get; init; }
+    public required string EquipmentTag { get; init; }
+    public required Guid PlannerUserId { get; init; }
+    public string? Notes { get; init; }
 }
 
 public record RimeCalculationBreakdownDto
 {
     public required Guid WorkRequestId { get; init; }
     public required string ActiveStrategyName { get; init; }
-    public required int AssetCriticality { get; init; }
+    public int? AssetCriticality { get; init; }
     public required int WorkClassWeight { get; init; }
     public required int RawScore { get; init; }
     public required int FinalScore { get; init; }
     public bool IsFailSafeApplied { get; init; }
     public required string ApplicableStandardReference { get; init; }
-}
-
-/// <summary>
-/// Controlled backlog prioritization lifecycle vocabulary per DT-DM-DOC-001 §4.8.
-/// </summary>
-public enum BacklogItemStatus
-{
-    PENDING,
-    READY,
-    DEFERRED
 }
 
 /// <summary>
@@ -659,24 +682,8 @@ public enum RimePriorityBand
 }
 
 /// <summary>
-/// Controlled RIME Work Class weights (1..10) per DT-DM-DOC-001 §4.24.
-/// </summary>
-public enum WorkClassCode
-{
-    SAFETY_ENVIRONMENTAL_EMERGENCY = 10,
-    PRODUCTION_SHUTDOWN = 9,
-    HIGH_PRIORITY_PROCESS = 8,
-    REGULATED_PREVENTIVE = 7,
-    SYSTEMATIC_PREVENTIVE = 6,
-    PREDICTIVE_MAINTENANCE = 5,
-    NON_CRITICAL_CORRECTIVE = 4,
-    ENGINEERING_MODIFICATION = 3,
-    AESTHETIC_ORDER_CLEANLINESS = 2,
-    OPERATIONAL_CONVENIENCE = 1
-}
-
-/// <summary>
 /// Consolidated warehouse spare part availability status for backlog planning.
+/// Defines the canonical string literals populated in <see cref="BacklogItemDto.MaterialStatus"/> when non-null.
 /// </summary>
 public enum MaterialAvailabilityStatus
 {
@@ -752,6 +759,8 @@ public enum BacklogDockTab
 | [TR-005](../../../requirements/common/TR-005.md) | `CMP-07`, `CMP-09`, `CMP-11` | Enforces TLS/HTTPS encryption in transit across all backlog queries, priority recalibration commands, and audit log reads. |
 | [TR-006](../../../requirements/common/TR-006.md) | `CMP-01`, `CMP-02`, `CMP-09` | Enforces RBAC permissions (`Maintenance Planner`, `Maintenance Supervisor`, `Reliability Engineer`) and Supervisor-only manual order locks (`NFR-062`). |
 | [TR-008](../../../requirements/common/TR-008.md) | `CMP-04`, `CMP-07`, `CMP-09` | Enforces ISO 14224 hierarchical integrity across Functional Location filters (`Levels 1 to 5`), `EquipmentUnit` (`Level 6`), and `MaintainableItem` (`Level 8`). |
+| [TR-010](../../../requirements/common/TR-010.md) | `CMP-07`, `CMP-12` | Subscribes to `/hubs/operations` (`WorkOrderStatusChanged`) to synchronize backlog promotions in real time ($< 1\text{s}$). |
 | [TR-011](../../../requirements/common/TR-011.md) | `CMP-01`..`CMP-13` | Strict adherence to ANSI/ISA-101 HPHMI: 90/10 neutral grayscale canvas, saturated color reserved for alarms/bands. |
 | [ADR-002](../../../architecture/adr/ADR-002.md) | `CMP-07`, `CMP-10` | Encapsulates deterministic RIME calculation and fail-safe floor (`75`) under Strategy Pattern (`IRimeCalculator`). |
 | [ADR-003](../../../architecture/adr/ADR-003.md) | `CMP-09`, `CMP-11` | Tamper-evident cryptographic SHA-256 hash chaining (`PreviousHash` $\to$ `PayloadHash`) on priority calibration records. |
+| [ADR-007](../../../architecture/adr/ADR-007.md) | `CMP-09` | Idempotent Work Class recalibration dispatch via `X-Idempotency-Key` header. |

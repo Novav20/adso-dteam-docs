@@ -27,6 +27,10 @@ applicable_trs:
 |---|---|---|---|
 | RIME score calculation | Given an Equipment Unit has a Criticality index of 8. | When a Work Request is created with a Work Class index of 5. | Then the system automatically assigns a RIME priority score of 40 to the task. |
 | Backlog sorting | Given the programming staff queries the pending tasks board. | When the system loads the list of work orders. | Then the interventions with the highest RIME Score (scale 1 to 100) automatically appear at the top section of the backlog. |
+| WorkClass manual override requiring audit justification | Given a WorkOrder has a computed RIME priority score. | When the Planner manually overrides the WorkClass or priority. | Then the system requires a mandatory AuditJustification and writes a SHA-256 chained AuditLog entry. |
+| Unconfigured Criticality fail-safe default scoring | Given a WorkOrder targets an asset whose Criticality is not yet configured. | When the RIME engine calculates the backlog score. | Then the system applies the fail-safe RIME floor max(C_default * W, 75) so urgent work is not deprioritized. |
+| Master criticality update triggering automatic backlog rescore | Given an EquipmentUnit's master Criticality rating is updated. | When the updated Criticality is persisted. | Then the system automatically recalculates RIME scores for affected open WorkOrders and notifies the Planner. |
+| Multi-WO batching recommendation and ISA-101 4-band classification | Given multiple open WorkOrders share the same Functional Location or isolation boundary. | When the Planner reviews the prioritized backlog. | Then the system recommends batching those WorkOrders and classifies priorities into the 4 ISA-101 priority bands. |
 
 ## Functional Requirements (FR)
 | ID | Description | ISO 25010 Category | Priority | Source |

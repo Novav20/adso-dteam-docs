@@ -4,7 +4,8 @@ name: Validate and Activate Master Asset (Commissioning)
 module: inv
 user_story: INV-007
 primary_actor: Reliability Engineer
-secondary_actors: []
+secondary_actors:
+  - Maintenance Supervisor
 ---
 
 # UC-INV-007: Validate and Activate Master Asset (Commissioning)
@@ -13,7 +14,7 @@ secondary_actors: []
 Validates and formally approves the technical inclusion of a physical asset (Equipment Unit, Level 6) into the operational ecosystem. It enforces strict completeness checks (Commissioning Gate), ensuring that critical parameters such as LOTO procedures, physical boundaries, and design attributes are fully documented before the asset is exposed to the Maintenance (MTTO) and Digital Twin (VIS) modules.
 
 ## 2. Preconditions
-* The Engineer is authenticated in the system with the "Reliability Engineer" role [TR-006](../../../requirements/common/TR-006.md).
+* The Reviewer is authenticated in the system with the `"Reliability Engineer"` or `"Maintenance Supervisor"` role ([TR-006](../../../requirements/common/TR-006.md)); `"Project Engineer"` self-approval of preliminary records is prohibited under Segregation of Duties.
 * The asset is registered in the catalog in a preliminary/draft status.
 * The asset has a Functional Location defined in the system.
 
@@ -57,6 +58,19 @@ In step 7, if the System detects that mandatory fields or security configuration
 * The immutability of the decision (approval or rejection) is preserved through the cryptographic log.
 
 ## 6. Associated Requirements
-* **Functional Requirements:** FR-137, FR-138, FR-139, FR-140, FR-141
-* **Non-Functional Requirements:** NFR-144, NFR-145
-* **Transversal Requirements:** [TR-001](../../../requirements/common/TR-001.md), [TR-008](../../../requirements/common/TR-008.md), [TR-011](../../../requirements/common/TR-011.md)
+* **Functional Requirements:**
+  * [FR-137](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr): Consolidated list of Equipment Units pending technical validation with urgency and waiting-time indicators.
+  * [FR-138](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr): Redundant coding highlighting missing mandatory attributes by Equipment Class.
+  * [FR-139](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr): Controlled editing of technical attributes during the commissioning validation workflow.
+  * [FR-140](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr): Immediate system-wide exposure of approved Equipment Unit master data to MTTO and VIS modules.
+  * [FR-141](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr): Mandatory documented technical rejection flow for non-compliant assets.
+  * [FR-142](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr): Progressive post-activation enrichment of technical performance parameters and operating limits.
+  * [FR-143](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr): Generation of commissioning status audit reports supporting ISO 55001 Clause 9.2.
+  * [FR-144](../../../requirements/user-stories/inv/INV-007.md#functional-requirements-fr): Strict validation of mandatory documentation and safety prerequisites prior to operational status activation.
+* **Non-Functional Requirements:**
+  * [NFR-145](../../../requirements/user-stories/inv/INV-007.md#non-functional-requirements-nfr): Cross-module ACID consistency immediately following Equipment Unit commissioning.
+  * [NFR-146](../../../requirements/user-stories/inv/INV-007.md#non-functional-requirements-nfr): Pending-commissioning queue query response time under 3 seconds.
+  * [NFR-147](../../../requirements/user-stories/inv/INV-007.md#non-functional-requirements-nfr): Non-blocking notification dispatch for commissioning review outcomes.
+* **Transversal Requirements:** [TR-001](../../../requirements/common/TR-001.md), [TR-005](../../../requirements/common/TR-005.md), [TR-006](../../../requirements/common/TR-006.md), [TR-008](../../../requirements/common/TR-008.md), [TR-011](../../../requirements/common/TR-011.md)
+* **Architectural Decision Records:** [ADR-003](../../../architecture/adr/ADR-003.md), [ADR-005](../../../architecture/adr/ADR-005.md), [ADR-007](../../../architecture/adr/ADR-007.md), [ADR-010](../../../architecture/adr/ADR-010.md)
+* **Related Screens:** [SCR-INV-005](../../../ui-ux/screens/inv/SCR-INV-005.md) (Commissioning Gate Mode)
