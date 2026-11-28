@@ -14,7 +14,7 @@ From the root of the `adso-dteam-docs` repository:
 
 ```bash
 # Generates the clean L1 plot plan with automatic validation
-python3 -m scripts.plot_plan_generator.cli ui-ux/prototype/assets/tfa_terminal_plot_plan.svg --validate
+python3 -m scripts.plot_plan_generator.cli assets/tfa_terminal_plot_plan.svg --validate
 ```
 
 ### 2. Multi-Zoom Generation (`--all-zooms`)
@@ -22,7 +22,7 @@ python3 -m scripts.plot_plan_generator.cli ui-ux/prototype/assets/tfa_terminal_p
 Concurrently generates macro, intermediate, and micro files (`tfa_terminal_plot_plan.svg`, `_l2.svg`, `_l3.svg`):
 
 ```bash
-python3 -m scripts.plot_plan_generator.cli ui-ux/prototype/assets/tfa_terminal_plot_plan.svg --all-zooms --validate
+python3 -m scripts.plot_plan_generator.cli assets/tfa_terminal_plot_plan.svg --all-zooms --validate
 ```
 
 ### 3. HPHMI Dark Mode (`--theme=dark`)

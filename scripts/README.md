@@ -135,3 +135,14 @@ Audits WCAG 2.1 / ISO 9241-110 contrast ratios for design tokens in `ui-ux/DT-UI
 python scripts/verify_wcag_contrast.py
 ```
 
+---
+
+## 📦 `import_notion_backup.py`
+
+Cross-platform (Windows & Linux) Notion export importer. Extracts nested `.zip` archives from `scripts/temp/`, maps `*_all.csv` files into `requirements/data/`, and cleans up processed archives:
+
+```bash
+python scripts/import_notion_backup.py
+python scripts/import_notion_backup.py --dry-run
+```
+
